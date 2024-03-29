@@ -12,6 +12,7 @@ import google.generativeai as genai
 load_dotenv()
 
 AI_STUDIO_API_KEY = os.getenv("AI_STUDIO_API_KEY", "")
+MODEL_NAME = "gemini-1.0-pro"
 
 
 @click.group()
@@ -22,27 +23,76 @@ def cli():
 @cli.command()
 def listar_modelos():
     """Listar modelos"""
-    click.echo("Listar modelos AI Studio")
+    click.echo("Listar los modelos")
 
+    # Cargar API key
     genai.configure(api_key=AI_STUDIO_API_KEY)
+
+    # Listar los modelos
     for m in genai.list_models():
         if "generateContent" in m.supported_generation_methods:
-            print(m.name)
-
-    click.echo()
+            click.echo(m.name)
 
 
 @cli.command()
-@click.argument("input_text", type=str)
-def preguntar(input_text):
+@click.argument("pregunta", type=str)
+def preguntar(pregunta):
     """Preguntar"""
-    click.echo("Preguntar a AI Studio")
+    click.echo("Preguntar")
 
+    # Cargar API key
     genai.configure(api_key=AI_STUDIO_API_KEY)
-    model = genai.GenerativeModel("gemini-1.0-pro")
-    response = model.generate_content(input_text)
-    click.echo(response.text)
+
+    # Crear modelo
+    model = genai.GenerativeModel(MODEL_NAME)
+
+    # Generar contenido
+    response = model.generate_content(pregunta)
+
+    # Mostrar respuesta
+    click.echo(click.style(f"Respuesta: {response.text}", fg="blue"))
+
+    # Mostrar el feedback del prompt
+    # click.echo(click.style(f"Feedback: {response.prompt_feedback}", fg="green"))
+
+
+@cli.command()
+@click.option("--saludo", type=str, default="")
+def chatear(saludo):
+    """Chatear"""
+    click.echo("Chatear")
+
+    # Cargar API key
+    genai.configure(api_key=AI_STUDIO_API_KEY)
+
+    # Crear modelo
+    model = genai.GenerativeModel(MODEL_NAME)
+
+    # Inicializar el chat
+    chat = model.start_chat()
+
+    # Si saludo no está vacío, mostrar la respuesta
+    if saludo != "":
+        response = chat.send_message(saludo)
+        click.echo(click.style(f"Gemini: {response.text}", fg="blue"))
+
+    # Bucle para preguntar y mostrar la respuesta, terminar con "salir"
+    while True:
+        # Leer la pregunta
+        pregunta = input("Tú: ")
+
+        # Salir
+        if pregunta == "salir":
+            break
+
+        # Enviar y mostrar el mensaje
+        response = chat.send_message(pregunta)
+        click.echo(click.style(f"Gemini: {response.text}", fg="blue"))
+
+    # Mostrar un mensaje de despedida
+    click.echo("Adiós")
 
 
 cli.add_command(listar_modelos)
 cli.add_command(preguntar)
+cli.add_command(chatear)
