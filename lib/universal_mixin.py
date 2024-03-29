@@ -1,12 +1,13 @@
 """
 Universal Mixin
 """
+
 from hashids import Hashids
 from sqlalchemy import Column, DateTime, String
 from sqlalchemy.sql import func
 
 from config.settings import get_settings
-from perseo.extensions import database
+from hercules.extensions import database
 
 settings = get_settings()
 hashids = Hashids(salt=settings.SALT, min_length=8)

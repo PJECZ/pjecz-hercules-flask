@@ -62,7 +62,7 @@
     "scope": "python",
     "prefix": "fforms_class_selectfield",
     "body": [
-      "from perseo.blueprints.${1:rel_plural}.models import ${2:RelClase}",
+      "from hercules.blueprints.${1:rel_plural}.models import ${2:RelClase}",
       "",
       "class ${3:Clase}Form(FlaskForm):",
       "\t\"\"\" Formulario ${4:Clases} \"\"\"",

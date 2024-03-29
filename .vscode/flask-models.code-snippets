@@ -11,7 +11,7 @@
       "",
       "from lib.universal_mixin import UniversalMixin",
       "",
-      "from perseo.extensions import database",
+      "from hercules.extensions import database",
       "",
       "",
       "class ${2:Clase}(database.Model, UniversalMixin):",

@@ -1,6 +1,7 @@
 """
 Alimentar usuarios
 """
+
 import csv
 import sys
 from datetime import datetime
@@ -10,9 +11,9 @@ import click
 
 from lib.pwgen import generar_contrasena
 from lib.safe_string import safe_string
-from perseo.blueprints.autoridades.models import Autoridad
-from perseo.blueprints.usuarios.models import Usuario
-from perseo.extensions import pwd_context
+from hercules.blueprints.autoridades.models import Autoridad
+from hercules.blueprints.usuarios.models import Usuario
+from hercules.extensions import pwd_context
 
 USUARIOS_CSV = "seed/usuarios_roles.csv"
 

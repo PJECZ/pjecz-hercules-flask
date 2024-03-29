@@ -1,6 +1,7 @@
 """
 Alimentar permisos
 """
+
 import csv
 import sys
 from pathlib import Path
@@ -8,9 +9,9 @@ from pathlib import Path
 import click
 
 from lib.safe_string import safe_string
-from perseo.blueprints.modulos.models import Modulo
-from perseo.blueprints.permisos.models import Permiso
-from perseo.blueprints.roles.models import Rol
+from hercules.blueprints.modulos.models import Modulo
+from hercules.blueprints.permisos.models import Permiso
+from hercules.blueprints.roles.models import Rol
 
 PERMISOS_CSV = "seed/roles_permisos.csv"
 

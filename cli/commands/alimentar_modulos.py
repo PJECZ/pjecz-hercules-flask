@@ -1,6 +1,7 @@
 """
 Alimentar módulos
 """
+
 import csv
 import sys
 from pathlib import Path
@@ -8,7 +9,7 @@ from pathlib import Path
 import click
 
 from lib.safe_string import safe_string
-from perseo.blueprints.modulos.models import Modulo
+from hercules.blueprints.modulos.models import Modulo
 
 MODULOS_CSV = "seed/modulos.csv"
 

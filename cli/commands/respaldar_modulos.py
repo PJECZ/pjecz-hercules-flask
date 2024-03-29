@@ -1,12 +1,13 @@
 """
 Respaldar Modulos
 """
+
 import csv
 from pathlib import Path
 
 import click
 
-from perseo.blueprints.modulos.models import Modulo
+from hercules.blueprints.modulos.models import Modulo
 
 MODULOS_CSV = "seed/modulos.csv"
 

@@ -1,6 +1,7 @@
 """
 Alimentar usuarios-roles
 """
+
 import csv
 import sys
 from pathlib import Path
@@ -8,9 +9,9 @@ from pathlib import Path
 import click
 
 from lib.safe_string import safe_string
-from perseo.blueprints.roles.models import Rol
-from perseo.blueprints.usuarios.models import Usuario
-from perseo.blueprints.usuarios_roles.models import UsuarioRol
+from hercules.blueprints.roles.models import Rol
+from hercules.blueprints.usuarios.models import Usuario
+from hercules.blueprints.usuarios_roles.models import UsuarioRol
 
 USUARIOS_ROLES_CSV = "seed/usuarios_roles.csv"
 

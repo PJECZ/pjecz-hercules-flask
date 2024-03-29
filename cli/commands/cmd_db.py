@@ -20,17 +20,17 @@ from cli.commands.respaldar_distritos import respaldar_distritos
 from cli.commands.respaldar_modulos import respaldar_modulos
 from cli.commands.respaldar_roles_permisos import respaldar_roles_permisos
 from cli.commands.respaldar_usuarios_roles import respaldar_usuarios_roles
-from perseo.app import create_app
-from perseo.blueprints.autoridades.models import Autoridad
-from perseo.blueprints.bitacoras.models import Bitacora
-from perseo.blueprints.distritos.models import Distrito
-from perseo.blueprints.entradas_salidas.models import EntradaSalida
-from perseo.blueprints.modulos.models import Modulo
-from perseo.blueprints.permisos.models import Permiso
-from perseo.blueprints.roles.models import Rol
-from perseo.blueprints.usuarios.models import Usuario
-from perseo.blueprints.usuarios_roles.models import UsuarioRol
-from perseo.extensions import database
+from hercules.app import create_app
+from hercules.blueprints.autoridades.models import Autoridad
+from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.distritos.models import Distrito
+from hercules.blueprints.entradas_salidas.models import EntradaSalida
+from hercules.blueprints.modulos.models import Modulo
+from hercules.blueprints.permisos.models import Permiso
+from hercules.blueprints.roles.models import Rol
+from hercules.blueprints.usuarios.models import Usuario
+from hercules.blueprints.usuarios_roles.models import UsuarioRol
+from hercules.extensions import database
 
 app = create_app()
 app.app_context().push()

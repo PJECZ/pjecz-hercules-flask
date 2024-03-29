@@ -1,6 +1,7 @@
 """
 Alimentar roles
 """
+
 import csv
 import sys
 from pathlib import Path
@@ -8,7 +9,7 @@ from pathlib import Path
 import click
 
 from lib.safe_string import safe_string
-from perseo.blueprints.roles.models import Rol
+from hercules.blueprints.roles.models import Rol
 
 ROLES_CSV = "seed/roles_permisos.csv"
 

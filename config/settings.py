@@ -3,6 +3,7 @@ Settings
 
 Para produccion, configure los siguientes secretos en Google Cloud Secret Manager:
 
+- pjecz_hercules_ai_studio_api_key
 - pjecz_hercules_cloud_storage_deposito
 - pjecz_hercules_host
 - pjecz_hercules_redis_url
@@ -13,6 +14,7 @@ Para produccion, configure los siguientes secretos en Google Cloud Secret Manage
 
 Para desarrollo, debe crear un archivo .env con las variables de entorno:
 
+- AI_STUDIO_API_KEY
 - CLOUD_STORAGE_DEPOSITO
 - HOST
 - REDIS_URL
@@ -59,6 +61,7 @@ def get_secret(secret_id: str) -> str:
 class Settings(BaseSettings):
     """Settings"""
 
+    AI_STUDIO_API_KEY: str = get_secret("ai_studio_api_key")
     CLOUD_STORAGE_DEPOSITO: str = get_secret("cloud_storage_deposito")
     HOST: str = get_secret("host")
     REDIS_URL: str = get_secret("redis_url")

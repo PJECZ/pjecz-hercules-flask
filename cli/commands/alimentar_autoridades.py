@@ -1,6 +1,7 @@
 """
 Alimentar autoriades
 """
+
 import csv
 import sys
 from pathlib import Path
@@ -8,8 +9,8 @@ from pathlib import Path
 import click
 
 from lib.safe_string import safe_clave, safe_string
-from perseo.blueprints.autoridades.models import Autoridad
-from perseo.blueprints.distritos.models import Distrito
+from hercules.blueprints.autoridades.models import Autoridad
+from hercules.blueprints.distritos.models import Distrito
 
 AUTORIDADES_CSV = "seed/autoridades.csv"
 

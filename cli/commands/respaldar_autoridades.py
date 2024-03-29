@@ -1,12 +1,13 @@
 """
 Respaldar Autoridades
 """
+
 import csv
 from pathlib import Path
 
 import click
 
-from perseo.blueprints.autoridades.models import Autoridad
+from hercules.blueprints.autoridades.models import Autoridad
 
 AUTORIDADES_CSV = "seed/autoridades.csv"
 

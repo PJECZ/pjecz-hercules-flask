@@ -1,15 +1,16 @@
 """
 CLI usuarios
 """
+
 import sys
 from datetime import datetime, timedelta
 
 import click
 
 from lib.pwgen import generar_api_key
-from perseo.app import create_app
-from perseo.blueprints.usuarios.models import Usuario
-from perseo.extensions import database, pwd_context
+from hercules.app import create_app
+from hercules.blueprints.usuarios.models import Usuario
+from hercules.extensions import database, pwd_context
 
 app = create_app()
 app.app_context().push()

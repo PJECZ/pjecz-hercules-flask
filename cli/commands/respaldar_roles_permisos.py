@@ -1,13 +1,14 @@
 """
 Respaldar Roles-Permisos
 """
+
 import csv
 from pathlib import Path
 
 import click
 
-from perseo.blueprints.modulos.models import Modulo
-from perseo.blueprints.roles.models import Rol
+from hercules.blueprints.modulos.models import Modulo
+from hercules.blueprints.roles.models import Rol
 
 ROLES_PERMISOS_CSV = "seed/roles_permisos.csv"
 

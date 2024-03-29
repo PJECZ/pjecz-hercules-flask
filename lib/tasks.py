@@ -4,7 +4,7 @@ Tareas en el fondo
 
 from rq import get_current_job
 
-from perseo.blueprints.tareas.models import Tarea
+from hercules.blueprints.tareas.models import Tarea
 
 
 def set_task_progress(progress: int, message: str, archivo: str = "", url: str = "") -> None:
