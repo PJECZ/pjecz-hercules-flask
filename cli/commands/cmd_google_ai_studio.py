@@ -71,7 +71,7 @@ def chatear(saludo):
     # Inicializar el chat
     chat = model.start_chat()
 
-    # Si saludo no está vacío, mostrar la respuesta
+    # Si saludo no está vacío, enviar y mostrar la respuesta
     if saludo != "":
         response = chat.send_message(saludo)
         click.echo(click.style(f"Gemini: {response.text}", fg="blue"))
@@ -85,7 +85,7 @@ def chatear(saludo):
         if pregunta == "salir":
             break
 
-        # Enviar y mostrar el mensaje
+        # Enviar y mostrar la respuesta
         response = chat.send_message(pregunta)
         click.echo(click.style(f"Gemini: {response.text}", fg="blue"))
 
