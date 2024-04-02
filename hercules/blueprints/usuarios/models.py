@@ -30,8 +30,8 @@ class Usuario(database.Model, UserMixin, UniversalMixin):
     # Columnas
     email = Column(String(256), nullable=False, unique=True, index=True)
     nombres = Column(String(256), nullable=False)
-    apellido_primero = Column(String(256), nullable=False)
-    apellido_segundo = Column(String(256))
+    apellido_paterno = Column(String(256), nullable=False)
+    apellido_materno = Column(String(256))
     curp = Column(String(18), default="", server_default="")
     puesto = Column(String(256), default="", server_default="")
 
@@ -53,7 +53,7 @@ class Usuario(database.Model, UserMixin, UniversalMixin):
     @property
     def nombre(self):
         """Junta nombres, apellido primero y apellido segundo"""
-        return self.nombres + " " + self.apellido_primero + " " + self.apellido_segundo
+        return self.nombres + " " + self.apellido_paterno + " " + self.apellido_materno
 
     @property
     def modulos_menu_principal(self):

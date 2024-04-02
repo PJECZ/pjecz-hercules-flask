@@ -53,7 +53,7 @@ def preguntar(pregunta):
     click.echo(click.style(f"Respuesta: {response.text}", fg="blue"))
 
     # Mostrar el feedback del prompt
-    # click.echo(click.style(f"Feedback: {response.prompt_feedback}", fg="green"))
+    click.echo(click.style(f"Feedback: {response.prompt_feedback}", fg="green"))
 
 
 @cli.command()

@@ -235,8 +235,8 @@ def new():
             autoridad=autoridad,
             email=email,
             nombres=safe_string(form.nombres.data, save_enie=True),
-            apellido_primero=safe_string(form.apellido_primero.data, save_enie=True),
-            apellido_segundo=safe_string(form.apellido_segundo.data, save_enie=True),
+            apellido_paterno=safe_string(form.apellido_paterno.data, save_enie=True),
+            apellido_materno=safe_string(form.apellido_materno.data, save_enie=True),
             curp=safe_string(form.curp.data),
             puesto=safe_string(form.puesto.data),
             api_key="",
@@ -277,8 +277,8 @@ def edit(usuario_id):
             usuario.autoridad = autoridad
             usuario.email = email
             usuario.nombres = safe_string(form.nombres.data, save_enie=True)
-            usuario.apellido_primero = safe_string(form.apellido_primero.data, save_enie=True)
-            usuario.apellido_segundo = safe_string(form.apellido_segundo.data, save_enie=True)
+            usuario.apellido_paterno = safe_string(form.apellido_paterno.data, save_enie=True)
+            usuario.apellido_materno = safe_string(form.apellido_materno.data, save_enie=True)
             usuario.curp = safe_string(form.curp.data)
             usuario.puesto = safe_string(form.puesto.data)
             usuario.save()
@@ -294,8 +294,8 @@ def edit(usuario_id):
     form.autoridad.data = usuario.autoridad_id  # Usa id porque es un SelectField
     form.email.data = usuario.email
     form.nombres.data = usuario.nombres
-    form.apellido_primero.data = usuario.apellido_primero
-    form.apellido_segundo.data = usuario.apellido_segundo
+    form.apellido_paterno.data = usuario.apellido_paterno
+    form.apellido_materno.data = usuario.apellido_materno
     form.curp.data = usuario.curp
     form.puesto.data = usuario.puesto
     return render_template("usuarios/edit.jinja2", form=form, usuario=usuario)
