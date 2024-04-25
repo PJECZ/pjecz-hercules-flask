@@ -12,12 +12,10 @@ from hercules.extensions import database
 class EntradaSalida(database.Model, UniversalMixin):
     """Entrada-Salida"""
 
-    TIPOS = OrderedDict(
-        [
-            ("INGRESO", "Ingresó"),
-            ("SALIO", "Salió"),
-        ]
-    )
+    TIPOS = {
+        "INGRESO": "Ingresó",
+        "SALIO": "Salió",
+    }
 
     # Nombre de la tabla
     __tablename__ = "entradas_salidas"
