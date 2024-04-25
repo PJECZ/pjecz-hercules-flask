@@ -1,0 +1,20 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/start.jinja2' as start %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Plataforma Hércules{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Plataforma Hércules') }}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(title='Bienvenido') %}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <!-- Moment.js -->
+    {{ detail.moment_js(moment) }}
+{% endblock %}
