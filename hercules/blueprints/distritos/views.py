@@ -113,6 +113,7 @@ def new():
                 clave=clave,
                 nombre=nombre,
                 nombre_corto=safe_string(form.nombre_corto.data, save_enie=True),
+                es_distrito_judicial=form.es_distrito_judicial.data,
                 es_distrito=form.es_distrito.data,
                 es_jurisdiccional=form.es_jurisdiccional.data,
             )
@@ -156,6 +157,7 @@ def edit(distrito_id):
             distrito.clave = clave
             distrito.nombre = nombre
             distrito.nombre_corto = safe_string(form.nombre_corto.data, save_enie=True)
+            distrito.es_distrito_judicial = form.es_distrito_judicial.data
             distrito.es_distrito = form.es_distrito.data
             distrito.es_jurisdiccional = form.es_jurisdiccional.data
             distrito.save()
@@ -171,6 +173,7 @@ def edit(distrito_id):
     form.clave.data = distrito.clave
     form.nombre.data = distrito.nombre
     form.nombre_corto.data = distrito.nombre_corto
+    form.es_distrito_judicial.data = distrito.es_distrito_judicial
     form.es_distrito.data = distrito.es_distrito
     form.es_jurisdiccional.data = distrito.es_jurisdiccional
     return render_template("distritos/edit.jinja2", form=form, distrito=distrito)
