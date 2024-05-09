@@ -30,6 +30,10 @@ def datatable_json():
     """DataTable JSON para listado de Bitacoras"""
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
+    # Consultar
+    consulta = Bitacora.query
+    # Solo los modulos en Plataforma Hercules
+    consulta = consulta.join(Modulo).filter(Modulo.en_plataforma_hercules == True)
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
         consulta = consulta.filter_by(estatus=request.form["estatus"])
