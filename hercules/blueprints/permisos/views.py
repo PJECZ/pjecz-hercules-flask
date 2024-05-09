@@ -39,13 +39,13 @@ def datatable_json():
     consulta = consulta.join(Modulo).filter(Modulo.en_plataforma_hercules == True)
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
-        consulta = consulta.filter_by(estatus=request.form["estatus"])
+        consulta = consulta.filter(Permiso.estatus == request.form["estatus"])
     else:
-        consulta = consulta.filter_by(estatus="A")
+        consulta = consulta.filter(Permiso.estatus == "A")
     if "modulo_id" in request.form:
-        consulta = consulta.filter_by(modulo_id=request.form["modulo_id"])
+        consulta = consulta.filter(Permiso.modulo_id == request.form["modulo_id"])
     if "rol_id" in request.form:
-        consulta = consulta.filter_by(rol_id=request.form["rol_id"])
+        consulta = consulta.filter(Permiso.rol_id == request.form["rol_id"])
     if "nombre" in request.form:
         nombre = safe_string(request.form["nombre"], save_enie=True)
         if nombre != "":
@@ -53,7 +53,7 @@ def datatable_json():
     if "nivel" in request.form:
         nivel = safe_string(request.form["nivel"], save_enie=True)
         if nivel != "":
-            consulta = consulta.filter_by(nivel=nivel)
+            consulta = consulta.filter(Permiso.nivel == nivel)
     # Luego filtrar por columnas de otras tablas
     if "rol_nombre" in request.form:
         rol_nombre = safe_string(request.form["rol_nombre"], save_enie=True)
