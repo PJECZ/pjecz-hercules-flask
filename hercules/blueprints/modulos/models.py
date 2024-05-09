@@ -24,6 +24,10 @@ class Modulo(database.Model, UniversalMixin):
     icono = Column(String(48), nullable=False)
     ruta = Column(String(64), nullable=False)
     en_navegacion = Column(Boolean, nullable=False, default=True)
+    en_plataforma_carina = Column(Boolean, nullable=False, default=False)
+    en_plataforma_hercules = Column(Boolean, nullable=False, default=False)
+    en_plataforma_web = Column(Boolean, nullable=False, default=False)
+    en_portal_notarias = Column(Boolean, nullable=False, default=False)
 
     # Hijos
     bitacoras = relationship("Bitacora", back_populates="modulo")

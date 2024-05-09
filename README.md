@@ -1,6 +1,6 @@
 # pjecz-hercules-flask
 
-PJECZ Hércules es un sistema web hecho con Flask
+PJECZ Hércules es un sistema web hecho con Flask.
 
 ## Requerimientos
 
@@ -11,18 +11,6 @@ Los requerimientos son
 - Redis
 
 ## Instalación
-
-Bajar una copia del repositorio
-
-```bash
-git clone https://github.com/PJECZ/pjecz-hercules-flask.git
-```
-
-Cambiar al directorio del proyecto
-
-```bash
-cd pjecz-hercules-flask
-```
 
 Crear el entorno virtual
 
@@ -82,10 +70,7 @@ DB_PORT=5432
 DB_NAME=pjecz_plataforma_web
 DB_USER=adminpjeczplataformaweb
 DB_PASS=XXXXXXXX
-SQLALCHEMY_DATABASE_URI="postgresql+psycopg2://adminpjeczperseo:XXXXXXXX@127.0.0.1:5432/pjecz_perseo"
-
-# Google AI Studio
-AI_STUDIO_API_KEY=
+SQLALCHEMY_DATABASE_URI="postgresql+psycopg2://adminpjeczplataformaweb:XXXXXXXX@127.0.0.1:5432/pjecz_plataforma_web"
 
 # Google Cloud Storage
 CLOUD_STORAGE_DEPOSITO=
@@ -102,6 +87,9 @@ SALT=XXXXXXXX
 
 # Si esta en PRODUCTION se evita reiniciar la base de datos
 DEPLOYMENT_ENVIRONMENT=develop
+
+# Google AI Studio
+AI_STUDIO_API_KEY=
 ```
 
 Crear un archivo `.bashrc` que se ejecute al iniciar la terminal
@@ -184,12 +172,12 @@ then
 fi
 ```
 
-## Cargar las variables de entorno y el entorno virtual
+## Arrancar
 
 Antes de usar el CLI o de arrancar el servidor de **Flask** debe cargar las variables de entorno y el entorno virtual.
 
 ```bash
-. .bashrc
+source .bashrc
 ```
 
 Tendrá el alias al **Command Line Interface**
@@ -198,30 +186,14 @@ Tendrá el alias al **Command Line Interface**
 cli --help
 ```
 
-## Tareas en el fondo
-
-Abrir una terminal _Bash_, cargar el `.bashrc` y ejecutar
+Para hacer tareas en el fondo, abrir una terminal, cargar `source .bashrc` y ejecutar
 
 ```bash
 fondear
 ```
 
-Así se ejecutarán las tareas en el fondo con **RQ Worker**.
-
-## Arrancar
-
-Abrir otra terminal _Bash_, cargar el `.bashrc` y ejecutar
+Para lanzar el front-end Flask, abrir una terminal, cargar `source .bashrc` y ejecutar
 
 ```bash
 arrancar
-```
-
-Así se arrancará el servidor de **Flask**.
-
-## Actualizar requirements.txt
-
-Como se usa _poetry_ al cambiar las dependencias debe crear un nuevo `requirements.txt` con:
-
-```bash
-poetry export -f requirements.txt --output requirements.txt --without-hashes
 ```
