@@ -87,6 +87,58 @@ def datatable_json():
     return output_datatable_json(draw, total, data)
 
 
+@autoridades.route("/autoridades/select_json/<int:distrito_id>", methods=["GET", "POST"])
+def select_json(distrito_id):
+    """Select JSON para Autoridades"""
+    # Consultar
+    consulta = Autoridad.query.filter_by(distrito_id=distrito_id, estatus="A")
+    # Si viene es_archivo_solicitante como parametro en el URL como true o false
+    if "es_archivo_solicitante" in request.args:
+        es_archivo_solicitante = request.args["es_archivo_solicitante"] == "true"
+        consulta = consulta.filter_by(es_archivo_solicitante=es_archivo_solicitante)
+    # Si viene es_cemasc como parametro en el URL como true o false
+    if "es_cemasc" in request.args:
+        es_cemasc = request.args["es_cemasc"] == "true"
+        consulta = consulta.filter_by(es_cemasc=es_cemasc)
+    # Si viene es_defensoria como parametro en el URL como true o false
+    if "es_defensoria" in request.args:
+        es_defensoria = request.args["es_defensoria"] == "true"
+        consulta = consulta.filter_by(es_defensoria=es_defensoria)
+    # Si viene es_extinto como parametro en el URL como true o false
+    if "es_extinto" in request.args:
+        es_extinto = request.args["es_extinto"] == "true"
+        consulta = consulta.filter_by(es_extinto=es_extinto)
+    # Si viene es_jurisdiccional como parametro en el URL como true o false
+    if "es_jurisdiccional" in request.args:
+        es_jurisdiccional = request.args["es_jurisdiccional"] == "true"
+        consulta = consulta.filter_by(es_jurisdiccional=es_jurisdiccional)
+    # Si viene es_notaria como parametro en el URL como true o false
+    if "es_notaria" in request.args:
+        es_notaria = request.args["es_notaria"] == "true"
+        consulta = consulta.filter_by(es_notaria=es_notaria)
+    # Si viene es_revisor_escrituras como parametro en el URL como true o false
+    if "es_revisor_escrituras" in request.args:
+        es_revisor_escrituras = request.args["es_revisor_escrituras"] == "true"
+        consulta = consulta.filter_by(es_revisor_escrituras=es_revisor_escrituras)
+    # Si viene es_organo_especializado como parametro en el URL como true o false
+    if "es_organo_especializado" in request.args:
+        es_organo_especializado = request.args["es_organo_especializado"] == "true"
+        consulta = consulta.filter_by(es_organo_especializado=es_organo_especializado)
+    # Ordenar
+    consulta = consulta.order_by(Autoridad.descripcion_corta)
+    # Elaborar datos para Select
+    data = []
+    for resultado in consulta.all():
+        data.append(
+            {
+                "id": resultado.id,
+                "descripcion_corta": resultado.descripcion_corta,
+            }
+        )
+    # Entregar JSON
+    return json.dumps(data)
+
+
 @autoridades.route("/autoridades")
 def list_active():
     """Listado de Autoridades activas"""
@@ -135,7 +187,14 @@ def new():
             clave=clave,
             descripcion=safe_string(form.descripcion.data, save_enie=True),
             descripcion_corta=safe_string(form.descripcion_corta.data, save_enie=True),
+            es_archivo_solicitante=form.es_archivo_solicitante.data,
+            es_cemasc=form.es_cemasc.data,
+            es_defensoria=form.es_defensoria.data,
             es_extinto=form.es_extinto.data,
+            es_jurisdiccional=form.es_jurisdiccional.data,
+            es_notaria=form.es_notaria.data,
+            es_organo_especializado=form.es_organo_especializado.data,
+            es_revisor_escrituras=form.es_revisor_escrituras.data,
         )
         autoridad.save()
         bitacora = Bitacora(
@@ -172,7 +231,14 @@ def edit(autoridad_id):
             autoridad.clave = clave
             autoridad.descripcion = safe_string(form.descripcion.data, save_enie=True)
             autoridad.descripcion_corta = safe_string(form.descripcion_corta.data, save_enie=True)
+            autoridad.es_archivo_solicitante = form.es_archivo_solicitante.data
+            autoridad.es_cemasc = form.es_cemasc.data
+            autoridad.es_defensoria = form.es_defensoria.data
             autoridad.es_extinto = form.es_extinto.data
+            autoridad.es_jurisdiccional = form.es_jurisdiccional.data
+            autoridad.es_notaria = form.es_notaria.data
+            autoridad.es_organo_especializado = form.es_organo_especializado.data
+            autoridad.es_revisor_escrituras = form.es_revisor_escrituras.data
             autoridad.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -187,7 +253,14 @@ def edit(autoridad_id):
     form.clave.data = autoridad.clave
     form.descripcion.data = autoridad.descripcion
     form.descripcion_corta.data = autoridad.descripcion_corta
+    form.es_archivo_solicitante.data = autoridad.es_archivo_solicitante
+    form.es_cemasc.data = autoridad.es_cemasc
+    form.es_defensoria.data = autoridad.es_defensoria
     form.es_extinto.data = autoridad.es_extinto
+    form.es_jurisdiccional.data = autoridad.es_jurisdiccional
+    form.es_notaria.data = autoridad.es_notaria
+    form.es_organo_especializado.data = autoridad.es_organo_especializado
+    form.es_revisor_escrituras.data = autoridad.es_revisor_escrituras
     return render_template("autoridades/edit.jinja2", form=form, autoridad=autoridad)
 
 

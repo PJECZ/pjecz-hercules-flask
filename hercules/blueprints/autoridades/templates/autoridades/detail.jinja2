@@ -28,7 +28,14 @@
         {% endif %}
         {{ detail.label_value('Descripción', autoridad.descripcion) }}
         {{ detail.label_value('Descripción corta', autoridad.descripcion_corta) }}
+        {{ detail.label_value_boolean('Es Archivo Solicitante', autoridad.es_archivo_solicitante) }}
+        {{ detail.label_value_boolean('Es CEMASC', autoridad.es_cemasc) }}
+        {{ detail.label_value_boolean('Es Defensoría', autoridad.es_defensoria) }}
         {{ detail.label_value_boolean('Es Extinto', autoridad.es_extinto) }}
+        {{ detail.label_value_boolean('Es Jurisdiccional', autoridad.es_jurisdiccional) }}
+        {{ detail.label_value_boolean('Es Notaría', autoridad.es_notaria) }}
+        {{ detail.label_value_boolean('Es Órgano Especializado', autoridad.es_organo_especializado) }}
+        {{ detail.label_value_boolean('Es revisor de escrituras', autoridad.es_revisor_escrituras) }}
         {# detail.label_value('Creado', moment(autoridad.creado).format('llll')) #}
     {% endcall %}
     {% if current_user.can_view('USUARIOS') %}
