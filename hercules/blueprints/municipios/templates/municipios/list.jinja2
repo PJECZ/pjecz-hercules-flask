@@ -6,12 +6,6 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {% if current_user.can_view('AUTORIDADES') %}
-            {{ topbar.button('Autoridades', url_for('autoridades.list_active'), 'mdi:scale-balance') }}
-        {% endif %}
-        {% if current_user.can_view('DISTRITOS') %}
-            {{ topbar.button('Distritos', url_for('distritos.list_active'), 'mdi:map-marker') }}
-        {% endif %}
         {% if current_user.can_view('ESTADOS') %}
             {{ topbar.button('Estados', url_for('estados.list_active'), 'mdi:map') }}
         {% endif %}

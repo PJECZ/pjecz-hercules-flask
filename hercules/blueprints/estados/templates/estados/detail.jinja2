@@ -82,6 +82,8 @@
             ];
             // Filtros Municipios
             const filtrosMunicipios = new FiltrosDataTable('#municipios_datatable', configDTMunicipios);
+            filtrosMunicipios.agregarInput('filtroClave', 'clave');
+            filtrosMunicipios.agregarInput('filtroNombre', 'nombre');
             filtrosMunicipios.precargar();
         </script>
     {% endif %}
