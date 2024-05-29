@@ -26,6 +26,11 @@
         {% else %}
             {{ detail.label_value('Distrito', autoridad.distrito.nombre) }}
         {% endif %}
+        {% if current_user.can_view("MUNICIPIOS") %}
+            {{ detail.label_value('Municipio', autoridad.municipio.nombre, url_for('municipios.detail', municipio_id=autoridad.municipio_id)) }}
+        {% else %}
+            {{ detail.label_value('Municipio', autoridad.municipio.nombre) }}
+        {% endif %}
         {{ detail.label_value('Descripción', autoridad.descripcion) }}
         {{ detail.label_value('Descripción corta', autoridad.descripcion_corta) }}
         {{ detail.label_value_boolean('Es Archivo Solicitante', autoridad.es_archivo_solicitante) }}

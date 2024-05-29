@@ -3,30 +3,19 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Distrito {{ distrito.nombre_corto }}{% endblock %}
+{% block title %}Municipio {{ municipio.clave }} {{ municipio.nombre }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Distrito ' + distrito.nombre_corto) %}
-        {{ topbar.button_previous('Distritos', url_for('distritos.list_active')) }}
-        {% if current_user.can_edit('DISTRITOS') %}
-            {{ topbar.button_edit('Editar', url_for('distritos.edit', distrito_id=distrito.id)) }}
-        {% endif %}
-        {% if current_user.can_admin('DISTRITOS') %}
-            {% if distrito.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('distritos.delete', distrito_id=distrito.id)) }}{% endif %}
-            {% if distrito.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('distritos.recover', distrito_id=distrito.id)) }}{% endif %}
-        {% endif %}
+    {% call topbar.page_buttons('Municipio ' + municipio.clave + ' ' + municipio.nombre) %}
+        {{ topbar.button_previous('Municipios', url_for('municipios.list_active')) }}
     {% endcall %}
 {% endblock %}
 
 {% block content %}
-    {% call detail.card(estatus=distrito.estatus) %}
-        {{ detail.label_value_big('Clave', distrito.clave) }}
-        {{ detail.label_value('Nombre', distrito.nombre) }}
-        {{ detail.label_value('Nombre corto', distrito.nombre_corto) }}
-        {{ detail.label_value_boolean('Es Distrito Judicial (pjecz.gob.mx)', distrito.es_distrito_judicial) }}
-        {{ detail.label_value_boolean('Es Distrito (geográfico)', distrito.es_distrito) }}
-        {{ detail.label_value_boolean('Es Jurisdiccional', distrito.es_jurisdiccional) }}
-        {# detail.label_value('Creado', moment(distrito.creado).format('llll')) #}
+    {% call detail.card(estatus=municipio.estatus) %}
+        {{ detail.label_value_big('Clave', municipio.clave) }}
+        {{ detail.label_value('Estado', municipio.estado.nombre) }}
+        {{ detail.label_value('Nombre', municipio.nombre) }}
     {% endcall %}
     {% if current_user.can_view('AUTORIDADES') %}
         {% call detail.card('Autoridades') %}
@@ -53,12 +42,13 @@
                     </form>
                 </div>
             </div>
-            <!-- Datatable autoridades -->
+            <!-- DataTable autoridades -->
             <table id="autoridades_datatable" class="table display nowrap" style="width:100%">
                 <thead>
                     <tr>
                         <th>Clave</th>
                         <th>Descripción corta</th>
+                        <th>Distrito</th>
                         <th>Extinto</th>
                     </tr>
                 </thead>
@@ -68,10 +58,6 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    {% if current_user.can_admin('DISTRITOS') %}
-        {% if distrito.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + distrito.nombre + '?') }}{% endif %}
-        {% if distrito.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + distrito.nombre + '?') }}{% endif %}
-    {% endif %}
     {{ detail.moment_js(moment) }}
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
@@ -81,11 +67,11 @@
             const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
             let configDataTable = constructorDataTable.config();
             configDataTable['ajax']['url'] = '/autoridades/datatable_json';
-            configDataTable['ajax']['data'] = { 'estatus': "A", 'distrito_id': {{ distrito.id}} };
+            configDataTable['ajax']['data'] = { 'estatus': "A", 'municipio_id': {{ municipio.id}} };
             configDataTable['columns'] = [
                 { data: "detalle" },
                 { data: "descripcion_corta" },
-                { data: "municipio" },
+                { data: "distrito" },
                 { data: "es_extinto" }
             ];
             configDataTable['columnDefs'] = [
@@ -97,18 +83,13 @@
                     }
                 },
                 {
-                    targets: 2, // municipio
+                    targets: 2, // distrito
                     data: null,
                     render: function(data, type, row, meta) {
-                        if (data.nombre.length > 32) {
-                            nombre = data.nombre.substr(0, 32) + '…';
-                        } else {
-                            nombre = data.nombre;
-                        }
                         if (data.url != '') {
-                            return '<a href="' + data.url + '">' + nombre + '</a>';
+                            return '<a href="' + data.url + '">' + data.nombre_corto + '</a>';
                         }
-                        return nombre;
+                        return data.nombre_corto;
                     }
                 }
             ];
