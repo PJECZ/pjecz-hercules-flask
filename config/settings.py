@@ -3,18 +3,20 @@ Settings
 
 Para produccion, configure los siguientes secretos en Google Cloud Secret Manager:
 
-- pjecz_hercules_ai_studio_api_key
-- pjecz_hercules_cloud_storage_deposito
-- pjecz_hercules_host
-- pjecz_hercules_redis_url
-- pjecz_hercules_salt
-- pjecz_hercules_secret_key
-- pjecz_hercules_sqlalchemy_database_uri
-- pjecz_hercules_task_queue
+- pjecz_hercules_flask_ai_studio_api_key
+- pjecz_hercules_flask_cloud_storage_deposito
+- pjecz_hercules_flask_estado_clave
+- pjecz_hercules_flask_host
+- pjecz_hercules_flask_redis_url
+- pjecz_hercules_flask_salt
+- pjecz_hercules_flask_secret_key
+- pjecz_hercules_flask_sqlalchemy_database_uri
+- pjecz_hercules_flask_task_queue
 
 Para desarrollo, debe crear un archivo .env con las variables de entorno:
 
 - AI_STUDIO_API_KEY
+- ESTADO_CLAVE
 - CLOUD_STORAGE_DEPOSITO
 - HOST
 - REDIS_URL
@@ -34,7 +36,7 @@ from pydantic_settings import BaseSettings
 load_dotenv()
 
 PROJECT_ID = os.getenv("PROJECT_ID", "")  # Por defecto esta vacio, esto significa estamos en modo local
-SERVICE_PREFIX = os.getenv("SERVICE_PREFIX", "pjecz_hercules")
+SERVICE_PREFIX = os.getenv("SERVICE_PREFIX", "pjecz_hercules_flask")
 
 
 def get_secret(secret_id: str) -> str:

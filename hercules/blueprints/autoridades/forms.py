@@ -2,12 +2,14 @@
 Autoridades, formularios
 """
 
+from flask import current_app
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length, Optional, Regexp
 
 from lib.safe_string import CLAVE_REGEXP
 from hercules.blueprints.distritos.models import Distrito
+from hercules.blueprints.estados.models import Estado
 from hercules.blueprints.municipios.models import Municipio
 
 
@@ -37,5 +39,9 @@ class AutoridadForm(FlaskForm):
             for d in Distrito.query.filter_by(estatus="A").order_by(Distrito.clave).all()
         ]
         self.municipio.choices = [
-            (m.id, m.clave + " - " + m.nombre) for m in Municipio.query.filter_by(estatus="A").order_by(Municipio.nombre).all()
+            (m.id, m.clave + " - " + m.nombre)
+            for m in Municipio.query.join(Estado)
+            .filter(Estado.clave == current_app.config["ESTADO_CLAVE"])
+            .order_by(Municipio.clave)
+            .all()
         ]
