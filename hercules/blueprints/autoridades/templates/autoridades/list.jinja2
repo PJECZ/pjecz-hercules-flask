@@ -57,6 +57,7 @@
                     <th>Clave</th>
                     <th>Descripción corta</th>
                     <th>Distrito</th>
+                    <th>Municipio</th>
                     <th>Extinto</th>
                 </tr>
             </thead>
@@ -77,6 +78,7 @@
             { data: "detalle" },
             { data: "descripcion_corta" },
             { data: "distrito" },
+            { data: "municipio" },
             { data: "es_extinto" }
         ];
         configDataTable['columnDefs'] = [
@@ -94,6 +96,21 @@
                     return '<a href="' + data.url + '">' + data.nombre_corto + '</a>';
                 }
             },
+            {
+                targets: 3, // municipio
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.nombre.length > 32) {
+                        nombre = data.nombre.substr(0, 32) + '…';
+                    } else {
+                        nombre = data.nombre;
+                    }
+                    if (data.url != '') {
+                        return '<a href="' + data.url + '">' + nombre + '</a>';
+                    }
+                    return nombre;
+                }
+            }
         ];
         // Filtros autoridades
         const filtrosAutoridades = new FiltrosDataTable('#autoridades_datatable', configDataTable);

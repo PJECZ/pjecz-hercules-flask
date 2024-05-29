@@ -21,6 +21,8 @@ class Autoridad(database.Model, UniversalMixin):
     # Claves foráneas
     distrito_id = Column(Integer, ForeignKey("distritos.id"), index=True, nullable=False)
     distrito = relationship("Distrito", back_populates="autoridades")
+    municipio_id = Column(Integer, ForeignKey("municipios.id"), index=True, nullable=False)
+    municipio = relationship("Municipio", back_populates="autoridades")
 
     # Columnas
     clave = Column(String(16), nullable=False, unique=True)
