@@ -70,8 +70,6 @@
                         <th>Apertura</th>
                         <th>Cierre</th>
                         <th><span title="Límite de personas">L.P.</span></th>
-                        <th><span title="Puede agendar citas">P.A.C.</span></th>
-                        <th><span title="Puede enviar QR">QR</span></th>
                     </tr>
                 </thead>
             </table>
@@ -105,9 +103,7 @@
                 { data: "es_jurisdiccional" },
                 { data: "apertura" },
                 { data: "cierre" },
-                { data: "limite_personas" },
-                { data: "puede_agendar_citas" },
-                { data: "puede_enviar_qr" }
+                { data: "limite_personas" }
             ];
             configDTOficinas['columnDefs'] = [
                 {
@@ -136,7 +132,7 @@
                     }
                 },
                 {
-                    targets: [3, 7, 8], // es_jurisdiccional, puede_agendar_citas, puede_enviar_qr
+                    targets: 3, // es_jurisdiccional
                     data: null,
                     render: function(data, type, row, meta) {
                         if (data) {

@@ -2,16 +2,17 @@
 Alimentar Autoridades
 """
 
-from pathlib import Path
 import csv
 import sys
+from pathlib import Path
 
 import click
 
-from lib.safe_string import safe_clave, safe_string
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.distritos.models import Distrito
 from hercules.blueprints.materias.models import Materia
+from hercules.blueprints.municipios.models import Municipio
+from lib.safe_string import safe_clave, safe_string
 
 AUTORIDADES_CSV = "seed/autoridades.csv"
 
@@ -33,6 +34,7 @@ def alimentar_autoridades():
             autoridad_id = int(row["autoridad_id"])
             distrito_id = int(row["distrito_id"])
             materia_id = int(row["materia_id"])
+            municipio_id = int(row["municipio_id"])
             clave = safe_clave(row["clave"])
             descripcion = safe_string(row["descripcion"], save_enie=True)
             descripcion_corta = safe_string(row["descripcion_corta"], save_enie=True)
@@ -63,9 +65,14 @@ def alimentar_autoridades():
             if materia is None:
                 click.echo(click.style(f"  AVISO: materia_id {materia_id} no existe", fg="red"))
                 sys.exit(1)
+            municipio = Municipio.query.get(municipio_id)
+            if municipio is None:
+                click.echo(click.style(f"  AVISO: municipio_id {municipio_id} no existe", fg="red"))
+                sys.exit(1)
             Autoridad(
                 distrito=distrito,
                 materia=materia,
+                municipio=municipio,
                 clave=clave,
                 descripcion=descripcion,
                 descripcion_corta=descripcion_corta,

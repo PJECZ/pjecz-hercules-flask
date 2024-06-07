@@ -2,19 +2,19 @@
 Alimentar Usuarios
 """
 
-from datetime import datetime
-from pathlib import Path
 import csv
 import sys
+from datetime import datetime
+from pathlib import Path
 
 import click
 
-from lib.pwgen import generar_contrasena
-from lib.safe_string import safe_clave, safe_email, safe_string
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.oficinas.models import Oficina
 from hercules.blueprints.usuarios.models import Usuario
 from hercules.extensions import pwd_context
+from lib.pwgen import generar_contrasena
+from lib.safe_string import safe_clave, safe_email, safe_string
 
 USUARIOS_CSV = "seed/usuarios_roles.csv"
 
@@ -43,9 +43,9 @@ def alimentar_usuarios():
             curp = safe_string(row["curp"])
             puesto = safe_string(row["puesto"], save_enie=True)
             estatus = row["estatus"]
-            if usuario_id != contador + 1:
-                click.echo(click.style(f"  AVISO: usuario_id {usuario_id} no es consecutivo", fg="red"))
-                sys.exit(1)
+            # if usuario_id != contador + 1:
+            #     click.echo(click.style(f"  AVISO: usuario_id {usuario_id} no es consecutivo", fg="red"))
+            #     sys.exit(1)
             autoridad = Autoridad.query.filter_by(clave=autoridad_clave).first()
             if autoridad is None:
                 click.echo(click.style(f"  AVISO: autoridad_clave {autoridad_clave} no existe", fg="red"))

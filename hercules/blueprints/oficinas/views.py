@@ -3,11 +3,9 @@ Oficinas, vistas
 """
 
 import json
+
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-
-from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_clave, safe_string, safe_message
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
@@ -15,6 +13,8 @@ from hercules.blueprints.oficinas.forms import OficinaForm
 from hercules.blueprints.oficinas.models import Oficina
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
+from lib.datatables import get_datatable_parameters, output_datatable_json
+from lib.safe_string import safe_clave, safe_message, safe_string
 
 MODULO = "OFICINAS"
 
@@ -90,10 +90,7 @@ def datatable_json():
                 },
                 "apertura": resultado.apertura.strftime("%H:%M"),
                 "cierre": resultado.cierre.strftime("%H:%M"),
-                "limite_personas": resultado.limite_personas,
                 "es_jurisdiccional": resultado.es_jurisdiccional,
-                "puede_agendar_citas": resultado.puede_agendar_citas,
-                "puede_enviar_qr": resultado.puede_enviar_qr,
             }
         )
     # Entregar JSON
@@ -149,11 +146,9 @@ def new():
             descripcion=safe_string(form.descripcion.data, max_len=512, save_enie=True),
             descripcion_corta=safe_string(form.descripcion_corta.data, max_len=64, save_enie=True),
             es_jurisdiccional=form.es_jurisdiccional.data,
-            puede_agendar_citas=form.puede_agendar_citas.data,
             apertura=form.apertura.data,
             cierre=form.cierre.data,
             limite_personas=form.limite_personas.data,
-            puede_enviar_qr=form.puede_enviar_qr.data,
         )
         oficina.save()
         bitacora = Bitacora(
@@ -191,11 +186,9 @@ def edit(oficina_id):
             oficina.descripcion = safe_string(form.descripcion.data, max_len=512, save_enie=True)
             oficina.descripcion_corta = safe_string(form.descripcion_corta.data, max_len=64, save_enie=True)
             oficina.es_jurisdiccional = form.es_jurisdiccional.data
-            oficina.puede_agendar_citas = form.puede_agendar_citas.data
             oficina.apertura = form.apertura.data
             oficina.cierre = form.cierre.data
             oficina.limite_personas = form.limite_personas.data
-            oficina.puede_enviar_qr = form.puede_enviar_qr.data
             oficina.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -212,11 +205,9 @@ def edit(oficina_id):
     form.descripcion_corta.data = oficina.descripcion_corta
     form.descripcion.data = oficina.descripcion
     form.es_jurisdiccional.data = oficina.es_jurisdiccional
-    form.puede_agendar_citas.data = oficina.puede_agendar_citas
     form.apertura.data = oficina.apertura
     form.cierre.data = oficina.cierre
     form.limite_personas.data = oficina.limite_personas
-    form.puede_enviar_qr.data = oficina.puede_enviar_qr
     form.clave.data = oficina.clave
     return render_template("oficinas/edit.jinja2", form=form, oficina=oficina)
 
@@ -232,6 +223,24 @@ def delete(oficina_id):
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
             descripcion=safe_message(f"Eliminado Oficina {oficina.clave}"),
+            url=url_for("oficinas.detail", oficina_id=oficina.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("oficinas.detail", oficina_id=oficina.id))
+
+
+@oficinas.route("/oficinas/recuperar/<int:oficina_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def recover(oficina_id):
+    """Recuperar Oficina"""
+    oficina = Oficina.query.get_or_404(oficina_id)
+    if oficina.estatus == "B":
+        oficina.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Recuperado Oficina {oficina.clave}"),
             url=url_for("oficinas.detail", oficina_id=oficina.id),
         )
         bitacora.save()

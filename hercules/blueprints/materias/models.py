@@ -2,11 +2,13 @@
 Materias, modelos
 """
 
-from sqlalchemy import Boolean, Column, Integer, String
-from sqlalchemy.orm import relationship
+from typing import List
 
-from lib.universal_mixin import UniversalMixin
+from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from hercules.extensions import database
+from lib.universal_mixin import UniversalMixin
 
 
 class Materia(database.Model, UniversalMixin):
@@ -16,15 +18,15 @@ class Materia(database.Model, UniversalMixin):
     __tablename__ = "materias"
 
     # Clave primaria
-    id = Column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
     # Columnas
-    nombre = Column(String(64), nullable=False, unique=True)
-    descripcion = Column(String(1024), nullable=True)
-    en_sentencias = Column(Boolean, nullable=False, default=False)
+    nombre: Mapped[str] = mapped_column(String(256), unique=True)
+    descripcion: Mapped[str] = mapped_column(String(1024))
+    en_sentencias: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Hijos
-    autoridades = relationship("Autoridad", back_populates="materia")
+    autoridades: Mapped[List["Autoridad"]] = relationship("Autoridad", back_populates="materia")
 
     def __repr__(self):
         """Representación"""

@@ -2,11 +2,11 @@
 Usuarios-Roles
 """
 
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
+from sqlalchemy import ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from lib.universal_mixin import UniversalMixin
 from hercules.extensions import database
+from lib.universal_mixin import UniversalMixin
 
 
 class UsuarioRol(database.Model, UniversalMixin):
@@ -16,16 +16,16 @@ class UsuarioRol(database.Model, UniversalMixin):
     __tablename__ = "usuarios_roles"
 
     # Clave primaria
-    id = Column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
     # Claves foráneas
-    rol_id = Column(Integer, ForeignKey("roles.id"), index=True, nullable=False)
-    rol = relationship("Rol", back_populates="usuarios_roles")
-    usuario_id = Column(Integer, ForeignKey("usuarios.id"), index=True, nullable=False)
-    usuario = relationship("Usuario", back_populates="usuarios_roles")
+    rol_id: Mapped[int] = mapped_column(ForeignKey("roles.id"))
+    rol: Mapped["Rol"] = relationship(back_populates="usuarios_roles")
+    usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"))
+    usuario: Mapped["Usuario"] = relationship(back_populates="usuarios_roles")
 
     # Columnas
-    descripcion = Column(String(256), nullable=False)
+    descripcion: Mapped[str] = mapped_column(String(256))
 
     @property
     def rol_nombre(self):

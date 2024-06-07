@@ -28,6 +28,7 @@ def respaldar_autoridades():
                 "autoridad_id",
                 "distrito_id",
                 "materia_id",
+                "municipio_id",
                 "clave",
                 "descripcion",
                 "descripcion_corta",
@@ -52,9 +53,10 @@ def respaldar_autoridades():
         for autoridad in Autoridad.query.order_by(Autoridad.id).all():
             respaldo.writerow(
                 [
-                    autoridad.autoridad_id,
+                    autoridad.id,
                     autoridad.distrito_id,
                     autoridad.materia_id,
+                    autoridad.municipio_id,
                     autoridad.clave,
                     autoridad.descripcion,
                     autoridad.descripcion_corta,

@@ -2,45 +2,76 @@
 Autoridad
 """
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
+from typing import List
 
-from lib.universal_mixin import UniversalMixin
+from sqlalchemy import Enum, ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from hercules.extensions import database
+from lib.universal_mixin import UniversalMixin
 
 
 class Autoridad(database.Model, UniversalMixin):
     """Autoridad"""
 
+    AUDIENCIAS_CATEGORIAS = {
+        "NO DEFINIDO": "No Definido",
+        "CIVIL FAMILIAR MERCANTIL LETRADO TCYA": "Civil Familiar Mercantil Letrado TCyA",
+        "MATERIA ACUSATORIO PENAL ORAL": "Materia Acusatorio Penal Oral",
+        "DISTRITALES": "Distritales",
+        "SALAS": "Salas",
+    }
+
+    ORGANOS_JURISDICCIONALES = {
+        "NO DEFINIDO": "No Definido",
+        "JUZGADO DE PRIMERA INSTANCIA": "Juzgado de Primera Instancia",
+        "JUZGADO DE PRIMERA INSTANCIA ORAL": "Juzgado de Primera Instancia Oral",
+        "PLENO O SALA DEL TSJ": "Pleno o Sala del TSJ",
+        "TRIBUNAL DISTRITAL": "Tribunal Distrital",
+        "TRIBUNAL DE CONCILIACION Y ARBITRAJE": "Tribunal de Conciliación y Arbitraje",
+    }
+
     # Nombre de la tabla
     __tablename__ = "autoridades"
 
     # Clave primaria
-    id = Column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
     # Claves foráneas
-    distrito_id = Column(Integer, ForeignKey("distritos.id"), index=True, nullable=False)
-    distrito = relationship("Distrito", back_populates="autoridades")
-    materia_id = Column(Integer, ForeignKey("materias.id"), index=True, nullable=False)
-    materia = relationship("Materia", back_populates="autoridades")
-    municipio_id = Column(Integer, ForeignKey("municipios.id"), index=True, nullable=False)
-    municipio = relationship("Municipio", back_populates="autoridades")
+    distrito_id: Mapped[int] = mapped_column(ForeignKey("distritos.id"))
+    distrito: Mapped["Distrito"] = relationship(back_populates="autoridades")
+    materia_id: Mapped[int] = mapped_column(ForeignKey("materias.id"))
+    materia: Mapped["Materia"] = relationship(back_populates="autoridades")
+    municipio_id: Mapped[int] = mapped_column(ForeignKey("municipios.id"))
+    municipio: Mapped["Municipio"] = relationship(back_populates="autoridades")
 
     # Columnas
-    clave = Column(String(16), nullable=False, unique=True)
-    descripcion = Column(String(256), nullable=False)
-    descripcion_corta = Column(String(64), nullable=False)
-    es_archivo_solicitante = Column(Boolean, nullable=False, default=False)
-    es_cemasc = Column(Boolean, nullable=False, default=False)
-    es_defensoria = Column(Boolean, nullable=False, default=False)
-    es_extinto = Column(Boolean, nullable=False, default=False)
-    es_jurisdiccional = Column(Boolean, nullable=False, default=False)
-    es_notaria = Column(Boolean, nullable=False, default=False)
-    es_organo_especializado = Column(Boolean, nullable=False, default=False)
-    es_revisor_escrituras = Column(Boolean, nullable=False, default=False)
+    clave: Mapped[str] = mapped_column(String(16), unique=True)
+    descripcion: Mapped[str] = mapped_column(String(256))
+    descripcion_corta: Mapped[str] = mapped_column(String(64))
+    es_archivo_solicitante: Mapped[bool] = mapped_column(default=False)
+    es_cemasc: Mapped[bool] = mapped_column(default=False)
+    es_defensoria: Mapped[bool] = mapped_column(default=False)
+    es_extinto: Mapped[bool] = mapped_column(default=False)
+    es_jurisdiccional: Mapped[bool] = mapped_column(default=False)
+    es_notaria: Mapped[bool] = mapped_column(default=False)
+    es_organo_especializado: Mapped[bool] = mapped_column(default=False)
+    es_revisor_escrituras: Mapped[bool] = mapped_column(default=False)
+    organo_jurisdiccional: Mapped[str] = mapped_column(
+        Enum(*ORGANOS_JURISDICCIONALES, name="autoridades_organos_jurisdiccionales", native_enum=False),
+        index=True,
+    )
+    directorio_edictos: Mapped[str] = mapped_column(String(256))
+    directorio_glosas: Mapped[str] = mapped_column(String(256))
+    directorio_listas_de_acuerdos: Mapped[str] = mapped_column(String(256))
+    directorio_sentencias: Mapped[str] = mapped_column(String(256))
+    audiencia_categoria: Mapped[str] = mapped_column(
+        Enum(*AUDIENCIAS_CATEGORIAS, name="autoridades_audiencias_categorias", native_enum=False), index=True
+    )
+    limite_dias_listas_de_acuerdos: Mapped[int] = mapped_column(default=0)
 
     # Hijos
-    usuarios = relationship("Usuario", back_populates="autoridad")
+    usuarios: Mapped[List["Usuario"]] = relationship(back_populates="autoridad")
 
     def __repr__(self):
         """Representación"""

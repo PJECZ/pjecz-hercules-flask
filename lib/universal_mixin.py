@@ -2,9 +2,12 @@
 Universal Mixin
 """
 
+from datetime import datetime
+
 from hashids import Hashids
-from sqlalchemy import Column, DateTime, String
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
+from sqlalchemy.types import CHAR
 
 from config.settings import get_settings
 from hercules.extensions import database
@@ -16,9 +19,9 @@ hashids = Hashids(salt=settings.SALT, min_length=8)
 class UniversalMixin:
     """Columnas y metodos universales"""
 
-    creado = Column(DateTime, default=func.now(), nullable=False)
-    modificado = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
-    estatus = Column(String(1), default="A", nullable=False)
+    creado: Mapped[datetime] = mapped_column(server_default=func.now())
+    modificado: Mapped[datetime] = mapped_column(server_default=func.now(), server_onupdate=func.now())
+    estatus: Mapped[str] = mapped_column(CHAR, server_default="A", default="A")
 
     def delete(self):
         """Eliminar registro"""

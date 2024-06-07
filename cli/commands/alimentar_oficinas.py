@@ -2,17 +2,17 @@
 Alimentar Oficinas
 """
 
-from datetime import datetime
-from pathlib import Path
 import csv
 import sys
+from datetime import datetime
+from pathlib import Path
 
 import click
 
-from lib.safe_string import safe_clave, safe_string
 from hercules.blueprints.distritos.models import Distrito
 from hercules.blueprints.domicilios.models import Domicilio
 from hercules.blueprints.oficinas.models import Oficina
+from lib.safe_string import safe_clave, safe_string
 
 OFICINAS_CSV = "seed/oficinas.csv"
 
@@ -38,7 +38,6 @@ def alimentar_oficinas():
             descripcion = safe_string(row["descripcion"], max_len=512, save_enie=True)
             descripcion_corta = safe_string(row["descripcion_corta"], max_len=64, save_enie=True)
             es_jurisdiccional = row["es_jurisdiccional"] == "1"
-            puede_agendar_citas = row["puede_agendar_citas"] == "1"
             apertura = datetime.strptime(row["apertura"], "%H:%M:%S")
             cierre = datetime.strptime(row["cierre"], "%H:%M:%S")
             limite_personas = int(row["limite_personas"])
@@ -63,7 +62,6 @@ def alimentar_oficinas():
                 descripcion=descripcion,
                 descripcion_corta=descripcion_corta,
                 es_jurisdiccional=es_jurisdiccional,
-                puede_agendar_citas=puede_agendar_citas,
                 apertura=apertura,
                 cierre=cierre,
                 limite_personas=limite_personas,
