@@ -26,6 +26,8 @@ class Usuario(database.Model, UserMixin, UniversalMixin):
     # Claves foráneas
     autoridad_id = Column(Integer, ForeignKey("autoridades.id"), index=True, nullable=False)
     autoridad = relationship("Autoridad", back_populates="usuarios")
+    oficina_id = Column(Integer, ForeignKey("oficinas.id"), index=True, nullable=False)
+    oficina = relationship("Oficina", back_populates="usuarios")
 
     # Columnas
     email = Column(String(256), nullable=False, unique=True, index=True)

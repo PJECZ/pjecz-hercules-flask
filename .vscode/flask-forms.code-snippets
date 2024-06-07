@@ -81,19 +81,5 @@
       ""
     ],
     "description": "Formulario para buscar"
-  },
-  "Flask forms class SearchForm": {
-    "scope": "python",
-    "prefix": "fforms_class_search",
-    "body": [
-      "class ${1:Clase}SearchForm(FlaskForm):",
-      "\t\"\"\" Formulario para buscar ${2:Clases} \"\"\"",
-      "\tclave = StringField('Clave', validators=[DataRequired(), Length(max=16)])",
-      "\tdescripcion = StringField('Descripción', validators=[DataRequired(), Length(max=256)])",
-      "\tbuscar = SubmitField('Buscar')",
-      "",
-      ""
-    ],
-    "description": "Formulario para buscar"
   }
 }

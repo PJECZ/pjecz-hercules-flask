@@ -1,5 +1,5 @@
 {
-  "Jinja2 detail": {
+  "Jinja2 detail minimal": {
     "scope": "jinja-html",
     "prefix": "j2_detail_minimal",
     "body": [
@@ -18,7 +18,7 @@
       "\t\t{{ detail.label_value_big('${1:Titulo}', ${2:instancia}.${3:clave}) }}",
       "\t\t{{ detail.label_value('Columna 1', ${2:instancia}.columna_1) }}",
       "\t\t{{ detail.label_value('Columna 2', ${2:instancia}.columna_2) }}",
-      "\t\t{{ detail.label_value('Creado', moment(${2:instancia}.creado, local=True).format('DD MMM YYYY')) }}",
+      "\t\t{{ detail.label_value('Creado', moment(${2:instancia}.creado, local=True).format('llll')) }}",
       "\t{% endcall %}",
       "{% endblock %}",
       "",
@@ -27,9 +27,9 @@
       "{% endblock %}",
       ""
     ],
-    "description": "Detalle minimo"
+    "description": "Detalle sin editar, eliminar o recuperar"
   },
-  "Jinja2 detail edit delete recover": {
+  "Jinja2 detail": {
     "scope": "jinja-html",
     "prefix": "j2_detail",
     "body": [
@@ -58,7 +58,7 @@
       "\t\t{{ detail.label_value_big('Nombre o Descripción', ${2:instancia}.${3:clave}) }}",
       "\t\t{{ detail.label_value('Columna 1', ${2:instancia}.columna_1) }}",
       "\t\t{{ detail.label_value('Columna 2', ${2:instancia}.columna_2) }}",
-      "\t\t{{ detail.label_value('Creado', moment(${2:instancia}.creado, local=True).format('DD MMM YYYY')) }}",
+      "\t\t{{ detail.label_value('Creado', moment(${2:instancia}.creado, local=True).format('llll')) }}",
       "\t{% endcall %}",
       "{% endblock %}",
       "",
@@ -71,51 +71,7 @@
       "{% endblock %}",
       ""
     ],
-    "description": "Detalle edit delete recover"
-  },
-  "Jinja2 detail admin edit delete recover": {
-    "scope": "jinja-html",
-    "prefix": "j2_detail_admin",
-    "body": [
-      "{% extends 'layouts/app.jinja2' %}",
-      "{% import 'macros/detail.jinja2' as detail %}",
-      "{% import 'macros/modals.jinja2' as modals %}",
-      "{% import 'macros/topbar.jinja2' as topbar %}",
-      "",
-      "{% block title %}${1:Titulo} {{ ${2:instancia}.${3:clave} }}{% endblock %}",
-      "",
-      "{% block topbar_actions %}",
-      "\t{% call topbar.page_buttons('${1:Titulo} ' + ${2:instancia}.${3:clave}) %}",
-      "\t\t{{ topbar.button_previous('${4:Titulos_Plural}', url_for('${5:blueprint}.list_active')) }}",
-      "\t\t{% if current_user.can_edit('${6:MODULO}') %}",
-      "\t\t\t{{ topbar.button_edit('Editar', url_for('${5:blueprint}.edit', ${2:instancia}_id=${2:instancia}.id)) }}",
-      "\t\t{% endif %}",
-      "\t\t{% if current_user.can_admin('${6:MODULO}') or (current_user.can_edit('${6:MODULO}') and ${2:instancia}.autoridad_id == current_user.autoridad_id) %}",
-      "\t\t\t{% if ${2:instancia}.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('${5:blueprint}.delete', ${2:instancia}_id=${2:instancia}.id)) }}{% endif %}",
-      "\t\t\t{% if ${2:instancia}.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('${5:blueprint}.recover', ${2:instancia}_id=${2:instancia}.id)) }}{% endif %}",
-      "\t\t{% endif %}",
-      "\t{% endcall %}",
-      "{% endblock %}",
-      "",
-      "{% block content %}",
-      "\t{% call detail.card(estatus=${2:instancia}.estatus) %}",
-      "\t\t{{ detail.label_value_big('Nombre o Descripción', ${2:instancia}.${3:clave}) }}",
-      "\t\t{{ detail.label_value('Columna 1', ${2:instancia}.columna_1) }}",
-      "\t\t{{ detail.label_value('Columna 2', ${2:instancia}.columna_2) }}",
-      "\t\t{# detail.label_value('Creado', moment(${2:instancia}.creado, local=True).format('llll')) #}",
-      "\t{% endcall %}",
-      "{% endblock %}",
-      "",
-      "{% block custom_javascript %}",
-      "\t{% if current_user.can_admin('${6:MODULO}') or (current_user.can_edit('${6:MODULO}') and ${2:instancia}.autoridad_id == current_user.autoridad_id) %}",
-      "\t\t{% if ${2:instancia}.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + ${2:instancia}.${3:clave} + '?') }}{% endif %}",
-      "\t\t{% if ${2:instancia}.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + ${2:instancia}.${3:clave} + '?') }}{% endif %}",
-      "\t{% endif %}",
-      "\t{{ detail.moment_js(moment) }}",
-      "{% endblock %}",
-      ""
-    ],
-    "description": "Detalle admin edit delete recover"
+    "description": "Detalle"
   },
   "Jinja2 detail table datatable": {
     "scope": "jinja-html",
@@ -166,8 +122,6 @@
       "\t\t\t\t}",
       "\t\t\t}",
       "\t\t];",
-      "\t\t// DEJE ESTE CUANDO NO HAYA FILTROS",
-      "\t\t$('#${5:blueprint}_datatable').DataTable(configDT${4:Registros});",
       "\t\t// Filtros ${1:Registros}",
       "\t\tconst filtrosNominas = new FiltrosDataTable('#nominas_datatable', configDT${4:Registros});",
       "\t\tfiltrosNominas.agregarInput('filtroParametro', 'parametro');",
@@ -176,63 +130,5 @@
       "{% endif %}"
     ],
     "description": "JavaScript de DataTable"
-  },
-  "Jinja2 tabs import": {
-    "scope": "jinja-html",
-    "prefix": "j2_tabs_import",
-    "body": "{% import 'macros/tabs.jinja2' as tabs %}",
-    "description": "Tabs importar macro"
-  },
-  "Jinja2 tabs basic": {
-    "scope": "jinja-html",
-    "prefix": "j2_tabs_basic",
-    "body": [
-      "{% call tabs.header() %}",
-      "\t{{ tabs.button('xxx-tab', 'tab_xxx', 'Xxx', 'active') }}",
-      "\t{{ tabs.button('yyy-tab', 'tab_yyy', 'Yyy') }}",
-      "\t{{ tabs.button('zzz-tab', 'tab_zzz', 'Zzz') }}",
-      "{% endcall %}",
-      "{% call tabs.content() %}",
-      "\t{% call tabs.div_content('tab_xxx', 'xxx-tab', 'active') %}",
-      "\t{% endcall %}",
-      "\t{% call tabs.div_content('tab_yyy', 'yyy-tab') %}",
-      "\t{% endcall %}",
-      "\t{% call tabs.div_content('tab_zzz', 'zzz-tab') %}",
-      "\t{% endcall %}",
-      "{% endcall %}"
-    ],
-    "description": "Tabs basicos"
-  },
-  "Jinja2 tabs if": {
-    "scope": "jinja-html",
-    "prefix": "j2_tabs_if",
-    "body": [
-      "{% call tabs.header() %}",
-      "\t{% if current_user.can_view('XXX') %}",
-      "\t\t{{ tabs.button('xxx-tab', 'tab_xxx', 'Xxx', 'active') }}",
-      "\t{% endif %}",
-      "\t{% if current_user.can_view('YYY') %}",
-      "\t\t{{ tabs.button('yyy-tab', 'tab_yyy', 'Yyy') }}",
-      "\t{% endif %}",
-      "\t{% if current_user.can_view('ZZZ') %}",
-      "\t\t{{ tabs.button('zzz-tab', 'tab_zzz', 'Zzz') }}",
-      "\t{% endif %}",
-      "{% endcall %}",
-      "{% call tabs.content() %}",
-      "\t{% if current_user.can_view('XXX') %}",
-      "\t\t{% call tabs.div_content('tab_xxx', 'xxx-tab', 'active') %}",
-      "\t\t{% endcall %}",
-      "\t{% endif %}",
-      "\t{% if current_user.can_view('YYY') %}",
-      "\t\t{% call tabs.div_content('tab_yyy', 'yyy-tab') %}",
-      "\t\t{% endcall %}",
-      "\t{% endif %}",
-      "\t{% if current_user.can_view('ZZZ') %}",
-      "\t\t{% call tabs.div_content('tab_zzz', 'zzz-tab') %}",
-      "\t\t{% endcall %}",
-      "\t{% endif %}",
-      "{% endcall %}"
-    ],
-    "description": "Tabs condicionados"
   }
 }

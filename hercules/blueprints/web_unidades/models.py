@@ -24,7 +24,7 @@ class WebUnidad(database.Model, UniversalMixin):
     nombre = Column(String(256), nullable=False)
 
     # Hijos
-    web_paginas = relationship("WebPagina", back_populates="web_unidad")
+    # web_paginas = relationship("WebPagina", back_populates="web_unidad")
 
     def __repr__(self):
         """Representación"""

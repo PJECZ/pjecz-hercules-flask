@@ -3,6 +3,7 @@ Respaldar Modulos
 """
 
 import csv
+import sys
 from pathlib import Path
 
 import click
@@ -13,15 +14,13 @@ MODULOS_CSV = "seed/modulos.csv"
 
 
 def respaldar_modulos():
-    """Respaldar Modulos a un archivo CSV"""
-    directorio = Path("seed")
-    directorio.mkdir(exist_ok=True)
+    """Respaldar Modulos"""
     ruta = Path(MODULOS_CSV)
     if ruta.exists():
-        ruta.unlink()
-    click.echo("Respaldando módulos...")
+        click.echo(f"AVISO: {MODULOS_CSV} ya existe, no voy a sobreescribirlo.")
+        sys.exit(1)
+    click.echo("Respaldando modulos: ", nl=False)
     contador = 0
-    modulos = Modulo.query.order_by(Modulo.id).all()
     with open(ruta, "w", encoding="utf8") as puntero:
         respaldo = csv.writer(puntero)
         respaldo.writerow(
@@ -35,7 +34,7 @@ def respaldar_modulos():
                 "estatus",
             ]
         )
-        for modulo in modulos:
+        for modulo in Modulo.query.order_by(Modulo.id).all():
             respaldo.writerow(
                 [
                     modulo.id,
@@ -48,6 +47,6 @@ def respaldar_modulos():
                 ]
             )
             contador += 1
-            if contador % 100 == 0:
-                click.echo(f"  Van {contador}...")
-    click.echo(f"  {contador} en {ruta.name}")
+            click.echo(click.style(".", fg="green"), nl=False)
+    click.echo()
+    click.echo(click.style(f"  {contador} modulos respaldados.", fg="green"))

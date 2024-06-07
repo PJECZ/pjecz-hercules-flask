@@ -33,8 +33,13 @@
         {% else %}
             {{ detail.label_value('Autoridad', usuario.autoridad.descripcion) }}
         {% endif %}
+        {% if current_user.can_view("OFICINAS") %}
+            {{ detail.label_value('Oficina', usuario.oficina.clave + ' - ' + usuario.oficina.descripcion_corta, url_for('oficinas.detail', oficina_id=usuario.oficina_id)) }}
+        {% else %}
+            {{ detail.label_value('Oficina', usuario.oficina.clave + ' - ' + usuario.oficina.descripcion_corta) }}
+        {% endif %}
         {{ detail.label_value('Puesto', usuario.puesto) }}
-        {# detail.label_value('Creado', moment(usuario.creado).format('llll')) #}
+        {% detail.label_value('Creado', moment(usuario.creado).format('llll')) %}
     {% endcall %}
     {% if current_user.can_view('USUARIOS ROLES') %}
         {% call detail.card('Roles') %}
