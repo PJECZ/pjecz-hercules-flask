@@ -1,10 +1,10 @@
 """
-Alimentar roles
+Alimentar Roles
 """
 
+from pathlib import Path
 import csv
 import sys
-from pathlib import Path
 
 import click
 
@@ -15,28 +15,30 @@ ROLES_CSV = "seed/roles_permisos.csv"
 
 
 def alimentar_roles():
-    """Alimentar roles"""
+    """Alimentar Roles"""
     ruta = Path(ROLES_CSV)
     if not ruta.exists():
-        click.echo(f"ERROR: {ruta.name} no se encontró.")
+        click.echo(f"AVISO: {ruta.name} no se encontró.")
         sys.exit(1)
     if not ruta.is_file():
-        click.echo(f"ERROR: {ruta.name} no es un archivo.")
+        click.echo(f"AVISO: {ruta.name} no es un archivo.")
         sys.exit(1)
-    click.echo("Alimentando roles...")
+    click.echo("Alimentando roles: ", nl=False)
     contador = 0
     with open(ruta, encoding="utf8") as puntero:
         rows = csv.DictReader(puntero)
         for row in rows:
             rol_id = int(row["rol_id"])
+            nombre = safe_string(row["nombre"], save_enie=True)
+            estatus = row["estatus"]
             if rol_id != contador + 1:
-                click.echo(f"  AVISO: rol_id {rol_id} no es consecutivo")
-                continue
+                click.echo(click.style(f"  AVISO: rol_id {rol_id} no es consecutivo", fg="red"))
+                sys.exit(1)
             Rol(
-                nombre=safe_string(row["nombre"], to_uppercase=False, save_enie=True),
-                estatus=row["estatus"],
+                nombre=nombre,
+                estatus=estatus,
             ).save()
             contador += 1
-            if contador % 100 == 0:
-                click.echo(f"  Van {contador}...")
-    click.echo(f"  {contador} roles alimentados.")
+            click.echo(click.style(".", fg="green"), nl=False)
+    click.echo()
+    click.echo(click.style(f"  {contador} roles alimentados.", fg="green"))

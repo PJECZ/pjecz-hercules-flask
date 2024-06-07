@@ -2,11 +2,13 @@
 Modulos
 """
 
-from sqlalchemy import Boolean, Column, Integer, String
-from sqlalchemy.orm import relationship
+from typing import List
 
-from lib.universal_mixin import UniversalMixin
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from hercules.extensions import database
+from lib.universal_mixin import UniversalMixin
 
 
 class Modulo(database.Model, UniversalMixin):
@@ -16,22 +18,22 @@ class Modulo(database.Model, UniversalMixin):
     __tablename__ = "modulos"
 
     # Clave primaria
-    id = Column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
     # Columnas
-    nombre = Column(String(256), unique=True, nullable=False)
-    nombre_corto = Column(String(64), nullable=False)
-    icono = Column(String(48), nullable=False)
-    ruta = Column(String(64), nullable=False)
-    en_navegacion = Column(Boolean, nullable=False, default=True)
-    en_plataforma_carina = Column(Boolean, nullable=False, default=False)
-    en_plataforma_hercules = Column(Boolean, nullable=False, default=False)
-    en_plataforma_web = Column(Boolean, nullable=False, default=False)
-    en_portal_notarias = Column(Boolean, nullable=False, default=False)
+    nombre: Mapped[str] = mapped_column(String(256), unique=True)
+    nombre_corto: Mapped[str] = mapped_column(String(64))
+    icono: Mapped[str] = mapped_column(String(48))
+    ruta: Mapped[str] = mapped_column(String(64))
+    en_navegacion: Mapped[bool] = mapped_column(default=True)
+    en_plataforma_carina: Mapped[bool] = mapped_column(default=True)
+    en_plataforma_hercules: Mapped[bool] = mapped_column(default=True)
+    en_plataforma_web: Mapped[bool] = mapped_column(default=True)
+    en_portal_notarias: Mapped[bool] = mapped_column(default=True)
 
     # Hijos
-    bitacoras = relationship("Bitacora", back_populates="modulo")
-    permisos = relationship("Permiso", back_populates="modulo")
+    bitacoras: Mapped[List["Bitacora"]] = relationship("Bitacora", back_populates="modulo")
+    permisos: Mapped[List["Permiso"]] = relationship("Permiso", back_populates="modulo")
 
     def __repr__(self):
         """Representación"""

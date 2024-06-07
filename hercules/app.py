@@ -10,16 +10,22 @@ from config.settings import Settings
 from hercules.blueprints.autoridades.views import autoridades
 from hercules.blueprints.bitacoras.views import bitacoras
 from hercules.blueprints.distritos.views import distritos
+from hercules.blueprints.domicilios.views import domicilios
 from hercules.blueprints.entradas_salidas.views import entradas_salidas
 from hercules.blueprints.estados.views import estados
+from hercules.blueprints.materias.views import materias
 from hercules.blueprints.modulos.views import modulos
+from hercules.blueprints.municipios.views import municipios
+from hercules.blueprints.oficinas.views import oficinas
 from hercules.blueprints.permisos.views import permisos
 from hercules.blueprints.roles.views import roles
 from hercules.blueprints.sistemas.views import sistemas
 from hercules.blueprints.usuarios.models import Usuario
-from hercules.blueprints.municipios.views import municipios
 from hercules.blueprints.usuarios.views import usuarios
 from hercules.blueprints.usuarios_roles.views import usuarios_roles
+from hercules.blueprints.web_archivos.views import web_archivos
+from hercules.blueprints.web_paginas.views import web_paginas
+from hercules.blueprints.web_unidades.views import web_unidades
 from hercules.extensions import csrf, database, login_manager, moment
 
 
@@ -39,15 +45,21 @@ def create_app():
     app.register_blueprint(autoridades)
     app.register_blueprint(bitacoras)
     app.register_blueprint(distritos)
+    app.register_blueprint(domicilios)
     app.register_blueprint(entradas_salidas)
     app.register_blueprint(estados)
+    app.register_blueprint(materias)
     app.register_blueprint(modulos)
     app.register_blueprint(municipios)
+    app.register_blueprint(oficinas)
     app.register_blueprint(permisos)
     app.register_blueprint(roles)
     app.register_blueprint(sistemas)
     app.register_blueprint(usuarios)
     app.register_blueprint(usuarios_roles)
+    app.register_blueprint(web_archivos)
+    app.register_blueprint(web_paginas)
+    app.register_blueprint(web_unidades)
 
     # Inicializar extensiones
     extensions(app)

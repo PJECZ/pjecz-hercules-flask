@@ -3,6 +3,7 @@ Respaldar Distritos
 """
 
 import csv
+import sys
 from pathlib import Path
 
 import click
@@ -13,15 +14,13 @@ DISTRITOS_CSV = "seed/distritos.csv"
 
 
 def respaldar_distritos():
-    """Respaldar Distritos a un archivo CSV"""
-    directorio = Path("seed")
-    directorio.mkdir(exist_ok=True)
+    """Respaldar Distritos"""
     ruta = Path(DISTRITOS_CSV)
     if ruta.exists():
-        ruta.unlink()
-    click.echo("Respaldando distritos...")
+        click.echo(f"AVISO: {DISTRITOS_CSV} ya existe, no voy a sobreescribirlo.")
+        sys.exit(1)
+    click.echo("Respaldando distritos: ", nl=False)
     contador = 0
-    distritos = Distrito.query.order_by(Distrito.id).all()
     with open(ruta, "w", encoding="utf8") as puntero:
         respaldo = csv.writer(puntero)
         respaldo.writerow(
@@ -30,24 +29,26 @@ def respaldar_distritos():
                 "clave",
                 "nombre",
                 "nombre_corto",
+                "es_distrito_judicial",
                 "es_distrito",
                 "es_jurisdiccional",
                 "estatus",
             ]
         )
-        for distrito in distritos:
+        for distrito in Distrito.query.order_by(Distrito.id).all():
             respaldo.writerow(
                 [
                     distrito.id,
                     distrito.clave,
                     distrito.nombre,
                     distrito.nombre_corto,
+                    int(distrito.es_distrito_judicial),
                     int(distrito.es_distrito),
                     int(distrito.es_jurisdiccional),
                     distrito.estatus,
                 ]
             )
             contador += 1
-            if contador % 100 == 0:
-                click.echo(f"  Van {contador}...")
-    click.echo(f"  {contador} en {ruta.name}")
+            click.echo(click.style(".", fg="green"), nl=False)
+    click.echo()
+    click.echo(click.style(f"  {contador} distritos respaldados.", fg="green"))

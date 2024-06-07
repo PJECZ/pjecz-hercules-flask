@@ -2,12 +2,11 @@
 Web Archivos, modelos
 """
 
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
-
-from lib.universal_mixin import UniversalMixin
+from sqlalchemy import ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.extensions import database
+from lib.universal_mixin import UniversalMixin
 
 
 class WebArchivo(database.Model, UniversalMixin):
@@ -17,16 +16,16 @@ class WebArchivo(database.Model, UniversalMixin):
     __tablename__ = "web_archivos"
 
     # Clave primaria
-    id = Column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
     # Clave foránea
-    web_pagina_id = Column(Integer, ForeignKey("web_paginas.id"), index=True, nullable=False)
-    web_pagina = relationship("WebPagina", back_populates="web_archivos")
+    web_pagina_id: Mapped[int] = mapped_column(ForeignKey("web_paginas.id"))
+    web_pagina: Mapped["WebPagina"] = relationship(back_populates="web_archivos")
 
     # Columnas
-    archivo = Column(String(256), nullable=False)
-    descripcion = Column(String(256), nullable=False)
-    url = Column(String(256), nullable=False)
+    archivo: Mapped[str] = mapped_column(String(256))
+    descripcion: Mapped[str] = mapped_column(String(256))
+    url: Mapped[str] = mapped_column(String(256))
 
     def __repr__(self):
         """Representación"""

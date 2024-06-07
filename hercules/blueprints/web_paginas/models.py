@@ -2,12 +2,14 @@
 Web Paginas, modelos
 """
 
-from sqlalchemy import Column, Date, ForeignKey, JSON, Integer, String
-from sqlalchemy.orm import relationship
+from datetime import date
+from typing import List
 
-from lib.universal_mixin import UniversalMixin
+from sqlalchemy import JSON, Date, ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.extensions import database
+from lib.universal_mixin import UniversalMixin
 
 
 class WebPagina(database.Model, UniversalMixin):
@@ -17,21 +19,21 @@ class WebPagina(database.Model, UniversalMixin):
     __tablename__ = "web_paginas"
 
     # Clave primaria
-    id = Column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
     # Clave foránea
-    web_unidad_id = Column(Integer, ForeignKey("web_unidades.id"), index=True, nullable=False)
-    web_unidad = relationship("WebUnidad", back_populates="web_paginas")
+    web_unidad_id: Mapped[int] = mapped_column(ForeignKey("web_unidades.id"))
+    web_unidad: Mapped["WebUnidad"] = relationship(back_populates="web_paginas")
 
     # Columnas
-    titulo = Column(String(256), nullable=False)
-    fecha_modificacion = Column(Date, nullable=False)
-    responsable = Column(String(256), nullable=False)
-    ruta = Column(String(256), nullable=False)
-    contenido = Column(JSON, nullable=False)
+    titulo: Mapped[str] = mapped_column(String(256))
+    fecha_modificacion: Mapped[date] = mapped_column(Date)
+    responsable: Mapped[str] = mapped_column(String(256))
+    ruta: Mapped[str] = mapped_column(String(256))
+    contenido: Mapped[dict] = mapped_column(JSON)
 
     # Hijos
-    web_archivos = relationship("WebArchivo", back_populates="web_pagina")
+    web_archivos: Mapped[List["WebArchivo"]] = relationship("WebArchivo", back_populates="web_pagina")
 
     def __repr__(self):
         """Representación"""

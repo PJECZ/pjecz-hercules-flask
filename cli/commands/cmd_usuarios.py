@@ -1,5 +1,5 @@
 """
-CLI usuarios
+CLI Usuarios
 """
 
 import sys
@@ -73,6 +73,6 @@ def nueva_contrasena(email):
     click.echo(f"Se ha cambiado la contraseña de {email} en usuarios")
 
 
-cli.add_command(nueva_api_key)
 cli.add_command(mostrar_api_key)
+cli.add_command(nueva_api_key)
 cli.add_command(nueva_contrasena)

@@ -1,7 +1,7 @@
 {
-  "Jinja2 list filter": {
+  "Jinja2 list": {
     "scope": "jinja-html",
-    "prefix": "j2_list_filter",
+    "prefix": "j2_list",
     "body": [
       "{% extends 'layouts/app.jinja2' %}",
       "{% import 'macros/list.jinja2' as list %}",
@@ -89,11 +89,11 @@
       "{% endblock %}",
       ""
     ],
-    "description": "Listado filtrado"
+    "description": "Contenido list.jinja2"
   },
   "Jinja2 list filter form": {
     "scope": "jinja-html",
-    "prefix": "j2_list_filter_form",
+    "prefix": "j2_list_content_filter_form",
     "body": [
       "\t\t<!-- Filtros ${4:plural} -->",
       "\t\t<div class=\"row\">",
@@ -119,11 +119,27 @@
       "\t\t\t</div>",
       "\t\t</div>"
     ],
-    "description": "Listado filtrado form"
+    "description": "Fragmento filtros"
+  },
+  "Jinja2 list table": {
+    "scope": "jinja-html",
+    "prefix": "j2_list_content_table",
+    "body": [
+      "\t\t<!-- DataTable ${4:plural} -->",
+      "\t\t<table id=\"${2:blueprint}_datatable\" class=\"table {% if estatus == 'B'%}table-dark{% endif %} display nowrap\" style=\"width:100%\">",
+      "\t\t\t<thead>",
+      "\t\t\t\t<tr>",
+      "\t\t\t\t\t<th>Clave</th>",
+      "\t\t\t\t\t<th>Descripción</th>",
+      "\t\t\t\t</tr>",
+      "\t\t\t</thead>",
+      "\t\t</table>"
+    ],
+    "description": "Fragmento table"
   },
   "Jinja2 list filter js": {
     "scope": "jinja-html",
-    "prefix": "j2_list_filter_js",
+    "prefix": "j2_list_datatables_js",
     "body": [
       "\t<script src=\"/static/js/datatables-constructor.js\"></script>",
       "\t<script src=\"/static/js/datatables-filtros.js\"></script>",
@@ -153,6 +169,6 @@
       "\t\t${5:filtrosObjetos}.precargar();",
       "\t</script>"
     ],
-    "description": "Listado filtrado js"
+    "description": "Fragmento js"
   }
 }
