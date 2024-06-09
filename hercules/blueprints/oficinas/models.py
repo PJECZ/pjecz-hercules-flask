@@ -50,4 +50,4 @@ class Oficina(database.Model, UniversalMixin):
 
     def __repr__(self):
         """Representación"""
-        return f"<Oficina {self.id}>"
+        return f"<Oficina {self.clave}>"
