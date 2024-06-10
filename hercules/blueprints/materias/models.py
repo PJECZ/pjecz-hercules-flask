@@ -4,7 +4,7 @@ Materias, modelos
 
 from typing import List
 
-from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy import Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.extensions import database
