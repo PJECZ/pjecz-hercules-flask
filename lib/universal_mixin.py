@@ -6,7 +6,7 @@ from datetime import datetime
 
 from hashids import Hashids
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.sql import func
+from sqlalchemy.sql.functions import now
 from sqlalchemy.types import CHAR
 
 from config.settings import get_settings
@@ -19,9 +19,9 @@ hashids = Hashids(salt=settings.SALT, min_length=8)
 class UniversalMixin:
     """Columnas y metodos universales"""
 
-    creado: Mapped[datetime] = mapped_column(server_default=func.now())
-    modificado: Mapped[datetime] = mapped_column(server_default=func.now(), server_onupdate=func.now())
-    estatus: Mapped[str] = mapped_column(CHAR, server_default="A", default="A")
+    creado: Mapped[datetime] = mapped_column(default=now(), server_default=now())
+    modificado: Mapped[datetime] = mapped_column(default=now(), onupdate=now(), server_default=now())
+    estatus: Mapped[str] = mapped_column(CHAR, default="A", server_default="A")
 
     def delete(self):
         """Eliminar registro"""
