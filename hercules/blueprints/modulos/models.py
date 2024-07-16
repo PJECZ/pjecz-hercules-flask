@@ -25,11 +25,11 @@ class Modulo(database.Model, UniversalMixin):
     nombre_corto: Mapped[str] = mapped_column(String(64))
     icono: Mapped[str] = mapped_column(String(48))
     ruta: Mapped[str] = mapped_column(String(64))
-    en_navegacion: Mapped[bool] = mapped_column(default=True)
-    en_plataforma_carina: Mapped[bool] = mapped_column(default=True)
-    en_plataforma_hercules: Mapped[bool] = mapped_column(default=True)
-    en_plataforma_web: Mapped[bool] = mapped_column(default=True)
-    en_portal_notarias: Mapped[bool] = mapped_column(default=True)
+    en_navegacion: Mapped[bool] = mapped_column(default=False)
+    en_plataforma_carina: Mapped[bool] = mapped_column(default=False)
+    en_plataforma_hercules: Mapped[bool] = mapped_column(default=False)
+    en_plataforma_web: Mapped[bool] = mapped_column(default=False)
+    en_portal_notarias: Mapped[bool] = mapped_column(default=False)
 
     # Hijos
     bitacoras: Mapped[List["Bitacora"]] = relationship("Bitacora", back_populates="modulo")

@@ -7,13 +7,13 @@ import json
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_message, safe_string
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.forms import ModuloForm
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
+from lib.datatables import get_datatable_parameters, output_datatable_json
+from lib.safe_string import safe_message, safe_string
 
 MODULO = "MODULOS"
 
@@ -35,7 +35,7 @@ def datatable_json():
     # Consultar
     consulta = Modulo.query
     # Solo los modulos en Plataforma Hercules
-    consulta = consulta.filter_by(en_plataforma_hercules=True)
+    # consulta = consulta.filter_by(en_plataforma_hercules=True)
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
         consulta = consulta.filter_by(estatus=request.form["estatus"])

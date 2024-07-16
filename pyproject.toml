@@ -1,11 +1,11 @@
 [tool.poetry]
+package-mode = false
 name = "pjecz-hercules-flask"
 version = "0.1.0"
 description = "Hercules es un sistema web hecho con Flask para actualizar Plataforma Web."
 authors = ["Guillermo Valdes <guillermo@movimientolibre.com>"]
 license = "AGPL3"
 readme = "README.md"
-packages = [{include = "hercules"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -18,12 +18,12 @@ flask-moment = "^1.0.5"
 flask-sqlalchemy = "^3.1.1"
 flask-socketio = "^5.3.6"
 flask-wtf = "^1.2.1"
-google-auth = "^2.29.0"
-google-cloud-secret-manager = "^2.19.0"
+google-auth = "^2.32.0"
+google-cloud-secret-manager = "^2.20.1"
 google-cloud-storage = "^2.16.0"
 google-cloud = "^0.34.0"
-google-generativeai = "^0.4.1"
-gunicorn = "^21.2.0"
+google-generativeai = "^0.7.2"
+gunicorn = "^22.0.0"
 hashids = "^1.3.1"
 jinja2 = "^3.1.3"
 openpyxl = "^3.1.2"
@@ -37,18 +37,18 @@ rq = "^1.16.1"
 sqlalchemy = "^2.0.29"
 sqlalchemy-utils = "^0.41.2"
 unidecode = "^1.3.8"
-uvicorn = "^0.29.0"
+uvicorn = "^0.30.1"
 werkzeug = "^3.0.1"
 wtforms = "^3.1.2"
 
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.3.0"
+black = "^24.2.0"
 isort = "^5.13.2"
-pytest = "^8.1.1"
+pre-commit = "^3.7.1"
+pytest = "^8.2.2"
 pylint = "^3.1.0"
 pylint-sqlalchemy = "^0.3.0"
-pre-commit = "^3.7.0"
 
 [build-system]
 requires = ["poetry-core"]

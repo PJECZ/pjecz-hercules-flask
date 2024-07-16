@@ -107,7 +107,7 @@ def respaldar():
 
 @click.command()
 def copiar():
-    """Copiar los registros de varias tablas desde la BD de origen a la BD de destino"""
+    """Copiar registros desde BD Origen a la BD Destino"""
     click.echo("Termina copiar.")
 
 

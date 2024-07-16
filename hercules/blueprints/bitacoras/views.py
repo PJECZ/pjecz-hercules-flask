@@ -5,13 +5,13 @@ Bitácoras
 from flask import Blueprint, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_email, safe_string
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
-from hercules.blueprints.usuarios.models import Usuario
 from hercules.blueprints.usuarios.decorators import permission_required
+from hercules.blueprints.usuarios.models import Usuario
+from lib.datatables import get_datatable_parameters, output_datatable_json
+from lib.safe_string import safe_email, safe_string
 
 MODULO = "BITACORAS"
 
@@ -36,13 +36,13 @@ def datatable_json():
     consulta = consulta.join(Modulo).filter(Modulo.en_plataforma_hercules == True)
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
-        consulta = consulta.filter(Bitacora.estatus==request.form["estatus"])
+        consulta = consulta.filter(Bitacora.estatus == request.form["estatus"])
     else:
-        consulta = consulta.filter(Bitacora.estatus=="A")
+        consulta = consulta.filter(Bitacora.estatus == "A")
     if "modulo_id" in request.form:
-        consulta = consulta.filter(Bitacora.modulo_id==request.form["modulo_id"])
+        consulta = consulta.filter(Bitacora.modulo_id == request.form["modulo_id"])
     if "usuario_id" in request.form:
-        consulta = consulta.filter(Bitacora.usuario_id==request.form["usuario_id"])
+        consulta = consulta.filter(Bitacora.usuario_id == request.form["usuario_id"])
     # Luego filtrar por columnas de otras tablas
     if "modulo_nombre" in request.form:
         modulo_nombre = safe_string(request.form["modulo_nombre"], save_enie=True)
