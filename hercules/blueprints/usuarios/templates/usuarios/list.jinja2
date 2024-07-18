@@ -33,7 +33,7 @@
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosUsuarios.buscar(); return false;">
                     <div class="col-4">
                         <div class="form-floating">
-                            <input id="filtroEMail" type="text" class="form-control" aria-label="Clave" style="text-transform: uppercase;">
+                            <input id="filtroEMail" type="text" class="form-control" aria-label="email">
                             <label for="filtroEMail">e-mail</label>
                         </div>
                     </div>
@@ -45,8 +45,8 @@
                     </div>
                     <div class="col-3">
                         <div class="form-floating">
-                            <input id="filtroApellidoPrimero" type="text" class="form-control" aria-label="Apellido primero" style="text-transform: uppercase;">
-                            <label for="filtroApellidoPrimero">Primer apellido</label>
+                            <input id="filtroApellidoPaterno" type="text" class="form-control" aria-label="Apellido paterno" style="text-transform: uppercase;">
+                            <label for="filtroApellidoPaterno">Primer paterno</label>
                         </div>
                     </div>
                     <div class="col-2 text-end">
@@ -112,7 +112,7 @@
         const filtrosUsuarios = new FiltrosDataTable('#usuarios_datatable', configDataTable);
         filtrosUsuarios.agregarInput('filtroEMail', 'email');
         filtrosUsuarios.agregarInput('filtroNombres', 'nombres');
-        filtrosUsuarios.agregarInput('filtroApellidoPrimero', 'apellido_paterno');
+        filtrosUsuarios.agregarInput('filtroApellidoPaterno', 'apellido_paterno');
         filtrosUsuarios.precargar();
     </script>
 {% endblock %}
