@@ -4,6 +4,6 @@ service: hercules
 entrypoint: gunicorn -w 2 appserver:gunicorn_app
 env_variables:
   PROJECT_ID: justicia-digital-gob-mx
-  SERVICE_PREFIX: pjecz_hercules
+  SERVICE_PREFIX: pjecz_hercules_flask
 vpc_access_connector:
   name: projects/justicia-digital-gob-mx/locations/us-west2/connectors/cupido
