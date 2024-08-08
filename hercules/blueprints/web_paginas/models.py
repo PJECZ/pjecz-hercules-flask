@@ -22,8 +22,8 @@ class WebPagina(database.Model, UniversalMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     # Clave foránea
-    web_unidad_id: Mapped[int] = mapped_column(ForeignKey("web_unidades.id"))
-    web_unidad: Mapped["WebUnidad"] = relationship(back_populates="web_paginas")
+    web_rama_id: Mapped[int] = mapped_column(ForeignKey("web_ramas.id"))
+    web_rama: Mapped["WebRama"] = relationship(back_populates="web_paginas")
 
     # Columnas
     titulo: Mapped[str] = mapped_column(String(256))

@@ -25,7 +25,7 @@ from hercules.blueprints.usuarios.views import usuarios
 from hercules.blueprints.usuarios_roles.views import usuarios_roles
 from hercules.blueprints.web_archivos.views import web_archivos
 from hercules.blueprints.web_paginas.views import web_paginas
-from hercules.blueprints.web_unidades.views import web_unidades
+from hercules.blueprints.web_ramas.views import web_ramas
 from hercules.extensions import csrf, database, login_manager, moment
 
 
@@ -59,7 +59,7 @@ def create_app():
     app.register_blueprint(usuarios_roles)
     app.register_blueprint(web_archivos)
     app.register_blueprint(web_paginas)
-    app.register_blueprint(web_unidades)
+    app.register_blueprint(web_ramas)
 
     # Inicializar extensiones
     extensions(app)

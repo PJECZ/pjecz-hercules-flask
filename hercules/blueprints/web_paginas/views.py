@@ -25,3 +25,33 @@ web_paginas = Blueprint("web_paginas", __name__, template_folder="templates")
 @permission_required(MODULO, Permiso.VER)
 def before_request():
     """Permiso por defecto"""
+
+
+@web_paginas.route("/web_paginas")
+def list_active():
+    """Listado de WebPaginas activos"""
+    return render_template(
+        "web_paginas/list.jinja2",
+        filtros=json.dumps({"estatus": "A"}),
+        titulo="Paginas",
+        estatus="A",
+    )
+
+
+@web_paginas.route("/web_paginas/inactivos")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def list_inactive():
+    """Listado de WebPaginas inactivas"""
+    return render_template(
+        "web_paginas/list.jinja2",
+        filtros=json.dumps({"estatus": "B"}),
+        titulo="Paginas inactivas",
+        estatus="B",
+    )
+
+
+@web_paginas.route("/web_paginas/<int:web_pagina_id>")
+def detail(web_pagina_id):
+    """Detalle de una WebPagina"""
+    web_pagina = WebPagina.query.get_or_404(web_pagina_id)
+    return render_template("web_paginas/detail.jinja2", web_pagina=web_pagina)
