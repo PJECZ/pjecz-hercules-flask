@@ -7,6 +7,7 @@ from flask import Flask
 from redis import Redis
 
 from config.settings import Settings
+from hercules.blueprints.abogados.views import abogados
 from hercules.blueprints.autoridades.views import autoridades
 from hercules.blueprints.bitacoras.views import bitacoras
 from hercules.blueprints.distritos.views import distritos
@@ -42,6 +43,7 @@ def create_app():
     app.task_queue = rq.Queue(app.config["TASK_QUEUE"], connection=app.redis, default_timeout=3000)
 
     # Registrar blueprints
+    app.register_blueprint(abogados)
     app.register_blueprint(autoridades)
     app.register_blueprint(bitacoras)
     app.register_blueprint(distritos)
