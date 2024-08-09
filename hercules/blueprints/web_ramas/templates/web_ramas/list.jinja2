@@ -11,7 +11,7 @@
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('web_ramas.list_active')) }}{% endif %}
         {% endif %}
         {% if current_user.can_insert('WEB RAMAS') %}
-            {{ topbar.button_new('Nuevo Rama', url_for('web_ramas.new')) }}
+            {{ topbar.button_new('Nueva Rama', url_for('web_ramas.new')) }}
         {% endif %}
     {% endcall %}
 {% endblock %}

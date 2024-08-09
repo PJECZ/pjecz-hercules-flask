@@ -41,11 +41,11 @@ def datatable_json():
     else:
         consulta = consulta.filter_by(estatus="A")
     if "clave" in request.form:
-        consulta = consulta.filter_by(clave=request.form["clave"])
+        consulta = consulta.filter(WebRama.clave.contains(request.form["clave"]))
     if "nombre" in request.form:
-        consulta = consulta.filter_by(nombre=request.form["nombre"])
+        consulta = consulta.filter(WebRama.nombre.contains(request.form["nombre"]))
     # Ordenar y paginar
-    registros = consulta.order_by(WebRama.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(WebRama.clave).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -134,7 +134,7 @@ def edit(web_rama_id):
         es_valido = True
         # Si cambia la clave, validar que la clave no está en uso
         clave = safe_clave(form.clave.data)
-        if web_rama.clave != clave and WebRama.query.filter_by(clave=clave).first():
+        if web_rama.clave != clave and WebRama.query.filter_by(clave=clave).filter(WebRama.id != web_rama_id).first():
             flash("La clave ya está en uso", "warning")
             es_valido = False
         # Si es válido

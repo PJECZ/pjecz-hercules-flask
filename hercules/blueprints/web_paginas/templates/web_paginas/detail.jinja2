@@ -20,12 +20,14 @@
 
 {% block content %}
     {% call detail.card(estatus=web_pagina.estatus) %}
-        {{ detail.label_value('Rama', web_pagina.web_rama.clave, url_for('web_ramas.detail', web_rama_id=web_pagina.web_rama_id)) }}
+        {# detail.label_value('Rama', web_pagina.web_rama.nombre, url_for('web_ramas.detail', web_rama_id=web_pagina.web_rama_id)) #}
         {{ detail.label_value('Titulo', web_pagina.titulo) }}
+        {# detail.label_value('Clave', web_pagina.clave) #}
         {{ detail.label_value('Fecha de modificación', web_pagina.fecha_modificacion) }}
         {{ detail.label_value('Responsable', web_pagina.responsable) }}
         {{ detail.label_value('Ruta', web_pagina.ruta) }}
         {{ detail.label_value('Contenido', web_pagina.contenido) }}
+        {{ detail.label_value_big('Estado', web_pagina.estado) }}
         {# detail.label_value('Creado', moment(web_pagina.creado, local=True).format('llll')) #}
     {% endcall %}
 {% endblock %}

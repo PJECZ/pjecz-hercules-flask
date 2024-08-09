@@ -19,16 +19,26 @@
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosWebPaginas.buscar(); return false;">
-                    <div class="col-4">
+                    <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroWebPaginaClave" type="text" class="form-control" aria-label="Clave" style="text-transform: uppercase;">
                             <label for="filtroWebPaginaClave">Clave</label>
                         </div>
                     </div>
-                    <div class="col-6">
+                    <div class="col-4">
                         <div class="form-floating">
                             <input id="filtroWebPaginaDescripcion" type="text" class="form-control" aria-label="Descripción">
                             <label for="filtroWebPaginaDescripcion">Descripción</label>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-floating">
+                            <select id="filtroWebPaginaEstado" class="form-select" aria-label="Estado">
+                                <option value="">Todos</option>
+                                <option value="BORRADOR">BORRADOR</option>
+                                <option value="PUBLICAR">PUBLICAR</option>
+                            </select>
+                            <label for="filtroWebPaginaEstado">Estado</label>
                         </div>
                     </div>
                     <div class="col-2 text-end">
@@ -47,6 +57,7 @@
                     <th>Título</th>
                     <th>Ruta</th>
                     <th>Fecha de modificación</th>
+                    <th>Estado</th>
                 </tr>
             </thead>
         </table>
@@ -67,7 +78,8 @@
             { data: 'detalle' },
             { data: 'titulo' },
             { data: 'ruta' },
-            { data: 'fecha_modificacion' }
+            { data: 'fecha_modificacion' },
+            { data: 'estado' }
         ];
         configDTWebPaginas['columnDefs'] = [
             {
@@ -89,6 +101,7 @@
         const filtrosWebPaginas = new FiltrosDataTable('#web_paginas_datatable', configDTWebPaginas);
         filtrosWebPaginas.agregarInput('filtroWebPaginaClave', 'clave');
         filtrosWebPaginas.agregarInput('filtroWebPaginaDescripcion', 'descripcion');
+        filtrosWebPaginas.agregarInput('filtroWebPaginaEstado', 'estado');
         filtrosWebPaginas.precargar();
     </script>
 {% endblock %}

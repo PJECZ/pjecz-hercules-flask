@@ -3,6 +3,7 @@ Web Paginas, vistas
 """
 
 import json
+from datetime import date
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
@@ -15,7 +16,7 @@ from hercules.blueprints.web_paginas.forms import WebPaginaForm
 from hercules.blueprints.web_paginas.models import WebPagina
 from hercules.blueprints.web_ramas.models import WebRama
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_message, safe_string
+from lib.safe_string import safe_clave, safe_message, safe_string
 
 MODULO = "WEB PAGINAS"
 
@@ -44,11 +45,11 @@ def datatable_json():
     if "web_rama_id" in request.form:
         consulta = consulta.filter_by(web_rama_id=request.form["web_rama_id"])
     if "clave" in request.form:
-        consulta = consulta.filter_by(clave=request.form["clave"])
+        consulta = consulta.filter(WebPagina.clave.contains(request.form["clave"]))
     if "descripcion" in request.form:
-        consulta = consulta.filter_by(descripcion=request.form["descripcion"])
+        consulta = consulta.filter(WebPagina.descripcion.contains(request.form["descripcion"]))
     # Ordenar y paginar
-    registros = consulta.order_by(WebPagina.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(WebPagina.clave).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -66,6 +67,7 @@ def datatable_json():
                 "titulo": resultado.titulo,
                 "ruta": resultado.ruta,
                 "fecha_modificacion": resultado.fecha_modificacion.strftime("%Y-%m-%d"),
+                "estado": resultado.estado,
             }
         )
     # Entregar JSON
@@ -109,15 +111,24 @@ def new(web_rama_id):
     web_rama = WebRama.query.get_or_404(web_rama_id)
     form = WebPaginaForm()
     if form.validate_on_submit():
+        # Validar que la clave no está en uso
+        clave = safe_clave(form.clave.data)
+        if WebPagina.query.filter_by(clave=clave).first():
+            flash(f"La clave {clave} ya está en uso", "warning")
+            return render_template("web_ramas/new.jinja2", form=form)
+        # Guardar
         web_pagina = WebPagina(
             web_rama_id=web_rama.id,
             titulo=safe_string(form.titulo.data, do_unidecode=False, save_enie=True, to_uppercase=False),
+            clave=clave,
             fecha_modificacion=form.fecha_modificacion.data,
             responsable=safe_string(form.responsable.data, save_enie=True, to_uppercase=False),
             ruta=form.ruta.data.strip(),
             contenido=form.contenido.data.strip(),
+            estado=form.estado.data,
         )
         web_pagina.save()
+        # Guardar bitácora
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
@@ -125,8 +136,13 @@ def new(web_rama_id):
             url=url_for("web_paginas.detail", web_pagina_id=web_pagina.id),
         )
         bitacora.save()
+        # Entregar detalle
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
+    # Poner valores por defecto
+    form.clave.data = web_rama.clave + "-"
+    form.estado.data = "BORRADOR"
+    form.fecha_modificacion.data = date.today()
     return render_template("web_paginas/new.jinja2", form=form, web_rama=web_rama)
 
 
@@ -137,22 +153,39 @@ def edit(web_pagina_id):
     web_pagina = WebPagina.query.get_or_404(web_pagina_id)
     form = WebPaginaForm()
     if form.validate_on_submit():
-        web_pagina.titulo = safe_string(form.titulo.data, do_unidecode=False, save_enie=True, to_uppercase=False)
-        web_pagina.fecha_modificacion = form.fecha_modificacion.data
-        web_pagina.responsable = safe_string(form.responsable.data, save_enie=True, to_uppercase=False)
-        web_pagina.ruta = form.ruta.data.strip()
-        web_pagina.contenido = form.contenido.data.strip()
-        web_pagina.save()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Editado Pagina {web_pagina.clave} en Rama {web_pagina.web_rama.clave}"),
-            url=url_for("web_paginas.detail", web_pagina_id=web_pagina.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-        return redirect(bitacora.url)
+        es_valido = True
+        # Si cambia la clave, validar que la clave no está en uso
+        clave = safe_clave(form.clave.data)
+        if web_pagina.clave != clave and WebPagina.query.filter_by(clave=clave).filter(WebPagina.id != web_pagina_id).first():
+            flash("La clave ya está en uso", "warning")
+            es_valido = False
+        # Si es válido
+        if es_valido:
+            # Actualizar
+            web_pagina.titulo = safe_string(form.titulo.data, do_unidecode=False, save_enie=True, to_uppercase=False)
+            web_pagina.clave = clave
+            web_pagina.fecha_modificacion = form.fecha_modificacion.data
+            web_pagina.responsable = safe_string(form.responsable.data, save_enie=True, to_uppercase=False)
+            web_pagina.ruta = form.ruta.data.strip()
+            web_pagina.contenido = form.contenido.data.strip()
+            web_pagina.estado = form.estado.data
+            web_pagina.save()
+            bitacora = Bitacora(
+                modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+                usuario=current_user,
+                descripcion=safe_message(f"Editado Pagina {web_pagina.clave} en Rama {web_pagina.web_rama.clave}"),
+                url=url_for("web_paginas.detail", web_pagina_id=web_pagina.id),
+            )
+            bitacora.save()
+            flash(bitacora.descripcion, "success")
+            return redirect(bitacora.url)
+    form.titulo.data = web_pagina.titulo
     form.clave.data = web_pagina.clave
+    form.fecha_modificacion.data = web_pagina.fecha_modificacion
+    form.responsable.data = web_pagina.responsable
+    form.ruta.data = web_pagina.ruta
+    form.contenido.data = web_pagina.contenido
+    form.estado.data = web_pagina.estado
     return render_template("web_paginas/edit.jinja2", form=form, web_pagina=web_pagina)
 
 
