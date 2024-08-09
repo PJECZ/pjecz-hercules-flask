@@ -48,9 +48,13 @@
         <table id="modulos_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>Nombres</th>
-                    <th>Iconos</th>
-                    <th>En menú de navegación</th>
+                    <th>Nombre</th>
+                    <th>Icono</th>
+                    <th>Menú</th>
+                    <th>P. Carina</th>
+                    <th>P. Hércules</th>
+                    <th>P. Web</th>
+                    <th>P. Notarías</th>
                 </tr>
             </thead>
         </table>
@@ -69,7 +73,11 @@
         configDataTable['columns'] = [
             { data: 'detalle' },
             { data: 'icono' },
-            { data: 'en_navegacion' }
+            { data: 'en_navegacion' },
+            { data: 'en_plataforma_carina' },
+            { data: 'en_plataforma_hercules' },
+            { data: 'en_plataforma_web' },
+            { data: 'en_portal_notarias' }
         ];
         configDataTable['columnDefs'] = [
             {
@@ -87,13 +95,13 @@
                 }
             },
             {
-                targets: 2, // en_navegacion
+                targets: [2, 3, 4, 5, 6], // en_navegacion
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data) {
-                        return 'SI';
+                        return '<span class="iconify" data-icon="mdi:checkbox-marked" style="font-size: 1.4em"></span>';
                     }
-                    return '';
+                    return '<span class="iconify text-secondary" data-icon="mdi:checkbox-blank-outline" style="font-size: 1.4em"></span>';
                 }
             }
         ];

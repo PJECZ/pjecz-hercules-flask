@@ -1,0 +1,24 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Nuevo Archivo{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Nuevo Archivo') %}
+        {{ topbar.button_cancel() }}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call f.card() %}
+        {% set form_kwargs = {'web_archivo_id': web_archivo.id} %}
+        {% call f.form_tag('web_archivos.new', fid='web_archivo_form', **form_kwargs) %}
+            {% call f.form_group(form.web_pagina_titulo, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.archivo) %}{% endcall %}
+            {% call f.form_group(form.descripcion) %}{% endcall %}
+            {% call f.form_group(form.url) %}{% endcall %}
+            {% call f.form_group(form.guardar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}

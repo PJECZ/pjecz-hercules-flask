@@ -2,6 +2,8 @@
 Web Archivos, modelos
 """
 
+from typing import Optional
+
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,8 +25,9 @@ class WebArchivo(database.Model, UniversalMixin):
     web_pagina: Mapped["WebPagina"] = relationship(back_populates="web_archivos")
 
     # Columnas
+    clave: Mapped[str] = mapped_column(String(16), unique=True)
     archivo: Mapped[str] = mapped_column(String(256))
-    descripcion: Mapped[str] = mapped_column(String(256))
+    descripcion: Mapped[Optional[str]] = mapped_column(String(256))
     url: Mapped[str] = mapped_column(String(256))
 
     def __repr__(self):

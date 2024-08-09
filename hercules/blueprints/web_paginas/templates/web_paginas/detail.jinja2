@@ -1,0 +1,39 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Pagina {{ web_pagina.titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Página ' + web_pagina.clave) %}
+        {{ topbar.button_previous('Páginas', url_for('web_paginas.list_active')) }}
+        {% if current_user.can_edit('WEB PAGINAS') %}
+            {{ topbar.button_edit('Editar', url_for('web_paginas.edit', web_pagina_id=web_pagina.id)) }}
+        {% endif %}
+        {% if current_user.can_admin('WEB PAGINAS') %}
+            {% if web_pagina.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('web_paginas.delete', web_pagina_id=web_pagina.id)) }}{% endif %}
+            {% if web_pagina.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('web_paginas.recover', web_pagina_id=web_pagina.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=web_pagina.estatus) %}
+        {{ detail.label_value('Rama', web_pagina.web_rama.clave, url_for('web_ramas.detail', web_rama_id=web_pagina.web_rama_id)) }}
+        {{ detail.label_value('Titulo', web_pagina.titulo) }}
+        {{ detail.label_value('Fecha de modificación', web_pagina.fecha_modificacion) }}
+        {{ detail.label_value('Responsable', web_pagina.responsable) }}
+        {{ detail.label_value('Ruta', web_pagina.ruta) }}
+        {{ detail.label_value('Contenido', web_pagina.contenido) }}
+        {# detail.label_value('Creado', moment(web_pagina.creado, local=True).format('llll')) #}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_admin('WEB PAGINAS') %}
+        {% if web_pagina.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + web_pagina.titulo + '?') }}{% endif %}
+        {% if web_pagina.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + web_pagina.titulo + '?') }}{% endif %}
+    {% endif %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}

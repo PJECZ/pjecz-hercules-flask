@@ -2,10 +2,10 @@
 Web Paginas, modelos
 """
 
-from datetime import date
-from typing import List
+from datetime import datetime
+from typing import List, Optional
 
-from sqlalchemy import JSON, Date, ForeignKey, String
+from sqlalchemy import Date, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.extensions import database
@@ -26,11 +26,12 @@ class WebPagina(database.Model, UniversalMixin):
     web_rama: Mapped["WebRama"] = relationship(back_populates="web_paginas")
 
     # Columnas
+    clave: Mapped[str] = mapped_column(String(16), unique=True)
     titulo: Mapped[str] = mapped_column(String(256))
-    fecha_modificacion: Mapped[date] = mapped_column(Date)
-    responsable: Mapped[str] = mapped_column(String(256))
+    fecha_modificacion: Mapped[datetime] = mapped_column(Date)
+    responsable: Mapped[Optional[str]] = mapped_column(String(256))
     ruta: Mapped[str] = mapped_column(String(256))
-    contenido: Mapped[dict] = mapped_column(JSON)
+    contenido: Mapped[str] = mapped_column(Text)
 
     # Hijos
     web_archivos: Mapped[List["WebArchivo"]] = relationship("WebArchivo", back_populates="web_pagina")

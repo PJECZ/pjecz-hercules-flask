@@ -15,6 +15,7 @@ PLAZA_REGEXP = r"^[a-zA-Z0-9]{1,24}$"
 QUINCENA_REGEXP = r"^\d{6}$"
 RFC_REGEXP = r"^[a-zA-Z]{3,4}\d{6}[a-zA-Z0-9]{3}$"
 TOKEN_REGEXP = r"^[a-zA-Z0-9_.=+-]+$"
+URL_REGEXP = r"^(https?:\/\/)[0-9a-z-_]*(\.[0-9a-z-_]+)*(\.[a-z]+)+(\/[0-9a-z%-_]*)*?\/?$"
 
 
 def safe_clave(input_str, max_len=16, only_digits=False, separator="-") -> str:
@@ -124,3 +125,13 @@ def safe_string(input_str, max_len=250, do_unidecode=True, save_enie=False, to_u
     if max_len == 0:
         return final
     return (final[:max_len] + "...") if len(final) > max_len else final
+
+
+def safe_url(input_str):
+    """Safe URL"""
+    if not isinstance(input_str, str) or input_str.strip() == "":
+        return ""
+    input_str = input_str.strip()
+    if re.match(URL_REGEXP, input_str) is None:
+        return ""
+    return input_str
