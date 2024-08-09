@@ -18,6 +18,8 @@ from hercules.blueprints.materias.views import materias
 from hercules.blueprints.modulos.views import modulos
 from hercules.blueprints.municipios.views import municipios
 from hercules.blueprints.oficinas.views import oficinas
+from hercules.blueprints.peritos.views import peritos
+from hercules.blueprints.peritos_tipos.views import peritos_tipos
 from hercules.blueprints.permisos.views import permisos
 from hercules.blueprints.roles.views import roles
 from hercules.blueprints.sistemas.views import sistemas
@@ -54,6 +56,8 @@ def create_app():
     app.register_blueprint(modulos)
     app.register_blueprint(municipios)
     app.register_blueprint(oficinas)
+    app.register_blueprint(peritos)
+    app.register_blueprint(peritos_tipos)
     app.register_blueprint(permisos)
     app.register_blueprint(roles)
     app.register_blueprint(sistemas)
