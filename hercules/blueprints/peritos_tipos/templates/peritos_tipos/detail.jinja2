@@ -1,0 +1,63 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Tipo de Perito{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(perito_tipo.nombre) %}
+        {{ topbar.button_previous('Tipos de Peritos', url_for('peritos_tipos.list_active')) }}
+        {% if current_user.can_edit('PERITOS TIPOS') %}
+            {{ topbar.button_edit('Editar', url_for('peritos_tipos.edit', perito_tipo_id=perito_tipo.id)) }}
+            {% if perito_tipo.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('peritos_tipos.delete', perito_tipo_id=perito_tipo.id)) }}{% endif %}
+            {% if perito_tipo.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('peritos_tipos.recover', perito_tipo_id=perito_tipo.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=perito_tipo.estatus) %}
+        {{ detail.label_value('Nombre', perito_tipo.nombre) }}
+    {% endcall %}
+    {% if current_user.can_view('PERITOS') %}
+        {% call detail.card('Peritos') %}
+            <table id="peritos_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Nombres</th>
+                        <th>Distritos</th>
+                    </tr>
+                </thead>
+            </table>
+        {% endcall %}
+    {% endif %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_edit('PERITOS TIPOS') %}
+        {% if perito_tipo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + perito_tipo.nombre + '?') }}{% endif %}
+        {% if perito_tipo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + perito_tipo.nombre + '?') }}{% endif %}
+    {% endif %}
+    {{ detail.config_datatable() }}
+    {% if current_user.can_view('PERITOS') %}
+        <script>
+            configDataTable['ajax']['url'] = '/peritos/datatable_json';
+            configDataTable['ajax']['data'] = { 'estatus': "A", 'perito_tipo_id': {{ perito_tipo.id}} };
+            configDataTable['columns'] = [
+                { data: 'detalle' },
+                { data: 'distrito' }
+            ];
+            configDataTable['columnDefs'] = [
+                {
+                    targets: [0, 1], // detalle, distrito
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '">' + data.nombre + '</a>';
+                    }
+                }
+            ];
+            $('#peritos_datatable').DataTable(configDataTable);
+        </script>
+    {% endif %}
+{% endblock %}

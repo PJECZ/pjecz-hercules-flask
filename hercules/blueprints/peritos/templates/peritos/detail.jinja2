@@ -1,0 +1,40 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Perito{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Perito ' + perito.nombre) %}
+        {{ topbar.button_previous('Peritos', url_for('peritos.list_active')) }}
+        {% if current_user.can_edit('PERITOS') %}
+            {{ topbar.button_edit('Editar', url_for('peritos.edit', perito_id=perito.id)) }}
+            {% if perito.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('peritos.delete', perito_id=perito.id)) }}{% endif %}
+            {% if perito.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('peritos.recover', perito_id=perito.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=perito.estatus) %}
+        {{ detail.label_value_big('Nombre', perito.nombre) }}
+        {{ detail.label_value('Distrito', perito.distrito.nombre) }}
+        {{ detail.label_value('Tipo', perito.perito_tipo.nombre, url_for('peritos_tipos.detail', perito_tipo_id=perito.perito_tipo_id)) }}
+        {{ detail.label_value('Domicilio', perito.domicilio) }}
+        {{ detail.label_value('Teléfono fijo', perito.telefono_fijo) }}
+        {{ detail.label_value('Teléfono celular', perito.telefono_celular) }}
+        {{ detail.label_value('e-mail', perito.email) }}
+        {{ detail.label_value('Notas', perito.notas) }}
+        {{ detail.label_value('Renovación', perito.renovacion) }}
+        {{ detail.label_value('Creado', moment(perito.creado).format('llll')) }}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_edit('PERITOS') %}
+        {% if perito.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + perito.nombre + '?') }}{% endif %}
+        {% if perito.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + perito.nombre + '?') }}{% endif %}
+    {% endif %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}
