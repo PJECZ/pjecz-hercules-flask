@@ -32,26 +32,6 @@ class Perito(database.Model, UniversalMixin):
     email: Mapped[str] = mapped_column(String(256))
     notas: Mapped[str] = mapped_column(String(256))
 
-    @property
-    def distrito_clave(self):
-        """Distrito clave"""
-        return self.distrito.clave
-
-    @property
-    def distrito_nombre(self):
-        """Distrito nombre"""
-        return self.distrito.nombre
-
-    @property
-    def distrito_nombre_corto(self):
-        """Distrito nombre corto"""
-        return self.distrito.nombre_corto
-
-    @property
-    def perito_tipo_nombre(self):
-        """Nombre del tipo de perito"""
-        return self.perito_tipo.nombre
-
     def __repr__(self):
         """Representación"""
         return f"<Perito {self.id}>"
