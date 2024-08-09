@@ -19,6 +19,7 @@ from hercules.blueprints.modulos.views import modulos
 from hercules.blueprints.municipios.views import municipios
 from hercules.blueprints.oficinas.views import oficinas
 from hercules.blueprints.permisos.views import permisos
+from hercules.blueprints.redams.views import redams
 from hercules.blueprints.roles.views import roles
 from hercules.blueprints.sistemas.views import sistemas
 from hercules.blueprints.usuarios.models import Usuario
@@ -55,6 +56,7 @@ def create_app():
     app.register_blueprint(municipios)
     app.register_blueprint(oficinas)
     app.register_blueprint(permisos)
+    app.register_blueprint(redams)
     app.register_blueprint(roles)
     app.register_blueprint(sistemas)
     app.register_blueprint(usuarios)
