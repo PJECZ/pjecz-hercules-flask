@@ -3,6 +3,7 @@ Safe String
 """
 
 import re
+from datetime import date
 
 from unidecode import unidecode
 
@@ -11,10 +12,16 @@ CONCEPTO_REGEXP = r"^[PD][a-zA-Z0-9]{2,3}$"
 CONTRASENA_REGEXP = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,48}$"
 CURP_REGEXP = r"^[a-zA-Z]{4}\d{6}[a-zA-Z]{6}[A-Z0-9]{2}$"
 EMAIL_REGEXP = r"^[\w.-]+@[\w.-]+\.\w+$"
+EXPEDIENTE_REGEXP = r"^\d+\/[12]\d\d\d(-[a-zA-Z0-9]+(-[a-zA-Z0-9]+)?)?$"
+DIRECCION_IP_REGEXP = r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+MAC_ADDRESS_REGEXP = r"([0-9A-Fa-f]{2}[:-]?){5}([0-9A-Fa-f]{2})"
+NUMERO_PUBLICACION_REGEXP = r"^\d+/[12]\d\d\d$"
 PLAZA_REGEXP = r"^[a-zA-Z0-9]{1,24}$"
 QUINCENA_REGEXP = r"^\d{6}$"
 RFC_REGEXP = r"^[a-zA-Z]{3,4}\d{6}[a-zA-Z0-9]{3}$"
+SENTENCIA_REGEXP = r"^\d+/[12]\d\d\d$"
 TOKEN_REGEXP = r"^[a-zA-Z0-9_.=+-]+$"
+URL_REGEXP = r"^(https?:\/\/)[0-9a-z-_]*(\.[0-9a-z-_]+)*(\.[a-z]+)+(\/[0-9a-z%-_]*)*?\/?$"
 
 
 def safe_clave(input_str, max_len=16, only_digits=False, separator="-") -> str:
@@ -62,6 +69,30 @@ def safe_email(input_str, search_fragment=False) -> str:
     if re.match(EMAIL_REGEXP, final) is None:
         raise ValueError("E-mail inválido")
     return final
+
+
+def safe_expediente(input_str):
+    """Convierte la cadena en un formato de expediente valido como 123/2023, 123/2023-II, 123/2023-II-2, 123/2023-F2"""
+    if not isinstance(input_str, str) or input_str.strip() == "":
+        return ""
+    elementos = re.sub(r"[^a-zA-Z0-9]+", "|", unidecode(input_str.strip())).split("|")
+    try:
+        numero = int(elementos[0])
+        ano = int(elementos[1])
+    except (IndexError, ValueError) as error:
+        raise error
+    if ano < 1900 or ano > date.today().year:
+        raise ValueError
+    extra_1 = ""
+    if len(elementos) >= 3:
+        extra_1 = "-" + elementos[2].upper()
+    extra_2 = ""
+    if len(elementos) >= 4:
+        extra_2 = "-" + elementos[3].upper()
+    limpio = f"{str(numero)}/{str(ano)}{extra_1}{extra_2}"
+    if len(limpio) > 16:
+        raise ValueError
+    return limpio
 
 
 def safe_quincena(input_str) -> str:
