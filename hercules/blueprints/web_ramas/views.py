@@ -41,9 +41,13 @@ def datatable_json():
     else:
         consulta = consulta.filter_by(estatus="A")
     if "clave" in request.form:
-        consulta = consulta.filter(WebRama.clave.contains(request.form["clave"]))
+        clave = safe_clave(request.form["clave"])
+        if clave != "":
+            consulta = consulta.filter(WebRama.clave.contains(clave))
     if "nombre" in request.form:
-        consulta = consulta.filter(WebRama.nombre.contains(request.form["nombre"]))
+        nombre = safe_string(request.form["nombre"], do_unidecode=False, save_enie=True, to_uppercase=False)
+        if nombre != "":
+            consulta = consulta.filter(WebRama.nombre.contains(nombre))
     # Ordenar y paginar
     registros = consulta.order_by(WebRama.clave).offset(start).limit(rows_per_page).all()
     total = consulta.count()

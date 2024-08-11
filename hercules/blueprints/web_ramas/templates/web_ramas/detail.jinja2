@@ -3,7 +3,7 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Rama {{ web_rama.nombre }}{% endblock %}
+{% block title %}Rama {{ web_rama.nombre }} ({{ web_rama.clave }}){% endblock %}
 
 {% block topbar_actions %}
     {% call topbar.page_buttons('Rama ' + web_rama.nombre + ' (' + web_rama.clave + ')') %}
@@ -71,7 +71,7 @@
                 </thead>
             </table>
             {% if current_user.can_insert('WEB PAGINAS') %}
-            <a href="{{ url_for('web_paginas.new', web_rama_id=web_rama.id) }}" class="btn btn-primary">Agregar página</a>
+                <a href="{{ url_for('web_paginas.new', web_rama_id=web_rama.id) }}" class="btn btn-primary">Agregar página</a>
             {% endif %}
         {% endcall %}
     {% endif %}
@@ -79,39 +79,43 @@
 
 {% block custom_javascript %}
     {% if current_user.can_admin('WEB RAMAS') %}
-        {% if web_rama.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + web_rama.clave + '?') }}{% endif %}
-        {% if web_rama.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + web_rama.clave + '?') }}{% endif %}
+        {% if web_rama.estatus == 'A' %}
+            {{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + web_rama.clave + '?') }}{% endif %}
+        {% if web_rama.estatus == 'B' %}
+            {{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + web_rama.clave + '?') }}{% endif %}
     {% endif %}
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
-    <script>
-        // DataTable WebPaginas
-        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
-        let configDTWebPaginas = constructorDataTable.config();
-        configDTWebPaginas['ajax']['url'] = '/web_paginas/datatable_json';
-        configDTWebPaginas['ajax']['data'] = { estatus: "A", web_rama_id: {{ web_rama.id}} };
-        configDTWebPaginas['columns'] = [
-            { data: 'detalle' },
-            { data: 'titulo' },
-            { data: 'ruta' },
-            { data: 'fecha_modificacion' },
-            { data: 'estado' }
-        ];
-        configDTWebPaginas['columnDefs'] = [
-            {
-                targets: 0, // detalle
-                data: null,
-                render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.clave + '</a>';
+    {% if current_user.can_view('WEB PAGINAS') %}
+        <script>
+            // DataTable WebPaginas
+            const constructorDataTable = new ConfigDataTable('{{ csrf_token() }}');
+            let configDTWebPaginas = constructorDataTable.config();
+            configDTWebPaginas['ajax']['url'] = '/web_paginas/datatable_json';
+            configDTWebPaginas['ajax']['data'] = {estatus: "A", web_rama_id: {{ web_rama.id}}};
+            configDTWebPaginas['columns'] = [
+                { data: 'detalle' },
+                { data: 'titulo' },
+                { data: 'ruta' },
+                { data: 'fecha_modificacion' },
+                { data: 'estado' }
+            ];
+            configDTWebPaginas['columnDefs'] = [
+                {
+                    targets: 0, // detalle
+                    data: null,
+                    render: function (data, type, row, meta) {
+                        return '<a href="' + data.url + '">' + data.clave + '</a>';
+                    }
                 }
-            }
-        ];
-        // Filtros WebPaginas
-        const filtrosWebPaginas = new FiltrosDataTable('#web_paginas_datatable', configDTWebPaginas);
-        filtrosWebPaginas.agregarInput('filtroWebPaginaClave', 'clave');
-        filtrosWebPaginas.agregarInput('filtroWebPaginaDescripcion', 'descripcion');
-        filtrosWebPaginas.agregarInput('filtroWebPaginaEstado', 'estado');
-        filtrosWebPaginas.precargar();
-    </script>
+            ];
+            // Filtros WebPaginas
+            const filtrosWebPaginas = new FiltrosDataTable('#web_paginas_datatable', configDTWebPaginas);
+            filtrosWebPaginas.agregarInput('filtroWebPaginaClave', 'clave');
+            filtrosWebPaginas.agregarInput('filtroWebPaginaDescripcion', 'descripcion');
+            filtrosWebPaginas.agregarInput('filtroWebPaginaEstado', 'estado');
+            filtrosWebPaginas.precargar();
+        </script>
+    {% endif %}
     {{ detail.moment_js(moment) }}
 {% endblock %}

@@ -39,7 +39,7 @@
             </div>
         </div>
         <!-- DataTable WebArchivos -->
-        <table id="web_archivos_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+        <table id="web_archivos_datatable" class="table {% if estatus == 'B' %}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
                     <th>Página</th>
@@ -57,28 +57,28 @@
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
         // DataTable WebArchivos
-        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        const constructorDataTable = new ConfigDataTable('{{ csrf_token() }}');
         let configDTWebArchivos = constructorDataTable.config();
         configDTWebArchivos['ajax']['url'] = '/web_archivos/datatable_json';
         configDTWebArchivos['ajax']['data'] = {{ filtros }};
         configDTWebArchivos['columns'] = [
-            { data: 'web_pagina' },
-            { data: 'detalle' },
-            { data: 'descripcion' },
-            { data: 'url' }
+            {data: 'web_pagina'},
+            {data: 'detalle'},
+            {data: 'archivo'},
+            {data: 'descripcion'}
         ];
         configDTWebArchivos['columnDefs'] = [
             {
                 targets: 0, // web_pagina
                 data: null,
-                render: function(data, type, row, meta) {
+                render: function (data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.web_pagina_titulo + '</a>';
                 }
             },
             {
                 targets: 1, // detalle
                 data: null,
-                render: function(data, type, row, meta) {
+                render: function (data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.clave + '</a>';
                 }
             }
