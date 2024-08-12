@@ -60,8 +60,8 @@
                 <thead>
                     <tr>
                         <th>Clave</th>
-                        <th>Archivo</th>
                         <th>Descripción</th>
+                        <th>Archivo</th>
                     </tr>
                 </thead>
             </table>
@@ -88,8 +88,8 @@
             configDTWebArchivos['ajax']['data'] = {estatus: "A", web_pagina_id: {{ web_pagina.id}}};
             configDTWebArchivos['columns'] = [
                 { data: 'detalle' },
-                { data: 'archivo' },
-                { data: 'descripcion' }
+                { data: 'descripcion' },
+                { data: 'archivo' }
             ];
             configDTWebArchivos['columnDefs'] = [
                 {
