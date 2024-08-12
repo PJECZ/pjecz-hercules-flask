@@ -78,7 +78,7 @@
         // Filtros WebRamas
         const filtrosWebRamas = new FiltrosDataTable('#web_ramas_datatable', configDTWebRamas);
         filtrosWebRamas.agregarInput('filtroWebRamaClave', 'clave');
-        filtrosWebRamas.agregarInput('filtroWebRamaNombre', 'nombre');
+        filtrosWebRamas.agregarInput('filtroWebRamaNombre', 'nombre', ''); // cambiar caseSensitive a ''
         filtrosWebRamas.precargar();
     </script>
 {% endblock %}

@@ -79,7 +79,7 @@
         // Filtros WebArchivos
         const filtrosWebArchivos = new FiltrosDataTable('#web_archivos_datatable', configDTWebArchivos);
         filtrosWebArchivos.agregarInput('filtroWebArchivoClave', 'clave');
-        filtrosWebArchivos.agregarInput('filtroWebArchivoDescripcion', 'descripcion');
+        filtrosWebArchivos.agregarInput('filtroWebArchivoDescripcion', 'descripcion'); // cambiar caseSensitive a ''
         filtrosWebArchivos.precargar();
     </script>
 {% endblock %}

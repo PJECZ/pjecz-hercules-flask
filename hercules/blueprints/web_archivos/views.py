@@ -113,7 +113,7 @@ def new(web_pagina_id):
         clave = safe_clave(form.clave.data)
         if WebArchivo.query.filter_by(clave=clave).first():
             flash(f"La clave {clave} ya está en uso", "warning")
-            return render_template("web_archivos/new.jinja2", form=form)
+            return render_template("web_archivos/new.jinja2", form=form, web_pagina=web_pagina)
         # Guardar
         web_archivo = WebArchivo(
             web_pagina_id=web_pagina.id,

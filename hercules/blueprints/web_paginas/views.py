@@ -48,10 +48,12 @@ def datatable_json():
         clave = safe_clave(request.form["clave"])
         if clave != "":
             consulta = consulta.filter(WebPagina.clave.contains(clave))
-    if "descripcion" in request.form:
-        descripcion = safe_string(request.form["descripcion"], do_unidecode=False, save_enie=True, to_uppercase=False)
-        if descripcion != "":
-            consulta = consulta.filter(WebPagina.descripcion.contains(descripcion))
+    if "titulo" in request.form:
+        titulo = safe_string(request.form["titulo"], do_unidecode=False, save_enie=True, to_uppercase=False)
+        if titulo != "":
+            consulta = consulta.filter(WebPagina.titulo.contains(titulo))
+    if "estado" in request.form:
+        consulta = consulta.filter_by(estado=request.form["estado"])
     # Ordenar y paginar
     registros = consulta.order_by(WebPagina.clave).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -116,7 +118,7 @@ def new(web_rama_id):
         clave = safe_clave(form.clave.data)
         if WebPagina.query.filter_by(clave=clave).first():
             flash(f"La clave {clave} ya está en uso", "warning")
-            return render_template("web_paginas/new.jinja2", form=form)
+            return render_template("web_paginas/new.jinja2", form=form, web_rama=web_rama)
         # Guardar
         web_pagina = WebPagina(
             web_rama_id=web_rama.id,

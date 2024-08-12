@@ -38,8 +38,8 @@
                         </div>
                         <div class="col-4">
                             <div class="form-floating">
-                                <input id="filtroWebPaginaDescripcion" type="text" class="form-control" aria-label="Descripción">
-                                <label for="filtroWebPaginaDescripcion">Descripción</label>
+                                <input id="filtroWebPaginaTitulo" type="text" class="form-control" aria-label="Título">
+                                <label for="filtroWebPaginaTitulo">Título</label>
                             </div>
                         </div>
                         <div class="col-4">
@@ -113,7 +113,7 @@
             // Filtros WebPaginas
             const filtrosWebPaginas = new FiltrosDataTable('#web_paginas_datatable', configDTWebPaginas);
             filtrosWebPaginas.agregarInput('filtroWebPaginaClave', 'clave');
-            filtrosWebPaginas.agregarInput('filtroWebPaginaDescripcion', 'descripcion');
+            filtrosWebPaginas.agregarInput('filtroWebPaginaTitulo', 'titulo', ''); // cambiar caseSensitive a ''
             filtrosWebPaginas.agregarInput('filtroWebPaginaEstado', 'estado');
             filtrosWebPaginas.precargar();
         </script>
