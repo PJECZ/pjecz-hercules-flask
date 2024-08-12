@@ -42,10 +42,10 @@
         <table id="web_archivos_datatable" class="table {% if estatus == 'B' %}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>Página</th>
+                    <th>Página clave</th>
                     <th>Clave</th>
-                    <th>Archivo</th>
                     <th>Descripción</th>
+                    <th>Archivo</th>
                 </tr>
             </thead>
         </table>
@@ -62,19 +62,12 @@
         configDTWebArchivos['ajax']['url'] = '/web_archivos/datatable_json';
         configDTWebArchivos['ajax']['data'] = {{ filtros }};
         configDTWebArchivos['columns'] = [
-            {data: 'web_pagina'},
-            {data: 'detalle'},
-            {data: 'archivo'},
-            {data: 'descripcion'}
+            { data: 'web_pagina_clave' },
+            { data: 'detalle' },
+            { data: 'descripcion' },
+            { data: 'archivo' }
         ];
         configDTWebArchivos['columnDefs'] = [
-            {
-                targets: 0, // web_pagina
-                data: null,
-                render: function (data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.web_pagina_titulo + '</a>';
-                }
-            },
             {
                 targets: 1, // detalle
                 data: null,

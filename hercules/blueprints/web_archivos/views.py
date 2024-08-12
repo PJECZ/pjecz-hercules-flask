@@ -59,12 +59,9 @@ def datatable_json():
     for resultado in registros:
         data.append(
             {
-                "web_pagina": {
-                    "web_pagina_titulo": resultado.web_pagina.titulo,
-                    "url": url_for("web_paginas.detail", web_pagina_id=resultado.web_pagina_id),
-                },
+                "web_pagina_clave": resultado.web_pagina.clave,
                 "detalle": {
-                    "archivo": resultado.clave,
+                    "clave": resultado.clave,
                     "url": url_for("web_archivos.detail", web_archivo_id=resultado.id),
                 },
                 "archivo": resultado.archivo,
@@ -129,13 +126,15 @@ def new(web_pagina_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Nuevo Archivo {web_archivo.archivo} en Pagina {web_pagina.titulo}"),
+            descripcion=safe_message(f"Nuevo Archivo {web_archivo.clave} en Pagina {web_pagina.titulo}"),
             url=url_for("web_archivos.detail", web_archivo_id=web_archivo.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    return render_template("web_archivos/new.jinja2", form=form, web_archivo=web_archivo)
+    # Poner valores por defecto
+    form.clave.data = web_pagina.clave + "-"
+    return render_template("web_archivos/new.jinja2", form=form, web_pagina=web_pagina)
 
 
 @web_archivos.route("/web_archivos/edicion/<int:web_archivo_id>", methods=["GET", "POST"])
@@ -155,7 +154,7 @@ def edit(web_archivo_id):
         if es_valido:
             # Guardar
             web_archivo.descripcion = safe_string(form.descripcion.data, do_unidecode=False, save_enie=True, to_uppercase=False)
-            web_archivo.clave = safe_clave(form.clave.data)
+            web_archivo.clave = clave
             web_archivo.archivo = safe_string(form.archivo.data, to_uppercase=False)
             web_archivo.url = safe_url(form.url.data)
             web_archivo.save()
@@ -163,8 +162,8 @@ def edit(web_archivo_id):
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
-                descripcion=safe_message(f"Editado WebArchivo {web_rama.clave}"),
-                url=url_for("web_archivos.detail", web_rama_id=web_rama.id),
+                descripcion=safe_message(f"Editado Archivo {web_archivo.clave} en Pagina {web_archivo.web_pagina.clave}"),
+                url=url_for("web_archivos.detail", web_archivo_id=web_archivo.id),
             )
             bitacora.save()
             # Entregar detalle
@@ -187,7 +186,7 @@ def delete(web_archivo_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Archivo {web_archivo.archivo} de Pagina {web_archivo.web_pagina.titulo}"),
+            descripcion=safe_message(f"Eliminado Archivo {web_archivo.clave} de Pagina {web_archivo.web_pagina.clave}"),
             url=url_for("web_archivos.detail", web_archivo_id=web_archivo.id),
         )
         bitacora.save()
@@ -205,7 +204,7 @@ def recover(web_archivo_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Archivo {web_archivo.archivo} de Pagina {web_archivo.web_pagina.titulo}"),
+            descripcion=safe_message(f"Recuperado Archivo {web_archivo.clave} de Pagina {web_archivo.web_pagina.clave}"),
             url=url_for("web_archivos.detail", instance_id=web_archivo.id),
         )
         bitacora.save()

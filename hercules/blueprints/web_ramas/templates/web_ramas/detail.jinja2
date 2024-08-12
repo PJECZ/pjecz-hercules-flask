@@ -3,10 +3,10 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Rama {{ web_rama.nombre }} ({{ web_rama.clave }}){% endblock %}
+{% block title %}Rama {{ web_rama.clave }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Rama ' + web_rama.nombre + ' (' + web_rama.clave + ')') %}
+    {% call topbar.page_buttons('Rama ' + web_rama.clave + ': ' + web_rama.nombre) %}
         {{ topbar.button_previous('Ramas', url_for('web_ramas.list_active')) }}
         {% if current_user.can_edit('WEB RAMAS') %}
             {{ topbar.button_edit('Editar', url_for('web_ramas.edit', web_rama_id=web_rama.id)) }}
@@ -21,10 +21,11 @@
 {% block content %}
     {% call detail.card(estatus=web_rama.estatus) %}
         {{ detail.label_value('Nombre', web_rama.nombre) }}
+        {{ detail.label_value('Clave', web_rama.clave) }}
         {# detail.label_value('Creado', moment(web_rama.creado, local=True).format('llll')) #}
     {% endcall %}
     {% if current_user.can_view('WEB PAGINAS') %}
-        {% call detail.card('Paginas') %}
+        {% call detail.card('Páginas') %}
             <!-- Filtros WebPaginas -->
             <div class="row">
                 <div class="col">

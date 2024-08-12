@@ -2,7 +2,7 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Nueva Página en {{ web_rama.nombre }}{% endblock %}
+{% block title %}Nueva Página en rama {{ web_rama.nombre }}{% endblock %}
 
 {% block topbar_actions %}
     {% call topbar.page_buttons('Nueva Página en ' + web_rama.nombre + ' (' + web_rama.clave + ')') %}

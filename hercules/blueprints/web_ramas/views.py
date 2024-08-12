@@ -110,8 +110,8 @@ def new():
             return render_template("web_ramas/new.jinja2", form=form)
         # Guardar
         web_rama = WebRama(
-            clave=clave,
             nombre=safe_string(form.nombre.data, do_unidecode=False, save_enie=True, to_uppercase=False),
+            clave=clave,
         )
         web_rama.save()
         # Guardar bitácora
@@ -144,8 +144,8 @@ def edit(web_rama_id):
         # Si es válido
         if es_valido:
             # Actualizar
-            web_rama.clave = clave
             web_rama.nombre = safe_string(form.nombre.data, do_unidecode=False, save_enie=True, to_uppercase=False)
+            web_rama.clave = clave
             web_rama.save()
             # Guardar bitácora
             bitacora = Bitacora(

@@ -60,10 +60,7 @@ def datatable_json():
     for resultado in registros:
         data.append(
             {
-                "web_rama": {
-                    "web_rama_clave": resultado.web_rama.clave,
-                    "url": url_for("web_ramas.detail", web_rama_id=resultado.web_rama_id),
-                },
+                "web_rama_clave": resultado.web_rama.clave,
                 "detalle": {
                     "clave": resultado.clave,
                     "url": url_for("web_paginas.detail", web_pagina_id=resultado.id),
@@ -84,7 +81,7 @@ def list_active():
     return render_template(
         "web_paginas/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
-        titulo="Paginas",
+        titulo="Páginas",
         estatus="A",
     )
 
@@ -96,7 +93,7 @@ def list_inactive():
     return render_template(
         "web_paginas/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Paginas inactivas",
+        titulo="Páginas inactivas",
         estatus="B",
     )
 
@@ -136,7 +133,7 @@ def new(web_rama_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Nuevo Pagina {web_pagina.titulo} en Rama {web_rama.clave}"),
+            descripcion=safe_message(f"Nuevo Pagina {web_pagina.clave} en Rama {web_rama.clave}"),
             url=url_for("web_paginas.detail", web_pagina_id=web_pagina.id),
         )
         bitacora.save()
@@ -203,7 +200,7 @@ def delete(web_pagina_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Pagina {web_pagina.titulo}"),
+            descripcion=safe_message(f"Eliminado Pagina {web_pagina.clave} en Rama {web_pagina.web_rama.clave}"),
             url=url_for("web_paginas.detail", web_pagina_id=web_pagina.id),
         )
         bitacora.save()
@@ -221,7 +218,7 @@ def recover(web_pagina_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Pagina {web_pagina.titulo}"),
+            descripcion=safe_message(f"Recuperado Pagina {web_pagina.clave} en Rama {web_pagina.web_rama.clave}"),
             url=url_for("web_paginas.detail", web_pagina_id=web_pagina.id),
         )
         bitacora.save()

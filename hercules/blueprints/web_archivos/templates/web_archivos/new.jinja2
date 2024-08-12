@@ -2,7 +2,7 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Nuevo Archivo{% endblock %}
+{% block title %}Nuevo Archivo en página {{ web_pagina.clave }}{% endblock %}
 
 {% block topbar_actions %}
     {% call topbar.page_buttons('Nuevo Archivo') %}
@@ -12,10 +12,11 @@
 
 {% block content %}
     {% call f.card() %}
-        {% set form_kwargs = {'web_archivo_id': web_archivo.id} %}
+        {% set form_kwargs = {'web_pagina_id': web_pagina.id} %}
         {% call f.form_tag('web_archivos.new', fid='web_archivo_form', **form_kwargs) %}
-            {% call f.form_group(form.archivo) %}{% endcall %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
+            {% call f.form_group(form.clave) %}{% endcall %}
+            {% call f.form_group(form.archivo) %}{% endcall %}
             {% call f.form_group(form.url) %}{% endcall %}
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}

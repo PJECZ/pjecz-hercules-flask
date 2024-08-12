@@ -52,7 +52,7 @@
         <table id="web_paginas_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>Rama</th>
+                    <th>Rama clave</th>
                     <th>Clave</th>
                     <th>Título</th>
                     <th>Ruta</th>
@@ -74,7 +74,7 @@
         configDTWebPaginas['ajax']['url'] = '/web_paginas/datatable_json';
         configDTWebPaginas['ajax']['data'] = {{ filtros }};
         configDTWebPaginas['columns'] = [
-            { data: 'web_rama' },
+            { data: 'web_rama_clave' },
             { data: 'detalle' },
             { data: 'titulo' },
             { data: 'ruta' },
@@ -82,13 +82,6 @@
             { data: 'estado' }
         ];
         configDTWebPaginas['columnDefs'] = [
-            {
-                targets: 0, // rama
-                data: null,
-                render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.web_rama_clave + '</a>';
-                }
-            },
             {
                 targets: 1, // detalle
                 data: null,

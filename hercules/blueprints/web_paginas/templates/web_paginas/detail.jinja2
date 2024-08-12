@@ -3,10 +3,10 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Página {{ web_pagina.titulo }} ({{ web_pagina.clave }}){% endblock %}
+{% block title %}Página {{ web_pagina.clave }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Página ' + web_pagina.titulo + ' (' + web_pagina.clave + ')') %}
+    {% call topbar.page_buttons('Página ' + web_pagina.clave + ': ' + web_pagina.titulo) %}
         {{ topbar.button_previous('Páginas', url_for('web_paginas.list_active')) }}
         {% if current_user.can_edit('WEB PAGINAS') %}
             {{ topbar.button_edit('Editar', url_for('web_paginas.edit', web_pagina_id=web_pagina.id)) }}
@@ -20,9 +20,9 @@
 
 {% block content %}
     {% call detail.card(estatus=web_pagina.estatus) %}
-        {# detail.label_value('Rama', web_pagina.web_rama.nombre, url_for('web_ramas.detail', web_rama_id=web_pagina.web_rama_id)) #}
+        {{ detail.label_value('Rama', web_pagina.web_rama.clave + ': ' + web_pagina.web_rama.nombre, url_for('web_ramas.detail', web_rama_id=web_pagina.web_rama_id)) }}
         {{ detail.label_value('Titulo', web_pagina.titulo) }}
-        {# detail.label_value('Clave', web_pagina.clave) #}
+        {{ detail.label_value('Clave', web_pagina.clave) }}
         {{ detail.label_value('Fecha de modificación', web_pagina.fecha_modificacion) }}
         {{ detail.label_value('Responsable', web_pagina.responsable) }}
         {{ detail.label_value('Ruta', web_pagina.ruta) }}
@@ -31,7 +31,7 @@
         {# detail.label_value('Creado', moment(web_pagina.creado, local=True).format('llll')) #}
     {% endcall %}
     {% if current_user.can_view('WEB ARCHIVOS') %}
-        {% call list.card() %}
+        {% call detail.card() %}
             <!-- Filtros WebArchivos -->
             <div class="row">
                 <div class="col">
@@ -87,7 +87,6 @@
             configDTWebArchivos['ajax']['url'] = '/web_archivos/datatable_json';
             configDTWebArchivos['ajax']['data'] = {estatus: "A", web_pagina_id: {{ web_pagina.id}}};
             configDTWebArchivos['columns'] = [
-                { data: 'detalle' },
                 { data: 'detalle' },
                 { data: 'archivo' },
                 { data: 'descripcion' }
