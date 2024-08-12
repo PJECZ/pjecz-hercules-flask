@@ -1,0 +1,27 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Nueva Página en rama {{ web_rama.nombre }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Nueva Página en ' + web_rama.nombre + ' (' + web_rama.clave + ')') %}
+        {{ topbar.button_cancel() }}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call f.card() %}
+        {% set form_kwargs = {'web_rama_id': web_rama.id} %}
+        {% call f.form_tag('web_paginas.new', fid='web_pagina_form', **form_kwargs) %}
+            {% call f.form_group(form.titulo) %}{% endcall %}
+            {% call f.form_group(form.clave) %}{% endcall %}
+            {% call f.form_group(form.fecha_modificacion) %}{% endcall %}
+            {% call f.form_group(form.responsable) %}{% endcall %}
+            {% call f.form_group(form.ruta) %}{% endcall %}
+            {% call f.form_group(form.contenido) %}{% endcall %}
+            {% call f.form_group(form.estado) %}{% endcall %}
+            {% call f.form_group(form.guardar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}

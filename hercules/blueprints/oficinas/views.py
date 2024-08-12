@@ -55,10 +55,6 @@ def datatable_json():
         descripcion_corta = safe_string(request.form["descripcion_corta"], save_enie=True)
         if descripcion_corta != "":
             consulta = consulta.filter(Oficina.descripcion_corta.contains(descripcion_corta))
-    # Luego filtrar por columnas de otras tablas
-    # if "persona_rfc" in request.form:
-    #     consulta = consulta.join(Persona)
-    #     consulta = consulta.filter(Persona.rfc.contains(safe_rfc(request.form["persona_rfc"], search_fragment=True)))
     # Ordenar y paginar
     registros = consulta.order_by(Oficina.clave).offset(start).limit(rows_per_page).all()
     total = consulta.count()

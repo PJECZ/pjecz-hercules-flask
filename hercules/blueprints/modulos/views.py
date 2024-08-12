@@ -59,6 +59,10 @@ def datatable_json():
                 },
                 "icono": resultado.icono,
                 "en_navegacion": resultado.en_navegacion,
+                "en_plataforma_carina": resultado.en_plataforma_carina,
+                "en_plataforma_hercules": resultado.en_plataforma_hercules,
+                "en_plataforma_web": resultado.en_plataforma_web,
+                "en_portal_notarias": resultado.en_portal_notarias,
             }
         )
     # Entregar JSON

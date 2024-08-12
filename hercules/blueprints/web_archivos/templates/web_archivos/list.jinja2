@@ -1,0 +1,85 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_admin('WEB ARCHIVOS') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('web_archivos.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('web_archivos.list_active')) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call list.card() %}
+        <!-- Filtros WebArchivos -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosWebArchivos.buscar(); return false;">
+                    <div class="col-4">
+                        <div class="form-floating">
+                            <input id="filtroWebArchivoClave" type="text" class="form-control" aria-label="Clave" style="text-transform: uppercase;">
+                            <label for="filtroWebArchivoClave">Clave</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-floating">
+                            <input id="filtroWebArchivoDescripcion" type="text" class="form-control" aria-label="Descripción">
+                            <label for="filtroWebArchivoDescripcion">Descripción</label>
+                        </div>
+                    </div>
+                    <div class="col-2 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosWebArchivos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosWebArchivos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- DataTable WebArchivos -->
+        <table id="web_archivos_datatable" class="table {% if estatus == 'B' %}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Página clave</th>
+                    <th>Clave</th>
+                    <th>Descripción</th>
+                    <th>Archivo</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable WebArchivos
+        const constructorDataTable = new ConfigDataTable('{{ csrf_token() }}');
+        let configDTWebArchivos = constructorDataTable.config();
+        configDTWebArchivos['ajax']['url'] = '/web_archivos/datatable_json';
+        configDTWebArchivos['ajax']['data'] = {{ filtros }};
+        configDTWebArchivos['columns'] = [
+            { data: 'web_pagina_clave' },
+            { data: 'detalle' },
+            { data: 'descripcion' },
+            { data: 'archivo' }
+        ];
+        configDTWebArchivos['columnDefs'] = [
+            {
+                targets: 1, // detalle
+                data: null,
+                render: function (data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.clave + '</a>';
+                }
+            }
+        ];
+        // Filtros WebArchivos
+        const filtrosWebArchivos = new FiltrosDataTable('#web_archivos_datatable', configDTWebArchivos);
+        filtrosWebArchivos.agregarInput('filtroWebArchivoClave', 'clave');
+        filtrosWebArchivos.agregarInput('filtroWebArchivoDescripcion', 'descripcion'); // cambiar caseSensitive a ''
+        filtrosWebArchivos.precargar();
+    </script>
+{% endblock %}
