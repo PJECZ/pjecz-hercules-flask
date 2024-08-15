@@ -6,8 +6,8 @@
 {% block title %}Archivo {{ web_archivo.clave }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Archivo ' + web_archivo.clave + ': ' + web_archivo.descripcion) %}
-        {{ topbar.button_previous('Archivos', url_for('web_archivos.list_active')) }}
+    {% call topbar.page_buttons('Archivo ' + web_archivo.descripcion) %}
+        {{ topbar.button_previous('Página ' + web_archivo.web_pagina.titulo, url_for('web_paginas.detail', web_pagina_id=web_archivo.web_pagina_id)) }}
         {% if current_user.can_edit('WEB ARCHIVOS') %}
             {{ topbar.button_edit('Editar', url_for('web_archivos.edit', web_archivo_id=web_archivo.id)) }}
         {% endif %}
