@@ -25,9 +25,9 @@ class WebArchivo(database.Model, UniversalMixin):
     web_pagina: Mapped["WebPagina"] = relationship(back_populates="web_archivos")
 
     # Columnas
-    descripcion: Mapped[Optional[str]] = mapped_column(String(256))
-    clave: Mapped[str] = mapped_column(String(16), unique=True)
     archivo: Mapped[str] = mapped_column(String(256))
+    clave: Mapped[str] = mapped_column(String(16), unique=True)
+    descripcion: Mapped[Optional[str]] = mapped_column(String(256))
     url: Mapped[str] = mapped_column(String(256))
 
     def __repr__(self):

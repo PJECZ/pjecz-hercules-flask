@@ -18,6 +18,7 @@ class WebPagina(database.Model, UniversalMixin):
     ESTADOS = {
         "BORRADOR": "BORRADOR",
         "PUBLICAR": "PUBLICAR",
+        "ARCHIVAR": "ARCHIVAR",
     }
 
     # Nombre de la tabla
@@ -31,13 +32,15 @@ class WebPagina(database.Model, UniversalMixin):
     web_rama: Mapped["WebRama"] = relationship(back_populates="web_paginas")
 
     # Columnas
-    titulo: Mapped[str] = mapped_column(String(256))
     clave: Mapped[str] = mapped_column(String(16), unique=True)
+    contenido: Mapped[str] = mapped_column(Text)
+    estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="web_paginas_estados", native_enum=False), index=True)
     fecha_modificacion: Mapped[datetime] = mapped_column(Date)
     responsable: Mapped[Optional[str]] = mapped_column(String(256))
     ruta: Mapped[str] = mapped_column(String(256))
-    contenido: Mapped[str] = mapped_column(Text)
-    estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="web_paginas_estados", native_enum=False), index=True)
+    tiempo_publicar: Mapped[Optional[datetime]] = mapped_column(Date)
+    tiempo_archivar: Mapped[Optional[datetime]] = mapped_column(Date)
+    titulo: Mapped[str] = mapped_column(String(256))
 
     # Hijos
     web_archivos: Mapped[List["WebArchivo"]] = relationship("WebArchivo", back_populates="web_pagina")

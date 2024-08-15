@@ -6,8 +6,8 @@
 {% block title %}Página {{ web_pagina.clave }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Página ' + web_pagina.clave + ': ' + web_pagina.titulo) %}
-        {{ topbar.button_previous('Páginas', url_for('web_paginas.list_active')) }}
+    {% call topbar.page_buttons('Página ' + web_pagina.titulo) %}
+        {{ topbar.button_previous('Rama ' + web_pagina.web_rama.nombre, url_for('web_ramas.detail', web_rama_id=web_pagina.web_rama_id)) }}
         {% if current_user.can_edit('WEB PAGINAS') %}
             {{ topbar.button_edit('Editar', url_for('web_paginas.edit', web_pagina_id=web_pagina.id)) }}
         {% endif %}
@@ -27,6 +27,8 @@
         {{ detail.label_value('Responsable', web_pagina.responsable) }}
         {{ detail.label_value('Ruta', web_pagina.ruta) }}
         {{ detail.label_value('Contenido', web_pagina.contenido) }}
+        {{ detail.label_value('Cuándo publicar', web_pagina.tiempo_publicar) }}
+        {{ detail.label_value('Cuándo archivar', web_pagina.tiempo_archivar) }}
         {{ detail.label_value_big('Estado', web_pagina.estado) }}
         {# detail.label_value('Creado', moment(web_pagina.creado, local=True).format('llll')) #}
     {% endcall %}
@@ -60,8 +62,8 @@
                 <thead>
                     <tr>
                         <th>Clave</th>
-                        <th>Archivo</th>
                         <th>Descripción</th>
+                        <th>Archivo</th>
                     </tr>
                 </thead>
             </table>
@@ -88,8 +90,8 @@
             configDTWebArchivos['ajax']['data'] = {estatus: "A", web_pagina_id: {{ web_pagina.id}}};
             configDTWebArchivos['columns'] = [
                 { data: 'detalle' },
-                { data: 'archivo' },
-                { data: 'descripcion' }
+                { data: 'descripcion' },
+                { data: 'archivo' }
             ];
             configDTWebArchivos['columnDefs'] = [
                 {

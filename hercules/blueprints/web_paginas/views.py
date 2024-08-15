@@ -12,7 +12,7 @@ from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
-from hercules.blueprints.web_paginas.forms import WebPaginaForm
+from hercules.blueprints.web_paginas.forms import WebPaginaEditForm, WebPaginaNewForm
 from hercules.blueprints.web_paginas.models import WebPagina
 from hercules.blueprints.web_ramas.models import WebRama
 from lib.datatables import get_datatable_parameters, output_datatable_json
@@ -68,9 +68,10 @@ def datatable_json():
                     "url": url_for("web_paginas.detail", web_pagina_id=resultado.id),
                 },
                 "titulo": resultado.titulo,
-                "ruta": resultado.ruta,
                 "fecha_modificacion": resultado.fecha_modificacion.strftime("%Y-%m-%d"),
                 "estado": resultado.estado,
+                "tiempo_publicar": resultado.tiempo_publicar.strftime("%Y-%m-%d %H:%M") if resultado.tiempo_publicar else "",
+                "tiempo_archivar": resultado.tiempo_archivar.strftime("%Y-%m-%d %H:%M") if resultado.tiempo_archivar else "",
             }
         )
     # Entregar JSON
@@ -112,7 +113,7 @@ def detail(web_pagina_id):
 def new(web_rama_id):
     """Nueva WebPagina"""
     web_rama = WebRama.query.get_or_404(web_rama_id)
-    form = WebPaginaForm()
+    form = WebPaginaNewForm()
     if form.validate_on_submit():
         # Validar que la clave no está en uso
         clave = safe_clave(form.clave.data)
@@ -124,11 +125,11 @@ def new(web_rama_id):
             web_rama_id=web_rama.id,
             titulo=safe_string(form.titulo.data, do_unidecode=False, save_enie=True, to_uppercase=False),
             clave=clave,
-            fecha_modificacion=form.fecha_modificacion.data,
-            responsable=safe_string(form.responsable.data, save_enie=True, to_uppercase=False),
+            fecha_modificacion=date.today(),
+            responsable="",
             ruta=form.ruta.data.strip(),
-            contenido=form.contenido.data.strip(),
-            estado=form.estado.data,
+            contenido="",
+            estado="BORRADOR",
         )
         web_pagina.save()
         # Guardar bitácora
@@ -144,8 +145,6 @@ def new(web_rama_id):
         return redirect(bitacora.url)
     # Poner valores por defecto
     form.clave.data = web_rama.clave + "-"
-    form.estado.data = "BORRADOR"
-    form.fecha_modificacion.data = date.today()
     return render_template("web_paginas/new.jinja2", form=form, web_rama=web_rama)
 
 
@@ -154,7 +153,7 @@ def new(web_rama_id):
 def edit(web_pagina_id):
     """Editar WebPagina"""
     web_pagina = WebPagina.query.get_or_404(web_pagina_id)
-    form = WebPaginaForm()
+    form = WebPaginaEditForm()
     if form.validate_on_submit():
         es_valido = True
         # Si cambia la clave, validar que la clave no está en uso
@@ -172,6 +171,8 @@ def edit(web_pagina_id):
             web_pagina.ruta = form.ruta.data.strip()
             web_pagina.contenido = form.contenido.data.strip()
             web_pagina.estado = form.estado.data
+            web_pagina.tiempo_publicar = form.tiempo_publicar.data
+            web_pagina.tiempo_archivar = form.tiempo_archivar.data
             web_pagina.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -189,6 +190,8 @@ def edit(web_pagina_id):
     form.ruta.data = web_pagina.ruta
     form.contenido.data = web_pagina.contenido
     form.estado.data = web_pagina.estado
+    form.tiempo_publicar.data = web_pagina.tiempo_publicar
+    form.tiempo_archivar.data = web_pagina.tiempo_archivar
     return render_template("web_paginas/edit.jinja2", form=form, web_pagina=web_pagina)
 
 

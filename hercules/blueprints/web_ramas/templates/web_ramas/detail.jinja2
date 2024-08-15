@@ -6,7 +6,7 @@
 {% block title %}Rama {{ web_rama.clave }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Rama ' + web_rama.clave + ': ' + web_rama.nombre) %}
+    {% call topbar.page_buttons('Rama ' + web_rama.nombre) %}
         {{ topbar.button_previous('Ramas', url_for('web_ramas.list_active')) }}
         {% if current_user.can_edit('WEB RAMAS') %}
             {{ topbar.button_edit('Editar', url_for('web_ramas.edit', web_rama_id=web_rama.id)) }}
@@ -36,13 +36,13 @@
                                 <label for="filtroWebPaginaClave">Clave</label>
                             </div>
                         </div>
-                        <div class="col-4">
+                        <div class="col-6">
                             <div class="form-floating">
                                 <input id="filtroWebPaginaTitulo" type="text" class="form-control" aria-label="Título">
                                 <label for="filtroWebPaginaTitulo">Título</label>
                             </div>
                         </div>
-                        <div class="col-4">
+                        <div class="col-2">
                             <div class="form-floating">
                                 <select id="filtroWebPaginaEstado" class="form-select" aria-label="Estado">
                                     <option value="">Todos</option>
@@ -65,9 +65,10 @@
                     <tr>
                         <th>Clave</th>
                         <th>Título</th>
-                        <th>Ruta</th>
-                        <th>Fecha de modificación</th>
+                        <th>F. modificación</th>
                         <th>Estado</th>
+                        <th>Cuándo publicar</th>
+                        <th>Cuándo archivar</th>
                     </tr>
                 </thead>
             </table>
@@ -97,9 +98,10 @@
             configDTWebPaginas['columns'] = [
                 { data: 'detalle' },
                 { data: 'titulo' },
-                { data: 'ruta' },
                 { data: 'fecha_modificacion' },
-                { data: 'estado' }
+                { data: 'estado' },
+                { data: 'tiempo_publicar' },
+                { data: 'tiempo_archivar' }
             ];
             configDTWebPaginas['columnDefs'] = [
                 {
@@ -107,6 +109,16 @@
                     data: null,
                     render: function (data, type, row, meta) {
                         return '<a href="' + data.url + '">' + data.clave + '</a>';
+                    }
+                },
+                {
+                    targets: 1, // titulo
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        if (data.length > 24) {
+                            return '<span title="' + data + '">' + data.substring(0, 24) + '...</span>';
+                        }
+                        return data;
                     }
                 }
             ];
