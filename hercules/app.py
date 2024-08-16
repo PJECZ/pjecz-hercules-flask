@@ -14,6 +14,7 @@ from hercules.blueprints.distritos.views import distritos
 from hercules.blueprints.domicilios.views import domicilios
 from hercules.blueprints.entradas_salidas.views import entradas_salidas
 from hercules.blueprints.estados.views import estados
+from hercules.blueprints.identidades_generos.views import identidades_generos
 from hercules.blueprints.materias.views import materias
 from hercules.blueprints.modulos.views import modulos
 from hercules.blueprints.municipios.views import municipios
@@ -53,6 +54,7 @@ def create_app():
     app.register_blueprint(domicilios)
     app.register_blueprint(entradas_salidas)
     app.register_blueprint(estados)
+    app.register_blueprint(identidades_generos)
     app.register_blueprint(materias)
     app.register_blueprint(modulos)
     app.register_blueprint(municipios)
