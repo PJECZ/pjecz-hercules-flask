@@ -59,6 +59,7 @@ def datatable_json():
                     "nombre": resultado.nombre,
                     "url": url_for("inv_redes.detail", inv_red_id=resultado.id),
                 },
+                "tipo": resultado.tipo,
             }
         )
     # Entregar JSON

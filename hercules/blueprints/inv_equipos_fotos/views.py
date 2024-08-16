@@ -54,7 +54,7 @@ def datatable_json():
         data.append(
             {
                 "detalle": {
-                    "nombre": resultado.archivo,
+                    "archivo": resultado.archivo,
                     "url": url_for("inv_equipos_fotos.detail", inv_equipo_foto_id=resultado.id),
                 },
                 "descripcion": resultado.descripcion,

@@ -61,7 +61,7 @@ def datatable_json():
                     "url": url_for("inv_custodias.detail", inv_custodia_id=resultado.id),
                 },
                 "usuario": {
-                    "nombre": resultado.nombre_completo,
+                    "nombre_completo": resultado.nombre_completo,
                     "url": (
                         url_for("usuarios.detail", usuario_id=resultado.usuario_id) if current_user.can_view("USUARIOS") else ""
                     ),

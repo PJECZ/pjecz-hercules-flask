@@ -111,7 +111,7 @@ def datatable_json():
                     ),
                 },
                 "inv_modelo": {
-                    "nombre": resultado.inv_modelo.descripcion,
+                    "descripcion": resultado.inv_modelo.descripcion,
                     "url": (
                         url_for("inv_modelos.detail", inv_modelo_id=resultado.inv_modelo.id)
                         if current_user.can_view("INV MODELOS")

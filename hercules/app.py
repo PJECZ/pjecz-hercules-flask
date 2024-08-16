@@ -14,6 +14,14 @@ from hercules.blueprints.distritos.views import distritos
 from hercules.blueprints.domicilios.views import domicilios
 from hercules.blueprints.entradas_salidas.views import entradas_salidas
 from hercules.blueprints.estados.views import estados
+from hercules.blueprints.inv_categorias.views import inv_categorias
+from hercules.blueprints.inv_componentes.views import inv_componentes
+from hercules.blueprints.inv_custodias.views import inv_custodias
+from hercules.blueprints.inv_equipos.views import inv_equipos
+from hercules.blueprints.inv_equipos_fotos.views import inv_equipos_fotos
+from hercules.blueprints.inv_marcas.views import inv_marcas
+from hercules.blueprints.inv_modelos.views import inv_modelos
+from hercules.blueprints.inv_redes.views import inv_redes
 from hercules.blueprints.materias.views import materias
 from hercules.blueprints.modulos.views import modulos
 from hercules.blueprints.municipios.views import municipios
@@ -53,6 +61,14 @@ def create_app():
     app.register_blueprint(domicilios)
     app.register_blueprint(entradas_salidas)
     app.register_blueprint(estados)
+    app.register_blueprint(inv_categorias)
+    app.register_blueprint(inv_componentes)
+    app.register_blueprint(inv_custodias)
+    app.register_blueprint(inv_equipos)
+    app.register_blueprint(inv_equipos_fotos)
+    app.register_blueprint(inv_marcas)
+    app.register_blueprint(inv_modelos)
+    app.register_blueprint(inv_redes)
     app.register_blueprint(materias)
     app.register_blueprint(modulos)
     app.register_blueprint(municipios)

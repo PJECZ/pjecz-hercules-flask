@@ -1,0 +1,34 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Categoría {{ inv_categoria.nombre }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Categoría ' + inv_categoria.nombre) %}
+        {{ topbar.button_previous('Categorías', url_for('inv_categorias.list_active')) }}
+        {# if current_user.can_edit('INV CATEGORIAS') %}
+            {{ topbar.button_edit('Editar', url_for('inv_categorias.edit', inv_categoria_id=inv_categoria.id)) }}
+        {% endif #}
+        {# if current_user.can_admin('INV CATEGORIAS') %}
+            {% if inv_categoria.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('inv_categorias.delete', inv_categoria_id=inv_categoria.id)) }}{% endif %}
+            {% if inv_categoria.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('inv_categorias.recover', inv_categoria_id=inv_categoria.id)) }}{% endif %}
+        {% endif #}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=inv_categoria.estatus) %}
+        {{ detail.label_value('Categoría', inv_categoria.nombre) }}
+        {{ detail.label_value('Creado', moment(inv_categoria.creado, local=True).format('llll')) }}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {# if current_user.can_admin('INV CATEGORIAS') %}
+        {% if inv_categoria.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + inv_categoria.nombre + '?') }}{% endif %}
+        {% if inv_categoria.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + inv_categoria.nombre + '?') }}{% endif %}
+    {% endif #}
+    {{ detail.moment_js(moment) }}
+{% endblock %}

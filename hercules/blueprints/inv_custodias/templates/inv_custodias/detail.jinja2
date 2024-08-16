@@ -1,0 +1,45 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Custodia {{ inv_custodia.id }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Custodia ' + inv_custodia.id | string) %}
+        {{ topbar.button_previous('Custodias', url_for('inv_custodias.list_active')) }}
+        {# if current_user.can_edit('INV CUSTODIAS') %}
+            {{ topbar.button_edit('Editar', url_for('inv_custodias.edit', inv_custodia_id=inv_custodia.id)) }}
+        {% endif #}
+        {# if current_user.can_admin('INV CUSTODIAS') %}
+            {% if inv_custodia.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('inv_custodias.delete', inv_custodia_id=inv_custodia.id)) }}{% endif %}
+            {% if inv_custodia.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('inv_custodias.recover', inv_custodia_id=inv_custodia.id)) }}{% endif %}
+        {% endif #}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=inv_custodia.estatus) %}
+        {{ detail.label_value_big('ID', inv_custodia.id) }}
+        {% if current_user.can_view('USUARIOS') %}
+            {{ detail.label_value('Usuario', inv_custodia.nombre_completo, url_for('usuarios.detail', usuario_id=inv_custodia.usuario_id)) }}
+        {% else %}
+            {{ detail.label_value('Usuario', inv_custodia.nombre_completo) }}
+        {% endif %}
+        {{ detail.label_value('Curp', inv_custodia.curp) }}
+        {{ detail.label_value('Oficina', inv_custodia.usuario.oficina.clave_nombre, url_for('oficinas.detail', oficina_id=inv_custodia.usuario.oficina_id)) }}
+        {{ detail.label_value('Puesto', inv_custodia.usuario.puesto) }}
+        {{ detail.label_value('Fecha', moment(inv_custodia.fecha, local=True).format("DD MMM YYYY")) }}
+        {{ detail.label_value('C. Equipos', inv_custodia.equipos_cantidad) }}
+        {{ detail.label_value('C. Fotos', inv_custodia.equipos_fotos_cantidad) }}
+        {{ detail.label_value('Creado', moment(inv_custodia.creado, local=True).format('llll')) }}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {# if current_user.can_admin('INV CUSTODIAS') %}
+        {% if inv_custodia.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + inv_custodia.id + '?') }}{% endif %}
+        {% if inv_custodia.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + inv_custodia.id + '?') }}{% endif %}
+    {% endif #}
+    {{ detail.moment_js(moment) }}
+{% endblock %}
