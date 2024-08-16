@@ -11,8 +11,8 @@ from hercules.extensions import database
 from lib.universal_mixin import UniversalMixin
 
 
-class InvCategorias(database.Model, UniversalMixin):
-    """InvCategorias"""
+class InvCategoria(database.Model, UniversalMixin):
+    """InvCategoria"""
 
     # Nombre de la tabla
     __tablename__ = "inv_categorias"
@@ -28,4 +28,4 @@ class InvCategorias(database.Model, UniversalMixin):
 
     def __repr__(self):
         """Representación"""
-        return f"<InvCategorias {self.id}>"
+        return f"<InvCategoria {self.id}>"
