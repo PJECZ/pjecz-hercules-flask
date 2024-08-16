@@ -1,0 +1,118 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Identidades de Géneros{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_edit('IDENTIDADES GENEROS') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('identidades_generos.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('identidades_generos.list_active')) }}{% endif %}
+        {% endif %}
+        {% if current_user.can_insert('IDENTIDADES GENEROS') %}
+            {{ topbar.button_new('Nueva Identidad de Género', url_for('identidades_generos.new')) }}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call list.card() %}
+        <!-- Filtros Identidad de género -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosIdentidadGenero.buscar(); return false;">
+                    <div class="col-4">
+                        <div class="form-floating">
+                            <input id="filtroNombreActual" type="text" class="form-control" aria-label="NombreActual" style="text-transform: uppercase;">
+                            <label for="filtroNombreActual">NombreActual</label>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-floating">
+                            <input id="filtroNombreAnterior" type="text" class="form-control" aria-label="NombreAnterior" style="text-transform: uppercase;">
+                            <label for="filtroNombreAnterior">NombreAnterior</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroProcedimiento" type="text" class="form-control" aria-label="Procedimiento">
+                            <label for="filtroProcedimiento">Procedimiento</label>
+                        </div>
+                    </div>
+                    <div class="col-2 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosIdentidadGenero.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosIdentidadGenero.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Datatables -->
+        <table id="identidades_generos_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Procedimiento</th>
+                    <th>Nombre actual</th>
+                    <th>Nombre anterior</th>
+                    <th>Fecha de nacimiento</th>
+                    <th>Lugar de nacimiento</th>
+                    <th>Género anterior</th>
+                    <th>Género actual</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable IdentidadGenero
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDataTable = constructorDataTable.config();
+        configDataTable['ajax']['url'] = '/identidades_generos/datatable_json';
+        configDataTable['ajax']['data'] = {{ filtros }};
+        configDataTable['columns'] = [
+            { data: "detalle" },
+            { data: "nombre_actual" },
+            { data: "nombre_anterior" },
+            { data: "fecha_nacimiento" },
+            { data: "lugar_nacimiento" },
+            { data: "genero_anterior" },
+            { data: "genero_actual" }
+        ];
+        configDataTable['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.procedimiento + '</a>';
+                }
+            },
+            {
+                targets: 3, // fecha_nacimiento
+                type: "date",
+                render: function (data, type, row) {
+                    return moment(data).format("DD MMM YYYY");
+                }
+            },
+            {
+                targets: [1, 2, 4], // nombre_actual, nombre_anterior, lugar_nacimiento
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.length > 32)
+                        return '<span title="' + data + '">' + data.substr(0, 32) + '…' + '</span>';
+                    return data;
+                }
+            }
+        ];
+        // Filtros IdentidadGenero
+        const filtrosIdentidadGenero = new FiltrosDataTable('#identidades_generos_datatable', configDataTable);
+        filtrosIdentidadGenero.agregarInput('filtroNombreActual', 'nombre_actual');
+        filtrosIdentidadGenero.agregarInput('filtroNombreAnterior', 'nombre_anterior');
+        filtrosIdentidadGenero.agregarInput('filtroProcedimiento', 'procedimiento');
+        filtrosIdentidadGenero.precargar();
+    </script>
+
+{% endblock %}
