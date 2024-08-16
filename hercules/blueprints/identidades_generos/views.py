@@ -41,13 +41,23 @@ def datatable_json():
     else:
         consulta = consulta.filter_by(estatus="A")
     if "procedimiento" in request.form:
-        consulta = consulta.filter(IdentidadGenero.procedimiento.contains(safe_expediente(request.form["procedimiento"])))
+        try:
+            procedimiento = safe_expediente(request.form["procedimiento"])
+            consulta = consulta.filter(IdentidadGenero.procedimiento.contains(procedimiento))
+        except (IndexError, ValueError):
+            pass
     if "nombre_actual" in request.form:
-        consulta = consulta.filter(IdentidadGenero.nombre_actual.contains(safe_string(request.form["nombre_actual"])))
+        nombre_actual = safe_string(request.form["nombre_actual"])
+        if nombre_actual != "":
+            consulta = consulta.filter(IdentidadGenero.nombre_actual.contains(nombre_actual))
     if "nombre_anterior" in request.form:
-        consulta = consulta.filter(IdentidadGenero.nombre_anterior.contains(safe_string(request.form["nombre_anterior"])))
+        nombre_anterior = safe_string(request.form["nombre_anterior"])
+        if nombre_anterior != "":
+            consulta = consulta.filter(IdentidadGenero.nombre_anterior.contains(nombre_anterior))
     if "lugar_nacimiento" in request.form:
-        consulta = consulta.filter(IdentidadGenero.lugar_nacimiento.contains(safe_string(request.form["lugar_nacimiento"])))
+        lugar_nacimiento = safe_string(request.form["lugar_nacimiento"])
+        if lugar_nacimiento != "":
+            consulta = consulta.filter(IdentidadGenero.lugar_nacimiento.contains(lugar_nacimiento))
     # Ordenar y paginar
     registros = consulta.order_by(IdentidadGenero.id).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -111,7 +121,7 @@ def new():
         es_valido = True
         nombre_anterior = safe_string(form.nombre_anterior.data)
         if nombre_anterior == "":
-            flash("No es válido el bombre anterior", "warning")
+            flash("No es válido el nombre anterior", "warning")
         nombre_actual = safe_string(form.nombre_actual.data)
         if nombre_actual == "":
             flash("No es válido el nombre actual.", "warning")
