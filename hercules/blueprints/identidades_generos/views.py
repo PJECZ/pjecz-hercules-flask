@@ -59,7 +59,7 @@ def datatable_json():
         if lugar_nacimiento != "":
             consulta = consulta.filter(IdentidadGenero.lugar_nacimiento.contains(lugar_nacimiento))
     # Ordenar y paginar
-    registros = consulta.order_by(IdentidadGenero.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(IdentidadGenero.nombre_actual).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
