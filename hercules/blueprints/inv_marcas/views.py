@@ -44,7 +44,7 @@ def datatable_json():
         if nombre != "":
             consulta = consulta.filter(InvMarca.nombre.contains(nombre))
     # Ordenar y paginar
-    registros = consulta.order_by(InvMarca.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(InvMarca.nombre).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []

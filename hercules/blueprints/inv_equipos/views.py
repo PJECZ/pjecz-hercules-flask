@@ -17,7 +17,7 @@ from lib.safe_string import safe_message, safe_string
 
 MODULO = "INV EQUIPOS"
 
-inv_equipos = Blueprint("inv_equipo", __name__, template_folder="templates")
+inv_equipos = Blueprint("inv_equipos", __name__, template_folder="templates")
 
 
 @inv_equipos.before_request

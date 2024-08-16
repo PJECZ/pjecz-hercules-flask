@@ -47,20 +47,21 @@
                         </div>
                     </div>
                     <div class="col-2">
-                        <select id="filtroTipo" class="form-select" aria-label="Tipo">
-                            <option selected value="">Todos los tipos</option>
-                            <option value="COMPUTADORA">COMPUTADORA</option>
-                            <option value="LAPTOP">LAPTOP</option>
-                            <option value="IMPRESORA">IMPRESORA</option>
-                            <option value="MULTIFUNCIONAL">MULTIFUNCIONAL</option>
-                            <option value="TELEFONIA">TELEFONIA</option>
-                            <option value="SERVIDOR">SERVIDOR</option>
-                            <option value="SCANNER">SCANNER</option>
-                            <option value="SWITCH">SWITCH</option>
-                            <option value="VIDEOGRABACION">VIDEOGRABACION</option>
-                            <option value="OTROS">OTROS</option>
-                        </select>
-                        <label for="filtroTipo">Tipo</label>
+                        <div class="form-floating">
+                            <select id="filtroTipo" class="form-select" aria-label="Tipo">
+                                <option selected value="">Todos los tipos</option>
+                                <option value="COMPUTADORA">COMPUTADORA</option>
+                                <option value="LAPTOP">LAPTOP</option>
+                                <option value="IMPRESORA">IMPRESORA</option>
+                                <option value="MULTIFUNCIONAL">MULTIFUNCIONAL</option>
+                                <option value="TELEFONIA">TELEFONIA</option>
+                                <option value="SERVIDOR">SERVIDOR</option>
+                                <option value="SCANNER">SCANNER</option>
+                                <option value="SWITCH">SWITCH</option>
+                                <option value="VIDEOGRABACION">VIDEOGRABACION</option>
+                                <option value="OTROS">OTROS</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="col-2 text-end">
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosInvEquipos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
