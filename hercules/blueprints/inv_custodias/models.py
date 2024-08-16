@@ -3,11 +3,10 @@ Inventarios Custodias, modelos
 """
 
 from datetime import date
-from typing import List, Optional
+from typing import List
 
-from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, Integer, String, Text, Uuid
+from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql.functions import now
 
 from hercules.extensions import database
 from lib.universal_mixin import UniversalMixin

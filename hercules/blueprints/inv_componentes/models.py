@@ -2,12 +2,8 @@
 Inventarios Componentes, modelos
 """
 
-from datetime import datetime
-from typing import List, Optional
-
-from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, Integer, String, Text, Uuid
+from sqlalchemy import Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql.functions import now
 
 from hercules.extensions import database
 from lib.universal_mixin import UniversalMixin
