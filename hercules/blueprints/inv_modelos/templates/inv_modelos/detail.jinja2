@@ -25,9 +25,83 @@
         {% else %}
             {{ detail.label_value('Marca', inv_modelo.inv_marca.nombre) }}
         {% endif %}
-        {{ detail.label_value('Descripción', inv_modelo.descripcion) }}
-        {{ detail.label_value('Creado', moment(inv_modelo.creado, local=True).format('llll')) }}
+        {# detail.label_value('Descripción', inv_modelo.descripcion) #}
+        {# detail.label_value('Creado', moment(inv_modelo.creado, local=True).format('llll')) #}
     {% endcall %}
+    {% if current_user.can_view('INV EQUIPOS') %}
+        {% call detail.card() %}
+            <!-- Filtros InvEquipos -->
+            <div class="row">
+                <div class="col">
+                    <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosInvEquipos.buscar(); return false;">
+                        <div class="col-2">
+                            <div class="form-floating">
+                                <input id="filtroId" type="text" class="form-control" aria-label="ID">
+                                <label for="filtroId">ID</label>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="form-floating">
+                                <input id="filtroNumeroSerie" type="text" class="form-control" aria-label="No. de Serie" style="text-transform: uppercase;">
+                                <label for="filtroNumeroSerie">No. de Serie</label>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="form-floating">
+                                <input id="filtroNumeroInventario" type="text" class="form-control" aria-label="No. Inventario" style="text-transform: uppercase;">
+                                <label for="filtroNumeroInventario">No. Inventario</label>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="form-floating">
+                                <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
+                                <label for="filtroDescripcion">Descripción</label>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="form-floating">
+                                <select id="filtroTipo" class="form-select" aria-label="Tipo">
+                                    <option selected value="">Todos los tipos</option>
+                                    <option value="COMPUTADORA">COMPUTADORA</option>
+                                    <option value="LAPTOP">LAPTOP</option>
+                                    <option value="IMPRESORA">IMPRESORA</option>
+                                    <option value="MULTIFUNCIONAL">MULTIFUNCIONAL</option>
+                                    <option value="TELEFONIA">TELEFONIA</option>
+                                    <option value="SERVIDOR">SERVIDOR</option>
+                                    <option value="SCANNER">SCANNER</option>
+                                    <option value="SWITCH">SWITCH</option>
+                                    <option value="VIDEOGRABACION">VIDEOGRABACION</option>
+                                    <option value="OTROS">OTROS</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-2 text-end">
+                            <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosInvEquipos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                            <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosInvEquipos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- DataTable InvEquipos -->
+            <table id="inv_equipos_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>F. Fab.</th>
+                        <th>Tipo</th>
+                        <th>Marca</th>
+                        <th>Descripción </th>
+                        <th>No. Serie</th>
+                        <th>No. Inventario</th>
+                        <th>D. IP</th>
+                        <th>D. MAC</th>
+                        <th>Red</th>
+                        <th>Custodia de</th>
+                    </tr>
+                </thead>
+            </table>
+        {% endcall %}
+    {% endif %}
 {% endblock %}
 
 {% block custom_javascript %}
@@ -35,5 +109,76 @@
         {% if inv_modelo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + inv_modelo.descripcion + '?') }}{% endif %}
         {% if inv_modelo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + inv_modelo.descripcion + '?') }}{% endif %}
     {% endif #}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    {% if current_user.can_view('INV EQUIPOS') %}
+        <script>
+            // DataTable InvEquipos
+            const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+            let configDataTable = constructorDataTable.config();
+            configDataTable['ajax']['url'] = '/inv_equipos/datatable_json';
+            configDataTable['ajax']['data'] = { 'estatus': "A", 'inv_modelo_id': {{ inv_modelo.id }} };
+            configDataTable['columns'] = [
+                { data: "detalle" },
+                { data: "fecha_fabricacion" },
+                { data: "tipo" },
+                { data: "inv_marca" },
+                { data: "descripcion" },
+                { data: "numero_serie" },
+                { data: "numero_inventario" },
+                { data: "direccion_ip" },
+                { data: "direccion_mac" },
+                { data: "inv_red" },
+                { data: "nombre_completo" }
+            ];
+            configDataTable['columnDefs'] = [
+                {
+                    targets: [0], // detalle
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '">' + data.id + '</a>';
+                    }
+                },
+                {
+                    targets: [3, 9], // inv_marca, inv_red
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        if (data.url === '') {
+                            return data.nombre;
+                        } else {
+                            return '<a href="' + data.url + '">' + data.nombre + '</a>';
+                        }
+                    }
+                },
+                {
+                    targets: 4, // descripción del equipo
+                    data: null,
+                    render: function(data, type, row, meta){
+                        if (data.length > 16){
+                            return '<span title="' + data + '">' + data.substring(0, 16) + '…' + '</span>';
+                        }
+                        return data;
+                    }
+                },
+                {
+                    targets: 10, // nombre completo de la custodia
+                    data: null,
+                    render: function(data, type, row, meta){
+                        if (data.length > 13){
+                            return '<span title="' + data + '">' + data.substring(0, 13) + '…' + '</span>';
+                        }
+                        return data;
+                    }
+                }
+            ];
+            // Filtros InvEquipos
+            const filtrosInvEquipos = new FiltrosDataTable('#inv_equipos_datatable', configDataTable);
+            filtrosInvEquipos.agregarInput('filtroId', 'inv_equipo_id');
+            filtrosInvEquipos.agregarInput('filtroNumeroSerie', 'numero_serie');
+            filtrosInvEquipos.agregarInput('filtroNumeroInventario', 'numero_inventario');
+            filtrosInvEquipos.agregarInput('filtroDescripcion', 'descripcion');
+            filtrosInvEquipos.agregarInput('filtroTipo', 'tipo');
+            filtrosInvEquipos.precargar();
+        </script>
+    {% endif %}
     {{ detail.moment_js(moment) }}
 {% endblock %}

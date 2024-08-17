@@ -21,8 +21,37 @@
 {% block content %}
     {% call detail.card(estatus=inv_marca.estatus) %}
         {{ detail.label_value('Nombre', inv_marca.nombre) }}
-        {{ detail.label_value('Creado', moment(inv_marca.creado, local=True).format('llll')) }}
+        {# detail.label_value('Creado', moment(inv_marca.creado, local=True).format('llll')) #}
     {% endcall %}
+    {% if current_user.can_view('INV MODELOS') %}
+        {% call detail.card('Modelos') %}
+            <!-- Filtros InvModelos -->
+            <div class="row">
+                <div class="col">
+                    <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosInvModelos.buscar(); return false;">
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
+                                <label for="filtroDescripcion">Descripción</label>
+                            </div>
+                        </div>
+                        <div class="col-6 text-end">
+                            <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosInvModelos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                            <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosInvModelos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- DataTable InvModelos -->
+            <table id="inv_modelos_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Modelo</th>
+                    </tr>
+                </thead>
+            </table>
+        {% endcall %}
+    {% endif %}
 {% endblock %}
 
 {% block custom_javascript %}
@@ -30,5 +59,32 @@
         {% if inv_marca.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + inv_marca.nombre + '?') }}{% endif %}
         {% if inv_marca.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + inv_marca.nombre + '?') }}{% endif %}
     {% endif #}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    {% if current_user.can_view('INV MODELOS') %}
+        <script>
+            // DataTable InvModelos
+            const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+            let configDataTable = constructorDataTable.config();
+            configDataTable['ajax']['url'] = '/inv_modelos/datatable_json';
+            configDataTable['ajax']['data'] = { 'estatus': "A", 'inv_marca_id': {{ inv_marca.id }} };
+            configDataTable['columns'] = [
+                { data: 'detalle' }
+            ];
+            configDataTable['columnDefs'] = [
+                {
+                    targets: 0, // detalle
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '">' + data.descripcion + '</a>';
+                    }
+                }
+            ];
+            // Filtros InvModelos
+            const filtrosInvModelos = new FiltrosDataTable('#inv_modelos_datatable', configDataTable);
+            filtrosInvModelos.agregarInput('filtroDescripcion', 'descripcion');
+            filtrosInvModelos.precargar();
+        </script>
+    {% endif %}
     {{ detail.moment_js(moment) }}
 {% endblock %}

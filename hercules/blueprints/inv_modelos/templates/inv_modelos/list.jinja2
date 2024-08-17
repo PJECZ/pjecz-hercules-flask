@@ -72,7 +72,7 @@
                 targets: 1, // marca
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data.url == '') {
+                    if (data.url === '') {
                         return data.nombre;
                     } else {
                         return '<a href="' + data.url + '">' + data.nombre + '</a>';
