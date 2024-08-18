@@ -1,0 +1,100 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Categoría {{ inv_categoria.nombre }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Categoría ' + inv_categoria.nombre) %}
+        {{ topbar.button_previous('Categorías', url_for('inv_categorias.list_active')) }}
+        {# if current_user.can_edit('INV CATEGORIAS') %}
+            {{ topbar.button_edit('Editar', url_for('inv_categorias.edit', inv_categoria_id=inv_categoria.id)) }}
+        {% endif #}
+        {# if current_user.can_admin('INV CATEGORIAS') %}
+            {% if inv_categoria.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('inv_categorias.delete', inv_categoria_id=inv_categoria.id)) }}{% endif %}
+            {% if inv_categoria.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('inv_categorias.recover', inv_categoria_id=inv_categoria.id)) }}{% endif %}
+        {% endif #}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {# call detail.card(estatus=inv_categoria.estatus) #}
+        {# detail.label_value('Categoría', inv_categoria.nombre) #}
+        {# detail.label_value('Creado', moment(inv_categoria.creado, local=True).format('llll')) #}
+    {# endcall #}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    {% if current_user.can_view('INV COMPONENTES') %}
+        {% call detail.card('Componentes') %}
+            <!-- Filtros InvComponentes -->
+            <div class="row">
+                <div class="col">
+                    <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosInvComponentes.buscar(); return false;">
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
+                                <label for="filtroDescripcion">Descripción</label>
+                            </div>
+                        </div>
+                        <div class="col-6 text-end">
+                            <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosInvComponentes.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                            <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosInvComponentes.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- DataTable InvComponentes -->
+            <table id="inv_componentes_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Descripción</th>
+                        <th>Cantidad</th>
+                        <th>Generación</th>
+                        <th>Versión</th>
+                    </tr>
+                </thead>
+            </table>
+        {% endcall %}
+    {% endif %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {# if current_user.can_admin('INV CATEGORIAS') %}
+        {% if inv_categoria.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + inv_categoria.nombre + '?') }}{% endif %}
+        {% if inv_categoria.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + inv_categoria.nombre + '?') }}{% endif %}
+    {% endif #}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    {% if current_user.can_view('INV COMPONENTES') %}
+        <script>
+            // DataTable InvComponentes
+            const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+            let configDataTable = constructorDataTable.config();
+            configDataTable['ajax']['url'] = '/inv_componentes/datatable_json';
+            configDataTable['ajax']['data'] = { 'estatus': "A", 'inv_categoria_id': {{ inv_categoria.id }} };
+            configDataTable['columns'] = [
+                { data: "detalle" },
+                { data: "descripcion" },
+                { data: "cantidad" },
+                { data: "generacion" },
+                { data: "version" },
+            ];
+            configDataTable['columnDefs'] = [
+                {
+                    targets: 0, // detalle
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '">' + data.id + '</a>';
+                    }
+                }
+            ];
+            // Filtros InvComponentes
+            const filtrosInvComponentes = new FiltrosDataTable('#inv_componentes_datatable', configDataTable);
+            filtrosInvComponentes.agregarInput('filtroDescripcion', 'descripcion');
+            filtrosInvComponentes.precargar();
+        </script>
+    {% endif %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}
