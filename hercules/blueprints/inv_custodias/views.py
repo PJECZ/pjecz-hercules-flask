@@ -60,23 +60,11 @@ def datatable_json():
                     "id": resultado.id,
                     "url": url_for("inv_custodias.detail", inv_custodia_id=resultado.id),
                 },
-                "usuario": {
-                    "nombre_completo": resultado.nombre_completo,
-                    "url": (
-                        url_for("usuarios.detail", usuario_id=resultado.usuario_id) if current_user.can_view("USUARIOS") else ""
-                    ),
-                },
+                "nombre_completo": resultado.nombre_completo,
+                "oficina_clave": resultado.usuario.oficina.clave,
                 "fecha": resultado.fecha.strftime("%Y-%m-%d"),
                 "equipos_cantidad": resultado.equipos_cantidad if resultado.equipos_cantidad != 0 else "-",
                 "equipos_fotos_cantidad": resultado.equipos_fotos_cantidad if resultado.equipos_fotos_cantidad != 0 else "-",
-                "oficina": {
-                    "clave": resultado.usuario.oficina.clave,
-                    "url": (
-                        url_for("oficinas.detail", oficina_id=resultado.usuario.oficina_id)
-                        if current_user.can_view("OFICINAS")
-                        else ""
-                    ),
-                },
             }
         )
     # Entregar JSON

@@ -74,9 +74,8 @@
                 render: function(data, type, row, meta) {
                     if (data.url === '') {
                         return data.nombre;
-                    } else {
-                        return '<a href="' + data.url + '">' + data.nombre + '</a>';
                     }
+                    return '<a href="' + data.url + '">' + data.nombre + '</a>';
                 }
             }
         ];

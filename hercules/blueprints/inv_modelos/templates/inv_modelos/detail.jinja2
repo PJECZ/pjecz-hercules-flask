@@ -29,7 +29,7 @@
         {# detail.label_value('Creado', moment(inv_modelo.creado, local=True).format('llll')) #}
     {% endcall %}
     {% if current_user.can_view('INV EQUIPOS') %}
-        {% call detail.card() %}
+        {% call detail.card('Equipos') %}
             <!-- Filtros InvEquipos -->
             <div class="row">
                 <div class="col">
@@ -87,10 +87,10 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>F. Fab.</th>
                         <th>Tipo</th>
                         <th>Marca</th>
                         <th>Descripción </th>
+                        <th>F. Fab.</th>
                         <th>No. Serie</th>
                         <th>No. Inventario</th>
                         <th>D. IP</th>
@@ -120,16 +120,16 @@
             configDataTable['ajax']['data'] = { 'estatus': "A", 'inv_modelo_id': {{ inv_modelo.id }} };
             configDataTable['columns'] = [
                 { data: "detalle" },
-                { data: "fecha_fabricacion" },
                 { data: "tipo" },
-                { data: "inv_marca" },
+                { data: "inv_marca_nombre" },
                 { data: "descripcion" },
+                { data: "fecha_fabricacion" },
                 { data: "numero_serie" },
                 { data: "numero_inventario" },
                 { data: "direccion_ip" },
                 { data: "direccion_mac" },
-                { data: "inv_red" },
-                { data: "nombre_completo" }
+                { data: "inv_red_nombre" },
+                { data: "inv_custodia_nombre_completo" }
             ];
             configDataTable['columnDefs'] = [
                 {
@@ -139,18 +139,7 @@
                     }
                 },
                 {
-                    targets: [3, 9], // inv_marca, inv_red
-                    data: null,
-                    render: function(data, type, row, meta) {
-                        if (data.url === '') {
-                            return data.nombre;
-                        } else {
-                            return '<a href="' + data.url + '">' + data.nombre + '</a>';
-                        }
-                    }
-                },
-                {
-                    targets: 4, // descripción del equipo
+                    targets: 3, // descripcion
                     data: null,
                     render: function(data, type, row, meta){
                         if (data.length > 16){
@@ -160,7 +149,7 @@
                     }
                 },
                 {
-                    targets: 10, // nombre completo de la custodia
+                    targets: 10, // nombre_completo
                     data: null,
                     render: function(data, type, row, meta){
                         if (data.length > 13){

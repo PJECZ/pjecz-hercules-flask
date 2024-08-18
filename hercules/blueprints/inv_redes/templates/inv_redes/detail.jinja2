@@ -83,10 +83,10 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>F. Fab.</th>
                         <th>Tipo</th>
                         <th>Marca</th>
                         <th>Descripción </th>
+                        <th>F. Fab.</th>
                         <th>No. Serie</th>
                         <th>No. Inventario</th>
                         <th>D. IP</th>
@@ -115,15 +115,15 @@
             configDataTable['ajax']['data'] = { 'estatus': "A", 'inv_red_id': {{ inv_red.id }} };
             configDataTable['columns'] = [
                 { data: "detalle" },
-                { data: "fecha_fabricacion" },
                 { data: "tipo" },
-                { data: "inv_marca" },
+                { data: "inv_marca_nombre" },
                 { data: "descripcion" },
+                { data: "fecha_fabricacion" },
                 { data: "numero_serie" },
                 { data: "numero_inventario" },
                 { data: "direccion_ip" },
                 { data: "direccion_mac" },
-                { data: "nombre_completo" }
+                { data: "inv_custodia_nombre_completo" }
             ];
             configDataTable['columnDefs'] = [
                 {
@@ -133,18 +133,7 @@
                     }
                 },
                 {
-                    targets: 3, // inv_marca
-                    data: null,
-                    render: function(data, type, row, meta) {
-                        if (data.url === '') {
-                            return data.nombre;
-                        } else {
-                            return '<a href="' + data.url + '">' + data.nombre + '</a>';
-                        }
-                    }
-                },
-                {
-                    targets: 4, // descripción del equipo
+                    targets: 3, // descripcion
                     data: null,
                     render: function(data, type, row, meta){
                         if (data.length > 16){
@@ -154,7 +143,7 @@
                     }
                 },
                 {
-                    targets: 9, // nombre completo de la custodia
+                    targets: 9, // nombre_completo
                     data: null,
                     render: function(data, type, row, meta){
                         if (data.length > 13){

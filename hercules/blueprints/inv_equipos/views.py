@@ -84,48 +84,19 @@ def datatable_json():
                     "id": resultado.id,
                     "url": url_for("inv_equipos.detail", inv_equipo_id=resultado.id),
                 },
+                "tipo": resultado.tipo,
+                "inv_marca_nombre": resultado.inv_modelo.inv_marca.nombre,
                 "descripcion": resultado.descripcion,
                 "fecha_fabricacion": (
-                    resultado.fecha_fabricacion.strftime("%Y-%m-%d") if resultado.fecha_fabricacion is not None else "-"
+                    resultado.fecha_fabricacion.strftime("%Y-%m-%d") if resultado.fecha_fabricacion is not None else ""
                 ),
-                "tipo": resultado.tipo,
-                "nombre_completo": resultado.inv_custodia.nombre_completo,
                 "direccion_ip": resultado.direccion_ip,
                 "direccion_mac": resultado.direccion_mac,
                 "numero_serie": resultado.numero_serie,
                 "numero_inventario": resultado.numero_inventario,
-                "inv_custodia_id": {
-                    "id": resultado.inv_custodia.id,
-                    "url": (
-                        url_for("inv_custodias.detail", inv_custodia_id=resultado.inv_custodia.id)
-                        if current_user.can_view("INV CUSTODIAS")
-                        else ""
-                    ),
-                },
-                "inv_marca": {
-                    "nombre": resultado.inv_modelo.inv_marca.nombre,
-                    "url": (
-                        url_for("inv_marcas.detail", inv_marca_id=resultado.inv_modelo.inv_marca.id)
-                        if current_user.can_view("INV MARCAS")
-                        else ""
-                    ),
-                },
-                "inv_modelo": {
-                    "descripcion": resultado.inv_modelo.descripcion,
-                    "url": (
-                        url_for("inv_modelos.detail", inv_modelo_id=resultado.inv_modelo.id)
-                        if current_user.can_view("INV MODELOS")
-                        else ""
-                    ),
-                },
-                "inv_red": {
-                    "nombre": resultado.inv_red.nombre,
-                    "url": (
-                        url_for("inv_redes.detail", inv_red_id=resultado.inv_red.id)
-                        if current_user.can_view("INV REDES")
-                        else ""
-                    ),
-                },
+                "inv_modelo_descripcion": resultado.inv_modelo.descripcion,
+                "inv_red_nombre": resultado.inv_red.nombre,
+                "inv_custodia_nombre_completo": resultado.inv_custodia.nombre_completo,
             }
         )
     # Entregar JSON

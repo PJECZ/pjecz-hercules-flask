@@ -6,7 +6,7 @@
 {% block title %}Foto del equipo {{ inv_equipo_foto.id }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Foto del equipo ' + inv_equipo_foto.id) %}
+    {% call topbar.page_buttons('Foto del equipo ' + inv_equipo_foto.id | string) %}
         {{ topbar.button_previous('Fotos de los Equipos', url_for('inv_equipos_fotos.list_active')) }}
         {# if current_user.can_edit('INV EQUIPOS FOTOS') %}
             {{ topbar.button_edit('Editar', url_for('inv_equipos_fotos.edit', inv_equipo_foto_id=inv_equipo_foto.id)) }}
@@ -23,7 +23,12 @@
         {{ detail.label_value_big('ID', inv_equipo_foto.id) }}
         {{ detail.label_value('Archivo', inv_equipo_foto.archivo) }}
         {{ detail.label_value('Descripción', inv_equipo_foto.descripcion) }}
-        {{ detail.label_value('URL', inv_equipo_foto.url) }}
+        {% if current_user.can_view('INV EQUIPOS') %}
+            {{ detail.label_value('Equipo', inv_equipo_foto.inv_equipo_id, url_for('inv_equipos.detail', inv_equipo_id=inv_equipo_foto.inv_equipo_id)) }}
+        {% else %}
+            {{ detail.label_value('Equipo', inv_equipo_foto.inv_equipo_id) }}
+        {% endif %}
+        {# detail.label_value('URL', inv_equipo_foto.url) #}
         {% if inv_equipo_foto.url.rsplit(".", 1)[1].lower() in ("png", "jpg", "jpeg") %}
             {{ detail.label_value('Imágen previa') }}
             <a href="{{ inv_equipo_foto.url }}"><img src="{{ inv_equipo_foto.url }}" style="max-width: 500px; height: auto;"/></a>

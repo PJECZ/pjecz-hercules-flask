@@ -59,7 +59,6 @@ def datatable_json():
                     "id": resultado.id,
                     "url": url_for("inv_componentes.detail", inv_componente_id=resultado.id),
                 },
-                "descripcion": resultado.descripcion,
                 "inv_categoria": {
                     "nombre": resultado.inv_categoria.nombre,
                     "url": (
@@ -68,6 +67,7 @@ def datatable_json():
                         else ""
                     ),
                 },
+                "descripcion": resultado.descripcion,
                 "cantidad": resultado.cantidad,
                 "generacion": resultado.generacion,
                 "version": resultado.version,

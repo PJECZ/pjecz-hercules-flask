@@ -47,8 +47,8 @@
                 <tr>
                     <th>ID</th>
                     <th>Nombre completo</th>
-                    <th>Fecha</th>
                     <th>Oficina</th>
+                    <th>Fecha</th>
                     <th>C. Equipos</th>
                     <th>C. Fotos</th>
                 </tr>
@@ -68,9 +68,9 @@
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
             { data: "detalle" },
-            { data: "usuario" },
+            { data: "nombre_completo" },
+            { data: "oficina_clave" },
             { data: "fecha" },
-            { data: "oficina" },
             { data: "equipos_cantidad" },
             { data: "equipos_fotos_cantidad" }
         ];
@@ -80,28 +80,6 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.id + '</a>';
-                }
-            },
-            {
-                targets: 1, // usuario
-                data: null,
-                render: function(data, type, row, meta) {
-                    if (data.url == '') {
-                        return data.nombre_completo;
-                    } else {
-                        return '<a href="' + data.url + '">' + data.nombre_completo + '</a>';
-                    }
-                }
-            },
-            {
-                targets: 3, // oficina
-                data: null,
-                render: function(data, type, row, meta) {
-                    if (data.url == '') {
-                        return data.clave;
-                    } else {
-                        return '<a href="' + data.url + '">' + data.clave + '</a>';
-                    }
                 }
             }
         ];

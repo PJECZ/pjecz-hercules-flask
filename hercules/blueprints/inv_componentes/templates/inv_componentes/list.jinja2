@@ -40,6 +40,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Categoria</th>
                     <th>Descripción</th>
                     <th>Cantidad</th>
                     <th>Generación</th>
@@ -61,6 +62,7 @@
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
             { data: "detalle" },
+            { data: "inv_categoria" },
             { data: "descripcion" },
             { data: "cantidad" },
             { data: "generacion" },
@@ -72,6 +74,16 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.id + '</a>';
+                }
+            },
+            {
+                targets: 1, // inv_categoria
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.url === '') {
+                        return data.nombre;
+                    }
+                    return '<a href="' + data.url + '">' + data.nombre + '</a>';
                 }
             }
         ];
