@@ -2,10 +2,10 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Editar Categoría {{ inv_categoria.clave }}{% endblock %}
+{% block title %}Editar Categoría {{ inv_categoria.nombre }}{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Editar Categoría ' + inv_categoria.clave) }}
+    {{ topbar.page('Editar Categoría ' + inv_categoria.nombre) }}
 {% endblock %}
 
 {% block content %}
