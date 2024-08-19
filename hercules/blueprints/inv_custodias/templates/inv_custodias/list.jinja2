@@ -6,6 +6,30 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('INV CATEGORIAS') %}
+            {{ topbar.button('Categorías', url_for('inv_categorias.list_active'),'mdi:car-wrench') }}
+        {% endif %}
+        {% if current_user.can_view('INV COMPONENTES') %}
+            {{ topbar.button('Componentes', url_for('inv_componentes.list_active'),'mdi:expansion-card') }}
+        {% endif %}
+        {#  if current_user.can_view('INV CUSTODIAS') %}
+            {{ topbar.button('Custodias', url_for('inv_custodias.list_active'),'mdi:shield-account') }}
+        {% endif #}
+        {% if current_user.can_view('INV EQUIPOS') %}
+            {{ topbar.button('Equipos', url_for('inv_equipos.list_active'),'mdi:desktop-classic') }}
+        {% endif %}
+        {% if current_user.can_view('INV EQUIPOS FOTOS') %}
+            {{ topbar.button('Fotos', url_for('inv_equipos_fotos.list_active'),'mdi:image-multiple') }}
+        {% endif %}
+        {% if current_user.can_view('INV MARCAS') %}
+            {{ topbar.button('Marcas', url_for('inv_marcas.list_active'),'mdi:bookmark-multiple') }}
+        {% endif %}
+        {% if current_user.can_view('INV MODELOS') %}
+            {{ topbar.button('Modelos', url_for('inv_modelos.list_active'),'mdi:chart-bubble') }}
+        {% endif %}
+        {% if current_user.can_view('INV REDES') %}
+            {{ topbar.button('Redes', url_for('inv_redes.list_active'),'mdi:access-point-network') }}
+        {% endif %}
         {% if current_user.can_admin('INV CUSTODIAS') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('inv_custodias.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('inv_custodias.list_active')) }}{% endif %}
@@ -79,7 +103,7 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.id + '</a>';
+                    return '<a href="' + data.url + '">' + data.id.toString().padStart(5, '0') + '</a>';
                 }
             }
         ];
