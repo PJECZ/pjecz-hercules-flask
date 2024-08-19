@@ -5,9 +5,7 @@
 {% block title %}Editar Archivo {{ web_archivo.clave }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Editar ' + web_archivo.clave) %}
-        {{ topbar.button_cancel() }}
-    {% endcall %}
+    {{ topbar.page('Editar Archivo ' + web_archivo.clave) }}
 {% endblock %}
 
 {% block content %}

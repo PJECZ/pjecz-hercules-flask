@@ -34,9 +34,9 @@
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('inv_categorias.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('inv_categorias.list_active')) }}{% endif %}
         {% endif %}
-        {# if current_user.can_insert('INV CATEGORIAS') %}
-            {{ topbar.button_new('Nuevo Categoria', url_for('inv_categorias.new')) }}
-        {% endif #}
+        {% if current_user.can_insert('INV CATEGORIAS') %}
+            {{ topbar.button_new('Nueva Categoría', url_for('inv_categorias.new')) }}
+        {% endif %}
     {% endcall %}
 {% endblock %}
 

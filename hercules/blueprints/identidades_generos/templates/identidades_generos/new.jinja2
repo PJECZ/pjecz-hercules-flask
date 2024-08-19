@@ -5,9 +5,7 @@
 {% block title %}Nueva Identidad de Género{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Nueva Identidad de Género') %}
-        {{ topbar.button_cancel() }}
-    {% endcall %}
+    {{ topbar.page('Nueva Identidad de Género') }}
 {% endblock %}
 
 {% block content %}

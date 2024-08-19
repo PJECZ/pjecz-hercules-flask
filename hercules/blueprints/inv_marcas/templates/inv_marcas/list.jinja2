@@ -34,9 +34,9 @@
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('inv_marcas.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('inv_marcas.list_active')) }}{% endif %}
         {% endif %}
-        {# if current_user.can_insert('INV MARCAS') %}
-            {{ topbar.button_new('Nuevo Marca', url_for('inv_marcas.new')) }}
-        {% endif #}
+        {% if current_user.can_insert('INV MARCAS') %}
+            {{ topbar.button_new('Nueva Marca', url_for('inv_marcas.new')) }}
+        {% endif %}
     {% endcall %}
 {% endblock %}
 
