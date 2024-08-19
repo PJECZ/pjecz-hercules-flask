@@ -25,11 +25,12 @@ class PeritoForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de distritos y domicilios"""
+        """Inicializar y cargar opciones de distritos y tipos de peritos"""
         super().__init__(*args, **kwargs)
         self.distrito.choices = [
-            (d.id, d.nombre_corto) for d in Distrito.query.filter_by(estatus="A").order_by(Distrito.nombre_corto).all()
+            (d.id, d.nombre_corto)
+            for d in Distrito.query.filter_by(es_distrito=True, estatus="A").order_by(Distrito.nombre_corto).all()
         ]
-        self.domicilio.choices = [
-            (d.id, d.nombre) for d in PeritoTipo.query.filter_by(estatus="A").order_by(PeritoTipo.nombre).all()
+        self.perito_tipo.choices = [
+            (p.id, p.nombre) for p in PeritoTipo.query.filter_by(estatus="A").order_by(PeritoTipo.nombre).all()
         ]
