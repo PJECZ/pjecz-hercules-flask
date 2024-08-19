@@ -147,6 +147,8 @@ def datatable_json():
         consulta = consulta.filter_by(estatus="A")
     if "autoridad_id" in request.form:
         consulta = consulta.filter_by(autoridad_id=request.form["autoridad_id"])
+    if "oficina_id" in request.form:
+        consulta = consulta.filter_by(oficina_id=request.form["oficina_id"])
     if "nombres" in request.form:
         consulta = consulta.filter(Usuario.nombres.contains(safe_string(request.form["nombres"])))
     if "apellido_paterno" in request.form:
@@ -180,6 +182,16 @@ def datatable_json():
                         if current_user.can_view("AUTORIDADES")
                         else ""
                     ),
+                },
+                "oficina": {
+                    "clave": resultado.oficina.clave,
+                    "url": (
+                        url_for("oficinas.detail", oficina_id=resultado.oficina_id) if current_user.can_view("OFICINAS") else ""
+                    ),
+                },
+                "inv_custodia": {
+                    "email": resultado.email,
+                    "url": url_for("inv_custodias.new_with_usuario_id", usuario_id=resultado.id),
                 },
             }
         )

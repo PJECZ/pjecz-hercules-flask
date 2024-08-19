@@ -51,6 +51,7 @@
                         <th>Correo electrónico</th>
                         <th>Usuario</th>
                         <th>Puesto</th>
+                        <th>Oficina</th>
                     </tr>
                 </thead>
             </table>
@@ -72,7 +73,8 @@
             configDataTable['columns'] = [
                 { data: "detalle" },
                 { data: "nombre" },
-                { data: "puesto" }
+                { data: "puesto" },
+                { data: "oficina" }
             ];
             configDataTable['columnDefs'] = [
                 {
@@ -87,6 +89,16 @@
                     data: null,
                     render: function(data, type, row, meta) {
                         return (data.length > 32 ? data.substr(0, 32) + '…' : data);
+                    }
+                },
+                {
+                    targets: 3, // oficina
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        if (data.url === "") {
+                            return data.clave;
+                        }
+                        return '<a href="' + data.url + '">' + data.clave + '</a>';
                     }
                 }
             ];

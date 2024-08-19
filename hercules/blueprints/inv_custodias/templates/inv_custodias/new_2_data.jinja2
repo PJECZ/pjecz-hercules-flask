@@ -1,0 +1,39 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Nueva Custodia: 2. Datos de la Custodia{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Nueva Custodia: 2. Datos de la Custodia') }}
+{% endblock %}
+
+{% block content %}
+    {% call f.card('Datos del Usuario') %}
+        {{ detail.label_value('Nombre', usuario.nombre) }}
+        {{ detail.label_value('e-mail', usuario.email) }}
+        {% if current_user.can_view("DISTRITOS") %}
+            {{ detail.label_value('Distrito', usuario.autoridad.distrito.nombre, url_for('distritos.detail', distrito_id=usuario.autoridad.distrito_id)) }}
+        {% else %}
+            {{ detail.label_value('Distrito', usuario.autoridad.distrito.nombre) }}
+        {% endif %}
+        {% if current_user.can_view("AUTORIDADES") %}
+            {{ detail.label_value('Autoridad', usuario.autoridad.descripcion, url_for('autoridades.detail', autoridad_id=usuario.autoridad_id)) }}
+        {% else %}
+            {{ detail.label_value('Autoridad', usuario.autoridad.descripcion) }}
+        {% endif %}
+        {% if current_user.can_view("OFICINAS") %}
+            {{ detail.label_value('Oficina', usuario.oficina.clave + ' - ' + usuario.oficina.descripcion_corta, url_for('oficinas.detail', oficina_id=usuario.oficina_id)) }}
+        {% else %}
+            {{ detail.label_value('Oficina', usuario.oficina.clave + ' - ' + usuario.oficina.descripcion_corta) }}
+        {% endif %}
+        {{ detail.label_value('Puesto', usuario.puesto) }}
+    {% endcall %}
+    {% call f.card('Datos de la Custodia') %}
+        {% call f.form_tag('inv_custodias.new', fid='inv_custodias_form') %}
+            {% call f.form_group(form.fecha) %}{% endcall %}
+            {% call f.form_group(form.guardar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}
