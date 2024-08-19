@@ -111,6 +111,31 @@ def safe_message(input_str, max_len=250, default_output_str="Sin descripción") 
     return (message[:max_len] + "...") if len(message) > max_len else message
 
 
+def safe_numero_publicacion(input_str):
+    """Safe número publicación"""
+    return safe_sentencia(input_str)
+
+
+def safe_sentencia(input_str):
+    """Safe sentencia"""
+    if not isinstance(input_str, str) or input_str.strip() == "":
+        return ""
+    elementos = re.sub(r"[^0-9A-Z]+", "|", unidecode(input_str)).split("|")
+    try:
+        numero = int(elementos[0])
+        ano = int(elementos[1])
+    except (IndexError, ValueError) as error:
+        raise error
+    if numero <= 0:
+        raise ValueError
+    if ano < 1900 or ano > date.today().year:
+        raise ValueError
+    limpio = f"{str(numero)}/{str(ano)}"
+    if len(limpio) > 16:
+        raise ValueError
+    return limpio
+
+
 def safe_rfc(input_str, is_optional=False, search_fragment=False) -> str:
     """Safe RFC"""
     if not isinstance(input_str, str):
