@@ -8,10 +8,12 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.inv_custodias.forms import InvCustodiaForm
 from hercules.blueprints.inv_custodias.models import InvCustodia
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
+from hercules.blueprints.usuarios.models import Usuario
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_message, safe_string
 
@@ -99,3 +101,39 @@ def detail(inv_custodia_id):
     """Detalle de un Custodia"""
     inv_custodia = InvCustodia.query.get_or_404(inv_custodia_id)
     return render_template("inv_custodias/detail.jinja2", inv_custodia=inv_custodia)
+
+
+@inv_custodias.route("/inv_custodias/nuevo")
+@permission_required(MODULO, Permiso.CREAR)
+def new():
+    return render_template("inv_custodias/new_1_choose.jinja2", filtros={"estatus": "A"})
+
+
+@inv_custodias.route("/inv_custodias/nuevo/<int:usuario_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.CREAR)
+def new_with_usuario_id(usuario_id):
+    """Nuevo InvCustodia"""
+    usuario = Usuario.query.get_or_404(usuario_id)
+    form = InvCustodiaForm()
+    if form.validate_on_submit():
+        # Guardar
+        inv_custodia = InvCustodia(
+            fecha=form.fecha.data,
+            curp=usuario.curp,
+            nombre_completo=usuario.nombre,
+            equipos_cantidad=0,
+            equipos_fotos_cantidad=0,
+        )
+        inv_custodia.save()
+        # Guardar bitácora
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Nuevo InvCustodia {inv_custodia.clave}"),
+            url=url_for("inv_custodias.detail", inv_custodia_id=inv_custodia.id),
+        )
+        bitacora.save()
+        # Entregar detalle
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    return render_template("inv_custodias/new_2_data.jinja2", usuario=usuario, form=form)

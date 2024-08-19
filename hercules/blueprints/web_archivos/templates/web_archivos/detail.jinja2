@@ -20,7 +20,7 @@
 
 {% block content %}
     {% call detail.card(estatus=web_archivo.estatus) %}
-        {{ detail.label_value('Página', web_archivo.web_pagina.clave + ': ' + web_archivo.web_pagina.titulo, url_for('web_paginas.detail', web_pagina_id=web_archivo.web_pagina_id)) }}
+        {{ detail.label_value('Página', web_archivo.web_pagina.clave + ' - ' + web_archivo.web_pagina.titulo, url_for('web_paginas.detail', web_pagina_id=web_archivo.web_pagina_id)) }}
         {# detail.label_value('Descripción', web_archivo.descripcion) #}
         {{ detail.label_value('Clave', web_archivo.clave) }}
         {{ detail.label_value('Archivo', web_archivo.archivo) }}

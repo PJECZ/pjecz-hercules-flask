@@ -38,12 +38,105 @@
         {{ detail.label_value('Teléfono', oficina.telefono) }}
         {{ detail.label_value('Extensión', oficina.extension) }}
     {% endcall %}
+    {% if current_user.can_view('USUARIOS') %}
+        {% call detail.card('Usuarios') %}
+            <!-- Filtros usuarios -->
+            <div class="row">
+                <div class="col">
+                    <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosUsuarios.buscar(); return false;">
+                        <div class="col-4">
+                            <div class="form-floating">
+                                <input id="filtroEMail" type="text" class="form-control" aria-label="email">
+                                <label for="filtroEMail">e-mail</label>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="form-floating">
+                                <input id="filtroNombres" type="text" class="form-control" aria-label="Nombres" style="text-transform: uppercase;">
+                                <label for="filtroNombres">Nombres</label>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="form-floating">
+                                <input id="filtroApellidoPaterno" type="text" class="form-control" aria-label="Apellido paterno" style="text-transform: uppercase;">
+                                <label for="filtroApellidoPaterno">Primer paterno</label>
+                            </div>
+                        </div>
+                        <div class="col-2 text-end">
+                            <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosUsuarios.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                            <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosUsuarios.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- Datatable usuarios -->
+            <table id="usuarios_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Correo electrónico</th>
+                        <th>Nombre completo</th>
+                        <th>Puesto</th>
+                        <th>Autoridad</th>
+                    </tr>
+                </thead>
+            </table>
+        {% endcall %}
+    {% endif %}
 {% endblock %}
 
 {% block custom_javascript %}
     {% if current_user.can_admin('OFICINAS') %}
         {% if oficina.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + oficina.clave + '?') }}{% endif %}
         {% if oficina.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + oficina.clave + '?') }}{% endif %}
+    {% endif %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    {% if current_user.can_view('USUARIOS') %}
+        <script>
+            // DataTable usuarios
+            const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+            let configDataTable = constructorDataTable.config();
+            configDataTable['ajax']['url'] = '/usuarios/datatable_json';
+            configDataTable['ajax']['data'] = { 'estatus': "A", 'oficina_id': {{ oficina.id }} };
+            configDataTable['columns'] = [
+                { data: "detalle" },
+                { data: "nombre" },
+                { data: "puesto" },
+                { data: "autoridad" }
+            ];
+            configDataTable['columnDefs'] = [
+                {
+                    targets: 0, // detalle
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '">' + data.email + '</a>';
+                    }
+                },
+                {
+                    targets: [1, 2], // nombre, puesto
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return (data.length > 24 ? data.substring(0, 24) + '…' : data);
+                    }
+                },
+                {
+                    targets: 3, // autoridad
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        if (data.url === "") {
+                            return data.clave;
+                        }
+                        return '<a href="' + data.url + '">' + data.clave + '</a>';
+                    }
+                }
+            ];
+            // Filtros usuarios
+            const filtrosUsuarios = new FiltrosDataTable('#usuarios_datatable', configDataTable);
+            filtrosUsuarios.agregarInput('filtroEMail', 'email');
+            filtrosUsuarios.agregarInput('filtroNombres', 'nombres');
+            filtrosUsuarios.agregarInput('filtroApellidoPaterno', 'apellido_paterno');
+            filtrosUsuarios.precargar();
+        </script>
     {% endif %}
     {{ detail.moment_js(moment) }}
 {% endblock %}
