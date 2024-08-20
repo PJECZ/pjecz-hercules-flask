@@ -2,15 +2,16 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Nuevo Rol{% endblock %}
+{% block title %}Editar Categoría {{ inv_categoria.nombre }}{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Nuevo Rol') }}
+    {{ topbar.page('Editar Categoría ' + inv_categoria.nombre) }}
 {% endblock %}
 
 {% block content %}
     {% call f.card() %}
-        {% call f.form_tag('roles.new', fid='rol_form') %}
+        {% set form_kwargs = {'inv_categoria_id': inv_categoria.id} %}
+        {% call f.form_tag('inv_categorias.edit', fid='inv_categoria_form', **form_kwargs) %}
             {% call f.form_group(form.nombre) %}{% endcall %}
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}

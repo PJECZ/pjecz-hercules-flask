@@ -22,22 +22,22 @@
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosIdentidadGenero.buscar(); return false;">
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroProcedimiento" type="text" class="form-control" aria-label="Procedimiento">
+                            <label for="filtroProcedimiento">Procedimiento</label>
+                        </div>
+                    </div>
                     <div class="col-4">
                         <div class="form-floating">
                             <input id="filtroNombreActual" type="text" class="form-control" aria-label="NombreActual" style="text-transform: uppercase;">
-                            <label for="filtroNombreActual">NombreActual</label>
+                            <label for="filtroNombreActual">Nombre actual</label>
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="form-floating">
                             <input id="filtroNombreAnterior" type="text" class="form-control" aria-label="NombreAnterior" style="text-transform: uppercase;">
-                            <label for="filtroNombreAnterior">NombreAnterior</label>
-                        </div>
-                    </div>
-                    <div class="col-2">
-                        <div class="form-floating">
-                            <input id="filtroProcedimiento" type="text" class="form-control" aria-label="Procedimiento">
-                            <label for="filtroProcedimiento">Procedimiento</label>
+                            <label for="filtroNombreAnterior">Nombre anterior</label>
                         </div>
                     </div>
                     <div class="col-2 text-end">

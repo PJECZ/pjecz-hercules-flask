@@ -25,17 +25,10 @@
             <div class="row">
                 <div class="col">
                     <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosPeritos.buscar(); return false;">
-
-                        <div class="col-3">
-                            <div class="form-floating">
-                                <input id="filtroDistritoNombre" type="text" class="form-control" aria-label="Distrito" style="text-transform: uppercase;">
-                                <label for="filtroDistritoNombre">Distrito</label>
-                            </div>
-                        </div>
                         <div class="col-3">
                             <div class="form-floating">
                                 <input id="filtroNombre" type="text" class="form-control" aria-label="Nombre" style="text-transform: uppercase;">
-                                <label for="filtroNombre">Nombre</label>
+                                <label for="filtroNombre">Nombres</label>
                             </div>
                         </div>
                         <div class="col-3">
@@ -44,7 +37,13 @@
                                 <label for="filtroPeritoTipo">Tipo de perito</label>
                             </div>
                         </div>
-                        <div class="col-2 text-end">
+                        <div class="col-3">
+                            <div class="form-floating">
+                                <input id="filtroDistritoNombre" type="text" class="form-control" aria-label="Distrito" style="text-transform: uppercase;">
+                                <label for="filtroDistritoNombre">Distritos</label>
+                            </div>
+                        </div>
+                        <div class="col-3 text-end">
                             <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosPeritos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
                             <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosPeritos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                         </div>
@@ -56,7 +55,7 @@
             <thead>
                 <tr>
                     <th>Nombres</th>
-                    <th>Tipos</th>
+                    <th>Tipo de perito</th>
                     <th>Distritos</th>
                 </tr>
             </thead>
@@ -83,7 +82,15 @@
                 targets: [0, 1, 2], // detalle, perito_tipo_nombre, distrito
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.nombre + '</a>';
+                    if (data.nombre.length > 32) {
+                        nombre = data.nombre.substr(0, 32) + '…';
+                    } else {
+                        nombre = data.nombre;
+                    }
+                    if (data.url != '') {
+                        return '<a href="' + data.url + '">' + nombre + '</a>';
+                    }
+                    return nombre;
                 }
             }
         ];

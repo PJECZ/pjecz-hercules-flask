@@ -122,8 +122,8 @@ def new():
     form = PeritoForm()
     if form.validate_on_submit():
         perito = Perito(
-            distrito=form.distrito.data,
-            perito_tipo=form.perito_tipo.data,
+            distrito_id=form.distrito.data,
+            perito_tipo_id=form.perito_tipo.data,
             nombre=safe_string(form.nombre.data, save_enie=True),
             domicilio=safe_string(form.domicilio.data),
             telefono_fijo=safe_string(form.telefono_fijo.data),
@@ -154,8 +154,8 @@ def edit(perito_id):
     perito = Perito.query.get_or_404(perito_id)
     form = PeritoForm()
     if form.validate_on_submit():
-        perito.distrito = form.distrito.data
-        perito.perito_tipo = form.perito_tipo.data
+        perito.distrito_id = form.distrito.data
+        perito.perito_tipo_id = form.perito_tipo.data
         perito.nombre = safe_string(form.nombre.data, save_enie=True)
         perito.domicilio = safe_string(form.domicilio.data)
         perito.telefono_fijo = safe_string(form.telefono_fijo.data)
@@ -173,8 +173,8 @@ def edit(perito_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    form.distrito.data = perito.distrito
-    form.perito_tipo.data = perito.perito_tipo
+    form.distrito.data = perito.distrito_id
+    form.perito_tipo.data = perito.perito_tipo_id
     form.nombre.data = perito.nombre
     form.domicilio.data = perito.domicilio
     form.telefono_fijo.data = perito.telefono_fijo

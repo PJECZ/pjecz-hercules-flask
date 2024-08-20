@@ -2,31 +2,14 @@
 {% import 'macros/list.jinja2' as list %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}{{ titulo }}{% endblock %}
+{% block title %}Nueva Custodia: 1. Elegir Usuario{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons(titulo) %}
-        {% if current_user.can_view('MODULOS') %}
-            {{ topbar.button('Módulos', url_for('modulos.list_active'), 'mdi:toy-brick') }}
-        {% endif %}
-        {% if current_user.can_view('PERMISOS') %}
-            {{ topbar.button('Permisos', url_for('permisos.list_active'), 'mdi:lock') }}
-        {% endif %}
-        {% if current_user.can_view('ROLES') %}
-            {{ topbar.button('Roles', url_for('roles.list_active'), 'mdi:gamepad') }}
-        {% endif %}
-        {% if current_user.can_admin('USUARIOS') %}
-            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('usuarios.list_inactive')) }}{% endif %}
-            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('usuarios.list_active')) }}{% endif %}
-        {% endif %}
-        {% if current_user.can_insert('USUARIOS') %}
-            {{ topbar.button_new('Nuevo Usuario', url_for('usuarios.new')) }}
-        {% endif %}
-    {% endcall %}
+    {{ topbar.page('Nueva Custodia: 1. Elegir Usuario') }}
 {% endblock %}
 
 {% block content %}
-    {% call list.card() %}
+    {% call list.card('Elegir Usuario') %}
         <!-- Filtros usuarios -->
         <div class="row">
             <div class="col">
@@ -57,7 +40,7 @@
             </div>
         </div>
         <!-- Datatable usuarios -->
-        <table id="usuarios_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+        <table id="usuarios_datatable" class="table display nowrap" style="width:100%">
             <thead>
                 <tr>
                     <th>Correo electrónico</th>
@@ -81,7 +64,7 @@
         configDataTable['ajax']['url'] = '/usuarios/datatable_json';
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
-            { data: "detalle" },
+            { data: "inv_custodia" },
             { data: "nombre" },
             { data: "puesto" },
             { data: "autoridad" },
@@ -89,7 +72,7 @@
         ];
         configDataTable['columnDefs'] = [
             {
-                targets: 0, // detalle
+                targets: 0, // inv_custodia
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.email + '</a>';
@@ -106,9 +89,6 @@
                 targets: [3, 4], // autoridad, oficina
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data.url === "") {
-                        return data.clave;
-                    }
                     return '<a href="' + data.url + '">' + data.clave + '</a>';
                 }
             }

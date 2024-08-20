@@ -2,6 +2,8 @@
 Peritos, modelos
 """
 
+from datetime import date
+
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -30,6 +32,7 @@ class Perito(database.Model, UniversalMixin):
     telefono_fijo: Mapped[str] = mapped_column(String(64))
     telefono_celular: Mapped[str] = mapped_column(String(64))
     email: Mapped[str] = mapped_column(String(256))
+    renovacion: Mapped[date]
     notas: Mapped[str] = mapped_column(String(256))
 
     def __repr__(self):

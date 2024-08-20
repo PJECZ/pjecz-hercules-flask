@@ -65,6 +65,7 @@ class Settings(BaseSettings):
 
     AI_STUDIO_API_KEY: str = get_secret("ai_studio_api_key")
     CLOUD_STORAGE_DEPOSITO: str = get_secret("cloud_storage_deposito")
+    ESTADO_CLAVE: str = get_secret("estado_clave")
     HOST: str = get_secret("host")
     REDIS_URL: str = get_secret("redis_url")
     SALT: str = get_secret("salt")
