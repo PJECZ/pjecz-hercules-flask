@@ -10,6 +10,7 @@
         {{ topbar.button_previous('Páginas', url_for('web_paginas.list_active')) }}
         {% if current_user.can_edit('WEB PAGINAS') %}
             {{ topbar.button_edit('Editar', url_for('web_paginas.edit', web_pagina_id=web_pagina.id)) }}
+            {{ topbar.button_edit('Editar contenido', url_for('web_paginas.content', web_pagina_id=web_pagina.id)) }}
         {% endif %}
         {% if current_user.can_admin('WEB PAGINAS') %}
             {% if web_pagina.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('web_paginas.delete', web_pagina_id=web_pagina.id)) }}{% endif %}

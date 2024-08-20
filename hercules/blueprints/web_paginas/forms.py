@@ -17,6 +17,12 @@ class WebPaginaForm(FlaskForm):
     fecha_modificacion = DateField("Fecha de modificación", validators=[DataRequired()])
     responsable = StringField("Responsable", validators=[Optional(), Length(max=256)])
     ruta = StringField("Ruta", validators=[DataRequired(), Length(max=256)])
-    contenido = TextAreaField("Contenido", validators=[DataRequired()], render_kw={"rows": 10})
+    #contenido = TextAreaField("Contenido", validators=[DataRequired()], render_kw={"rows": 10})
     estado = SelectField("Estado", choices=WebPagina.ESTADOS.items(), validators=[DataRequired()])
+    guardar = SubmitField("Guardar")
+
+class WebPaginaContenidoForm(FlaskForm):
+    """Formulario Contenido WebPagina"""
+
+    contenido = TextAreaField("Contenido", validators=[DataRequired()], render_kw={"rows": 10})
     guardar = SubmitField("Guardar")
