@@ -1,0 +1,177 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('INV CATEGORIAS') %}
+            {{ topbar.button('Categorías', url_for('inv_categorias.list_active'),'mdi:car-wrench') }}
+        {% endif %}
+        {% if current_user.can_view('INV COMPONENTES') %}
+            {{ topbar.button('Componentes', url_for('inv_componentes.list_active'),'mdi:expansion-card') }}
+        {% endif %}
+        {% if current_user.can_view('INV CUSTODIAS') %}
+            {{ topbar.button('Custodias', url_for('inv_custodias.list_active'),'mdi:shield-account') }}
+        {% endif %}
+        {# if current_user.can_view('INV EQUIPOS') %}
+            {{ topbar.button('Equipos', url_for('inv_equipos.list_active'),'mdi:desktop-classic') }}
+        {% endif #}
+        {% if current_user.can_view('INV EQUIPOS FOTOS') %}
+            {{ topbar.button('Fotos', url_for('inv_equipos_fotos.list_active'),'mdi:image-multiple') }}
+        {% endif %}
+        {% if current_user.can_view('INV MARCAS') %}
+            {{ topbar.button('Marcas', url_for('inv_marcas.list_active'),'mdi:bookmark-multiple') }}
+        {% endif %}
+        {% if current_user.can_view('INV MODELOS') %}
+            {{ topbar.button('Modelos', url_for('inv_modelos.list_active'),'mdi:chart-bubble') }}
+        {% endif %}
+        {% if current_user.can_view('INV REDES') %}
+            {{ topbar.button('Redes', url_for('inv_redes.list_active'),'mdi:access-point-network') }}
+        {% endif %}
+        {% if current_user.can_admin('INV EQUIPOS') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('inv_equipos.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('inv_equipos.list_active')) }}{% endif %}
+        {% endif %}
+        {# if current_user.can_insert('INV EQUIPOS') %}
+            {{ topbar.button_new('Nuevo Equipo', url_for('inv_equipos.new')) }}
+        {% endif #}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call list.card() %}
+        <!-- Filtros InvEquipos -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosInvEquipos.buscar(); return false;">
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroId" type="text" class="form-control" aria-label="ID">
+                            <label for="filtroId">ID</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroNumeroSerie" type="text" class="form-control" aria-label="No. de Serie" style="text-transform: uppercase;">
+                            <label for="filtroNumeroSerie">No. de Serie</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroNumeroInventario" type="text" class="form-control" aria-label="No. Inventario" style="text-transform: uppercase;">
+                            <label for="filtroNumeroInventario">No. Inventario</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
+                            <label for="filtroDescripcion">Descripción</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <select id="filtroTipo" class="form-select" aria-label="Tipo">
+                                <option selected value="">Todos los tipos</option>
+                                <option value="COMPUTADORA">COMPUTADORA</option>
+                                <option value="LAPTOP">LAPTOP</option>
+                                <option value="IMPRESORA">IMPRESORA</option>
+                                <option value="MULTIFUNCIONAL">MULTIFUNCIONAL</option>
+                                <option value="TELEFONIA">TELEFONIA</option>
+                                <option value="SERVIDOR">SERVIDOR</option>
+                                <option value="SCANNER">SCANNER</option>
+                                <option value="SWITCH">SWITCH</option>
+                                <option value="VIDEOGRABACION">VIDEOGRABACION</option>
+                                <option value="OTROS">OTROS</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-2 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosInvEquipos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosInvEquipos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- DataTable InvEquipos -->
+        <table id="inv_equipos_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tipo</th>
+                    <th>Marca</th>
+                    <th>Descripción </th>
+                    <th>F. Fab.</th>
+                    <th>No. Serie</th>
+                    <th>No. Inventario</th>
+                    <th>D. IP</th>
+                    <th>D. MAC</th>
+                    <th>Red</th>
+                    <th>Custodia de</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable InvEquipos
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDataTable = constructorDataTable.config();
+        configDataTable['ajax']['url'] = '/inv_equipos/datatable_json';
+        configDataTable['ajax']['data'] = {{ filtros }};
+        configDataTable['columns'] = [
+            { data: "detalle" },
+            { data: "tipo" },
+            { data: "inv_marca_nombre" },
+            { data: "descripcion" },
+            { data: "fecha_fabricacion" },
+            { data: "numero_serie" },
+            { data: "numero_inventario" },
+            { data: "direccion_ip" },
+            { data: "direccion_mac" },
+            { data: "inv_red_nombre" },
+            { data: "inv_custodia_nombre_completo" }
+        ];
+        configDataTable['columnDefs'] = [
+            {
+                targets: [0], // detalle
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.id.toString().padStart(5, '0') + '</a>';
+                }
+            },
+            {
+                targets: 3, // descripcion
+                data: null,
+                render: function(data, type, row, meta){
+                    if (data.length > 16){
+                        return '<span title="' + data + '">' + data.substring(0, 16) + '…' + '</span>';
+                    }
+                    return data;
+                }
+            },
+            {
+                targets: 10, // nombre_completo
+                data: null,
+                render: function(data, type, row, meta){
+                    if (data.length > 13){
+                        return '<span title="' + data + '">' + data.substring(0, 13) + '…' + '</span>';
+                    }
+                    return data;
+                }
+            }
+        ];
+        // Filtros InvEquipos
+        const filtrosInvEquipos = new FiltrosDataTable('#inv_equipos_datatable', configDataTable);
+        filtrosInvEquipos.agregarInput('filtroId', 'inv_equipo_id');
+        filtrosInvEquipos.agregarInput('filtroNumeroSerie', 'numero_serie');
+        filtrosInvEquipos.agregarInput('filtroNumeroInventario', 'numero_inventario');
+        filtrosInvEquipos.agregarInput('filtroDescripcion', 'descripcion');
+        filtrosInvEquipos.agregarInput('filtroTipo', 'tipo');
+        filtrosInvEquipos.precargar();
+    </script>
+{% endblock %}

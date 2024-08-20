@@ -21,8 +21,8 @@ class WebRama(database.Model, UniversalMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     # Columnas
-    nombre: Mapped[str] = mapped_column(String(256))
     clave: Mapped[str] = mapped_column(String(16), unique=True)
+    nombre: Mapped[str] = mapped_column(String(256))
 
     # Hijos
     web_paginas: Mapped[List["WebPagina"]] = relationship("WebPagina", back_populates="web_rama")

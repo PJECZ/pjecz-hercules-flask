@@ -64,6 +64,7 @@
                     <th>Nombre completo</th>
                     <th>Puesto</th>
                     <th>Autoridad</th>
+                    <th>Oficina</th>
                 </tr>
             </thead>
         </table>
@@ -83,7 +84,8 @@
             { data: "detalle" },
             { data: "nombre" },
             { data: "puesto" },
-            { data: "autoridad" }
+            { data: "autoridad" },
+            { data: "oficina" }
         ];
         configDataTable['columnDefs'] = [
             {
@@ -97,13 +99,16 @@
                 targets: [1, 2], // nombre, puesto
                 data: null,
                 render: function(data, type, row, meta) {
-                    return (data.length > 48 ? data.substr(0, 48) + '…' : data);
+                    return (data.length > 24 ? data.substring(0, 24) + '…' : data);
                 }
             },
             {
-                targets: 3, // autoridad
+                targets: [3, 4], // autoridad, oficina
                 data: null,
                 render: function(data, type, row, meta) {
+                    if (data.url === "") {
+                        return data.clave;
+                    }
                     return '<a href="' + data.url + '">' + data.clave + '</a>';
                 }
             }

@@ -2,12 +2,10 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Editar Domicilio {{ domicilio.edificio }}{% endblock %}
+{% block title %}Editar {{ domicilio.edificio }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Editar ' + domicilio.edificio) %}
-        {{ topbar.button_cancel() }}
-    {% endcall %}
+    {{ topbar.page('Editar ' + domicilio.edificio) }}
 {% endblock %}
 
 {% block content %}

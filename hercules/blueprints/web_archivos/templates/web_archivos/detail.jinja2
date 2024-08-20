@@ -3,11 +3,11 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Archivo {{ web_archivo.clave }}{% endblock %}
+{% block title %}Archivo {{ web_archivo.descripcion }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Archivo ' + web_archivo.clave + ': ' + web_archivo.descripcion) %}
-        {{ topbar.button_previous('Archivos', url_for('web_archivos.list_active')) }}
+    {% call topbar.page_buttons('Archivo ' + web_archivo.descripcion) %}
+        {{ topbar.button_previous('Página ' + web_archivo.web_pagina.titulo, url_for('web_paginas.detail', web_pagina_id=web_archivo.web_pagina_id)) }}
         {% if current_user.can_edit('WEB ARCHIVOS') %}
             {{ topbar.button_edit('Editar', url_for('web_archivos.edit', web_archivo_id=web_archivo.id)) }}
         {% endif %}
@@ -20,8 +20,8 @@
 
 {% block content %}
     {% call detail.card(estatus=web_archivo.estatus) %}
-        {{ detail.label_value('Página', web_archivo.web_pagina.clave + ': ' + web_archivo.web_pagina.titulo, url_for('web_paginas.detail', web_pagina_id=web_archivo.web_pagina_id)) }}
-        {{ detail.label_value('Descripción', web_archivo.descripcion) }}
+        {{ detail.label_value('Página', web_archivo.web_pagina.clave + ' - ' + web_archivo.web_pagina.titulo, url_for('web_paginas.detail', web_pagina_id=web_archivo.web_pagina_id)) }}
+        {# detail.label_value('Descripción', web_archivo.descripcion) #}
         {{ detail.label_value('Clave', web_archivo.clave) }}
         {{ detail.label_value('Archivo', web_archivo.archivo) }}
         {{ detail.label_value('URL', web_archivo.url, web_archivo.url) }}

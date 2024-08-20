@@ -1,0 +1,53 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Componente {{ inv_componente.descripcion }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Componente ' + inv_componente.descripcion) %}
+        {{ topbar.button_previous('Componentes', url_for('inv_componentes.list_active')) }}
+        {# if current_user.can_edit('INV COMPONENTES') %}
+            {{ topbar.button_edit('Editar', url_for('inv_componentes.edit', inv_componente_id=inv_componente.id)) }}
+        {% endif #}
+        {# if current_user.can_admin('INV COMPONENTES') %}
+            {% if inv_componente.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('inv_componentes.delete', inv_componente_id=inv_componente.id)) }}{% endif %}
+            {% if inv_componente.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('inv_componentes.recover', inv_componente_id=inv_componente.id)) }}{% endif %}
+        {% endif #}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=inv_componente.estatus) %}
+        {{ detail.label_value_big('ID', inv_componente.id) }}
+        {% if current_user.can_view('INV EQUIPOS') %}
+            {{ detail.label_value('Descripción del equipo', inv_componente.inv_equipo.descripcion, url_for('inv_equipos.detail', inv_equipo_id=inv_componente.inv_equipo.id)) }}
+        {% else %}
+            {{ detail.label_value('Descripción del equipo', inv_componente.inv_equipo.descripcion) }}
+        {% endif %}
+        {% if current_user.can_view('INV CUSTODIAS') %}
+            {{ detail.label_value('Custodia', inv_componente.inv_equipo.inv_custodia.nombre_completo, url_for('inv_custodias.detail', inv_custodia_id=inv_componente.inv_equipo.inv_custodia.id)) }}
+        {% else %}
+            {{ detail.label_value('Custodia', inv_componente.inv_equipo.inv_custodia.nombre_completo) }}
+        {% endif %}
+        {% if current_user.can_view('INV CATEGORIAS') %}
+            {{ detail.label_value('Categoría', inv_componente.inv_categoria.nombre, url_for('inv_categorias.detail', inv_categoria_id=inv_componente.inv_categoria.id)) }}
+        {% else %}
+            {{ detail.label_value('Categoría', inv_componente.inv_categoria.nombre) }}
+        {% endif %}
+        {{ detail.label_value('Descripción', inv_componente.descripcion) }}
+        {{ detail.label_value('Cantidad', inv_componente.cantidad) }}
+        {{ detail.label_value('Generación', inv_componente.generacion) }}
+        {{ detail.label_value('Versión', inv_componente.version) }}
+        {{ detail.label_value('Creado', moment(inv_componente.creado, local=True).format('llll')) }}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {# if current_user.can_admin('INV COMPONENTES') %}
+        {% if inv_componente.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + inv_componente.descripcion + '?') }}{% endif %}
+        {% if inv_componente.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + inv_componente.descripcion + '?') }}{% endif %}
+    {% endif #}
+    {{ detail.moment_js(moment) }}
+{% endblock %}

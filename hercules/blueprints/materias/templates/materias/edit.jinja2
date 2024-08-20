@@ -2,10 +2,10 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Editar Materia{% endblock %}
+{% block title %}Editar Materia {{ materia.nombre }}{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Editar ' + materia.nombre) }}
+    {{ topbar.page('Editar Materia ' + materia.nombre) }}
 {% endblock %}
 
 {% block content %}
