@@ -12,8 +12,7 @@ from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
-from hercules.blueprints.web_paginas.forms import WebPaginaForm
-from hercules.blueprints.web_paginas.forms import WebPaginaContenidoForm
+from hercules.blueprints.web_paginas.forms import WebPaginaNewForm, WebPaginaEditForm, WebPaginaContenidoForm
 from hercules.blueprints.web_paginas.models import WebPagina
 from hercules.blueprints.web_ramas.models import WebRama
 from lib.datatables import get_datatable_parameters, output_datatable_json
