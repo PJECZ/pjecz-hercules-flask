@@ -12,7 +12,7 @@ from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
-from hercules.blueprints.web_paginas.forms import WebPaginaEditForm, WebPaginaNewForm
+from hercules.blueprints.web_paginas.forms import WebPaginaNewForm, WebPaginaEditForm, WebPaginaContenidoForm
 from hercules.blueprints.web_paginas.models import WebPagina
 from hercules.blueprints.web_ramas.models import WebRama
 from lib.datatables import get_datatable_parameters, output_datatable_json
@@ -188,12 +188,35 @@ def edit(web_pagina_id):
     form.fecha_modificacion.data = web_pagina.fecha_modificacion
     form.responsable.data = web_pagina.responsable
     form.ruta.data = web_pagina.ruta
-    form.contenido.data = web_pagina.contenido
+    #form.contenido.data = web_pagina.contenido
     form.estado.data = web_pagina.estado
     form.tiempo_publicar.data = web_pagina.tiempo_publicar
     form.tiempo_archivar.data = web_pagina.tiempo_archivar
     return render_template("web_paginas/edit.jinja2", form=form, web_pagina=web_pagina)
 
+
+@web_paginas.route("/web_paginas/contenido/<int:web_pagina_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def content(web_pagina_id):
+    """Editar contenido WebPagina"""
+    web_pagina = WebPagina.query.get_or_404(web_pagina_id)
+    form = WebPaginaContenidoForm()
+    if form.validate_on_submit():
+        # Actualizar
+        web_pagina.contenido = form.contenido.data.strip()
+        web_pagina.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Editado Contenido de Pagina {web_pagina.clave} en Rama {web_pagina.web_rama.clave}"),
+            url=url_for("web_paginas.detail", web_pagina_id=web_pagina.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+        
+    form.contenido.data = web_pagina.contenido
+    return render_template("web_paginas/content.jinja2", form=form, web_pagina=web_pagina)
 
 @web_paginas.route("/web_paginas/eliminar/<int:web_pagina_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
