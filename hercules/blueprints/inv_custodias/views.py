@@ -106,13 +106,14 @@ def detail(inv_custodia_id):
 @inv_custodias.route("/inv_custodias/nuevo")
 @permission_required(MODULO, Permiso.CREAR)
 def new():
-    return render_template("inv_custodias/new_1_choose.jinja2", filtros={"estatus": "A"})
+    """Nueva InvCustodia 1. Elegir Usuario"""
+    return render_template("inv_custodias/new_1_choose.jinja2")
 
 
 @inv_custodias.route("/inv_custodias/nuevo/<int:usuario_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_usuario_id(usuario_id):
-    """Nuevo InvCustodia"""
+    """Nueva InvCustodia 2. Ingresar Datos"""
     usuario = Usuario.query.get_or_404(usuario_id)
     form = InvCustodiaForm()
     if form.validate_on_submit():
@@ -136,4 +137,4 @@ def new_with_usuario_id(usuario_id):
         # Entregar detalle
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    return render_template("inv_custodias/new_2_data.jinja2", usuario=usuario, form=form)
+    return render_template("inv_custodias/new_2_create.jinja2", usuario=usuario, form=form)

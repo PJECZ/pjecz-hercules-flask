@@ -188,7 +188,7 @@ def edit(web_pagina_id):
     form.fecha_modificacion.data = web_pagina.fecha_modificacion
     form.responsable.data = web_pagina.responsable
     form.ruta.data = web_pagina.ruta
-    #form.contenido.data = web_pagina.contenido
+    # form.contenido.data = web_pagina.contenido
     form.estado.data = web_pagina.estado
     form.tiempo_publicar.data = web_pagina.tiempo_publicar
     form.tiempo_archivar.data = web_pagina.tiempo_archivar
@@ -214,9 +214,10 @@ def content(web_pagina_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-        
+
     form.contenido.data = web_pagina.contenido
     return render_template("web_paginas/content.jinja2", form=form, web_pagina=web_pagina)
+
 
 @web_paginas.route("/web_paginas/eliminar/<int:web_pagina_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
