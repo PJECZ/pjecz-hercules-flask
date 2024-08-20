@@ -22,10 +22,16 @@
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosEdictos.buscar(); return false;">
-                    <div class="col-3">
+                    <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroFecha" type="text" class="form-control" aria-label="Fecha" style="text-transform: uppercase;">
-                            <label for="filtroFecha">Fecha</label>
+                            <input id="filtroFechaDesde" type="date" class="form-control" aria-label="Fecha Desde">
+                            <label for="filtroFechaDesde">Fecha Desde</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroFechaHasta" type="date" class="form-control" aria-label="Fecha Hasta">
+                            <label for="filtroFechaHasta">Fecha Hasta</label>
                         </div>
                     </div>
                     <div class="col-3">
@@ -40,7 +46,7 @@
                             <label for="filtroExpediente">Expediente</label>
                         </div>
                     </div>
-                    <div class="col-3 text-end">
+                    <div class="col-2 text-end">
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosEdictos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
                         <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosEdictos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
@@ -89,22 +95,16 @@
                 targets: 1,
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' +
+                    return '<a href="' + data.url + '"><span title="'+ data.descripcion + '">' +
                         (data.descripcion.length > 40 ? data.descripcion.substr(0, 40) + '…' : data.descripcion) +
-                        '</a>';
+                        '</span></a>';
                 }
-            },
-            /*{
-                targets: 4,
-                data: null,
-                render: function(data, type, row, meta) {
-                    return '<a href="' + data.descargar_url + '" target="_blank">PDF</a>';
-                }
-            }*/
+            }
         ];
         // Filtros Edictos
         const filtrosEdictos = new FiltrosDataTable('#edictos_datatable', configDataTable);
-        filtrosEdictos.agregarInput('filtroFecha', 'fecha');
+        filtrosEdictos.agregarInput('filtroFechaDesde', 'fecha_desde');
+        filtrosEdictos.agregarInput('filtroFechaHasta', 'fecha_hasta');
         filtrosEdictos.agregarInput('filtroDescripcion', 'descripcion');
         filtrosEdictos.agregarInput('filtroExpediente', 'expediente');
         filtrosEdictos.precargar();

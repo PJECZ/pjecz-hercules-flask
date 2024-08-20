@@ -4,7 +4,7 @@ Edictos, vistas
 
 import json
 
-from flask import Blueprint, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from hercules.blueprints.autoridades.models import Autoridad
@@ -14,7 +14,7 @@ from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_expediente, safe_numero_publicacion, safe_string
+from lib.safe_string import safe_expediente, safe_message, safe_numero_publicacion, safe_string
 
 MODULO = "EDICTOS"
 
@@ -62,14 +62,8 @@ def datatable_json():
             consulta = consulta.filter_by(numero_publicacion=numero_publicacion)
         except (IndexError, ValueError):
             pass
-    # if "persona_id" in request.form:
-    #     consulta = consulta.filter_by(persona_id=request.form["persona_id"])
-    # Luego filtrar por columnas de otras tablas
-    # if "persona_rfc" in request.form:
-    #     consulta = consulta.join(Persona)
-    #     consulta = consulta.filter(Persona.rfc.contains(safe_rfc(request.form["persona_rfc"], search_fragment=True)))
     # Ordenar y paginar
-    registros = consulta.order_by(Edicto.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(Edicto.fecha.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -79,7 +73,7 @@ def datatable_json():
                 "fecha": resultado.fecha.strftime("%Y-%m-%d 00:00:00"),
                 "detalle": {
                     "descripcion": resultado.descripcion,
-                    "url": url_for("resultado.detail", edicto_id=resultado.id),
+                    "url": url_for("edictos.detail", edicto_id=resultado.id),
                 },
                 "expediente": resultado.expediente,
                 "numero_publicacion": resultado.numero_publicacion,
@@ -117,3 +111,39 @@ def detail(edicto_id):
     """Detalle de un Edicto"""
     edicto = Edicto.query.get_or_404(edicto_id)
     return render_template("edictos/detail.jinja2", edicto=edicto)
+
+
+@edictos.route("/edictos/eliminar/<int:edicto_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def delete(edicto_id):
+    """Eliminar Edicto"""
+    edicto = Edicto.query.get_or_404(edicto_id)
+    if edicto.estatus == "A":
+        edicto.delete()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Eliminado Edicto {edicto.descripcion}"),
+            url=url_for("edictos.detail", edicto_id=edicto.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("edictos.detail", edicto_id=edicto.id))
+
+
+@edictos.route("/edictos/recuperar/<int:edicto_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def recover(edicto_id):
+    """Recuperar Edicto"""
+    edicto = Edicto.query.get_or_404(edicto_id)
+    if edicto.estatus == "B":
+        edicto.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Recuperado Edicto {edicto.descripcion}"),
+            url=url_for("edictos.detail", edicto_id=edicto.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("edictos.detail", edicto_id=edicto.id))
