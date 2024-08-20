@@ -62,7 +62,7 @@
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
         let configDataTable = constructorDataTable.config();
         configDataTable['ajax']['url'] = '/usuarios/datatable_json';
-        configDataTable['ajax']['data'] = {{ filtros }};
+        configDataTable['ajax']['data'] = {estatus: "A", oficina_id_diferente_a: "1"};
         configDataTable['columns'] = [
             { data: "inv_custodia" },
             { data: "nombre" },

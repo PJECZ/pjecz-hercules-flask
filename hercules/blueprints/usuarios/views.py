@@ -142,13 +142,20 @@ def datatable_json():
     consulta = Usuario.query
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
-        consulta = consulta.filter_by(estatus=request.form["estatus"])
+        consulta = consulta.filter(Usuario.estatus == request.form["estatus"])
     else:
-        consulta = consulta.filter_by(estatus="A")
+        consulta = consulta.filter(Usuario.estatus == "A")
+    # Filtrar por autoridad_id u autoridad_id_diferente_a
     if "autoridad_id" in request.form:
-        consulta = consulta.filter_by(autoridad_id=request.form["autoridad_id"])
+        consulta = consulta.filter(Usuario.autoridad_id == request.form["autoridad_id"])
+    elif "autoridad_id_diferente_a" in request.form:
+        consulta = consulta.filter(Usuario.autoridad_id != request.form["autoridad_id_diferente_a"])
+    # Filtrar por oficina_id u oficina_id_diferente_a
     if "oficina_id" in request.form:
-        consulta = consulta.filter_by(oficina_id=request.form["oficina_id"])
+        consulta = consulta.filter(Usuario.oficina_id == request.form["oficina_id"])
+    elif "oficina_id_diferente_a" in request.form:
+        consulta = consulta.filter(Usuario.oficina_id != request.form["oficina_id_diferente_a"])
+    # Filtrar por las columnas de texto de Usuario
     if "nombres" in request.form:
         consulta = consulta.filter(Usuario.nombres.contains(safe_string(request.form["nombres"])))
     if "apellido_paterno" in request.form:
