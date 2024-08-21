@@ -131,3 +131,10 @@ def detail(inv_equipo_id):
     """Detalle de un Equipo"""
     inv_equipo = InvEquipo.query.get_or_404(inv_equipo_id)
     return render_template("inv_equipos/detail.jinja2", inv_equipo=inv_equipo)
+
+
+@inv_equipos.route("/inv_equipos/tablero")
+@permission_required(MODULO, Permiso.CREAR)
+def dashboard():
+    """Tablero de PagPago"""
+    return render_template("inv_equipos/dashboard.jinja2")
