@@ -1,0 +1,74 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Nuevo Equipo{% endblock %}
+
+{% block custom_head %}
+    <!-- Select2 bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Nuevo Equipo') }}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card('Custodia ID ' + inv_custodia.id | string) %}
+        {# detail.label_value_big('ID', inv_custodia.id) #}
+        {% set usuario_str = inv_custodia.nombre_completo + ' (' + inv_custodia.usuario.email + ')' %}
+        {{ detail.label_value('Usuario', usuario_str) }}
+        {{ detail.label_value('CURP', inv_custodia.curp) }}
+        {{ detail.label_value('Puesto', inv_custodia.usuario.puesto) }}
+        {% set oficina_str = inv_custodia.usuario.oficina.descripcion + ' (' + inv_custodia.usuario.oficina.clave + ')' %}
+        {% detail.label_value('Oficina', oficina_str) %}
+        {{ detail.label_value('Fecha', moment(inv_custodia.fecha, local=True).format("DD MMM YYYY")) }}
+    {% endcall %}
+    {% call f.card('Agregar nuevo equipo a la Custodia ID ' + inv_custodia.id | string) %}
+        {% set form_kwargs = {'inv_custodia_id': inv_custodia.id} %}
+        {% call f.form_tag('inv_equipos.new', fid='inv_equipos_form', **form_kwargs) %}
+            <div class="row">
+                <div class="col-md-6">
+                    {% call f.form_group(form.inv_modelo) %}{% endcall %}
+                    {% call f.form_group(form.descripcion) %}{% endcall %}
+                    {% call f.form_group(form.tipo) %}{% endcall %}
+                    {% call f.form_group(form.fecha_fabricacion) %}{% endcall %}
+                    {% call f.form_group(form.numero_serie) %}{% endcall %}
+                    {% call f.form_group(form.numero_inventario) %}{% endcall %}
+                </div>
+                <div class="col-md-6">
+                    {% call f.form_group(form.inv_red) %}{% endcall %}
+                    {% call f.form_group(form.direccion_ip) %}{% endcall %}
+                    {% call f.form_group(form.direccion_mac) %}{% endcall %}
+                    {% call f.form_group(form.numero_nodo) %}{% endcall %}
+                    {% call f.form_group(form.numero_switch) %}{% endcall %}
+                    {% call f.form_group(form.numero_puerto) %}{% endcall %}
+                </div>
+            </div>
+            {% call f.form_group(form.guardar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <!-- Select2 bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#inv_modelo').addClass("js-example-placeholder-single");
+            $('#inv_modelo').select2({
+                ajax: {
+                url: "/inv_modelos/inv_modelos_json",
+                    headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+                    dataType: "json",
+                    delay: 250,
+                    type: "POST"
+                }
+                placeholder: "",
+                minimumInputLength: 4,
+                allowClear: true
+            });
+        });
+    </script>
+{% endblock %}

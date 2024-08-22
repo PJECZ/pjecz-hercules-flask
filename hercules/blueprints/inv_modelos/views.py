@@ -202,3 +202,21 @@ def recover(inv_modelo_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(url_for("inv_modelos.detail", inv_modelo_id=inv_modelo.id))
+
+
+@inv_modelos.route("/inv_modelos/inv_modelos_json")
+def query_inv_modelos_json():
+    """Proporcionar el JSON para elegir un InvModelo con Select2"""
+    inv_modelos = InvModelo.query.filter(InvModelo.estatus == "A").order_by(InvModelo.descripcion)
+    if "inv_marca_nombre" in request.args:
+        nombre = safe_string(request.args["inv_marca_nombre"], save_enie=True)
+        if nombre != "":
+            inv_modelos = inv_modelos.join(InvMarca).filter(InvMarca.nombre.contains(nombre))
+    if "inv_modelo_descripcion" in request.args:
+        descripcion = safe_string(request.args["inv_modelo_descripcion"], save_enie=True)
+        if descripcion != "":
+            inv_modelos = inv_modelos.filter(InvModelo.descripcion.contains(descripcion))
+    data = []
+    for inv_modelo in inv_modelos:
+        data.append({"id": inv_modelo.id, "text": f"{inv_modelo.inv_marca.nombre} - {inv_modelo.descripcion}"})
+    return json.dumps(data)

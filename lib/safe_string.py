@@ -103,6 +103,28 @@ def safe_quincena(input_str) -> str:
     return final
 
 
+def safe_ip_address(input_str):
+    """Safe IP address"""
+    if not isinstance(input_str, str) or input_str.strip() == "":
+        return ""
+    input_str = input_str.strip()
+    if re.match(DIRECCION_IP_REGEXP, input_str) is None:
+        return ""
+    return input_str
+
+
+def safe_mac_address(input_str):
+    """Safe MAC address"""
+    if not isinstance(input_str, str) or input_str.strip() == "":
+        return ""
+    input_str = input_str.strip()
+    if re.match(MAC_ADDRESS_REGEXP, input_str) is None:
+        return ""
+    en_mayusculas = input_str.upper()
+    m = re.sub(r"[^0-9A-F]+", "", en_mayusculas)
+    return f"{m[0:2]}:{m[2:4]}:{m[4:6]}:{m[6:8]}:{m[8:10]}:{m[10:12]}"
+
+
 def safe_message(input_str, max_len=250, default_output_str="Sin descripción") -> str:
     """Safe message"""
     message = str(input_str)

@@ -29,7 +29,7 @@ def before_request():
 
 @inv_componentes.route("/inv_componentes/datatable_json", methods=["GET", "POST"])
 def datatable_json():
-    """DataTable JSON para listado de Componentes"""
+    """DataTable JSON para listado de InvComponente"""
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
@@ -79,7 +79,7 @@ def datatable_json():
 
 @inv_componentes.route("/inv_componentes")
 def list_active():
-    """Listado de Componentes activos"""
+    """Listado de InvComponente activos"""
     return render_template(
         "inv_componentes/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
@@ -91,7 +91,7 @@ def list_active():
 @inv_componentes.route("/inv_componentes/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Componentes inactivos"""
+    """Listado de InvComponente inactivos"""
     return render_template(
         "inv_componentes/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
@@ -102,6 +102,6 @@ def list_inactive():
 
 @inv_componentes.route("/inv_componentes/<int:inv_componente_id>")
 def detail(inv_componente_id):
-    """Detalle de un Componente"""
+    """Detalle de un InvComponente"""
     inv_componente = InvComponente.query.get_or_404(inv_componente_id)
     return render_template("inv_componentes/detail.jinja2", inv_componente=inv_componente)

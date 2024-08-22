@@ -3,6 +3,7 @@ Inventarios Custodias, vistas
 """
 
 import json
+from datetime import date
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
@@ -31,7 +32,7 @@ def before_request():
 
 @inv_custodias.route("/inv_custodias/datatable_json", methods=["GET", "POST"])
 def datatable_json():
-    """DataTable JSON para listado de Custodias"""
+    """DataTable JSON para listado de InvCustodia"""
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
@@ -75,7 +76,7 @@ def datatable_json():
 
 @inv_custodias.route("/inv_custodias")
 def list_active():
-    """Listado de Custodias activos"""
+    """Listado de InvCustodia activos"""
     return render_template(
         "inv_custodias/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
@@ -87,7 +88,7 @@ def list_active():
 @inv_custodias.route("/inv_custodias/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Custodias inactivos"""
+    """Listado de InvCustodia inactivos"""
     return render_template(
         "inv_custodias/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
@@ -98,7 +99,7 @@ def list_inactive():
 
 @inv_custodias.route("/inv_custodias/<int:inv_custodia_id>")
 def detail(inv_custodia_id):
-    """Detalle de un Custodia"""
+    """Detalle de un InvCustodia"""
     inv_custodia = InvCustodia.query.get_or_404(inv_custodia_id)
     return render_template("inv_custodias/detail.jinja2", inv_custodia=inv_custodia)
 
@@ -137,4 +138,5 @@ def new_with_usuario_id(usuario_id):
         # Entregar detalle
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
+    form.fecha.data = date.today()
     return render_template("inv_custodias/new_2_create.jinja2", usuario=usuario, form=form)
