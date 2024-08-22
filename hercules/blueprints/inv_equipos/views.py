@@ -42,7 +42,10 @@ def datatable_json():
     else:
         consulta = consulta.filter_by(estatus="A")
     if "inv_equipo_id" in request.form:
-        consulta = consulta.filter_by(id=request.form["inv_equipo_id"])
+        try:
+            consulta = consulta.filter_by(id=int(request.form["inv_equipo_id"]))
+        except ValueError:
+            pass
     else:
         if "inv_custodia_id" in request.form:
             consulta = consulta.filter_by(inv_custodia_id=request.form["inv_custodia_id"])
@@ -170,7 +173,7 @@ def new(inv_custodia_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Nuevo InvEquipo {inv_equipo.clave}"),
+            descripcion=safe_message(f"Nuevo InvEquipo {inv_equipo.id}"),
             url=url_for("inv_equipos.detail", inv_equipo_id=inv_equipo.id),
         )
         bitacora.save()

@@ -43,7 +43,10 @@ def datatable_json():
     else:
         consulta = consulta.filter_by(estatus="A")
     if "inv_custodia_id" in request.form:
-        consulta = consulta.filter_by(id=request.form["inv_custodia_id"])
+        try:
+            consulta = consulta.filter_by(id=int(request.form["inv_custodia_id"]))
+        except ValueError:
+            pass
     else:
         if "usuario_id" in request.form:
             consulta = consulta.filter_by(usuario_id=request.form["usuario_id"])
@@ -107,19 +110,24 @@ def detail(inv_custodia_id):
 @inv_custodias.route("/inv_custodias/nuevo")
 @permission_required(MODULO, Permiso.CREAR)
 def new():
-    """Nueva InvCustodia 1. Elegir Usuario"""
+    """Nueva Custodia 1. Elegir Usuario"""
     return render_template("inv_custodias/new_1_choose.jinja2")
 
 
 @inv_custodias.route("/inv_custodias/nuevo/<int:usuario_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_usuario_id(usuario_id):
-    """Nueva InvCustodia 2. Ingresar Datos"""
+    """Nueva Custodia 2. Crear"""
+    # Consultar al usuario elegido
     usuario = Usuario.query.get_or_404(usuario_id)
+    # Consultar las custodias que ya tenga el usuario
+    tiene_inv_custodias = InvCustodia.query.filter_by(usuario_id=usuario.id, estatus="A").order_by(InvCustodia.id).count() > 0
+    # Preparar el formulario
     form = InvCustodiaForm()
     if form.validate_on_submit():
         # Guardar
         inv_custodia = InvCustodia(
+            usuario_id=usuario.id,
             fecha=form.fecha.data,
             curp=usuario.curp,
             nombre_completo=usuario.nombre,
@@ -131,12 +139,18 @@ def new_with_usuario_id(usuario_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Nuevo InvCustodia {inv_custodia.clave}"),
+            descripcion=safe_message(f"Nueva InvCustodia {inv_custodia.id} de {usuario.email}"),
             url=url_for("inv_custodias.detail", inv_custodia_id=inv_custodia.id),
         )
         bitacora.save()
         # Entregar detalle
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
+    # Mostrar formulario con la fecha de hoy por defecto
     form.fecha.data = date.today()
-    return render_template("inv_custodias/new_2_create.jinja2", usuario=usuario, form=form)
+    return render_template(
+        "inv_custodias/new_2_create.jinja2",
+        form=form,
+        tiene_inv_custodias=tiene_inv_custodias,
+        usuario=usuario,
+    )

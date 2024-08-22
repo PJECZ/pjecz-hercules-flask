@@ -91,7 +91,7 @@
         {{ caller () }}
         </div>
     {% elif f.type == 'SubmitField' %}
-        <div class="form-group d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center mb-2">
+        <div class="form-group d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center {{ css_class }} mb-2">
         {{ field(f, **kwargs) }}
         {{ field_errors(f) }}
         {{ caller () }}

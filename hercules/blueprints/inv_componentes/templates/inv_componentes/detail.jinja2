@@ -40,7 +40,7 @@
         {{ detail.label_value('Cantidad', inv_componente.cantidad) }}
         {{ detail.label_value('Generación', inv_componente.generacion) }}
         {{ detail.label_value('Versión', inv_componente.version) }}
-        {{ detail.label_value('Creado', moment(inv_componente.creado, local=True).format('llll')) }}
+        {# detail.label_value('Creado', moment(inv_componente.creado, local=True).format('llll')) #}
     {% endcall %}
 {% endblock %}
 

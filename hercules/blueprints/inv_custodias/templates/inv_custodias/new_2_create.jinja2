@@ -10,17 +10,67 @@
 {% endblock %}
 
 {% block content %}
-    {% call f.card('Verifique que sea el Usuario correcto') %}
+    {% call f.card('Verificar que sea el Usuario correcto') %}
         {{ detail.label_value('Usuario', usuario.nombre + ' (' + usuario.email + ')') }}
         {# detail.label_value('CURP', usuario.curp) #}
         {{ detail.label_value('Puesto', usuario.puesto) }}
         {{ detail.label_value('Oficina', usuario.oficina.descripcion_corta + ' (' + usuario.oficina.clave + ')') }}
         {{ detail.label_value('Edificio', usuario.oficina.domicilio.edificio) }}
     {% endcall %}
-    {% call f.card('Datos de la Custodia') %}
-        {% call f.form_tag('inv_custodias.new', fid='inv_custodias_form') %}
+    {% if tiene_inv_custodias %}
+        {% call f.card(title='ADVERTENCIA: Ya tiene estas custodias', css_class='bg-warning') %}
+            <!-- DataTable InvCustodias -->
+            <table id="inv_custodias_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre completo</th>
+                        <th>Oficina</th>
+                        <th>Fecha</th>
+                        <th>C. Equipos</th>
+                        <th>C. Fotos</th>
+                    </tr>
+                </thead>
+            </table>
+        {% endcall %}
+    {% endif %}
+    {% call f.card('Crear una nueva Custodia') %}
+        {% set form_kwargs = {'usuario_id': usuario.id} %}
+        {% call f.form_tag('inv_custodias.new_with_usuario_id', fid='inv_custodia_form', **form_kwargs) %}
             {% call f.form_group(form.fecha) %}{% endcall %}
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}
     {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable InvCustodias
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDataTable = constructorDataTable.config();
+        configDataTable['ajax']['url'] = '/inv_custodias/datatable_json';
+        configDataTable['ajax']['data'] = { 'estatus': "A", 'usuario_id': {{ usuario.id }} };
+        configDataTable['columns'] = [
+            { data: "detalle" },
+            { data: "nombre_completo" },
+            { data: "oficina_clave" },
+            { data: "fecha" },
+            { data: "equipos_cantidad" },
+            { data: "equipos_fotos_cantidad" }
+        ];
+        configDataTable['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.id.toString().padStart(5, '0') + '</a>';
+                }
+            }
+        ];
+        // NO HAY Filtros en este DataTable
+        const filtrosInvCustodias = new FiltrosDataTable('#inv_custodias_datatable', configDataTable);
+        filtrosInvCustodias.precargar();
+    </script>
 {% endblock %}

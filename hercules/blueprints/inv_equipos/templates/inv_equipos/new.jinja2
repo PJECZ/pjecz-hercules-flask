@@ -21,13 +21,13 @@
         {{ detail.label_value('Usuario', usuario_str) }}
         {{ detail.label_value('CURP', inv_custodia.curp) }}
         {{ detail.label_value('Puesto', inv_custodia.usuario.puesto) }}
-        {% set oficina_str = inv_custodia.usuario.oficina.descripcion + ' (' + inv_custodia.usuario.oficina.clave + ')' %}
-        {% detail.label_value('Oficina', oficina_str) %}
+        {% set oficina_str = inv_custodia.usuario.oficina.descripcion_corta + ' (' + inv_custodia.usuario.oficina.clave + ')' %}
+        {{ detail.label_value('Oficina', oficina_str) }}
         {{ detail.label_value('Fecha', moment(inv_custodia.fecha, local=True).format("DD MMM YYYY")) }}
     {% endcall %}
-    {% call f.card('Agregar nuevo equipo a la Custodia ID ' + inv_custodia.id | string) %}
+    {% call f.card('Agregar un nuevo equipo') %}
         {% set form_kwargs = {'inv_custodia_id': inv_custodia.id} %}
-        {% call f.form_tag('inv_equipos.new', fid='inv_equipos_form', **form_kwargs) %}
+        {% call f.form_tag('inv_equipos.new', fid='inv_equipo_form', **form_kwargs) %}
             <div class="row">
                 <div class="col-md-6">
                     {% call f.form_group(form.inv_modelo) %}{% endcall %}
@@ -56,19 +56,23 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('#inv_modelo').addClass("js-example-placeholder-single");
+            $('#inv_modelo').addClass("js-data-ajax js-states form-control");
             $('#inv_modelo').select2({
                 ajax: {
-                url: "/inv_modelos/inv_modelos_json",
+                    url: "/inv_modelos/inv_modelos_json",
                     headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
                     dataType: "json",
-                    delay: 250,
-                    type: "POST"
-                }
-                placeholder: "",
-                minimumInputLength: 4,
+                    delay: 300,
+                    type: "POST",
+                    data: function (params) {
+                        return { 'descripcion': params.term.toUpperCase() };
+                    }
+                },
+                minimumInputLength: 3,
+                cache: false,
                 allowClear: true
             });
         });
     </script>
+    {{ detail.moment_js(moment) }}
 {% endblock %}

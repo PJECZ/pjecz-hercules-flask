@@ -3,7 +3,7 @@ Inventarios Equipos, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import DateField, IntegerField, RadioField, SelectField, StringField, SubmitField
+from wtforms import DateField, IntegerField, SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length, Optional, Regexp
 
 from lib.safe_string import DIRECCION_IP_REGEXP, MAC_ADDRESS_REGEXP
@@ -14,9 +14,9 @@ from hercules.blueprints.inv_redes.models import InvRed
 class InvEquipoForm(FlaskForm):
     """Formulario InvEquipo"""
 
-    inv_modelo = SelectField("Modelo", coerce=int, validators=[DataRequired()])
+    inv_modelo = SelectField("Modelo", coerce=int, validators=[DataRequired()], validate_choice=False)
     descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=512)])
-    tipo = RadioField("Tipo de equipo", choices=InvEquipo.TIPOS, default="OTRO", validators=[DataRequired()])
+    tipo = SelectField("Tipo de equipo", choices=InvEquipo.TIPOS.items(), validators=[DataRequired()])
     fecha_fabricacion = DateField("Fecha de fabricación", validators=[Optional()])
     numero_serie = StringField("Número de serie", validators=[Optional()])
     numero_inventario = IntegerField("Número de inventario", validators=[Optional()])
