@@ -29,7 +29,7 @@ def before_request():
 
 @inv_equipos_fotos.route("/inv_equipos_fotos/datatable_json", methods=["GET", "POST"])
 def datatable_json():
-    """DataTable JSON para listado de Fotos de Equipos"""
+    """DataTable JSON para listado de InvEquipoFoto"""
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
@@ -66,7 +66,7 @@ def datatable_json():
 
 @inv_equipos_fotos.route("/inv_equipos_fotos")
 def list_active():
-    """Listado de Fotos de Equipos activas"""
+    """Listado de InvEquipoFoto activas"""
     return render_template(
         "inv_equipos_fotos/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
@@ -78,7 +78,7 @@ def list_active():
 @inv_equipos_fotos.route("/inv_equipos_fotos/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Fotos de Equipos inactivas"""
+    """Listado de InvEquipoFoto inactivas"""
     return render_template(
         "inv_equipos_fotos/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
@@ -89,6 +89,6 @@ def list_inactive():
 
 @inv_equipos_fotos.route("/inv_equipos_fotos/<int:inv_equipo_foto_id>")
 def detail(inv_equipo_foto_id):
-    """Detalle de una Fotos de Equipos"""
+    """Detalle de una InvEquipoFoto"""
     inv_equipo_foto = InvEquipoFoto.query.get_or_404(inv_equipo_foto_id)
     return render_template("inv_equipos_fotos/detail.jinja2", inv_equipo_foto=inv_equipo_foto)

@@ -20,19 +20,31 @@
 
 {% block content %}
     {% call detail.card(estatus=inv_custodia.estatus) %}
-        {{ detail.label_value_big('ID', inv_custodia.id) }}
+        {# detail.label_value_big('ID', inv_custodia.id) #}
+        {% set usuario_str = inv_custodia.nombre_completo + ' (' + inv_custodia.usuario.email + ')' %}
         {% if current_user.can_view('USUARIOS') %}
-            {{ detail.label_value('Usuario', inv_custodia.nombre_completo, url_for('usuarios.detail', usuario_id=inv_custodia.usuario_id)) }}
+            {{ detail.label_value('Usuario', usuario_str, url_for('usuarios.detail', usuario_id=inv_custodia.usuario_id)) }}
         {% else %}
-            {{ detail.label_value('Usuario', inv_custodia.nombre_completo) }}
+            {{ detail.label_value('Usuario', usuario_str) }}
         {% endif %}
-        {{ detail.label_value('CURP', inv_custodia.curp) }}
+        {# detail.label_value('CURP', inv_custodia.curp) #}
         {{ detail.label_value('Puesto', inv_custodia.usuario.puesto) }}
-        {# detail.label_value('Oficina', inv_custodia.usuario.oficina.clave_nombre, url_for('oficinas.detail', oficina_id=inv_custodia.usuario.oficina_id)) #}
+        {% set oficina_str = inv_custodia.usuario.oficina.descripcion_corta + ' (' + inv_custodia.usuario.oficina.clave + ')' %}
+        {% if current_user.can_view('OFICINAS') %}
+            {{ detail.label_value('Oficina', oficina_str, url_for('oficinas.detail', oficina_id=inv_custodia.usuario.oficina_id)) }}
+        {% else %}
+            {{ detail.label_value('Oficina', oficina_str) }}
+        {% endif %}
+        {% set domicilio_str = inv_custodia.usuario.oficina.domicilio.edificio %}
+        {% if current_user.can_view('DOMICILIOS') %}
+            {{ detail.label_value('Edificio', domicilio_str, url_for('domicilios.detail', domicilio_id=inv_custodia.usuario.oficina.domicilio_id)) }}
+        {% else %}
+            {{ detail.label_value('Edificio', domicilio_str) }}
+        {% endif %}
         {{ detail.label_value('Fecha', moment(inv_custodia.fecha, local=True).format("DD MMM YYYY")) }}
-        {{ detail.label_value('C. Equipos', inv_custodia.equipos_cantidad) }}
-        {{ detail.label_value('C. Fotos', inv_custodia.equipos_fotos_cantidad) }}
-        {{ detail.label_value('Creado', moment(inv_custodia.creado, local=True).format('llll')) }}
+        {# detail.label_value('C. Equipos', inv_custodia.equipos_cantidad) #}
+        {# detail.label_value('C. Fotos', inv_custodia.equipos_fotos_cantidad) #}
+        {# detail.label_value('Creado', moment(inv_custodia.creado, local=True).format('llll')) #}
     {% endcall %}
     {% if current_user.can_view('INV EQUIPOS') %}
         {% call detail.card('Equipos') %}
@@ -105,6 +117,9 @@
                     </tr>
                 </thead>
             </table>
+            {% if current_user.can_insert('INV EQUIPOS') %}
+                <a href="{{ url_for('inv_equipos.new', inv_custodia_id=inv_custodia.id) }}" class="btn btn-primary">Agregar equipo</a>
+            {% endif %}
         {% endcall %}
     {% endif %}
 {% endblock %}

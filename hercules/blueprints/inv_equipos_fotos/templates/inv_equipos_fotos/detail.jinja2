@@ -33,7 +33,7 @@
             {{ detail.label_value('Imágen previa') }}
             <a href="{{ inv_equipo_foto.url }}"><img src="{{ inv_equipo_foto.url }}" style="max-width: 500px; height: auto;"/></a>
         {% endif %}
-        {{ detail.label_value('Creado', moment(inv_equipo_foto.creado, local=True).format('llll')) }}
+        {# detail.label_value('Creado', moment(inv_equipo_foto.creado, local=True).format('llll')) #}
     {% endcall %}
 {% endblock %}
 
