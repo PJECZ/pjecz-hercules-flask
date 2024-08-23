@@ -8,12 +8,14 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.inv_custodias.models import InvCustodia
+from hercules.blueprints.inv_equipos.forms import InvEquipoForm
 from hercules.blueprints.inv_equipos.models import InvEquipo
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_message, safe_string
+from lib.safe_string import safe_ip_address, safe_mac_address, safe_message, safe_string
 
 MODULO = "INV EQUIPOS"
 
@@ -29,7 +31,7 @@ def before_request():
 
 @inv_equipos.route("/inv_equipos/datatable_json", methods=["GET", "POST"])
 def datatable_json():
-    """DataTable JSON para listado de Equipos"""
+    """DataTable JSON para listado de InvEquipo"""
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
@@ -40,7 +42,10 @@ def datatable_json():
     else:
         consulta = consulta.filter_by(estatus="A")
     if "inv_equipo_id" in request.form:
-        consulta = consulta.filter_by(id=request.form["inv_equipo_id"])
+        try:
+            consulta = consulta.filter_by(id=int(request.form["inv_equipo_id"]))
+        except ValueError:
+            pass
     else:
         if "inv_custodia_id" in request.form:
             consulta = consulta.filter_by(inv_custodia_id=request.form["inv_custodia_id"])
@@ -105,7 +110,7 @@ def datatable_json():
 
 @inv_equipos.route("/inv_equipos")
 def list_active():
-    """Listado de Equipos activos"""
+    """Listado de InvEquipo activos"""
     return render_template(
         "inv_equipos/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
@@ -117,7 +122,7 @@ def list_active():
 @inv_equipos.route("/inv_equipos/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Equipos inactivos"""
+    """Listado de InvEquipo inactivos"""
     return render_template(
         "inv_equipos/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
@@ -128,13 +133,51 @@ def list_inactive():
 
 @inv_equipos.route("/inv_equipos/<int:inv_equipo_id>")
 def detail(inv_equipo_id):
-    """Detalle de un Equipo"""
+    """Detalle de un InvEquipo"""
     inv_equipo = InvEquipo.query.get_or_404(inv_equipo_id)
     return render_template("inv_equipos/detail.jinja2", inv_equipo=inv_equipo)
 
 
 @inv_equipos.route("/inv_equipos/tablero")
-@permission_required(MODULO, Permiso.CREAR)
+@permission_required(MODULO, Permiso.MODIFICAR)
 def dashboard():
-    """Tablero de PagPago"""
+    """Tablero de InvEquipo"""
     return render_template("inv_equipos/dashboard.jinja2")
+
+
+@inv_equipos.route("/inv_equipos/nuevo/<int:inv_custodia_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.CREAR)
+def new_with_inv_custodia_id(inv_custodia_id):
+    """Nuevo InvEquipo"""
+    inv_custodia = InvCustodia.query.get_or_404(inv_custodia_id)
+    form = InvEquipoForm()
+    if form.validate_on_submit():
+        # Guardar
+        inv_equipo = InvEquipo(
+            inv_custodia_id=inv_custodia.id,
+            inv_modelo_id=form.inv_modelo.data,
+            descripcion=safe_string(form.descripcion.data, save_enie=True),
+            tipo=form.tipo.data,
+            fecha_fabricacion=form.fecha_fabricacion.data,
+            numero_serie=safe_string(form.numero_serie.data),
+            numero_inventario=form.numero_inventario.data,
+            inv_red_id=form.inv_red.data,
+            direccion_ip=safe_ip_address(form.direccion_ip.data),
+            direccion_mac=safe_mac_address(form.direccion_mac.data),
+            numero_nodo=form.numero_nodo.data,
+            numero_switch=form.numero_switch.data,
+            numero_puerto=form.numero_puerto.data,
+        )
+        inv_equipo.save()
+        # Guardar bitácora
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Nuevo InvEquipo {inv_equipo.descripcion}"),
+            url=url_for("inv_equipos.detail", inv_equipo_id=inv_equipo.id),
+        )
+        bitacora.save()
+        # Entregar detalle
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    return render_template("inv_equipos/new.jinja2", form=form, inv_custodia=inv_custodia)

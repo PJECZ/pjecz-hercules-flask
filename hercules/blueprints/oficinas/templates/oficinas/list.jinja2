@@ -53,8 +53,6 @@
                     <th>Domicilio</th>
                     <th>Distrito</th>
                     <th><span title="Es Juridiccional">Es J.</span></th>
-                    <th>Apertura</th>
-                    <th>Cierre</th>
                 </tr>
             </thead>
         </table>
@@ -75,9 +73,7 @@
             { data: "descripcion_corta" },
             { data: "domicilio" },
             { data: "distrito" },
-            { data: "es_jurisdiccional" },
-            { data: "apertura" },
-            { data: "cierre" }
+            { data: "es_jurisdiccional" }
         ];
         configDataTable['columnDefs'] = [
             {
@@ -91,7 +87,7 @@
                 targets: 1, // descripcion_corta
                 data: null,
                 render: function(data, type, row, meta) {
-                    return (data.length > 32 ? data.substr(0, 32) + '…' : data);
+                    return (data.length > 32 ? data.substring(0, 32) + '…' : data);
                 }
             },
             {
@@ -99,26 +95,24 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data.completo.length > 32) {
-                        texto = data.completo.substr(0, 32) + '…';
+                        texto = data.completo.substring(0, 32) + '…';
                     } else {
                         texto = data.completo;
                     }
-                    if (data.url == '') {
+                    if (data.url === '') {
                         return texto;
-                    } else {
-                        return '<a href="' + data.url + '">' + texto + '</a>';
                     }
+                    return '<a href="' + data.url + '">' + texto + '</a>';
                 }
             },
             {
                 targets: 3, // distrito
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data.url == '') {
+                    if (data.url === '') {
                         return data.nombre_corto;
-                    } else {
-                        return '<a href="' + data.url + '">' + data.nombre_corto + '</a>';
                     }
+                    return '<a href="' + data.url + '">' + data.nombre_corto + '</a>';
                 }
             },
             {

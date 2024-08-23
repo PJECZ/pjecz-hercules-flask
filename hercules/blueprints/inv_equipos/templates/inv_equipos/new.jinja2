@@ -1,0 +1,82 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Nuevo Equipo{% endblock %}
+
+{% block custom_head %}
+    <!-- Select2 bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Nuevo Equipo') }}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card('Custodia') %}
+        {% if current_user.can_view('INV CUSTODIAS') %}
+            {{ detail.label_value('ID', inv_custodia.id, url_for('inv_custodias.detail', inv_custodia_id=inv_custodia.id)) }}
+        {% else %}
+            {{ detail.label_value('ID', inv_custodia.id) }}
+        {% endif %}
+        {{ detail.label_value('Usuario', inv_custodia.nombre_completo + ' (' + inv_custodia.usuario.email + ')') }}
+        {# detail.label_value('CURP', inv_custodia.curp) #}
+        {{ detail.label_value('Puesto', inv_custodia.usuario.puesto) }}
+        {{ detail.label_value('Edificio', inv_custodia.usuario.oficina.domicilio.edificio) }}
+        {{ detail.label_value('Oficina', inv_custodia.usuario.oficina.descripcion_corta + ' (' + inv_custodia.usuario.oficina.clave + ')') }}
+        {{ detail.label_value('Edificio', inv_custodia.usuario.oficina.domicilio.edificio) }}
+        {{ detail.label_value('Fecha', moment(inv_custodia.fecha, local=True).format("DD MMM YYYY")) }}
+    {% endcall %}
+    {% call f.card('Agregar un nuevo equipo') %}
+        {% set form_kwargs = {'inv_custodia_id': inv_custodia.id} %}
+        {% call f.form_tag('inv_equipos.new_with_inv_custodia_id', fid='inv_equipo_form', **form_kwargs) %}
+            <div class="row">
+                <div class="col-md-6">
+                    {% call f.form_group(form.inv_modelo) %}{% endcall %}
+                    {% call f.form_group(form.descripcion) %}{% endcall %}
+                    {% call f.form_group(form.tipo) %}{% endcall %}
+                    {% call f.form_group(form.fecha_fabricacion) %}{% endcall %}
+                    {% call f.form_group(form.numero_serie) %}{% endcall %}
+                    {% call f.form_group(form.numero_inventario) %}{% endcall %}
+                </div>
+                <div class="col-md-6">
+                    {% call f.form_group(form.inv_red) %}{% endcall %}
+                    {% call f.form_group(form.direccion_ip) %}{% endcall %}
+                    {% call f.form_group(form.direccion_mac) %}{% endcall %}
+                    {% call f.form_group(form.numero_nodo) %}{% endcall %}
+                    {% call f.form_group(form.numero_switch) %}{% endcall %}
+                    {% call f.form_group(form.numero_puerto) %}{% endcall %}
+                </div>
+            </div>
+            {% call f.form_group(form.guardar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <!-- Select2 bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#inv_modelo').addClass("js-data-ajax js-states form-control");
+            $('#inv_modelo').select2({
+                ajax: {
+                    url: "/inv_modelos/inv_modelos_json",
+                    headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+                    dataType: "json",
+                    delay: 300,
+                    type: "POST",
+                    data: function (params) {
+                        return { 'descripcion': params.term.toUpperCase() };
+                    }
+                },
+                minimumInputLength: 3,
+                cache: false,
+                allowClear: true
+            });
+        });
+    </script>
+    {{ detail.moment_js(moment) }}
+{% endblock %}

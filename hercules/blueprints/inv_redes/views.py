@@ -29,7 +29,7 @@ def before_request():
 
 @inv_redes.route("/inv_redes/datatable_json", methods=["GET", "POST"])
 def datatable_json():
-    """DataTable JSON para listado de Redes"""
+    """DataTable JSON para listado de InvRed"""
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
@@ -68,7 +68,7 @@ def datatable_json():
 
 @inv_redes.route("/inv_redes")
 def list_active():
-    """Listado de Redes activas"""
+    """Listado de InvRed activas"""
     return render_template(
         "inv_redes/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
@@ -80,7 +80,7 @@ def list_active():
 @inv_redes.route("/inv_redes/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Redes inactivas"""
+    """Listado de InvRed inactivas"""
     return render_template(
         "inv_redes/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
@@ -91,6 +91,6 @@ def list_inactive():
 
 @inv_redes.route("/inv_redes/<int:inv_red_id>")
 def detail(inv_red_id):
-    """Detalle de una Red"""
+    """Detalle de una InvRed"""
     inv_red = InvRed.query.get_or_404(inv_red_id)
     return render_template("inv_redes/detail.jinja2", inv_red=inv_red)

@@ -29,9 +29,9 @@
             {{ detail.label_value('Distrito', oficina.distrito.nombre) }}
         {% endif %}
         {% if current_user.can_view('DOMICILIOS') %}
-            {{ detail.label_value('Domicilio', oficina.domicilio.completo, url_for('domicilios.detail', domicilio_id=oficina.domicilio_id)) }}
+            {{ detail.label_value('Edificio', oficina.domicilio.edificio, url_for('domicilios.detail', domicilio_id=oficina.domicilio_id)) }}
         {% else %}
-            {{ detail.label_value('Domicilio', oficina.domicilio.completo) }}
+            {{ detail.label_value('Edificio', oficina.domicilio.edificio) }}
         {% endif %}
         {{ detail.label_value('Horario', oficina.apertura.strftime("%H:%M") + ' — ' + oficina.cierre.strftime("%H:%M")) }}
         {{ detail.label_value_boolean('Es Juridiccional', oficina.es_jurisdiccional) }}

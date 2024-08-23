@@ -2,6 +2,8 @@
 Inventarios Componentes, modelos
 """
 
+from typing import Optional
+
 from sqlalchemy import Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,7 +14,7 @@ from lib.universal_mixin import UniversalMixin
 class InvComponente(database.Model, UniversalMixin):
     """InvComponente"""
 
-    ESTADOS = {
+    GENERACIONES = {
         "NO DEFINIDO": "No definido",
         "2da Gen": "Segunda",
         "3er Gen": "Tercera",
@@ -43,13 +45,11 @@ class InvComponente(database.Model, UniversalMixin):
     descripcion: Mapped[str] = mapped_column(String(256))
     cantidad: Mapped[int]
     generacion: Mapped[str] = mapped_column(
-        Enum(*ESTADOS, name="inv_componentes_generaciones", native_enum=False),
+        Enum(*GENERACIONES, name="inv_componentes_generaciones", native_enum=False),
         index=True,
-        nullable=False,
         default="NO DEFINIDO",
-        server_default="NO DEFINIDO",
     )
-    version: Mapped[str] = mapped_column(String(256))
+    version: Mapped[Optional[str]] = mapped_column(String(256))
 
     def __repr__(self):
         """Representación"""

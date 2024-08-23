@@ -47,7 +47,7 @@ class InvEquipo(database.Model, UniversalMixin):
     numero_serie: Mapped[str] = mapped_column(String(256))
     numero_inventario: Mapped[int]
     descripcion: Mapped[str] = mapped_column(String(256))
-    tipo: Mapped[str] = mapped_column(Enum(*TIPOS, name="inv_equipos_tipos", native_enum=False), index=True, nullable=False)
+    tipo: Mapped[str] = mapped_column(Enum(*TIPOS, name="inv_equipos_tipos", native_enum=False), index=True)
     direccion_ip: Mapped[str] = mapped_column(String(256))
     direccion_mac: Mapped[str] = mapped_column(String(256))
     numero_nodo: Mapped[int]

@@ -8,7 +8,9 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.inv_componentes.forms import InvComponenteForm
 from hercules.blueprints.inv_componentes.models import InvComponente
+from hercules.blueprints.inv_equipos.models import InvEquipo
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
@@ -29,7 +31,7 @@ def before_request():
 
 @inv_componentes.route("/inv_componentes/datatable_json", methods=["GET", "POST"])
 def datatable_json():
-    """DataTable JSON para listado de Componentes"""
+    """DataTable JSON para listado de InvComponente"""
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
@@ -79,7 +81,7 @@ def datatable_json():
 
 @inv_componentes.route("/inv_componentes")
 def list_active():
-    """Listado de Componentes activos"""
+    """Listado de InvComponente activos"""
     return render_template(
         "inv_componentes/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
@@ -91,7 +93,7 @@ def list_active():
 @inv_componentes.route("/inv_componentes/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Componentes inactivos"""
+    """Listado de InvComponente inactivos"""
     return render_template(
         "inv_componentes/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
@@ -102,6 +104,37 @@ def list_inactive():
 
 @inv_componentes.route("/inv_componentes/<int:inv_componente_id>")
 def detail(inv_componente_id):
-    """Detalle de un Componente"""
+    """Detalle de un InvComponente"""
     inv_componente = InvComponente.query.get_or_404(inv_componente_id)
     return render_template("inv_componentes/detail.jinja2", inv_componente=inv_componente)
+
+
+@inv_componentes.route("/inv_componentes/nuevo/<int:inv_equipo_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.CREAR)
+def new_with_inv_equipo_id(inv_equipo_id):
+    """Nuevo InvComponente"""
+    inv_equipo = InvEquipo.query.get_or_404(inv_equipo_id)
+    form = InvComponenteForm()
+    if form.validate_on_submit():
+        # Guardar
+        inv_componente = InvComponente(
+            inv_equipo_id=inv_equipo.id,
+            inv_categoria_id=form.inv_categoria.data,
+            descripcion=safe_string(form.descripcion.data, save_enie=True),
+            cantidad=form.cantidad.data,
+            generacion=form.generacion.data,
+            version=safe_string(form.version.data, save_enie=True),
+        )
+        inv_componente.save()
+        # Guardar bitácora
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Nuevo InvComponente {inv_componente.descripcion}"),
+            url=url_for("inv_componentes.detail", inv_componente_id=inv_componente.id),
+        )
+        bitacora.save()
+        # Entregar detalle
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    return render_template("inv_componentes/new.jinja2", form=form, inv_equipo=inv_equipo)
