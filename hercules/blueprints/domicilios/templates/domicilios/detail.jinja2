@@ -67,9 +67,6 @@
                         <th>Descripción corta</th>
                         <th>Distrito</th>
                         <th><span title="Es Juridiccional">Es J.</span></th>
-                        <th>Apertura</th>
-                        <th>Cierre</th>
-                        <th><span title="Límite de personas">L.P.</span></th>
                     </tr>
                 </thead>
             </table>
@@ -100,10 +97,7 @@
                 { data: "detalle" },
                 { data: "descripcion_corta" },
                 { data: "distrito" },
-                { data: "es_jurisdiccional" },
-                { data: "apertura" },
-                { data: "cierre" },
-                { data: "limite_personas" }
+                { data: "es_jurisdiccional" }
             ];
             configDTOficinas['columnDefs'] = [
                 {
@@ -117,18 +111,17 @@
                     targets: 1, // descripcion_corta
                     data: null,
                     render: function(data, type, row, meta) {
-                        return (data.length > 32 ? data.substr(0, 32) + '…' : data);
+                        return (data.length > 32 ? data.substring(0, 32) + '…' : data);
                     }
                 },
                 {
                     targets: 2, // distrito
                     data: null,
                     render: function(data, type, row, meta) {
-                        if (data.url == '') {
+                        if (data.url === '') {
                             return data.nombre_corto;
-                        } else {
-                            return '<a href="' + data.url + '">' + data.nombre_corto + '</a>';
                         }
+                        return '<a href="' + data.url + '">' + data.nombre_corto + '</a>';
                     }
                 },
                 {
@@ -142,12 +135,11 @@
                     }
                 }
             ];
-            // DEJE ESTE CUANDO NO HAYA FILTROS
-            $('#oficinas_datatable').DataTable(configDTOficinas);
             // Filtros Oficinas
-            const filtrosNominas = new FiltrosDataTable('#nominas_datatable', configDTOficinas);
-            filtrosNominas.agregarInput('filtroParametro', 'parametro');
-            filtrosNominas.precargar();
+            const filtrosOficinas = new FiltrosDataTable('#oficinas_datatable', configDTOficinas);
+            filtrosOficinas.agregarInput('filtroClave', 'clave');
+            filtrosOficinas.agregarInput('filtroDescripcionCorta', 'descripcion_corta');
+            filtrosOficinas.precargar();
         </script>
     {% endif %}
 {% endblock %}

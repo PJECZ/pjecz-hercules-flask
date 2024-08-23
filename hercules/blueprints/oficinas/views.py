@@ -84,8 +84,6 @@ def datatable_json():
                         else ""
                     ),
                 },
-                "apertura": resultado.apertura.strftime("%H:%M"),
-                "cierre": resultado.cierre.strftime("%H:%M"),
                 "es_jurisdiccional": resultado.es_jurisdiccional,
             }
         )
