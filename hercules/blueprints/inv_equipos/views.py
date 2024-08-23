@@ -139,7 +139,7 @@ def detail(inv_equipo_id):
 
 
 @inv_equipos.route("/inv_equipos/tablero")
-@permission_required(MODULO, Permiso.CREAR)
+@permission_required(MODULO, Permiso.MODIFICAR)
 def dashboard():
     """Tablero de InvEquipo"""
     return render_template("inv_equipos/dashboard.jinja2")
@@ -147,7 +147,7 @@ def dashboard():
 
 @inv_equipos.route("/inv_equipos/nuevo/<int:inv_custodia_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
-def new(inv_custodia_id):
+def new_with_inv_custodia_id(inv_custodia_id):
     """Nuevo InvEquipo"""
     inv_custodia = InvCustodia.query.get_or_404(inv_custodia_id)
     form = InvEquipoForm()
@@ -173,11 +173,11 @@ def new(inv_custodia_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Nuevo InvEquipo {inv_equipo.id}"),
+            descripcion=safe_message(f"Nuevo InvEquipo {inv_equipo.descripcion}"),
             url=url_for("inv_equipos.detail", inv_equipo_id=inv_equipo.id),
         )
         bitacora.save()
         # Entregar detalle
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    return render_template("inv_equipos/new.jinja2", inv_custodia=inv_custodia, form=form)
+    return render_template("inv_equipos/new.jinja2", form=form, inv_custodia=inv_custodia)

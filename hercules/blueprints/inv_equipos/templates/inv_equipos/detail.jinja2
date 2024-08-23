@@ -19,16 +19,26 @@
 {% endblock %}
 
 {% block content %}
-    {% call detail.card(estatus=inv_equipo.estatus) %}
-        <div class="row">
-            <div class="col-md-6">
-                {# detail.label_value_big('ID', inv_equipo.id) #}
-                {% set custodia_str = inv_equipo.inv_custodia_id | string + ' (' + inv_equipo.inv_custodia.nombre_completo + ')' %}
+    <div class="row">
+        <div class="col-md-6">
+            {% call detail.card('Custodia') %}
                 {% if current_user.can_view('INV CUSTODIAS') %}
-                    {{ detail.label_value('Custodia', custodia_str, url_for('inv_custodias.detail', inv_custodia_id=inv_equipo.inv_custodia_id)) }}
+                    {{ detail.label_value('ID', inv_equipo.inv_custodia.id, url_for('inv_custodias.detail', inv_custodia_id=inv_equipo.inv_custodia.id)) }}
                 {% else %}
-                    {{ detail.label_value('Custodia', custodia_str) }}
+                    {{ detail.label_value('ID', inv_equipo.inv_custodia.id) }}
                 {% endif %}
+                {% set usuario_str = inv_equipo.inv_custodia.nombre_completo + ' (' + inv_equipo.inv_custodia.usuario.email + ')' %}
+                {{ detail.label_value('Usuario', usuario_str) }}
+                {{ detail.label_value('CURP', inv_equipo.inv_custodia.curp) }}
+                {{ detail.label_value('Puesto', inv_equipo.inv_custodia.usuario.puesto) }}
+                {% set oficina_str = inv_equipo.inv_custodia.usuario.oficina.descripcion_corta + ' (' + inv_equipo.inv_custodia.usuario.oficina.clave + ')' %}
+                {{ detail.label_value('Oficina', oficina_str) }}
+                {{ detail.label_value('Fecha', moment(inv_equipo.inv_custodia.fecha, local=True).format("DD MMM YYYY")) }}
+            {% endcall %}
+        </div>
+        <div class="col-md-6">
+            {% call detail.card(title='Equipo', estatus=inv_equipo.estatus) %}
+                {{ detail.label_value('ID', inv_equipo.id) }}
                 {% if current_user.can_view('INV MARCAS') %}
                     {{ detail.label_value('Marca', inv_equipo.inv_modelo.inv_marca.nombre, url_for('inv_marcas.detail', inv_marca_id=inv_equipo.inv_modelo.inv_marca.id)) }}
                 {% else %}
@@ -39,15 +49,13 @@
                 {% else %}
                     {{ detail.label_value('Modelo', inv_equipo.inv_modelo.descripcion) }}
                 {% endif %}
-                {# detail.label_value('Descripción', inv_equipo.descripcion) #}
+                {{ detail.label_value('Descripción', inv_equipo.descripcion) }}
                 {{ detail.label_value('Tipo', inv_equipo.tipo) }}
                 {% if inv_equipo.fecha_fabricacion %}
                     {{ detail.label_value('F. fabricación', moment(inv_equipo.fecha_fabricacion, local=True).format("DD MMM YYYY")) }}
                 {% endif %}
                 {{ detail.label_value('No. serie', inv_equipo.numero_serie) }}
                 {{ detail.label_value('No. inventario', inv_equipo.numero_inventario) }}
-            </div>
-            <div class="col-md-6">
                 {% if current_user.can_view('INV REDES') %}
                     {{ detail.label_value('Red', inv_equipo.inv_red.nombre, url_for('inv_redes.detail', inv_red_id=inv_equipo.inv_red_id)) }}
                 {% else %}
@@ -59,9 +67,9 @@
                 {{ detail.label_value('Número switch', inv_equipo.numero_switch) }}
                 {{ detail.label_value('Número puerto', inv_equipo.numero_puerto) }}
                 {# detail.label_value('Creado', moment(inv_equipo.creado, local=True).format('llll')) #}
-            </div>
+            {% endcall %}
         </div>
-    {% endcall %}
+    </div>
     {% if current_user.can_view('INV COMPONENTES') %}
         {% call detail.card('Componentes') %}
             <!-- Filtros InvComponentes -->
@@ -93,6 +101,9 @@
                     </tr>
                 </thead>
             </table>
+            {% if current_user.can_insert('INV COMPONENTES') %}
+                <a href="{{ url_for('inv_componentes.new_with_inv_equipo_id', inv_equipo_id=inv_equipo.id) }}" class="btn btn-primary">Agregar componente</a>
+            {% endif %}
         {% endcall %}
     {% endif %}
     {% if current_user.can_view('INV EQUIPOS FOTOS') %}

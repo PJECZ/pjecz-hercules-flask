@@ -131,7 +131,7 @@ def actualizar(rama: str, probar: bool = False):
                     estado="BORRADOR",
                 )
                 database.session.add(web_pagina)
-                click.echo(click.style('+', fg='green'), nl=False)
+                click.echo(click.style("+", fg="green"), nl=False)
             else:
                 # Ya existe, entonces actualizarla si hay cambios
                 if web_pagina.titulo != titulo:
@@ -146,11 +146,11 @@ def actualizar(rama: str, probar: bool = False):
                     web_pagina.contenido = contenido
                 if web_pagina.estado != "BORRADOR":
                     web_pagina.estado = "BORRADOR"
-                click.echo(click.style('u', fg='blue'), nl=False)
+                click.echo(click.style("u", fg="blue"), nl=False)
             # Guardar los cambios en la BD
             database.session.commit()
         else:
-            click.echo(click.style('.', fg='yellow'), nl=False)
+            click.echo(click.style(".", fg="yellow"), nl=False)
 
     # Mostrar mensaje final
     click.echo()
