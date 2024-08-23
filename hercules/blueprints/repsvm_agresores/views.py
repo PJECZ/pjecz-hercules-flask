@@ -8,12 +8,14 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.distritos.models import Distrito
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
+from hercules.blueprints.repsvm_agresores.forms import REPSVMAgresorForm
 from hercules.blueprints.repsvm_agresores.models import REPSVMAgresor
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_message, safe_string
+from lib.safe_string import safe_message, safe_string, safe_text, safe_url
 
 MODULO = "REPSVM AGRESORES"
 
@@ -57,7 +59,6 @@ def datatable_json():
     for resultado in registros:
         data.append(
             {
-                "id": resultado.id,
                 "detalle": {
                     "nombre": resultado.nombre,
                     "url": url_for("repsvm_agresores.detail", repsvm_agresor_id=resultado.id),
@@ -157,3 +158,119 @@ def detail(repsvm_agresor_id):
     """Detalle de un Agresor"""
     repsvm_agresor = REPSVMAgresor.query.get_or_404(repsvm_agresor_id)
     return render_template("repsvm_agresores/detail.jinja2", repsvm_agresor=repsvm_agresor)
+
+
+@repsvm_agresores.route("/repsvm_agresores/nuevo", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.CREAR)
+def new():
+    """Nuevo Agresor"""
+    form = REPSVMAgresorForm()
+    if form.validate_on_submit():
+        # Definir consecutivo
+        distrito_id = form.distrito.data  # Aquí `distrito` es el ID del distrito
+        consecutivo = REPSVMAgresor.query.filter_by(estatus="A").filter_by(distrito_id=distrito_id).count() + 1
+
+        # Insertar registro
+        repsvm_agresor = REPSVMAgresor(
+            distrito_id=distrito_id,
+            consecutivo=consecutivo,
+            delito_generico=safe_string(form.delito_generico.data, save_enie=True),
+            delito_especifico=safe_string(form.delito_especifico.data, save_enie=True),
+            nombre=safe_string(form.nombre.data, save_enie=True),
+            numero_causa=safe_string(form.numero_causa.data, save_enie=True),
+            pena_impuesta=safe_string(form.pena_impuesta.data, save_enie=True),
+            observaciones=safe_text(form.observaciones.data),
+            sentencia_url=safe_url(form.sentencia_url.data),
+            tipo_juzgado=safe_string(form.tipo_juzgado.data),
+            tipo_sentencia=safe_string(form.tipo_sentencia.data),
+            es_publico=True,
+        )
+        repsvm_agresor.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Nuevo Agresor {repsvm_agresor.consecutivo} - {repsvm_agresor.nombre}"),
+            url=url_for("repsvm_agresores.detail", repsvm_agresor_id=repsvm_agresor.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    if current_user.autoridad.distrito.es_distrito_judicial:
+        form.distrito.data = current_user.autoridad.distrito
+    return render_template("repsvm_agresores/new.jinja2", form=form)
+
+
+@repsvm_agresores.route("/repsvm_agresores/edicion/<int:repsvm_agresor_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def edit(repsvm_agresor_id):
+    """Editar Agresor"""
+    repsvm_agresor = REPSVMAgresor.query.get_or_404(repsvm_agresor_id)
+    form = REPSVMAgresorForm()
+    if form.validate_on_submit():
+        repsvm_agresor.distrito_id = form.distrito.data
+        repsvm_agresor.delito_generico = safe_string(form.delito_generico.data, save_enie=True)
+        repsvm_agresor.delito_especifico = safe_string(form.delito_especifico.data, save_enie=True)
+        repsvm_agresor.nombre = safe_string(form.nombre.data, save_enie=True)
+        repsvm_agresor.numero_causa = safe_string(form.numero_causa.data, save_enie=True)
+        repsvm_agresor.pena_impuesta = safe_string(form.pena_impuesta.data, save_enie=True)
+        repsvm_agresor.observaciones = safe_text(form.observaciones.data)
+        repsvm_agresor.sentencia_url = safe_url(form.sentencia_url.data)
+        repsvm_agresor.tipo_juzgado = safe_string(form.tipo_juzgado.data)
+        repsvm_agresor.tipo_sentencia = safe_string(form.tipo_sentencia.data)
+        repsvm_agresor.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Editado Agresor {repsvm_agresor.nombre}"),
+            url=url_for("repsvm_agresores.detail", repsvm_agresor_id=repsvm_agresor.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    form.distrito.data = repsvm_agresor.distrito_id
+    form.delito_generico.data = repsvm_agresor.delito_generico
+    form.delito_especifico.data = repsvm_agresor.delito_especifico
+    form.nombre.data = repsvm_agresor.nombre
+    form.numero_causa.data = repsvm_agresor.numero_causa
+    form.pena_impuesta.data = repsvm_agresor.pena_impuesta
+    form.observaciones.data = repsvm_agresor.observaciones
+    form.sentencia_url.data = repsvm_agresor.sentencia_url
+    form.tipo_juzgado.data = repsvm_agresor.tipo_juzgado
+    form.tipo_sentencia.data = repsvm_agresor.tipo_sentencia
+    return render_template("repsvm_agresores/edit.jinja2", form=form, repsvm_agresor=repsvm_agresor)
+
+
+@repsvm_agresores.route("/repsvm_agresores/eliminar/<int:repsvm_agresor_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def delete(repsvm_agresor_id):
+    """Eliminar Agresor"""
+    repsvm_agresor = REPSVMAgresor.query.get_or_404(repsvm_agresor_id)
+    if repsvm_agresor.estatus == "A":
+        repsvm_agresor.delete()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Eliminado Agresor {repsvm_agresor.nombre}"),
+            url=url_for("repsvm_agresores.detail", repsvm_agresor_id=repsvm_agresor.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("repsvm_agresores.detail", repsvm_agresor_id=repsvm_agresor.id))
+
+
+@repsvm_agresores.route("/repsvm_agresores/recuperar/<int:repsvm_agresor_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def recover(repsvm_agresor_id):
+    """Recuperar Agresor"""
+    repsvm_agresor = REPSVMAgresor.query.get_or_404(repsvm_agresor_id)
+    if repsvm_agresor.estatus == "B":
+        repsvm_agresor.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Recuperado Agresor {repsvm_agresor.nombre}"),
+            url=url_for("repsvm_agresores.detail", repsvm_agresor_id=repsvm_agresor.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("repsvm_agresores.detail", repsvm_agresor_id=repsvm_agresor.id))
