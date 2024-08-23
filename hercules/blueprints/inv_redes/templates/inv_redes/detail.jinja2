@@ -8,13 +8,13 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons('Red ' + inv_red.nombre) %}
         {{ topbar.button_previous('Redes', url_for('inv_redes.list_active')) }}
-        {# if current_user.can_edit('INV REDES') %}
+        {% if current_user.can_edit('INV REDES') %}
             {{ topbar.button_edit('Editar', url_for('inv_redes.edit', inv_red_id=inv_red.id)) }}
-        {% endif #}
-        {# if current_user.can_admin('INV REDES') %}
+        {% endif %}
+        {% if current_user.can_admin('INV REDES') %}
             {% if inv_red.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('inv_redes.delete', inv_red_id=inv_red.id)) }}{% endif %}
             {% if inv_red.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('inv_redes.recover', inv_red_id=inv_red.id)) }}{% endif %}
-        {% endif #}
+        {% endif %}
     {% endcall %}
 {% endblock %}
 
@@ -100,10 +100,10 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    {# if current_user.can_admin('INV REDES') %}
+    {% if current_user.can_admin('INV REDES') %}
         {% if inv_red.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + inv_red.nombre + '?') }}{% endif %}
         {% if inv_red.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + inv_red.nombre + '?') }}{% endif %}
-    {% endif #}
+    {% endif %}
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     {% if current_user.can_view('INV EQUIPOS') %}
