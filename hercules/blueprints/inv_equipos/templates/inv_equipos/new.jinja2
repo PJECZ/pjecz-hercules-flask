@@ -21,12 +21,12 @@
         {% else %}
             {{ detail.label_value('ID', inv_custodia.id) }}
         {% endif %}
-        {% set usuario_str = inv_custodia.nombre_completo + ' (' + inv_custodia.usuario.email + ')' %}
-        {{ detail.label_value('Usuario', usuario_str) }}
-        {{ detail.label_value('CURP', inv_custodia.curp) }}
+        {{ detail.label_value('Usuario', inv_custodia.nombre_completo + ' (' + inv_custodia.usuario.email + ')') }}
+        {# detail.label_value('CURP', inv_custodia.curp) #}
         {{ detail.label_value('Puesto', inv_custodia.usuario.puesto) }}
-        {% set oficina_str = inv_custodia.usuario.oficina.descripcion_corta + ' (' + inv_custodia.usuario.oficina.clave + ')' %}
-        {{ detail.label_value('Oficina', oficina_str) }}
+        {{ detail.label_value('Edificio', inv_custodia.usuario.oficina.domicilio.edificio) }}
+        {{ detail.label_value('Oficina', inv_custodia.usuario.oficina.descripcion_corta + ' (' + inv_custodia.usuario.oficina.clave + ')') }}
+        {{ detail.label_value('Edificio', inv_custodia.usuario.oficina.domicilio.edificio) }}
         {{ detail.label_value('Fecha', moment(inv_custodia.fecha, local=True).format("DD MMM YYYY")) }}
     {% endcall %}
     {% call f.card('Agregar un nuevo equipo') %}

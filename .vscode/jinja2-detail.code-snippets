@@ -123,9 +123,10 @@
       "\t\t\t}",
       "\t\t];",
       "\t\t// Filtros ${1:Registros}",
-      "\t\tconst filtrosNominas = new FiltrosDataTable('#nominas_datatable', configDT${4:Registros});",
-      "\t\tfiltrosNominas.agregarInput('filtroParametro', 'parametro');",
-      "\t\tfiltrosNominas.precargar();",
+      "\t\tconst filtros${4:Registros} = new FiltrosDataTable('#${5:blueprint}_datatable', configDT${4:Registros});",
+      "\t\tfiltros${4:Registros}.agregarInput('filtroParametroUno', 'parametro_uno');",
+      "\t\tfiltros${4:Registros}.agregarInput('filtroParametroDos', 'parametro_dos');",
+      "\t\tfiltros${4:Registros}.precargar();",
       "\t</script>",
       "{% endif %}"
     ],

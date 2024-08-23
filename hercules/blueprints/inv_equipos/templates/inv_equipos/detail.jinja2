@@ -28,11 +28,25 @@
                     {{ detail.label_value('ID', inv_equipo.inv_custodia.id) }}
                 {% endif %}
                 {% set usuario_str = inv_equipo.inv_custodia.nombre_completo + ' (' + inv_equipo.inv_custodia.usuario.email + ')' %}
-                {{ detail.label_value('Usuario', usuario_str) }}
-                {{ detail.label_value('CURP', inv_equipo.inv_custodia.curp) }}
+                {% if current_user.can_view('USUARIOS') %}
+                    {{ detail.label_value('Usuario', usuario_str, url_for('usuarios.detail', usuario_id=inv_equipo.inv_custodia.usuario_id)) }}
+                {% else %}
+                    {{ detail.label_value('Usuario', usuario_str) }}
+                {% endif %}
+                {# detail.label_value('CURP', inv_equipo.inv_custodia.curp) #}
                 {{ detail.label_value('Puesto', inv_equipo.inv_custodia.usuario.puesto) }}
                 {% set oficina_str = inv_equipo.inv_custodia.usuario.oficina.descripcion_corta + ' (' + inv_equipo.inv_custodia.usuario.oficina.clave + ')' %}
-                {{ detail.label_value('Oficina', oficina_str) }}
+                {% if current_user.can_view('OFICINAS') %}
+                    {{ detail.label_value('Oficina', oficina_str, url_for('oficinas.detail', oficina_id=inv_equipo.inv_custodia.usuario.oficina_id)) }}
+                {% else %}
+                    {{ detail.label_value('Oficina', oficina_str) }}
+                {% endif %}
+                {% set edificio_str = inv_equipo.inv_custodia.usuario.oficina.domicilio.edificio %}
+                {% if current_user.can_view('DOMICILIOS') %}
+                    {{ detail.label_value('Edificio', edificio_str, url_for('domicilios.detail', domicilio_id=inv_equipo.inv_custodia.usuario.oficina.domicilio_id)) }}
+                {% else %}
+                    {{ detail.label_value('Edificio', edificio_str) }}
+                {% endif %}
                 {{ detail.label_value('Fecha', moment(inv_equipo.inv_custodia.fecha, local=True).format("DD MMM YYYY")) }}
             {% endcall %}
         </div>

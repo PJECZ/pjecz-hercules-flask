@@ -18,12 +18,11 @@
                 {% else %}
                     {{ detail.label_value('ID', inv_equipo.inv_custodia.id) }}
                 {% endif %}
-                {% set usuario_str = inv_equipo.inv_custodia.nombre_completo + ' (' + inv_equipo.inv_custodia.usuario.email + ')' %}
-                {{ detail.label_value('Usuario', usuario_str) }}
-                {{ detail.label_value('CURP', inv_equipo.inv_custodia.curp) }}
+                {{ detail.label_value('Usuario', inv_equipo.inv_custodia.nombre_completo + ' (' + inv_equipo.inv_custodia.usuario.email + ')') }}
+                {# detail.label_value('CURP', inv_equipo.inv_custodia.curp) #}
                 {{ detail.label_value('Puesto', inv_equipo.inv_custodia.usuario.puesto) }}
-                {% set oficina_str = inv_equipo.inv_custodia.usuario.oficina.descripcion_corta + ' (' + inv_equipo.inv_custodia.usuario.oficina.clave + ')' %}
-                {{ detail.label_value('Oficina', oficina_str) }}
+                {{ detail.label_value('Oficina', inv_equipo.inv_custodia.usuario.oficina.descripcion_corta + ' (' + inv_equipo.inv_custodia.usuario.oficina.clave + ')') }}
+                {{ detail.label_value('Edificio', inv_equipo.inv_custodia.usuario.oficina.domicilio.edificio) }}
                 {{ detail.label_value('Fecha', moment(inv_equipo.inv_custodia.fecha, local=True).format("DD MMM YYYY")) }}
             {% endcall %}
         </div>
