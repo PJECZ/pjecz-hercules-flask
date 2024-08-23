@@ -21,8 +21,6 @@
 {% block content %}
     {% call detail.card(estatus=repsvm_delito.estatus) %}
         {{ detail.label_value_big('Nombre o Descripción', repsvm_delito.nombre) }}
-        {{ detail.label_value('Columna 1', repsvm_delito.columna_1) }}
-        {{ detail.label_value('Columna 2', repsvm_delito.columna_2) }}
         {{ detail.label_value('Creado', moment(repsvm_delito.creado, local=True).format('llll')) }}
     {% endcall %}
 {% endblock %}
