@@ -35,6 +35,7 @@ def cli():
 @click.option("--probar", is_flag=True, help="Solo probar sin cambiar la base de datos.")
 @click.argument("rama", type=str)
 def actualizar(rama: str, probar: bool = False):
+    """Actualizar o agregar las paginas de una rama en la BD"""
 
     # Si no esta definido ARCHIVISTA_DIR, entonces salir
     if ARCHIVISTA_DIR == "":
