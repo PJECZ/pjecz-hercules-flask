@@ -8,7 +8,9 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.inv_componentes.forms import InvComponenteForm
 from hercules.blueprints.inv_componentes.models import InvComponente
+from hercules.blueprints.inv_equipos.models import InvEquipo
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
@@ -105,3 +107,34 @@ def detail(inv_componente_id):
     """Detalle de un InvComponente"""
     inv_componente = InvComponente.query.get_or_404(inv_componente_id)
     return render_template("inv_componentes/detail.jinja2", inv_componente=inv_componente)
+
+
+@inv_componentes.route("/inv_componentes/nuevo/<int:inv_equipo_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.CREAR)
+def new_with_inv_equipo_id(inv_equipo_id):
+    """Nuevo InvComponente"""
+    inv_equipo = InvEquipo.query.get_or_404(inv_equipo_id)
+    form = InvComponenteForm()
+    if form.validate_on_submit():
+        # Guardar
+        inv_componente = InvComponente(
+            inv_equipo_id=inv_equipo.id,
+            inv_categoria_id=form.inv_categoria.data,
+            descripcion=safe_string(form.descripcion.data, save_enie=True),
+            cantidad=form.cantidad.data,
+            generacion=form.generacion.data,
+            version=safe_string(form.version.data, save_enie=True),
+        )
+        inv_componente.save()
+        # Guardar bitácora
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Nuevo InvComponente {inv_componente.descripcion}"),
+            url=url_for("inv_componentes.detail", inv_componente_id=inv_componente.id),
+        )
+        bitacora.save()
+        # Entregar detalle
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    return render_template("inv_componentes/new.jinja2", form=form, inv_equipo=inv_equipo)

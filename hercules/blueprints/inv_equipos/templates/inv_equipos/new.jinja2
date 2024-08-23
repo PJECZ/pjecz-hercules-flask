@@ -15,8 +15,12 @@
 {% endblock %}
 
 {% block content %}
-    {% call detail.card('Custodia ID ' + inv_custodia.id | string) %}
-        {# detail.label_value_big('ID', inv_custodia.id) #}
+    {% call detail.card('Custodia') %}
+        {% if current_user.can_view('INV CUSTODIAS') %}
+            {{ detail.label_value('ID', inv_custodia.id, url_for('inv_custodias.detail', inv_custodia_id=inv_custodia.id)) }}
+        {% else %}
+            {{ detail.label_value('ID', inv_custodia.id) }}
+        {% endif %}
         {% set usuario_str = inv_custodia.nombre_completo + ' (' + inv_custodia.usuario.email + ')' %}
         {{ detail.label_value('Usuario', usuario_str) }}
         {{ detail.label_value('CURP', inv_custodia.curp) }}
@@ -27,7 +31,7 @@
     {% endcall %}
     {% call f.card('Agregar un nuevo equipo') %}
         {% set form_kwargs = {'inv_custodia_id': inv_custodia.id} %}
-        {% call f.form_tag('inv_equipos.new', fid='inv_equipo_form', **form_kwargs) %}
+        {% call f.form_tag('inv_equipos.new_with_inv_custodia_id', fid='inv_equipo_form', **form_kwargs) %}
             <div class="row">
                 <div class="col-md-6">
                     {% call f.form_group(form.inv_modelo) %}{% endcall %}
