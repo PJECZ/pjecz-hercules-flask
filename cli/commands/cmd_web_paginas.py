@@ -4,21 +4,26 @@ CLI Web Paginas
 
 from datetime import datetime
 from pathlib import Path
+import os
 import re
 import sys
 
 import click
+from dotenv import load_dotenv
 
 from hercules.app import create_app
 from hercules.blueprints.web_paginas.models import WebPagina
 from hercules.blueprints.web_ramas.models import WebRama
 from hercules.extensions import database
 
+# Crear la aplicacion Flask para poder usar la BD
 app = create_app()
 app.app_context().push()
 database.app = app
 
-ARCHIVISTA_DIR = "/var/mnt/archivista/Sitios Web/pjecz.gob.mx"
+# Cargar las variables de entorno
+load_dotenv()
+ARCHIVISTA_DIR = os.getenv("ARCHIVISTA_DIR", "")
 
 
 @click.group()
@@ -30,6 +35,11 @@ def cli():
 @click.option("--probar", is_flag=True, help="Solo probar sin cambiar la base de datos.")
 @click.argument("rama", type=str)
 def actualizar(rama: str, probar: bool = False):
+
+    # Si no esta definido ARCHIVISTA_DIR, entonces salir
+    if ARCHIVISTA_DIR == "":
+        click.echo(click.style("ARCHIVISTA_DIR no esta definido en .env", fg="red"))
+        sys.exit(1)
 
     # Consultar la rama en la BD
     web_rama = WebRama.query.filter_by(nombre=rama).first()
