@@ -173,7 +173,7 @@ def new_with_inv_custodia_id(inv_custodia_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Nuevo InvEquipo {inv_equipo.descripcion}"),
+            descripcion=safe_message(f"Nuevo InvEquipo {inv_equipo.id} {inv_equipo.descripcion}"),
             url=url_for("inv_equipos.detail", inv_equipo_id=inv_equipo.id),
         )
         bitacora.save()
@@ -181,3 +181,96 @@ def new_with_inv_custodia_id(inv_custodia_id):
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
     return render_template("inv_equipos/new.jinja2", form=form, inv_custodia=inv_custodia)
+
+
+@inv_equipos.route("/inv_equipos/edicion/<int:inv_equipo_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def edit(inv_equipo_id):
+    """Editar InvEquipo"""
+    inv_equipo = InvEquipo.query.get_or_404(inv_equipo_id)
+    form = InvEquipoForm()
+    if form.validate_on_submit():
+        # Guardar
+        inv_equipo.inv_modelo_id = form.inv_modelo.data
+        inv_equipo.descripcion = safe_string(form.descripcion.data, save_enie=True)
+        inv_equipo.tipo = form.tipo.data
+        inv_equipo.fecha_fabricacion = form.fecha_fabricacion.data
+        inv_equipo.numero_serie = safe_string(form.numero_serie.data)
+        inv_equipo.numero_inventario = form.numero_inventario.data
+        inv_equipo.inv_red_id = form.inv_red.data
+        inv_equipo.direccion_ip = safe_ip_address(form.direccion_ip.data)
+        inv_equipo.direccion_mac = safe_mac_address(form.direccion_mac.data)
+        inv_equipo.numero_nodo = form.numero_nodo.data
+        inv_equipo.numero_switch = form.numero_switch.data
+        inv_equipo.numero_puerto = form.numero_puerto.data
+        inv_equipo.save()
+        # Guardar bitácora
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Editado InvEquipo {inv_equipo.id} {inv_equipo.descripcion}"),
+            url=url_for("inv_equipos.detail", inv_equipo_id=inv_equipo.id),
+        )
+        bitacora.save()
+        # Entregar detalle
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    form.inv_modelo.data = inv_equipo.inv_modelo_id
+    form.descripcion.data = inv_equipo.descripcion
+    form.tipo.data = inv_equipo.tipo
+    form.fecha_fabricacion.data = inv_equipo.fecha_fabricacion
+    form.numero_serie.data = inv_equipo.numero_serie
+    form.numero_inventario.data = inv_equipo.numero_inventario
+    form.inv_red.data = inv_equipo.inv_red_id
+    form.direccion_ip.data = inv_equipo.direccion_ip
+    form.direccion_mac.data = inv_equipo.direccion_mac
+    form.numero_nodo.data = inv_equipo.numero_nodo
+    form.numero_switch.data = inv_equipo.numero_switch
+    form.numero_puerto.data = inv_equipo.numero_puerto
+    return render_template("inv_equipos/edit.jinja2", form=form, inv_equipo=inv_equipo)
+
+
+@inv_equipos.route("/inv_equipos/eliminar/<int:inv_equipo_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def delete(inv_equipo_id):
+    """Eliminar InvEquipo"""
+    inv_equipo = InvEquipo.query.get_or_404(inv_equipo_id)
+    if inv_equipo.estatus == "A":
+        # Eliminar InvEquipo
+        inv_equipo.delete()
+        # Eliminar los InvComponentes de cada InvEquipo
+        for inv_componente in inv_equipo.inv_componentes:
+            inv_componente.delete()
+        # Agregar a la bitácora
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Eliminado InvEquipo {inv_equipo.id}"),
+            url=url_for("inv_equipos.detail", inv_equipo_id=inv_equipo.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("inv_equipos.detail", inv_equipo_id=inv_equipo.id))
+
+
+@inv_equipos.route("/inv_equipos/recuperar/<int:inv_equipo_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def recover(inv_equipo_id):
+    """Recuperar InvEquipo"""
+    inv_equipo = InvEquipo.query.get_or_404(inv_equipo_id)
+    if inv_equipo.estatus == "B":
+        # Recuperar InvEquipo
+        inv_equipo.recover()
+        # Recuperar los InvComponentes de cada InvEquipo
+        for inv_componente in inv_equipo.inv_componentes:
+            inv_componente.recover()
+        # Agregar a la bitácora
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Recuperado InvEquipo {inv_equipo.id}"),
+            url=url_for("inv_equipos.detail", inv_equipo_id=inv_equipo.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("inv_equipos.detail", inv_equipo_id=inv_equipo.id))

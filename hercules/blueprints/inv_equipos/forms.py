@@ -14,7 +14,7 @@ from hercules.blueprints.inv_redes.models import InvRed
 class InvEquipoForm(FlaskForm):
     """Formulario InvEquipo"""
 
-    inv_modelo = SelectField("Modelo", coerce=int, validators=[DataRequired()], validate_choice=False)
+    inv_modelo = SelectField("Marca - Modelo", coerce=int, validators=[DataRequired()], validate_choice=False)
     descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=512)])
     tipo = SelectField("Tipo de equipo", choices=InvEquipo.TIPOS.items(), validators=[DataRequired()])
     fecha_fabricacion = DateField("Fecha de fabricación", validators=[Optional()])

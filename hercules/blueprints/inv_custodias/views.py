@@ -154,3 +154,81 @@ def new_with_usuario_id(usuario_id):
         tiene_inv_custodias=tiene_inv_custodias,
         usuario=usuario,
     )
+
+
+@inv_custodias.route("/inv_custodias/edicion/<int:inv_custodia_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def edit(inv_custodia_id):
+    """Editar InvCustodia"""
+    inv_custodia = InvCustodia.query.get_or_404(inv_custodia_id)
+    form = InvCustodiaForm()
+    if form.validate_on_submit():
+        # Guardar
+        inv_custodia.fecha = form.fecha.data
+        inv_custodia.curp = inv_custodia.usuario.curp  # Actualizarlo desde su Usuario relacionado
+        inv_custodia.nombre_completo = inv_custodia.usuario.nombre  # Actualizarlo desde su Usuario relacionado
+        inv_custodia.save()
+        # Guardar bitácora
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Editado InvCustodia {inv_custodia.id} de {inv_custodia.usuario.email}"),
+            url=url_for("inv_custodias.detail", inv_custodia_id=inv_custodia.id),
+        )
+        bitacora.save()
+        # Entregar detalle
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    form.fecha.data = inv_custodia.fecha
+    return render_template("inv_custodias/edit.jinja2", form=form, inv_custodia=inv_custodia)
+
+
+@inv_custodias.route("/inv_custodias/eliminar/<int:inv_custodia_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def delete(inv_custodia_id):
+    """Eliminar InvCustodia"""
+    inv_custodia = InvCustodia.query.get_or_404(inv_custodia_id)
+    if inv_custodia.estatus == "A":
+        # Eliminar InvCustodia
+        inv_custodia.delete()
+        # Eliminar los InvEquipos de la InvCustodia
+        for inv_equipo in inv_custodia.inv_equipos:
+            inv_equipo.delete()
+            # Eliminar los InvComponentes de cada InvEquipo
+            for inv_componente in inv_equipo.inv_componentes:
+                inv_componente.delete()
+        # Agregar a la bitácora
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Eliminado InvCustodia {inv_custodia.id} de {inv_custodia.usuario.email}"),
+            url=url_for("inv_custodias.detail", inv_custodia_id=inv_custodia.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("inv_custodias.detail", inv_custodia_id=inv_custodia.id))
+
+
+@inv_custodias.route("/inv_custodias/recuperar/<int:inv_custodia_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def recover(inv_custodia_id):
+    """Recuperar InvCustodia"""
+    inv_custodia = InvCustodia.query.get_or_404(inv_custodia_id)
+    if inv_custodia.estatus == "B":
+        # Recuperar InvCustodia
+        inv_custodia.recover()
+        # Recuperar los InvEquipos de la InvCustodia
+        for inv_equipo in inv_custodia.inv_equipos:
+            inv_equipo.recover()
+            # Recuperar los InvComponentes de cada InvEquipo
+            for inv_componente in inv_equipo.inv_componentes:
+                inv_componente.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Recuperado InvCustodia {inv_custodia.id} de {inv_custodia.usuario.email}"),
+            url=url_for("inv_custodias.detail", inv_custodia_id=inv_custodia.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("inv_custodias.detail", inv_custodia_id=inv_custodia.id))

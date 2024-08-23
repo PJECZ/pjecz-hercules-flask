@@ -9,6 +9,7 @@ import re
 import sys
 
 import click
+from markdown import markdown
 from dotenv import load_dotenv
 
 from hercules.app import create_app
@@ -127,26 +128,34 @@ def actualizar(rama: str, probar: bool = False):
                     fecha_modificacion=fecha_modificacion,
                     ruta=ruta,
                     web_rama_id=web_rama_id,
-                    contenido=contenido,
+                    contenido=markdown(contenido),
                     estado="BORRADOR",
                 )
                 database.session.add(web_pagina)
                 click.echo(click.style("+", fg="green"), nl=False)
             else:
                 # Ya existe, entonces actualizarla si hay cambios
+                hubo_cambios = False
                 if web_pagina.titulo != titulo:
                     web_pagina.titulo = titulo
+                    hubo_cambios = True
                 if web_pagina.fecha_modificacion != fecha_modificacion:
                     web_pagina.fecha_modificacion = fecha_modificacion
+                    hubo_cambios = True
                 if web_pagina.ruta != ruta:
                     web_pagina.ruta = ruta
+                    hubo_cambios = True
                 if web_pagina.web_rama_id != web_rama_id:
                     web_pagina.web_rama_id = web_rama_id
-                if web_pagina.contenido != contenido:
-                    web_pagina.contenido = contenido
+                    hubo_cambios = True
+                if web_pagina.contenido != markdown(contenido):
+                    web_pagina.contenido = markdown(contenido)  # Convertir a HTML  antes de guardar
+                    hubo_cambios = True
                 if web_pagina.estado != "BORRADOR":
                     web_pagina.estado = "BORRADOR"
-                click.echo(click.style("u", fg="blue"), nl=False)
+                    hubo_cambios = True
+                if hubo_cambios:
+                    click.echo(click.style("u", fg="blue"), nl=False)
             # Guardar los cambios en la BD
             database.session.commit()
         else:

@@ -7,14 +7,17 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons('Componente ' + inv_componente.descripcion) %}
-        {{ topbar.button_previous('Componentes', url_for('inv_componentes.list_active')) }}
-        {# if current_user.can_edit('INV COMPONENTES') %}
+        {# topbar.button_previous('Componentes', url_for('inv_componentes.list_active')) #}
+        {% if current_user.can_view('INV EQUIPOS') %}
+            {{ topbar.button_previous('Equipo ' + inv_componente.inv_equipo_id | string, url_for('inv_equipos.detail', inv_equipo_id=inv_componente.inv_equipo_id)) }}
+        {% endif %}
+        {% if current_user.can_edit('INV COMPONENTES') %}
             {{ topbar.button_edit('Editar', url_for('inv_componentes.edit', inv_componente_id=inv_componente.id)) }}
-        {% endif #}
-        {# if current_user.can_admin('INV COMPONENTES') %}
+        {% endif %}
+        {% if current_user.can_admin('INV COMPONENTES') %}
             {% if inv_componente.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('inv_componentes.delete', inv_componente_id=inv_componente.id)) }}{% endif %}
             {% if inv_componente.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('inv_componentes.recover', inv_componente_id=inv_componente.id)) }}{% endif %}
-        {% endif #}
+        {% endif %}
     {% endcall %}
 {% endblock %}
 
@@ -38,9 +41,9 @@
         <div class="col-md-6">
             {% call detail.card('Equipo') %}
                 {% if current_user.can_view('INV EQUIPOS') %}
-                    {{ detail.label_value('ID', inv_componente.inv_equipo.id, url_for('inv_equipos.detail', inv_equipo_id=inv_componente.inv_equipo.id)) }}
+                    {{ detail.label_value('ID', inv_componente.inv_equipo_id, url_for('inv_equipos.detail', inv_equipo_id=inv_componente.inv_equipo_id)) }}
                 {% else %}
-                    {{ detail.label_value('ID', inv_componente.inv_equipo.id) }}
+                    {{ detail.label_value('ID', inv_componente.inv_equipo_id) }}
                 {% endif %}
                 {{ detail.label_value('Marca', inv_componente.inv_equipo.inv_modelo.inv_marca.nombre) }}
                 {{ detail.label_value('Modelo', inv_componente.inv_equipo.inv_modelo.descripcion) }}
@@ -67,9 +70,9 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    {# if current_user.can_admin('INV COMPONENTES') %}
+    {% if current_user.can_admin('INV COMPONENTES') %}
         {% if inv_componente.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + inv_componente.descripcion + '?') }}{% endif %}
         {% if inv_componente.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + inv_componente.descripcion + '?') }}{% endif %}
-    {% endif #}
+    {% endif %}
     {{ detail.moment_js(moment) }}
 {% endblock %}

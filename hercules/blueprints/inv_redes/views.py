@@ -8,6 +8,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.inv_redes.forms import InvRedForm
 from hercules.blueprints.inv_redes.models import InvRed
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
@@ -94,3 +95,105 @@ def detail(inv_red_id):
     """Detalle de una InvRed"""
     inv_red = InvRed.query.get_or_404(inv_red_id)
     return render_template("inv_redes/detail.jinja2", inv_red=inv_red)
+
+
+@inv_redes.route("/inv_redes/nuevo", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.CREAR)
+def new():
+    """Nueva InvRed"""
+    form = InvRedForm()
+    if form.validate_on_submit():
+        # Validar que el nombre no está en uso
+        nombre = safe_string(form.nombre.data, save_enie=True)
+        if InvRed.query.filter_by(nombre=nombre).first():
+            flash(f"El nombre {nombre} ya está en uso", "warning")
+            return render_template("inv_redes/new.jinja2", form=form)
+        # Guardar
+        inv_red = InvRed(
+            nombre=nombre,
+            tipo=form.tipo.data,
+        )
+        inv_red.save()
+        # Guardar bitácora
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Nueva InvRed {inv_red.nombre}"),
+            url=url_for("inv_redes.detail", inv_red_id=inv_red.id),
+        )
+        bitacora.save()
+        # Entregar detalle
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    return render_template("inv_redes/new.jinja2", form=form)
+
+
+@inv_redes.route("/inv_redes/edicion/<int:inv_red_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def edit(inv_red_id):
+    """Editar InvRed"""
+    inv_red = InvRed.query.get_or_404(inv_red_id)
+    form = InvRedForm()
+    if form.validate_on_submit():
+        es_valido = True
+        # Si cambia el nombre, validar que el nombre no está en uso
+        nombre = safe_string(form.nombre.data, save_enie=True)
+        if inv_red.nombre != nombre and InvRed.query.filter_by(nombre=nombre).first():
+            flash("El nombre ya está en uso", "warning")
+            es_valido = False
+        # Si es válido
+        if es_valido:
+            # Guardar
+            inv_red.nombre = nombre
+            inv_red.tipo = form.tipo.data
+            inv_red.save()
+            # Guardar bitácora
+            bitacora = Bitacora(
+                modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+                usuario=current_user,
+                descripcion=safe_message(f"Editado InvRed {inv_red.nombre}"),
+                url=url_for("inv_redes.detail", inv_red_id=inv_red.id),
+            )
+            bitacora.save()
+            # Entregar detalle
+            flash(bitacora.descripcion, "success")
+            return redirect(bitacora.url)
+    form.nombre.data = inv_red.nombre
+    form.tipo.data = inv_red.tipo
+    return render_template("inv_redes/edit.jinja2", form=form, inv_red=inv_red)
+
+
+@inv_redes.route("/inv_redes/eliminar/<int:inv_red_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def delete(inv_red_id):
+    """Eliminar InvRed"""
+    inv_red = InvRed.query.get_or_404(inv_red_id)
+    if inv_red.estatus == "A":
+        inv_red.delete()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Eliminado InvRed {inv_red.nombre}"),
+            url=url_for("inv_redes.detail", inv_red_id=inv_red.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("inv_redes.detail", inv_red_id=inv_red.id))
+
+
+@inv_redes.route("/inv_redes/recuperar/<int:inv_red_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def recover(inv_red_id):
+    """Recuperar InvRed"""
+    inv_red = InvRed.query.get_or_404(inv_red_id)
+    if inv_red.estatus == "B":
+        inv_red.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Recuperado InvRed {inv_red.nombre}"),
+            url=url_for("inv_redes.detail", inv_red_id=inv_red.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("inv_redes.detail", inv_red_id=inv_red.id))

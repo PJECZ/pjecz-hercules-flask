@@ -8,13 +8,13 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons('Custodia ' + inv_custodia.id | string + ' de ' + inv_custodia.nombre_completo) %}
         {{ topbar.button_previous('Custodias', url_for('inv_custodias.list_active')) }}
-        {# if current_user.can_edit('INV CUSTODIAS') %}
+        {% if current_user.can_edit('INV CUSTODIAS') %}
             {{ topbar.button_edit('Editar', url_for('inv_custodias.edit', inv_custodia_id=inv_custodia.id)) }}
-        {% endif #}
-        {# if current_user.can_admin('INV CUSTODIAS') %}
+        {% endif %}
+        {% if current_user.can_admin('INV CUSTODIAS') %}
             {% if inv_custodia.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('inv_custodias.delete', inv_custodia_id=inv_custodia.id)) }}{% endif %}
             {% if inv_custodia.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('inv_custodias.recover', inv_custodia_id=inv_custodia.id)) }}{% endif %}
-        {% endif #}
+        {% endif %}
     {% endcall %}
 {% endblock %}
 
@@ -123,10 +123,10 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    {# if current_user.can_admin('INV CUSTODIAS') %}
-        {% if inv_custodia.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + inv_custodia.id + '?') }}{% endif %}
-        {% if inv_custodia.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + inv_custodia.id + '?') }}{% endif %}
-    {% endif #}
+    {% if current_user.can_admin('INV CUSTODIAS') %}
+        {% if inv_custodia.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar la custodia ' + inv_custodia.id | string + ' de ' + inv_custodia.nombre_completo + '?') }}{% endif %}
+        {% if inv_custodia.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar la custodia ' + inv_custodia.id | string + ' de ' + inv_custodia.nombre_completo + '?') }}{% endif %}
+    {% endif %}
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     {% if current_user.can_view('INV EQUIPOS') %}

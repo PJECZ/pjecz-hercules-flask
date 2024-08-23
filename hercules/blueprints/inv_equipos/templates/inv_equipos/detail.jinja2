@@ -7,14 +7,17 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons('Equipo ' + inv_equipo.id | string + ' es ' + inv_equipo.descripcion) %}
-        {{ topbar.button_previous('Equipos', url_for('inv_equipos.list_active')) }}
-        {# if current_user.can_edit('INV EQUIPOS') %}
+        {# topbar.button_previous('Equipos', url_for('inv_equipos.list_active')) #}
+        {% if current_user.can_view('INV CUSTODIAS') %}
+            {{ topbar.button_previous('Custodia ' + inv_equipo.inv_custodia.id | string, url_for('inv_custodias.detail', inv_custodia_id=inv_equipo.inv_custodia.id)) }}
+        {% endif %}
+        {% if current_user.can_edit('INV EQUIPOS') %}
             {{ topbar.button_edit('Editar', url_for('inv_equipos.edit', inv_equipo_id=inv_equipo.id)) }}
-        {% endif #}
-        {# if current_user.can_admin('INV EQUIPOS') %}
+        {% endif %}
+        {% if current_user.can_admin('INV EQUIPOS') %}
             {% if inv_equipo.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('inv_equipos.delete', inv_equipo_id=inv_equipo.id)) }}{% endif %}
             {% if inv_equipo.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('inv_equipos.recover', inv_equipo_id=inv_equipo.id)) }}{% endif %}
-        {% endif #}
+        {% endif %}
     {% endcall %}
 {% endblock %}
 
@@ -153,10 +156,10 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    {# if current_user.can_admin('INV EQUIPOS') %}
+    {% if current_user.can_admin('INV EQUIPOS') %}
         {% if inv_equipo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + inv_equipo.id + '?') }}{% endif %}
         {% if inv_equipo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + inv_equipo.id + '?') }}{% endif %}
-    {% endif #}
+    {% endif %}
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
