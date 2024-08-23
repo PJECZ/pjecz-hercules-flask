@@ -138,3 +138,72 @@ def new_with_inv_equipo_id(inv_equipo_id):
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
     return render_template("inv_componentes/new.jinja2", form=form, inv_equipo=inv_equipo)
+
+
+@inv_componentes.route("/inv_componentes/edicion/<int:inv_componente_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def edit(inv_componente_id):
+    """Editar InvComponente"""
+    inv_componente = InvComponente.query.get_or_404(inv_componente_id)
+    form = InvComponenteForm()
+    if form.validate_on_submit():
+        # Guardar
+        inv_componente.inv_categoria_id = form.inv_categoria.data
+        inv_componente.descripcion = safe_string(form.descripcion.data, save_enie=True)
+        inv_componente.cantidad = form.cantidad.data
+        inv_componente.generacion = form.generacion.data
+        inv_componente.version = safe_string(form.version.data, save_enie=True)
+        inv_componente.save()
+        # Guardar bitácora
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Editado InvComponente {inv_componente.id}"),
+            url=url_for("inv_componentes.detail", inv_componente_id=inv_componente.id),
+        )
+        bitacora.save()
+        # Entregar detalle
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    form.inv_categoria.data = inv_componente.inv_categoria_id  # Usa id porque es un SelectField
+    form.descripcion.data = inv_componente.descripcion
+    form.cantidad.data = inv_componente.cantidad
+    form.generacion.data = inv_componente.generacion
+    form.version.data = inv_componente.version
+    return render_template("inv_componentes/edit.jinja2", form=form, inv_componente=inv_componente)
+
+
+@inv_componentes.route("/inv_componentes/eliminar/<int:inv_componente_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def delete(inv_componente_id):
+    """Eliminar InvComponente"""
+    inv_componente = InvComponente.query.get_or_404(inv_componente_id)
+    if inv_componente.estatus == "A":
+        inv_componente.delete()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Eliminado InvComponente {inv_componente.id}"),
+            url=url_for("inv_componentes.detail", inv_componente_id=inv_componente.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("inv_componentes.detail", inv_componente_id=inv_componente.id))
+
+
+@inv_componentes.route("/inv_componentes/recuperar/<int:inv_componente_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def recover(inv_componente_id):
+    """Recuperar InvComponente"""
+    inv_componente = InvComponente.query.get_or_404(inv_componente_id)
+    if inv_componente.estatus == "B":
+        inv_componente.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Recuperado InvComponente {inv_componente.id}"),
+            url=url_for("inv_componentes.detail", inv_componente_id=inv_componente.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("inv_componentes.detail", inv_componente_id=inv_componente.id))

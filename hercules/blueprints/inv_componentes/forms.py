@@ -13,7 +13,7 @@ from hercules.blueprints.inv_componentes.models import InvComponente
 class InvComponenteForm(FlaskForm):
     """Formulario InvComponente"""
 
-    inv_categoria = SelectField("Categoría", validators=[DataRequired()])
+    inv_categoria = SelectField("Categoría", coerce=int, validators=[DataRequired()])
     descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=256)])
     cantidad = IntegerField("Cantidad", validators=[DataRequired()])
     generacion = SelectField("Generación", choices=InvComponente.GENERACIONES.items(), validators=[DataRequired()])

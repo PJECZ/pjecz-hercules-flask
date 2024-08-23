@@ -1,0 +1,31 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Editar Custodia{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Editar Custodia ' + inv_custodia.id | string + ' de ' + inv_custodia.nombre_completo) }}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(title='Usuario') %}
+        {% set usuario_str = inv_custodia.nombre_completo + ' (' + inv_custodia.usuario.email + ')' %}
+        {{ detail.label_value('Usuario', usuario_str) }}
+        {# detail.label_value('CURP', inv_custodia.curp) #}
+        {{ detail.label_value('Puesto', inv_custodia.usuario.puesto) }}
+        {% set oficina_str = inv_custodia.usuario.oficina.descripcion_corta + ' (' + inv_custodia.usuario.oficina.clave + ')' %}
+        {{ detail.label_value('Oficina', oficina_str) }}
+        {% set domicilio_str = inv_custodia.usuario.oficina.domicilio.edificio %}
+        {{ detail.label_value('Edificio', domicilio_str) }}
+        {# detail.label_value('Creado', moment(inv_custodia.creado, local=True).format('llll')) #}
+    {% endcall %}
+    {% call f.card(title='Custodia') %}
+        {% set form_kwargs = {'inv_custodia_id': inv_custodia.id} %}
+        {% call f.form_tag('inv_custodias.edit', fid='inv_categoria_form', **form_kwargs) %}
+            {% call f.form_group(form.fecha) %}{% endcall %}
+            {% call f.form_group(form.guardar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Editar Componente {{ inv_componente.id }}{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Editar Componente ' + inv_componente.id | string) }}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-6">
+            {% call detail.card('Custodia') %}
+                {% if current_user.can_view('INV CUSTODIAS') %}
+                    {{ detail.label_value('ID', inv_componente.inv_equipo.inv_custodia.id, url_for('inv_custodias.detail', inv_custodia_id=inv_componente.inv_equipo.inv_custodia.id)) }}
+                {% else %}
+                    {{ detail.label_value('ID', inv_componente.inv_equipo.inv_custodia.id) }}
+                {% endif %}
+                {{ detail.label_value('Usuario', inv_componente.inv_equipo.inv_custodia.nombre_completo + ' (' + inv_componente.inv_equipo.inv_custodia.usuario.email + ')') }}
+                {# detail.label_value('CURP', inv_componente.inv_equipo.inv_custodia.curp) #}
+                {{ detail.label_value('Puesto', inv_componente.inv_equipo.inv_custodia.usuario.puesto) }}
+                {{ detail.label_value('Oficina', inv_componente.inv_equipo.inv_custodia.usuario.oficina.descripcion_corta + ' (' + inv_componente.inv_equipo.inv_custodia.usuario.oficina.clave + ')') }}
+                {{ detail.label_value('Edificio', inv_componente.inv_equipo.inv_custodia.usuario.oficina.domicilio.edificio) }}
+                {{ detail.label_value('Fecha', moment(inv_componente.inv_equipo.inv_custodia.fecha, local=True).format("DD MMM YYYY")) }}
+            {% endcall %}
+        </div>
+        <div class="col-md-6">
+            {% call detail.card('Equipo') %}
+                {% if current_user.can_view('INV EQUIPOS') %}
+                    {{ detail.label_value('ID', inv_componente.inv_equipo.id, url_for('inv_equipos.detail', inv_equipo_id=inv_componente.inv_equipo.id)) }}
+                {% else %}
+                    {{ detail.label_value('ID', inv_componente.inv_equipo.id) }}
+                {% endif %}
+                {{ detail.label_value('Marca', inv_componente.inv_equipo.inv_modelo.inv_marca.nombre) }}
+                {{ detail.label_value('Modelo', inv_componente.inv_equipo.inv_modelo.descripcion) }}
+                {{ detail.label_value('Descripción', inv_componente.inv_equipo.descripcion) }}
+                {{ detail.label_value('Tipo', inv_componente.inv_equipo.tipo) }}
+                {{ detail.label_value('No. serie', inv_componente.inv_equipo.numero_serie) }}
+                {{ detail.label_value('No. inventario', inv_componente.inv_equipo.numero_inventario) }}
+            {% endcall %}
+        </div>
+    </div>
+    {% call f.card(title='Editar componente') %}
+        {% set form_kwargs = {'inv_componente_id': inv_componente.id} %}
+        {% call f.form_tag('inv_componentes.edit', fid='inv_categoria_form', **form_kwargs) %}
+            {% call f.form_group(form.inv_categoria) %}{% endcall %}
+            {% call f.form_group(form.descripcion) %}{% endcall %}
+            {% call f.form_group(form.cantidad) %}{% endcall %}
+            {% call f.form_group(form.generacion) %}{% endcall %}
+            {% call f.form_group(form.version) %}{% endcall %}
+            {% call f.form_group(form.guardar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}
