@@ -27,11 +27,14 @@
         {{ detail.label_value('Fecha de modificación', web_pagina.fecha_modificacion) }}
         {{ detail.label_value('Responsable', web_pagina.responsable) }}
         {{ detail.label_value('Ruta', web_pagina.ruta) }}
-        {{ detail.label_value('Contenido', web_pagina.contenido) }}
+        {# detail.label_value('Contenido', web_pagina.contenido) #}
         {{ detail.label_value('Cuándo publicar', web_pagina.tiempo_publicar) }}
         {{ detail.label_value('Cuándo archivar', web_pagina.tiempo_archivar) }}
-        {{ detail.label_value_big('Estado', web_pagina.estado) }}
+        {{ detail.label_value('Estado', web_pagina.estado) }}
         {# detail.label_value('Creado', moment(web_pagina.creado, local=True).format('llll')) #}
+    {% endcall %}
+    {% call detail.card('Contenido') %}
+        <pre>{{ web_pagina.contenido }}</pre>
     {% endcall %}
     {% if current_user.can_view('WEB ARCHIVOS') %}
         {% call detail.card() %}
