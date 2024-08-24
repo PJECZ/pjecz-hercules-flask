@@ -1,0 +1,34 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}REPSVM Delito {{ repsvm_delito.nombre }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('REPSVM Delito ' + repsvm_delito.nombre) %}
+        {{ topbar.button_previous('Delitos', url_for('repsvm_delitos.list_active')) }}
+        {% if current_user.can_edit('REPSVM DELITOS') %}
+            {{ topbar.button_edit('Editar', url_for('repsvm_delitos.edit', repsvm_delito_id=repsvm_delito.id)) }}
+        {% endif %}
+        {% if current_user.can_admin('REPSVM DELITOS') %}
+            {% if repsvm_delito.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('repsvm_delitos.delete', repsvm_delito_id=repsvm_delito.id)) }}{% endif %}
+            {% if repsvm_delito.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('repsvm_delitos.recover', repsvm_delito_id=repsvm_delito.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=repsvm_delito.estatus) %}
+        {{ detail.label_value_big('Nombre o Descripción', repsvm_delito.nombre) }}
+        {{ detail.label_value('Creado', moment(repsvm_delito.creado, local=True).format('llll')) }}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_admin('REPSVM DELITOS') %}
+        {% if repsvm_delito.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + repsvm_delito.nombre + '?') }}{% endif %}
+        {% if repsvm_delito.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + repsvm_delito.nombre + '?') }}{% endif %}
+    {% endif %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}

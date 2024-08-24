@@ -125,6 +125,19 @@ def safe_mac_address(input_str):
     return f"{m[0:2]}:{m[2:4]}:{m[4:6]}:{m[6:8]}:{m[8:10]}:{m[10:12]}"
 
 
+def safe_text(input_str, max_len=4096, to_uppercase=True):
+    """Safe string"""
+    if not isinstance(input_str, str):
+        return ""
+    new_string = re.sub(r"[^a-zA-Z0-9@\n()\?=\[\]:/_.-]+", " ", unidecode(input_str))
+    final = new_string.strip()
+    if to_uppercase:
+        final = final.upper()
+    if max_len == 0:
+        return final
+    return (final[:max_len] + "...") if len(final) > max_len else final
+
+
 def safe_message(input_str, max_len=250, default_output_str="Sin descripción") -> str:
     """Safe message"""
     message = str(input_str)

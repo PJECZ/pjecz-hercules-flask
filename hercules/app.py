@@ -32,6 +32,9 @@ from hercules.blueprints.peritos.views import peritos
 from hercules.blueprints.peritos_tipos.views import peritos_tipos
 from hercules.blueprints.permisos.views import permisos
 from hercules.blueprints.redams.views import redams
+from hercules.blueprints.repsvm_agresores.views import repsvm_agresores
+from hercules.blueprints.repsvm_agresores_delitos.views import repsvm_agresores_delitos
+from hercules.blueprints.repsvm_delitos.views import repsvm_delitos
 from hercules.blueprints.roles.views import roles
 from hercules.blueprints.sistemas.views import sistemas
 from hercules.blueprints.usuarios.models import Usuario
@@ -81,6 +84,9 @@ def create_app():
     app.register_blueprint(peritos_tipos)
     app.register_blueprint(permisos)
     app.register_blueprint(redams)
+    app.register_blueprint(repsvm_agresores)
+    app.register_blueprint(repsvm_agresores_delitos)
+    app.register_blueprint(repsvm_delitos)
     app.register_blueprint(roles)
     app.register_blueprint(sistemas)
     app.register_blueprint(usuarios)
