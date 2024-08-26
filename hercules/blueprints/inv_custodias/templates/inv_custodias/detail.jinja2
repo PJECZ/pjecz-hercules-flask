@@ -27,7 +27,6 @@
         {% else %}
             {{ detail.label_value('Usuario', usuario_str) }}
         {% endif %}
-        {# detail.label_value('CURP', inv_custodia.curp) #}
         {{ detail.label_value('Puesto', inv_custodia.usuario.puesto) }}
         {% set oficina_str = inv_custodia.usuario.oficina.descripcion_corta + ' (' + inv_custodia.usuario.oficina.clave + ')' %}
         {% if current_user.can_view('OFICINAS') %}
@@ -117,6 +116,9 @@
             </table>
             {% if current_user.can_insert('INV EQUIPOS') %}
                 <a href="{{ url_for('inv_equipos.new_with_inv_custodia_id', inv_custodia_id=inv_custodia.id) }}" class="btn btn-primary">Agregar equipo</a>
+            {% endif %}
+            {% if current_user.can_edit('INV CUSTODIAS') %}
+                <a href="{{ url_for('inv_custodias.move_1_choose_custodia', origen_inv_custodia_id=inv_custodia.id) }}" class="btn btn-primary">Mover equipos a otra custodia</a>
             {% endif %}
         {% endcall %}
     {% endif %}

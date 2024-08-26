@@ -17,7 +17,7 @@
             {% call card.col_md(3) %}
                 {% call card.card(tipo) %}
                     {% call card.card_body() %}
-                        Hay {{ cantidad }} registros.
+                        <a href="{{ url_for('inv_equipos.list_by_tipo', tipo=tipo) }}" class="btn btn-outline-primary">{{ cantidad }} equipos</a>
                     {% endcall %}
                 {% endcall %}
             {% endcall %}

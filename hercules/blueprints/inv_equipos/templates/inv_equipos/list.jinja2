@@ -74,6 +74,7 @@
                         </div>
                     </div>
                     <div class="col-2">
+                        {% if not titulo.startswith('Equipos tipo ') %}
                         <div class="form-floating">
                             <select id="filtroTipo" class="form-select" aria-label="Tipo">
                                 <option selected value="">Todos los tipos</option>
@@ -89,6 +90,7 @@
                                 <option value="OTROS">OTROS</option>
                             </select>
                         </div>
+                        {% endif %}
                     </div>
                     <div class="col-2 text-end">
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosInvEquipos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
@@ -174,7 +176,9 @@
         filtrosInvEquipos.agregarInput('filtroNumeroSerie', 'numero_serie');
         filtrosInvEquipos.agregarInput('filtroNumeroInventario', 'numero_inventario');
         filtrosInvEquipos.agregarInput('filtroDescripcion', 'descripcion');
+        {% if not titulo.startswith('Equipos tipo ') %}
         filtrosInvEquipos.agregarInput('filtroTipo', 'tipo');
+        {% endif %}
         filtrosInvEquipos.precargar();
     </script>
 {% endblock %}

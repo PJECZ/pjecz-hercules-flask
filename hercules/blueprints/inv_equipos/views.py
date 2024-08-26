@@ -131,6 +131,18 @@ def list_inactive():
     )
 
 
+@inv_equipos.route("/inv_equipos/tipo/<string:tipo>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def list_by_tipo(tipo):
+    """Listado de InvEquipo por tipo"""
+    return render_template(
+        "inv_equipos/list.jinja2",
+        filtros=json.dumps({"estatus": "A", "tipo": tipo}),
+        titulo=f"Equipos tipo {tipo}",
+        estatus="A",
+    )
+
+
 @inv_equipos.route("/inv_equipos/<int:inv_equipo_id>")
 def detail(inv_equipo_id):
     """Detalle de un InvEquipo"""

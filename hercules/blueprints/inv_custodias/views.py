@@ -35,6 +35,10 @@ def datatable_json():
     """DataTable JSON para listado de InvCustodia"""
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
+    # En move_1_choose_custodia, se puede especificar el origen_inv_custodia_id
+    origen_inv_custodia_id = None
+    if "origen_inv_custodia_id" in request.form:
+        origen_inv_custodia_id = int(request.form["origen_inv_custodia_id"])
     # Consultar
     consulta = InvCustodia.query
     # Primero filtrar por columnas propias
@@ -65,6 +69,18 @@ def datatable_json():
                 "detalle": {
                     "id": resultado.id,
                     "url": url_for("inv_custodias.detail", inv_custodia_id=resultado.id),
+                },
+                "move_inv_equipo": {
+                    "id": resultado.id,
+                    "url": (
+                        url_for(
+                            "inv_custodias.move_2_choose_equipos",
+                            origen_inv_custodia_id=origen_inv_custodia_id,
+                            destino_inv_custodia_id=resultado.id,
+                        )
+                        if origen_inv_custodia_id
+                        else ""
+                    ),
                 },
                 "nombre_completo": resultado.nombre_completo,
                 "oficina_clave": resultado.usuario.oficina.clave,
@@ -105,6 +121,33 @@ def detail(inv_custodia_id):
     """Detalle de un InvCustodia"""
     inv_custodia = InvCustodia.query.get_or_404(inv_custodia_id)
     return render_template("inv_custodias/detail.jinja2", inv_custodia=inv_custodia)
+
+
+@inv_custodias.route("/inv_custodias/mover_inv_equipos/<int:origen_inv_custodia_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def move_1_choose_custodia(origen_inv_custodia_id):
+    """Mover Equipos 1. Elegir Custodia de destino"""
+    origen_inv_custodia = InvCustodia.query.get_or_404(origen_inv_custodia_id)
+    return render_template(
+        "inv_custodias/move_1_choose_inv_custodia.jinja2",
+        origen_inv_custodia=origen_inv_custodia,
+    )
+
+
+@inv_custodias.route("/inv_custodias/mover_inv_equipos/<int:origen_inv_custodia_id>/<int:destino_inv_custodia_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def move_2_choose_equipos(origen_inv_custodia_id, destino_inv_custodia_id):
+    """Mover Equipos 2. Elegir Equipos"""
+    if origen_inv_custodia_id == destino_inv_custodia_id:
+        flash("No se puede mover equipos a la misma custodia", "warning")
+        return redirect(url_for("inv_custodias.move_1_choose_custodia", origen_inv_custodia_id=origen_inv_custodia_id))
+    origen_inv_custodia = InvCustodia.query.get_or_404(origen_inv_custodia_id)
+    destino_inv_custodia = InvCustodia.query.get_or_404(destino_inv_custodia_id)
+    return render_template(
+        "inv_custodias/move_2_move_inv_equipo.jinja2",
+        origen_inv_custodia=origen_inv_custodia,
+        destino_inv_custodia=destino_inv_custodia,
+    )
 
 
 @inv_custodias.route("/inv_custodias/nuevo")

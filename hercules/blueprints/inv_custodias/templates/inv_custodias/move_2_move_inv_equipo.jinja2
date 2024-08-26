@@ -1,0 +1,39 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Mover Equipos 2. Elegir Equipos{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Mover Equipos 2. Elegir Equipos') }}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-6">
+            {% call detail.card('Custodia de origen') %}
+                {{ detail.label_value('ID', origen_inv_custodia.id, url_for('inv_custodias.detail', inv_custodia_id=origen_inv_custodia.id)) }}
+                {{ detail.label_value('Usuario', origen_inv_custodia.nombre_completo + ' (' + origen_inv_custodia.usuario.email + ')') }}
+                {{ detail.label_value('Puesto', origen_inv_custodia.usuario.puesto) }}
+                {{ detail.label_value('Oficina', origen_inv_custodia.usuario.oficina.descripcion_corta + ' (' + origen_inv_custodia.usuario.oficina.clave + ')') }}
+                {{ detail.label_value('Edificio', origen_inv_custodia.usuario.oficina.domicilio.edificio) }}
+                {{ detail.label_value('Fecha', moment(origen_inv_custodia.fecha, local=True).format("DD MMM YYYY")) }}
+            {% endcall %}
+        </div>
+        <div class="col-md-6">
+            {% call detail.card('Custodia de destino') %}
+                {{ detail.label_value('ID', destino_inv_custodia.id, url_for('inv_custodias.detail', inv_custodia_id=destino_inv_custodia.id)) }}
+                {{ detail.label_value('Usuario', destino_inv_custodia.nombre_completo + ' (' + destino_inv_custodia.usuario.email + ')') }}
+                {{ detail.label_value('Puesto', destino_inv_custodia.usuario.puesto) }}
+                {{ detail.label_value('Oficina', destino_inv_custodia.usuario.oficina.descripcion_corta + ' (' + destino_inv_custodia.usuario.oficina.clave + ')') }}
+                {{ detail.label_value('Edificio', destino_inv_custodia.usuario.oficina.domicilio.edificio) }}
+                {{ detail.label_value('Fecha', moment(destino_inv_custodia.fecha, local=True).format("DD MMM YYYY")) }}
+            {% endcall %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_javascript %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}

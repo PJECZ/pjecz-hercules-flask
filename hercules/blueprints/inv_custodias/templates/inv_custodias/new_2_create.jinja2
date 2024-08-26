@@ -12,7 +12,6 @@
 {% block content %}
     {% call f.card('Verificar que sea el Usuario correcto') %}
         {{ detail.label_value('Usuario', usuario.nombre + ' (' + usuario.email + ')') }}
-        {# detail.label_value('CURP', usuario.curp) #}
         {{ detail.label_value('Puesto', usuario.puesto) }}
         {{ detail.label_value('Oficina', usuario.oficina.descripcion_corta + ' (' + usuario.oficina.clave + ')') }}
         {{ detail.label_value('Edificio', usuario.oficina.domicilio.edificio) }}
