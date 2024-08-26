@@ -68,9 +68,7 @@
                 {% endif %}
                 {{ detail.label_value('Descripción', inv_equipo.descripcion) }}
                 {{ detail.label_value('Tipo', inv_equipo.tipo) }}
-                {% if inv_equipo.fecha_fabricacion %}
-                    {{ detail.label_value('F. fabricación', moment(inv_equipo.fecha_fabricacion, local=True).format("DD MMM YYYY")) }}
-                {% endif %}
+                {{ detail.label_value('Año de F.', inv_equipo.fecha_fabricacion_anio) }}
                 {{ detail.label_value('No. serie', inv_equipo.numero_serie) }}
                 {{ detail.label_value('No. inventario', inv_equipo.numero_inventario) }}
                 {% if current_user.can_view('INV REDES') %}

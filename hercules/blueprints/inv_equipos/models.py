@@ -3,7 +3,7 @@ Inventarios Equipos, modelos
 """
 
 from datetime import date
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy import Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -43,16 +43,17 @@ class InvEquipo(database.Model, UniversalMixin):
     inv_red: Mapped["InvRed"] = relationship(back_populates="inv_equipos")
 
     # Columnas
-    fecha_fabricacion: Mapped[date]
-    numero_serie: Mapped[str] = mapped_column(String(256))
-    numero_inventario: Mapped[int]
+    fecha_fabricacion: Mapped[Optional[date]]
+    fecha_fabricacion_anio: Mapped[Optional[int]]
+    numero_serie: Mapped[Optional[str]] = mapped_column(String(256))
+    numero_inventario: Mapped[Optional[int]]
     descripcion: Mapped[str] = mapped_column(String(256))
     tipo: Mapped[str] = mapped_column(Enum(*TIPOS, name="inv_equipos_tipos", native_enum=False), index=True)
-    direccion_ip: Mapped[str] = mapped_column(String(256))
-    direccion_mac: Mapped[str] = mapped_column(String(256))
-    numero_nodo: Mapped[int]
-    numero_switch: Mapped[int]
-    numero_puerto: Mapped[int]
+    direccion_ip: Mapped[Optional[str]] = mapped_column(String(256))
+    direccion_mac: Mapped[Optional[str]] = mapped_column(String(256))
+    numero_nodo: Mapped[Optional[int]]
+    numero_switch: Mapped[Optional[int]]
+    numero_puerto: Mapped[Optional[int]]
 
     # Hijos
     inv_componentes: Mapped[List["InvComponente"]] = relationship(back_populates="inv_equipo")
