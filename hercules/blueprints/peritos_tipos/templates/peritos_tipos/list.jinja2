@@ -2,14 +2,11 @@
 {% import 'macros/list.jinja2' as list %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Tipos de Peritos{% endblock %}
+{% block title %}{{ titulo }}{% endblock %}
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {% if current_user.can_view('PERITOS') %}
-            {{ topbar.button('Peritos', url_for('peritos.list_active'), 'mdi:clipboard-account') }}
-        {% endif %}
-        {% if current_user.can_edit('PERITOS TIPOS') %}
+        {% if current_user.can_admin('PERITOS TIPOS') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('peritos_tipos.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('peritos_tipos.list_active')) }}{% endif %}
         {% endif %}
@@ -21,10 +18,28 @@
 
 {% block content %}
     {% call list.card() %}
+        <!-- Filtros Peritos tipos -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="fitrosPeritosTipos.buscar(); return false;">
+                    <div class="col-6">
+                        <div class="form-floating">
+                            <input id="filtroNombre" type="text" class="form-control" aria-label="Nombre" style="text-transform: uppercase;">
+                            <label for="filtroNombre">Nombre</label>
+                        </div>
+                    </div>
+                    <div class="col-6 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="fitrosPeritosTipos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="fitrosPeritosTipos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- DataTable Peritos tipos -->
         <table id="peritos_tipos_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>Nombres</th>
+                    <th>Nombre</th>
                 </tr>
             </thead>
         </table>
@@ -32,8 +47,12 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    {{ list.config_datatable() }}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
     <script>
+        // DataTable Peritos tipos
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDataTable = constructorDataTable.config();
         configDataTable['ajax']['url'] = '/peritos_tipos/datatable_json';
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
@@ -48,6 +67,9 @@
                 }
             }
         ];
-        $('#peritos_tipos_datatable').DataTable(configDataTable);
+        // Filtros Peritos tipos
+        const fitrosPeritosTipos = new FiltrosDataTable('#peritos_tipos_datatable', configDataTable);
+        fitrosPeritosTipos.agregarInput('filtroNombre', 'nombre');
+        fitrosPeritosTipos.precargar();
     </script>
 {% endblock %}
