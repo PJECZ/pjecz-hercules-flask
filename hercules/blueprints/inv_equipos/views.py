@@ -167,6 +167,19 @@ def dashboard():
     )
 
 
+@inv_equipos.route("/inv_equipos/exportar_reporte_xlsx/<string:tipo>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def exportar_reporte_xlsx(tipo):
+    """Lanzar tarea en el fondo para exportar"""
+    tarea = current_user.launch_task(
+        comando="inv_equipos.tasks.lanzar_exportar_reporte_xlsx",
+        mensaje="Exportando el reporte de equipos a un archivo XLSX...",
+        tipo=tipo,
+    )
+    flash("Se ha lanzado esta tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
+    return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+
+
 @inv_equipos.route("/inv_equipos/nuevo/<int:inv_custodia_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_inv_custodia_id(inv_custodia_id):

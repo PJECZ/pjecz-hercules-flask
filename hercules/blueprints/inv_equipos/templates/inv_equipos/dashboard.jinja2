@@ -17,7 +17,16 @@
             {% call card.col_md(3) %}
                 {% call card.card(tipo) %}
                     {% call card.card_body() %}
-                        <a href="{{ url_for('inv_equipos.list_by_tipo', tipo=tipo) }}" class="btn btn-outline-primary">{{ cantidad }} equipos</a>
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('inv_equipos.list_by_tipo', tipo=tipo) }}" class="btn btn-outline-primary">
+                                <span class="iconify" data-icon="mdi:eye"></span>
+                                Ver {{ cantidad }} equipos
+                            </a>
+                            <a href="{{ url_for('inv_equipos.exportar_reporte_xlsx', tipo=tipo) }}" class="btn btn-outline-success">
+                                <span class="iconify" data-icon="mdi:google-spreadsheet"></span>
+                                Exportar XLSX
+                            </a>
+                        </div>
                     {% endcall %}
                 {% endcall %}
             {% endcall %}
