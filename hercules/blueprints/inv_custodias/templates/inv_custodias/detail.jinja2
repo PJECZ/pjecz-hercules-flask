@@ -150,9 +150,9 @@
             ];
             configDataTable['columnDefs'] = [
                 {
-                    targets: [0], // detalle
+                    targets: [0], // detalle muestra el ID con cinco digitos por ejemplo 00001
                     render: function(data, type, row, meta) {
-                        return '<a href="' + data.url + '">' + data.id + '</a>';
+                        return '<a href="' + data.url + '">' + data.id.toString().padStart(5, '0') + '</a>';
                     }
                 },
                 {

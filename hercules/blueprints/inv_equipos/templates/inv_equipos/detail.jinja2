@@ -157,8 +157,8 @@
 
 {% block custom_javascript %}
     {% if current_user.can_admin('INV EQUIPOS') %}
-        {% if inv_equipo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + inv_equipo.id + '?') }}{% endif %}
-        {% if inv_equipo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + inv_equipo.id + '?') }}{% endif %}
+        {% if inv_equipo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + inv_equipo.id | string + ' que es ' + inv_equipo.descripcion + '?') }}{% endif %}
+        {% if inv_equipo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + inv_equipo.id | string + ' que es ' + inv_equipo.descripcion + '?') }}{% endif %}
     {% endif %}
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>

@@ -46,6 +46,14 @@ def actualizar(tipo: str = None):
     """Actualizar informacion de los equipos"""
     bitacora.info("Inicia crear reporte de equipos XLSX")
 
+    # Consultar las cantidades de equipos con estatus 'A' por tipo
+    consulta = (
+        database.session.query(InvEquipo.tipo, database.func.count(InvEquipo.id).label("cantidad"))
+        .filter(InvEquipo.estatus == "A")
+        .group_by(InvEquipo.tipo)
+        .order_by(InvEquipo.tipo)
+    )
+
     # Entregar mensaje de termino, el nombre del archivo XLSX y la URL publica
     mensaje_termino = ""
     nombre_archivo_xlsx = ""
