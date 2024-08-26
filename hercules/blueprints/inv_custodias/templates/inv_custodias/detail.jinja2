@@ -27,7 +27,6 @@
         {% else %}
             {{ detail.label_value('Usuario', usuario_str) }}
         {% endif %}
-        {# detail.label_value('CURP', inv_custodia.curp) #}
         {{ detail.label_value('Puesto', inv_custodia.usuario.puesto) }}
         {% set oficina_str = inv_custodia.usuario.oficina.descripcion_corta + ' (' + inv_custodia.usuario.oficina.clave + ')' %}
         {% if current_user.can_view('OFICINAS') %}
@@ -105,10 +104,10 @@
                         <th>ID</th>
                         <th>Tipo</th>
                         <th>Marca</th>
-                        <th>Descripción </th>
-                        <th>F. Fab.</th>
+                        <th>Descripción</th>
+                        <th>Año F.</th>
                         <th>No. Serie</th>
-                        <th>No. Inventario</th>
+                        <th>No. Inv.</th>
                         <th>D. IP</th>
                         <th>D. MAC</th>
                         <th>Red</th>
@@ -117,6 +116,9 @@
             </table>
             {% if current_user.can_insert('INV EQUIPOS') %}
                 <a href="{{ url_for('inv_equipos.new_with_inv_custodia_id', inv_custodia_id=inv_custodia.id) }}" class="btn btn-primary">Agregar equipo</a>
+            {% endif %}
+            {% if current_user.can_edit('INV CUSTODIAS') %}
+                <a href="{{ url_for('inv_custodias.move_1_choose_custodia', origen_inv_custodia_id=inv_custodia.id) }}" class="btn btn-primary">Mover equipos a otra custodia</a>
             {% endif %}
         {% endcall %}
     {% endif %}
@@ -141,7 +143,7 @@
                 { data: "tipo" },
                 { data: "inv_marca_nombre" },
                 { data: "descripcion" },
-                { data: "fecha_fabricacion" },
+                { data: "fecha_fabricacion_anio" },
                 { data: "numero_serie" },
                 { data: "numero_inventario" },
                 { data: "direccion_ip" },
@@ -150,9 +152,9 @@
             ];
             configDataTable['columnDefs'] = [
                 {
-                    targets: [0], // detalle
+                    targets: [0], // detalle muestra el ID con cinco digitos por ejemplo 00001
                     render: function(data, type, row, meta) {
-                        return '<a href="' + data.url + '">' + data.id + '</a>';
+                        return '<a href="' + data.url + '">' + data.id.toString().padStart(5, '0') + '</a>';
                     }
                 },
                 {

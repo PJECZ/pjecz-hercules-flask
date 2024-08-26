@@ -74,6 +74,7 @@
                         </div>
                     </div>
                     <div class="col-2">
+                        {% if not titulo.startswith('Equipos tipo ') %}
                         <div class="form-floating">
                             <select id="filtroTipo" class="form-select" aria-label="Tipo">
                                 <option selected value="">Todos los tipos</option>
@@ -89,6 +90,7 @@
                                 <option value="OTROS">OTROS</option>
                             </select>
                         </div>
+                        {% endif %}
                     </div>
                     <div class="col-2 text-end">
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosInvEquipos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
@@ -104,10 +106,10 @@
                     <th>ID</th>
                     <th>Tipo</th>
                     <th>Marca</th>
-                    <th>Descripción </th>
-                    <th>F. Fab.</th>
+                    <th>Descripción</th>
+                    <th>Año F.</th>
                     <th>No. Serie</th>
-                    <th>No. Inventario</th>
+                    <th>No. Inv.</th>
                     <th>D. IP</th>
                     <th>D. MAC</th>
                     <th>Red</th>
@@ -132,7 +134,7 @@
             { data: "tipo" },
             { data: "inv_marca_nombre" },
             { data: "descripcion" },
-            { data: "fecha_fabricacion" },
+            { data: "fecha_fabricacion_anio" },
             { data: "numero_serie" },
             { data: "numero_inventario" },
             { data: "direccion_ip" },
@@ -142,7 +144,7 @@
         ];
         configDataTable['columnDefs'] = [
             {
-                targets: [0], // detalle
+                targets: 0, // detalle muestra el ID con cinco digitos por ejemplo 00001
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.id.toString().padStart(5, '0') + '</a>';
                 }
@@ -174,7 +176,9 @@
         filtrosInvEquipos.agregarInput('filtroNumeroSerie', 'numero_serie');
         filtrosInvEquipos.agregarInput('filtroNumeroInventario', 'numero_inventario');
         filtrosInvEquipos.agregarInput('filtroDescripcion', 'descripcion');
+        {% if not titulo.startswith('Equipos tipo ') %}
         filtrosInvEquipos.agregarInput('filtroTipo', 'tipo');
+        {% endif %}
         filtrosInvEquipos.precargar();
     </script>
 {% endblock %}

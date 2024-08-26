@@ -6,6 +6,7 @@ import json
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import func
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.inv_custodias.models import InvCustodia
@@ -14,6 +15,7 @@ from hercules.blueprints.inv_equipos.models import InvEquipo
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
+from hercules.extensions import database
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_ip_address, safe_mac_address, safe_message, safe_string
 
@@ -92,9 +94,7 @@ def datatable_json():
                 "tipo": resultado.tipo,
                 "inv_marca_nombre": resultado.inv_modelo.inv_marca.nombre,
                 "descripcion": resultado.descripcion,
-                "fecha_fabricacion": (
-                    resultado.fecha_fabricacion.strftime("%Y-%m-%d") if resultado.fecha_fabricacion is not None else ""
-                ),
+                "fecha_fabricacion_anio": resultado.fecha_fabricacion_anio,
                 "direccion_ip": resultado.direccion_ip,
                 "direccion_mac": resultado.direccion_mac,
                 "numero_serie": resultado.numero_serie,
@@ -131,6 +131,18 @@ def list_inactive():
     )
 
 
+@inv_equipos.route("/inv_equipos/tipo/<string:tipo>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def list_by_tipo(tipo):
+    """Listado de InvEquipo por tipo"""
+    return render_template(
+        "inv_equipos/list.jinja2",
+        filtros=json.dumps({"estatus": "A", "tipo": tipo}),
+        titulo=f"Equipos tipo {tipo}",
+        estatus="A",
+    )
+
+
 @inv_equipos.route("/inv_equipos/<int:inv_equipo_id>")
 def detail(inv_equipo_id):
     """Detalle de un InvEquipo"""
@@ -142,7 +154,30 @@ def detail(inv_equipo_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def dashboard():
     """Tablero de InvEquipo"""
-    return render_template("inv_equipos/dashboard.jinja2")
+    inv_equipos_cantidades_por_tipo = (
+        database.session.query(InvEquipo.tipo, func.count(InvEquipo.id))
+        .where(InvEquipo.estatus == "A")
+        .group_by(InvEquipo.tipo)
+        .order_by(InvEquipo.tipo)
+        .all()
+    )
+    return render_template(
+        "inv_equipos/dashboard.jinja2",
+        inv_equipos_cantidades_por_tipo=inv_equipos_cantidades_por_tipo,
+    )
+
+
+@inv_equipos.route("/inv_equipos/exportar_reporte_xlsx/<string:tipo>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def exportar_reporte_xlsx(tipo):
+    """Lanzar tarea en el fondo para exportar"""
+    tarea = current_user.launch_task(
+        comando="inv_equipos.tasks.lanzar_exportar_reporte_xlsx",
+        mensaje="Exportando el reporte de equipos a un archivo XLSX...",
+        tipo=tipo,
+    )
+    flash("Se ha lanzado esta tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
+    return redirect(url_for("tareas.detail", tarea_id=tarea.id))
 
 
 @inv_equipos.route("/inv_equipos/nuevo/<int:inv_custodia_id>", methods=["GET", "POST"])
@@ -158,7 +193,7 @@ def new_with_inv_custodia_id(inv_custodia_id):
             inv_modelo_id=form.inv_modelo.data,
             descripcion=safe_string(form.descripcion.data, save_enie=True),
             tipo=form.tipo.data,
-            fecha_fabricacion=form.fecha_fabricacion.data,
+            fecha_fabricacion_anio=form.fecha_fabricacion_anio.data,
             numero_serie=safe_string(form.numero_serie.data),
             numero_inventario=form.numero_inventario.data,
             inv_red_id=form.inv_red.data,
@@ -194,7 +229,7 @@ def edit(inv_equipo_id):
         inv_equipo.inv_modelo_id = form.inv_modelo.data
         inv_equipo.descripcion = safe_string(form.descripcion.data, save_enie=True)
         inv_equipo.tipo = form.tipo.data
-        inv_equipo.fecha_fabricacion = form.fecha_fabricacion.data
+        inv_equipo.fecha_fabricacion_anio = form.fecha_fabricacion_anio.data
         inv_equipo.numero_serie = safe_string(form.numero_serie.data)
         inv_equipo.numero_inventario = form.numero_inventario.data
         inv_equipo.inv_red_id = form.inv_red.data
@@ -218,7 +253,7 @@ def edit(inv_equipo_id):
     form.inv_modelo.data = inv_equipo.inv_modelo_id
     form.descripcion.data = inv_equipo.descripcion
     form.tipo.data = inv_equipo.tipo
-    form.fecha_fabricacion.data = inv_equipo.fecha_fabricacion
+    form.fecha_fabricacion_anio.data = inv_equipo.fecha_fabricacion_anio
     form.numero_serie.data = inv_equipo.numero_serie
     form.numero_inventario.data = inv_equipo.numero_inventario
     form.inv_red.data = inv_equipo.inv_red_id

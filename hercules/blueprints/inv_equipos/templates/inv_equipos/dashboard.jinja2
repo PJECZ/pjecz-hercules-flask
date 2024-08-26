@@ -11,30 +11,28 @@
 {% endblock %}
 
 {% block content %}
-    <!-- Tarjetas con estadisticas de InvEquipos -->
+    <!-- Tarjetas con cantidades por tipo -->
     {% call card.container_row() %}
-        {% call card.col_md() %}
-            {% call card.card('Computadoras') %}
-                {% call card.card_body(button_text='Descargar XLSX') %}
-                    Hay 0000 registros.
+        {% for tipo, cantidad in inv_equipos_cantidades_por_tipo %}
+            {% call card.col_md(3) %}
+                {% call card.card(tipo) %}
+                    {% call card.card_body() %}
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('inv_equipos.list_by_tipo', tipo=tipo) }}" class="btn btn-outline-primary">
+                                <span class="iconify" data-icon="mdi:eye"></span>
+                                Ver {{ cantidad }} equipos
+                            </a>
+                            <a href="{{ url_for('inv_equipos.exportar_reporte_xlsx', tipo=tipo) }}" class="btn btn-outline-success">
+                                <span class="iconify" data-icon="mdi:google-spreadsheet"></span>
+                                Exportar XLSX
+                            </a>
+                        </div>
+                    {% endcall %}
                 {% endcall %}
             {% endcall %}
-        {% endcall %}
-        {% call card.col_md() %}
-            {% call card.card('Laptops') %}
-                {% call card.card_body(button_text='Descargar XLSX') %}
-                    Hay 0000 registros.
-                {% endcall %}
-            {% endcall %}
-        {% endcall %}
-        {% call card.col_md() %}
-            {% call card.card('Impresoras') %}
-                {% call card.card_body(button_text='Descargar XLSX') %}
-                    Hay 0000 registros.
-                {% endcall %}
-            {% endcall %}
-        {% endcall %}
+        {% endfor %}
     {% endcall %}
+    <!-- Matriz de tipos y anos de fabricacion -->
 {% endblock %}
 
 {% block custom_javascript %}
