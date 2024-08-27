@@ -154,6 +154,7 @@ def detail(inv_equipo_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def dashboard():
     """Tablero de InvEquipo"""
+    # Cantidades de equipos por tipo
     inv_equipos_cantidades_por_tipo = (
         database.session.query(InvEquipo.tipo, func.count(InvEquipo.id))
         .where(InvEquipo.estatus == "A")
@@ -161,9 +162,25 @@ def dashboard():
         .order_by(InvEquipo.tipo)
         .all()
     )
+    # Cantidades de equipos por tipo y año de fabricación
+    inv_equipos_cantidades_por_tipo_y_fabricacion_anio = (
+        database.session.query(InvEquipo.fecha_fabricacion_anio, InvEquipo.tipo, func.count(InvEquipo.id))
+        .where(InvEquipo.fecha_fabricacion_anio.isnot(None))
+        .where(InvEquipo.estatus == "A")
+        .group_by(InvEquipo.fecha_fabricacion_anio, InvEquipo.tipo)
+        .all()
+    )
+    # Estructurar para hacer una tabla con Jinja2 con los años en renglones y los tipos en columnas
+    inv_equipos_matriz_tipos_anios = {}
+    for fabricacion_anio, tipo, cantidad in inv_equipos_cantidades_por_tipo_y_fabricacion_anio:
+        if fabricacion_anio not in inv_equipos_matriz_tipos_anios:
+            inv_equipos_matriz_tipos_anios[fabricacion_anio] = {}
+        inv_equipos_matriz_tipos_anios[fabricacion_anio][tipo] = cantidad
+    # Entregar
     return render_template(
         "inv_equipos/dashboard.jinja2",
         inv_equipos_cantidades_por_tipo=inv_equipos_cantidades_por_tipo,
+        inv_equipos_matriz_tipos_anios=inv_equipos_matriz_tipos_anios,
     )
 
 
