@@ -20,7 +20,7 @@
                         <div class="d-grid gap-2">
                             <a href="{{ url_for('inv_equipos.list_by_tipo', tipo=tipo) }}" class="btn btn-outline-primary">
                                 <span class="iconify" data-icon="mdi:eye"></span>
-                                Ver {{ cantidad }} equipos
+                                Ver <strong>{{ cantidad }}</strong> equipos
                             </a>
                             <a href="{{ url_for('inv_equipos.exportar_reporte_xlsx', tipo=tipo) }}" class="btn btn-outline-success">
                                 <span class="iconify" data-icon="mdi:google-spreadsheet"></span>
@@ -32,8 +32,48 @@
             {% endcall %}
         {% endfor %}
     {% endcall %}
-    <!-- Matriz de tipos y anos de fabricacion -->
+    <!-- Matriz de tipos y años de fabricación -->
+    {% call card.card('Matriz de tipos y años de fabricación') %}
+        <table id="inv_equipos_datatable" class="table display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Año F.</th>
+                    {% for tipo, cantidad in inv_equipos_cantidades_por_tipo %}
+                        <th>{{ tipo }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for anio, cantidades_por_tipo in inv_equipos_matriz_tipos_anios.items() %}
+                    <tr>
+                        <td>{{ anio }}</td>
+                        {% for tipo, cantidad in inv_equipos_cantidades_por_tipo %}
+                            <td>{{ cantidades_por_tipo[tipo] }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endcall %}
 {% endblock %}
 
 {% block custom_javascript %}
+    <script>
+        <!-- DataTable matriz de tipos y años de fabricación: NO usa AJAX -->
+        $(document).ready(function() {
+            $('#inv_equipos_datatable').DataTable({
+                "paging": false,
+                "searching": false,
+                "info": false,
+                "autoWidth": true,
+                "order": [[0, 'asc']],
+                "columnDefs": [
+                    { "targets": 0, "width": "10%" },
+                    {% for tipo, cantidad in inv_equipos_cantidades_por_tipo %}
+                        { "targets": {{ loop.index }}, "width": "10%" },
+                    {% endfor %}
+                ]
+            });
+        });
+    </script>
 {% endblock %}
