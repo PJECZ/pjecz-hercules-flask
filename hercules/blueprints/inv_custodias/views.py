@@ -11,6 +11,7 @@ from flask_login import current_user, login_required
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.inv_custodias.forms import InvCustodiaForm
 from hercules.blueprints.inv_custodias.models import InvCustodia
+from hercules.blueprints.inv_equipos.models import InvEquipo
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
@@ -123,7 +124,7 @@ def detail(inv_custodia_id):
     return render_template("inv_custodias/detail.jinja2", inv_custodia=inv_custodia)
 
 
-@inv_custodias.route("/inv_custodias/mover_inv_equipos/<int:origen_inv_custodia_id>")
+@inv_custodias.route("/inv_custodias/move_1_choose_custodia/<int:origen_inv_custodia_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def move_1_choose_custodia(origen_inv_custodia_id):
     """Mover Equipos 1. Elegir Custodia de destino"""
@@ -134,7 +135,7 @@ def move_1_choose_custodia(origen_inv_custodia_id):
     )
 
 
-@inv_custodias.route("/inv_custodias/mover_inv_equipos/<int:origen_inv_custodia_id>/<int:destino_inv_custodia_id>")
+@inv_custodias.route("/inv_custodias/move_2_choose_equipos/<int:origen_inv_custodia_id>/<int:destino_inv_custodia_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def move_2_choose_equipos(origen_inv_custodia_id, destino_inv_custodia_id):
     """Mover Equipos 2. Elegir Equipos"""
@@ -148,6 +149,56 @@ def move_2_choose_equipos(origen_inv_custodia_id, destino_inv_custodia_id):
         origen_inv_custodia=origen_inv_custodia,
         destino_inv_custodia=destino_inv_custodia,
     )
+
+
+@inv_custodias.route(
+    "/inv_custodias/move_3_move_equipo/<int:origen_inv_custodia_id>/<int:destino_inv_custodia_id>", methods=["POST"]
+)
+@permission_required(MODULO, Permiso.MODIFICAR)
+def move_3_move_equipo(origen_inv_custodia_id, destino_inv_custodia_id):
+    """Mover Equipos 3. Mover Equipos"""
+    # Validar que sean diferentes las custodias
+    if origen_inv_custodia_id == destino_inv_custodia_id:
+        return {
+            "success": False,
+            "message": "No se puede mover equipos a la misma custodia",
+        }
+    # Consultar la custodia de origen
+    origen_inv_custodia = InvCustodia.query.get(origen_inv_custodia_id)
+    if origen_inv_custodia is None:
+        return {
+            "success": False,
+            "message": "Custodia de origen no encontrada",
+        }
+    # Consultar la custodia de destino
+    destino_inv_custodia = InvCustodia.query.get(destino_inv_custodia_id)
+    if destino_inv_custodia is None:
+        return {
+            "success": False,
+            "message": "Custodia de destino no encontrada",
+        }
+    # En el cuerpo del POST, se espera un JSON con inv_equipo_id
+    if "inv_equipo_id" not in request.json:
+        return {
+            "success": False,
+            "message": "No se especificó el equipo a mover",
+        }
+    inv_equipo_id = request.json["inv_equipo_id"]
+    # Consultar el InvEquipo a mover
+    inv_equipo = InvEquipo.query.get(inv_equipo_id)
+    if inv_equipo is None:
+        return {
+            "success": False,
+            "message": "Equipo no encontrado",
+        }
+    # Mover el InvEquipo a la custodia de destino
+    inv_equipo.inv_custodia_id = destino_inv_custodia.id
+    inv_equipo.save()
+    # Entregar JSON
+    return {
+        "success": True,
+        "message": f"Equipo {inv_equipo_id} movido a la custodia {destino_inv_custodia.id}",
+    }
 
 
 @inv_custodias.route("/inv_custodias/nuevo")
