@@ -134,9 +134,9 @@ def new_with_inv_equipo_id(inv_equipo_id):
             url=url_for("inv_componentes.detail", inv_componente_id=inv_componente.id),
         )
         bitacora.save()
-        # Entregar detalle
+        # Despues de guardar ir al detalle del InvEquipo
         flash(bitacora.descripcion, "success")
-        return redirect(bitacora.url)
+        return redirect(url_for("inv_equipos.detail", inv_equipo_id=inv_equipo.id))
     return render_template("inv_componentes/new.jinja2", form=form, inv_equipo=inv_equipo)
 
 
