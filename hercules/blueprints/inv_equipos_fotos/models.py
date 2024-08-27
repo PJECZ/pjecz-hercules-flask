@@ -24,8 +24,8 @@ class InvEquipoFoto(database.Model, UniversalMixin):
 
     # Columnas
     descripcion: Mapped[str] = mapped_column(String(256))
-    archivo: Mapped[str] = mapped_column(String(256))
-    url: Mapped[str] = mapped_column(String(512))
+    archivo: Mapped[str] = mapped_column(String(256), default="")
+    url: Mapped[str] = mapped_column(String(512), default="")
 
     def __repr__(self):
         """Representación"""
