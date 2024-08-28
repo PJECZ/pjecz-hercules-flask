@@ -2,7 +2,7 @@
 Web Paginas, modelos
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import List, Optional
 
 from sqlalchemy import Date, Enum, ForeignKey, String, Text
@@ -33,18 +33,21 @@ class WebPagina(database.Model, UniversalMixin):
 
     # Columnas
     clave: Mapped[str] = mapped_column(String(16), unique=True)
+    titulo: Mapped[str] = mapped_column(String(256))
+    resumen: Mapped[Optional[str]] = mapped_column(String(1024))
+    ruta: Mapped[str] = mapped_column(String(256))
+    fecha_modificacion: Mapped[date]
+    responsable: Mapped[Optional[str]] = mapped_column(String(256))
+    etiquetas: Mapped[Optional[str]] = mapped_column(String(256))
+    vista_previa: Mapped[Optional[str]] = mapped_column(String(256))
     contenido: Mapped[str] = mapped_column(Text)
     estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="web_paginas_estados", native_enum=False), index=True)
-    fecha_modificacion: Mapped[datetime] = mapped_column(Date)
-    responsable: Mapped[Optional[str]] = mapped_column(String(256))
-    ruta: Mapped[str] = mapped_column(String(256))
-    tiempo_publicar: Mapped[Optional[datetime]] = mapped_column(Date)
-    tiempo_archivar: Mapped[Optional[datetime]] = mapped_column(Date)
-    titulo: Mapped[str] = mapped_column(String(256))
+    tiempo_publicar: Mapped[Optional[datetime]]
+    tiempo_archivar: Mapped[Optional[datetime]]
 
     # Hijos
     web_archivos: Mapped[List["WebArchivo"]] = relationship("WebArchivo", back_populates="web_pagina")
 
     def __repr__(self):
         """Representación"""
-        return f"<WebPagina {self.id}>"
+        return f"<WebPagina clave {self.clave}, titulo {self.titulo}, ruta {self.ruta}, fecha de modificacion {self.fecha_modificacion}, estado {self.estado}>"

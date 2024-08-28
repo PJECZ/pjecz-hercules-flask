@@ -135,7 +135,7 @@ def safe_text(input_str, max_len=4096, to_uppercase=True):
         final = final.upper()
     if max_len == 0:
         return final
-    return (final[:max_len] + "...") if len(final) > max_len else final
+    return (final[:max_len] + "…") if len(final) > max_len else final
 
 
 def safe_message(input_str, max_len=250, default_output_str="Sin descripción") -> str:
@@ -143,7 +143,7 @@ def safe_message(input_str, max_len=250, default_output_str="Sin descripción") 
     message = str(input_str)
     if message == "":
         return default_output_str
-    return (message[:max_len] + "...") if len(message) > max_len else message
+    return (message[:max_len] + "…") if len(message) > max_len else message
 
 
 def safe_numero_publicacion(input_str):
@@ -214,7 +214,7 @@ def safe_string(input_str, max_len=250, do_unidecode=True, save_enie=False, to_u
         final = final.upper()
     if max_len == 0:
         return final
-    return (final[:max_len] + "...") if len(final) > max_len else final
+    return (final[:max_len] + "…") if len(final) > max_len else final
 
 
 def safe_url(input_str):

@@ -19,11 +19,10 @@
 {% endblock %}
 
 {% block content %}
-    {% call detail.card(estatus=web_rama.estatus) %}
-        {# detail.label_value('Nombre', web_rama.nombre) #}
+    {# call detail.card(estatus=web_rama.estatus) %}
+        {{ detail.label_value('Nombre', web_rama.nombre) }}
         {{ detail.label_value('Clave', web_rama.clave) }}
-        {# detail.label_value('Creado', moment(web_rama.creado, local=True).format('llll')) #}
-    {% endcall %}
+    {% endcall #}
     {% if current_user.can_view('WEB PAGINAS') %}
         {% call detail.card('Páginas') %}
             <!-- Filtros WebPaginas -->

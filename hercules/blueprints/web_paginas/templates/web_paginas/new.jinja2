@@ -12,8 +12,9 @@
     {% call f.card() %}
         {% set form_kwargs = {'web_rama_id': web_rama.id} %}
         {% call f.form_tag('web_paginas.new', fid='web_pagina_form', **form_kwargs) %}
-            {% call f.form_group(form.titulo) %}{% endcall %}
             {% call f.form_group(form.clave) %}{% endcall %}
+            {% call f.form_group(form.titulo) %}{% endcall %}
+            {% call f.form_group(form.resumen) %}{% endcall %}
             {% call f.form_group(form.ruta) %}{% endcall %}
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}
