@@ -47,7 +47,7 @@ def datatable_json():
     if "nombre" in request.form:
         nombre = safe_string(request.form["nombre"], do_unidecode=False, save_enie=True, to_uppercase=False)
         if nombre != "":
-            consulta = consulta.filter(WebRama.nombre.contains(nombre))
+            consulta = consulta.filter(WebRama.nombre.ilike(f"%{nombre}%"))
     # Ordenar y paginar
     registros = consulta.order_by(WebRama.clave).offset(start).limit(rows_per_page).all()
     total = consulta.count()

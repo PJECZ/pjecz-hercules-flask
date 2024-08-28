@@ -74,7 +74,7 @@ def actualizar(probar: bool = False, rama: str = None):
         # Validar que exista y sea un directorio
         if not Path(directorio_str).is_dir():
             click.echo(click.style(f"El directorio {directorio_str} no existe", fg="red"))
-            sys.exit(1)
+            continue
 
         # Rastrear el directorio de la rama para encontrar los archivos todos los MD
         archivos_md = list(Path(directorio_str).rglob("*.md"))
@@ -130,7 +130,7 @@ def actualizar(probar: bool = False, rama: str = None):
                         elif linea_estado == "HIDDEN":
                             estado = "ARCHIVAR"
                     else:
-                        linea_limpia = unidecode(linea.strip()).strip()
+                        linea_limpia = linea.strip()
                         if linea_limpia != "":
                             hay_contenido = True
                         lineas_nuevas.append(linea_limpia)  # Si no es metadato, entonces guardar la linea
@@ -141,7 +141,7 @@ def actualizar(probar: bool = False, rama: str = None):
                     continue
 
                 # Unir las lineas que no son metadatos
-                contenido_html = markdown("\n".join(lineas_nuevas))
+                contenido_html = markdown("\n".join(lineas_nuevas), extensions=["tables"])
 
                 # Si NO hay titulo, entonces se usa el nombre del archivo sin la extension '.md'
                 if titulo is None or titulo == "":

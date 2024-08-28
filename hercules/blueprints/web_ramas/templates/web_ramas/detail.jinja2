@@ -114,8 +114,8 @@
                     targets: 1, // titulo
                     data: null,
                     render: function(data, type, row, meta) {
-                        if (data.length > 24) {
-                            return '<span title="' + data + '">' + data.substring(0, 24) + '...</span>';
+                        if (data.length > 48) {
+                            return '<span title="' + data + '">' + data.substring(0, 48) + '...</span>';
                         }
                         return data;
                     }
