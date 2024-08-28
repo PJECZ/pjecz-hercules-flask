@@ -51,7 +51,7 @@ def datatable_json():
     if "titulo" in request.form:
         titulo = safe_string(request.form["titulo"], do_unidecode=False, save_enie=True, to_uppercase=False)
         if titulo != "":
-            consulta = consulta.filter(WebPagina.titulo.contains(titulo))
+            consulta = consulta.filter(WebPagina.titulo.ilike(f"%{titulo}%"))
     if "estado" in request.form:
         consulta = consulta.filter_by(estado=request.form["estado"])
     # Ordenar y paginar
