@@ -126,6 +126,10 @@ from lib.exceptions import MyFilenameError, MyNotAllowedExtensionError, MyUnknow
 locale.setlocale(locale.LC_TIME, "es_MX.utf8")
 
 
+class NotConfiguredError(Exception):
+    """Exception raised when a environment variable is not configured"""
+
+
 class GoogleCloudStorage:
     """Google Cloud Storage"""
 
