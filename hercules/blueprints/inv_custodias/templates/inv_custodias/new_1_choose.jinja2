@@ -10,7 +10,7 @@
 
 {% block content %}
     {% call list.card('Elegir Usuario') %}
-        <!-- Filtros usuarios -->
+        <!-- Filtros Usuarios -->
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosUsuarios.buscar(); return false;">
@@ -39,7 +39,7 @@
                 </form>
             </div>
         </div>
-        <!-- Datatable usuarios -->
+        <!-- Datatable Usuarios -->
         <table id="usuarios_datatable" class="table display nowrap" style="width:100%">
             <thead>
                 <tr>
@@ -58,7 +58,7 @@
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
-        // DataTable usuarios
+        // DataTable Usuarios
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
         let configDataTable = constructorDataTable.config();
         configDataTable['ajax']['url'] = '/usuarios/datatable_json';
@@ -93,7 +93,7 @@
                 }
             }
         ];
-        // Filtros usuarios
+        // Filtros Usuarios
         const filtrosUsuarios = new FiltrosDataTable('#usuarios_datatable', configDataTable);
         filtrosUsuarios.agregarInput('filtroEMail', 'email');
         filtrosUsuarios.agregarInput('filtroNombres', 'nombres');

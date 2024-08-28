@@ -23,7 +23,7 @@
 {%- macro card(title='') -%}
     <div class="card mb-4 rounded-3 shadow-sm text-center border-dark">
         {% if title %}<div class="card-header py-3 text-bg-primary border-dark">
-            <h4 class="my-0 fw-normal">{{ title }}</h4>
+            <h5 class="my-0 fw-normal">{{ title }}</h5>
         </div>{% endif %}
         <div class="card-body">
             {{ caller () }}

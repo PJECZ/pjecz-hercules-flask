@@ -3,7 +3,7 @@ Inventarios Equipos, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import DateField, IntegerField, SelectField, StringField, SubmitField
+from wtforms import IntegerField, SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length, Optional, Regexp
 
 from lib.safe_string import DIRECCION_IP_REGEXP, MAC_ADDRESS_REGEXP
@@ -17,7 +17,7 @@ class InvEquipoForm(FlaskForm):
     inv_modelo = SelectField("Marca - Modelo", coerce=int, validators=[DataRequired()], validate_choice=False)
     descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=512)])
     tipo = SelectField("Tipo de equipo", choices=InvEquipo.TIPOS.items(), validators=[DataRequired()])
-    fecha_fabricacion = DateField("Fecha de fabricación", validators=[Optional()])
+    fecha_fabricacion_anio = IntegerField("Año de fabricación", validators=[Optional()])
     numero_serie = StringField("Número de serie", validators=[Optional()])
     numero_inventario = IntegerField("Número de inventario", validators=[Optional()])
     inv_red = SelectField("Red", coerce=int, validators=[DataRequired()])

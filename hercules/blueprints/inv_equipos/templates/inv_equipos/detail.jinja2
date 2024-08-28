@@ -68,9 +68,7 @@
                 {% endif %}
                 {{ detail.label_value('Descripción', inv_equipo.descripcion) }}
                 {{ detail.label_value('Tipo', inv_equipo.tipo) }}
-                {% if inv_equipo.fecha_fabricacion %}
-                    {{ detail.label_value('F. fabricación', moment(inv_equipo.fecha_fabricacion, local=True).format("DD MMM YYYY")) }}
-                {% endif %}
+                {{ detail.label_value('Año de F.', inv_equipo.fecha_fabricacion_anio) }}
                 {{ detail.label_value('No. serie', inv_equipo.numero_serie) }}
                 {{ detail.label_value('No. inventario', inv_equipo.numero_inventario) }}
                 {% if current_user.can_view('INV REDES') %}
@@ -151,14 +149,17 @@
                     </tr>
                 </thead>
             </table>
+            {% if current_user.can_insert('INV EQUIPOS FOTOS') %}
+                <a href="{{ url_for('inv_equipos_fotos.new_with_inv_equipo_id', inv_equipo_id=inv_equipo.id) }}" class="btn btn-primary">Agregar foto</a>
+            {% endif %}
         {% endcall %}
     {% endif %}
 {% endblock %}
 
 {% block custom_javascript %}
     {% if current_user.can_admin('INV EQUIPOS') %}
-        {% if inv_equipo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + inv_equipo.id + '?') }}{% endif %}
-        {% if inv_equipo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + inv_equipo.id + '?') }}{% endif %}
+        {% if inv_equipo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + inv_equipo.id | string + ' que es ' + inv_equipo.descripcion + '?') }}{% endif %}
+        {% if inv_equipo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + inv_equipo.id | string + ' que es ' + inv_equipo.descripcion + '?') }}{% endif %}
     {% endif %}
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>

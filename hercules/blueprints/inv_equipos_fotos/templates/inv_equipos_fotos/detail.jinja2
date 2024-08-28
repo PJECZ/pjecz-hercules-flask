@@ -8,13 +8,10 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons('Foto del equipo ' + inv_equipo_foto.id | string) %}
         {{ topbar.button_previous('Fotos de los Equipos', url_for('inv_equipos_fotos.list_active')) }}
-        {# if current_user.can_edit('INV EQUIPOS FOTOS') %}
-            {{ topbar.button_edit('Editar', url_for('inv_equipos_fotos.edit', inv_equipo_foto_id=inv_equipo_foto.id)) }}
-        {% endif #}
-        {# if current_user.can_admin('INV EQUIPOS FOTOS') %}
+        {% if current_user.can_admin('INV EQUIPOS FOTOS') %}
             {% if inv_equipo_foto.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('inv_equipos_fotos.delete', inv_equipo_foto_id=inv_equipo_foto.id)) }}{% endif %}
             {% if inv_equipo_foto.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('inv_equipos_fotos.recover', inv_equipo_foto_id=inv_equipo_foto.id)) }}{% endif %}
-        {% endif #}
+        {% endif %}
     {% endcall %}
 {% endblock %}
 
@@ -30,17 +27,17 @@
         {% endif %}
         {# detail.label_value('URL', inv_equipo_foto.url) #}
         {% if inv_equipo_foto.url.rsplit(".", 1)[1].lower() in ("png", "jpg", "jpeg") %}
-            {{ detail.label_value('Imágen previa') }}
-            <a href="{{ inv_equipo_foto.url }}"><img src="{{ inv_equipo_foto.url }}" style="max-width: 500px; height: auto;"/></a>
+            {{ detail.label_value('Imagen') }}
+            <a href="{{ inv_equipo_foto.url }}"><img src="{{ inv_equipo_foto.url }}" style="max-width: 500px; height: auto;" alt="foto"/></a>
         {% endif %}
         {# detail.label_value('Creado', moment(inv_equipo_foto.creado, local=True).format('llll')) #}
     {% endcall %}
 {% endblock %}
 
 {% block custom_javascript %}
-    {# if current_user.can_admin('INV EQUIPOS FOTOS') %}
-        {% if inv_equipo_foto.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + inv_equipo_foto.id + '?') }}{% endif %}
-        {% if inv_equipo_foto.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + inv_equipo_foto.id + '?') }}{% endif %}
-    {% endif #}
+    {% if current_user.can_admin('INV EQUIPOS FOTOS') %}
+        {% if inv_equipo_foto.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a la foto' + inv_equipo_foto.id | string + '?') }}{% endif %}
+        {% if inv_equipo_foto.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a la foto ' + inv_equipo_foto.id | string + '?') }}{% endif %}
+    {% endif %}
     {{ detail.moment_js(moment) }}
 {% endblock %}

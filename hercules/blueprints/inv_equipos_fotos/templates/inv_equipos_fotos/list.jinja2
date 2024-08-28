@@ -34,9 +34,6 @@
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('inv_equipos_fotos.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('inv_equipos_fotos.list_active')) }}{% endif %}
         {% endif %}
-        {# if current_user.can_insert('INV EQUIPOS FOTOS') %}
-            {{ topbar.button_new('Nuevo Foto', url_for('inv_equipos_fotos.new')) }}
-        {% endif #}
     {% endcall %}
 {% endblock %}
 
