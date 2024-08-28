@@ -14,7 +14,7 @@ from werkzeug.datastructures import CombinedMultiDict
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.distritos.models import Distrito
-from hercules.blueprints.edictos.forms import EdictoNewForm
+from hercules.blueprints.edictos.forms import EdictoEditForm, EdictoNewForm
 from hercules.blueprints.edictos.models import Edicto
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
@@ -251,6 +251,7 @@ def list_autoridades(distrito_id):
 
 
 @edictos.route("/edictos/autoridad/<int:autoridad_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_autoridad_edictos(autoridad_id):
     """Listado de Edictos activos de una autoridad"""
     autoridad = Autoridad.query.get_or_404(autoridad_id)
@@ -393,10 +394,28 @@ def new():
     return render_template("edictos/new.jinja2", form=form)
 
 
+def new_success(edicto):
+    """Mensaje de éxito en nuevo edicto"""
+    piezas = ["Nuevo edicto"]
+    if edicto.expediente != "":
+        piezas.append(f"expediente {edicto.expediente},")
+    if edicto.numero_publicacion != "":
+        piezas.append(f"número {edicto.numero_publicacion},")
+    piezas.append(f"fecha {edicto.fecha.strftime('%Y-%m-%d')} de {edicto.autoridad.clave}")
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(" ".join(piezas)),
+        url=url_for("edictos.detail", edicto_id=edicto.id),
+    )
+    bitacora.save()
+    return bitacora
+
+
 @edictos.route("/edictos/nuevo/<int:autoridad_id>", methods=["GET", "POST"])
-@permission_required(MODULO, Permiso.CREAR)
+@permission_required(MODULO, Permiso.ADMINISTRAR)
 def new_for_autoridad(autoridad_id):
-    """Nuevo Edicto para una autoridad dada"""
+    """Subir Edicto para una autoridad dada"""
 
     # Para validar la fecha
     hoy = datetime.date.today()
@@ -453,23 +472,6 @@ def new_for_autoridad(autoridad_id):
             flash("El número de publicación es incorrecto.", "warning")
             es_valido = False
 
-        # Inicializar la liberia Google Cloud Storage con el directorio base, la fecha, las extensiones permitidas y los meses como palabras
-        # gcstorage = GoogleCloudStorage(
-        #     base_directory=autoridad.directorio_edictos,
-        #     upload_date=fecha,
-        #     allowed_extensions=["pdf"],
-        #     month_in_word=True,
-        #     bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_EDICTOS"],
-        # )
-
-        # Validar archivo
-        # archivo = request.files["archivo"]
-        # try:
-        #     gcstorage.set_content_type(archivo.filename)
-        # except (MyNotAllowedExtensionError, MyUnknownExtensionError):
-        #     flash("Tipo de archivo no permitido o desconocido.", "warning")
-        #     es_valido = False
-
         # No es válido, entonces se vuelve a mostrar el formulario
         if es_valido is False:
             return render_template("edictos/new_for_autoridad.jinja2", form=form, autoridad=autoridad)
@@ -483,20 +485,81 @@ def new_for_autoridad(autoridad_id):
             numero_publicacion=numero_publicacion,
         )
         edicto.save()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Nuevo Edicto {edicto.descripcion}"),
-            url=url_for("edictos.detail", edicto_id=edicto.id),
-        )
-        bitacora.save()
+        bitacora = new_success(edicto)
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
     # Prellenado de los campos
     form.distrito.data = autoridad.distrito.nombre
     form.autoridad.data = autoridad.descripcion
     form.fecha.data = hoy
-    return render_template("edictos/new.jinja2", form=form, autoridad=autoridad)
+    return render_template("edictos/new_for_autoridad.jinja2", form=form, autoridad=autoridad)
+
+
+def edit_success(edicto):
+    """Mensaje de éxito al editar un edicto"""
+    piezas = ["Editado edicto"]
+    if edicto.expediente != "":
+        piezas.append(f"expediente {edicto.expediente},")
+    if edicto.numero_publicacion != "":
+        piezas.append(f"número {edicto.numero_publicacion},")
+    piezas.append(f"fecha {edicto.fecha.strftime('%Y-%m-%d')} de {edicto.autoridad.clave}")
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(" ".join(piezas)),
+        url=url_for("edictos.detail", edicto_id=edicto.id),
+    )
+    bitacora.save()
+    return bitacora
+
+
+@edictos.route("/edictos/edicion/<int:edicto_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def edit(edicto_id):
+    """Editar Edicto"""
+
+    # Validar edicto
+    edicto = Edicto.query.get_or_404(edicto_id)
+    if not (current_user.can_admin("EDICTOS") or current_user.autoridad_id == edicto.autoridad_id):
+        flash("No tiene permiso para editar este edicto.", "warning")
+        return redirect(url_for("edictos.list_active"))
+
+    form = EdictoEditForm()
+    if form.validate_on_submit():
+        es_valido = True
+        edicto.fecha = form.fecha.data
+
+        # Validar descripción
+        edicto.descripcion = safe_string(form.descripcion.data)
+        if edicto.descripcion == "":
+            flash("La descripción es incorrecta.", "warning")
+            es_valido = False
+
+        # Validar expediente
+        try:
+            edicto.expediente = safe_expediente(form.expediente.data)
+        except (IndexError, ValueError):
+            flash("El expediente es incorrecto.", "warning")
+            es_valido = False
+
+        # Validar número de publicación
+        try:
+            edicto.numero_publicacion = safe_numero_publicacion(form.numero_publicacion.data)
+        except (IndexError, ValueError):
+            flash("El número de publicación es incorrecto.", "warning")
+            es_valido = False
+
+        if es_valido:
+            edicto.save()
+            bitacora = edit_success(edicto)
+            flash(bitacora.descripcion, "success")
+            return redirect(bitacora.url)
+
+    form.fecha.data = edicto.fecha
+    form.descripcion.data = edicto.descripcion
+    form.expediente.data = edicto.expediente
+    form.numero_publicacion.data = edicto.numero_publicacion
+    return render_template("edictos/edit.jinja2", form=form, edicto=edicto)
 
 
 @edictos.route("/edictos/eliminar/<int:edicto_id>")

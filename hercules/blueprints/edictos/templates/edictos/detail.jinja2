@@ -6,12 +6,19 @@
 {% block title %}Edicto {{ edicto.autoridad.clave }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Edicto ' + edicto.autoridad.clave) %}
-        {{ topbar.button_previous('Edictos', url_for('edictos.list_active')) }}
-        {# {% if current_user.can_edit('EDICTOS') %}
-            {{ topbar.button_edit('Editar', url_for('edictos.edit', edicto_id=edicto.id)) }}
-        {% endif %} #}
+    {% call topbar.page_buttons('Edicto') %}
         {% if current_user.can_admin('EDICTOS') %}
+            {{ topbar.button_previous('Edictos de ' + edicto.autoridad.clave, url_for('edictos.list_autoridad_edictos', autoridad_id=edicto.autoridad_id)) }}
+        {% else %}
+            {{ topbar.button_previous('Edictos', url_for('edictos.list_active')) }}
+        {% endif %}
+        {% if current_user.can_admin('EDICTOS') %}
+            {{ topbar.button_upload('Nuevo Edicto', url_for('edictos.new_for_autoridad', autoridad_id=edicto.autoridad_id)) }}
+        {% elif current_user.can_insert('EDICTOS') and current_user.autoridad_id == edicto.autoridad_id %}
+            {{ topbar.button_upload('Nuevo Edicto', url_for('edictos.new')) }}
+        {% endif %}
+        {% if current_user.can_admin('EDICTOS') or (current_user.can_edit('EDICTOS') and edicto.autoridad_id == current_user.autoridad_id) %}
+            {{ topbar.button_edit('Editar', url_for('edictos.edit', edicto_id=edicto.id)) }}
             {% if edicto.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('edictos.delete', edicto_id=edicto.id)) }}{% endif %}
             {% if edicto.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('edictos.recover', edicto_id=edicto.id)) }}{% endif %}
         {% endif %}
