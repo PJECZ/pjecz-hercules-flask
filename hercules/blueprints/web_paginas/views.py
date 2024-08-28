@@ -123,8 +123,9 @@ def new(web_rama_id):
         # Guardar
         web_pagina = WebPagina(
             web_rama_id=web_rama.id,
-            titulo=safe_string(form.titulo.data, do_unidecode=False, save_enie=True, to_uppercase=False),
             clave=clave,
+            titulo=safe_string(form.titulo.data, do_unidecode=False, save_enie=True, to_uppercase=False),
+            resumen=safe_string(form.resumen.data, do_unidecode=False, save_enie=True, to_uppercase=False, max_len=1000),
             fecha_modificacion=date.today(),
             responsable="",
             ruta=form.ruta.data.strip(),
@@ -164,12 +165,14 @@ def edit(web_pagina_id):
         # Si es válido
         if es_valido:
             # Actualizar
-            web_pagina.titulo = safe_string(form.titulo.data, do_unidecode=False, save_enie=True, to_uppercase=False)
             web_pagina.clave = clave
+            web_pagina.titulo = safe_string(form.titulo.data, do_unidecode=False, save_enie=True, to_uppercase=False)
+            web_pagina.resumen = safe_string(
+                form.resumen.data, do_unidecode=False, save_enie=True, to_uppercase=False, max_len=1000
+            )
             web_pagina.fecha_modificacion = form.fecha_modificacion.data
             web_pagina.responsable = safe_string(form.responsable.data, save_enie=True, to_uppercase=False)
             web_pagina.ruta = form.ruta.data.strip()
-            web_pagina.contenido = form.contenido.data.strip()
             web_pagina.estado = form.estado.data
             web_pagina.tiempo_publicar = form.tiempo_publicar.data
             web_pagina.tiempo_archivar = form.tiempo_archivar.data
@@ -183,12 +186,12 @@ def edit(web_pagina_id):
             bitacora.save()
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
-    form.titulo.data = web_pagina.titulo
     form.clave.data = web_pagina.clave
+    form.titulo.data = web_pagina.titulo
+    form.resumen.data = web_pagina.resumen
     form.fecha_modificacion.data = web_pagina.fecha_modificacion
     form.responsable.data = web_pagina.responsable
     form.ruta.data = web_pagina.ruta
-    # form.contenido.data = web_pagina.contenido
     form.estado.data = web_pagina.estado
     form.tiempo_publicar.data = web_pagina.tiempo_publicar
     form.tiempo_archivar.data = web_pagina.tiempo_archivar
