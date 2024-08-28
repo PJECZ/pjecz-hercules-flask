@@ -20,14 +20,22 @@ from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
+from lib.exceptions import (
+    MyAnyError,
+    MyFilenameError,
+    MyMissingConfigurationError,
+    MyNotAllowedExtensionError,
+    MyUnknownExtensionError,
+)
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs, get_media_type_from_filename
 from lib.safe_string import safe_clave, safe_expediente, safe_message, safe_numero_publicacion, safe_string
-from lib.storage import GoogleCloudStorage, MyNotAllowedExtensionError, MyUnknownExtensionError, NotConfiguredError
+from lib.storage import GoogleCloudStorage
 from lib.time_to_text import dia_mes_ano
 
 MODULO = "EDICTOS"
 LIMITE_DIAS = 365  # Un anio
 LIMITE_ADMINISTRADORES_DIAS = 3650  # Administradores pueden manipular diez anios
+SUBDIRECTORIO = "edictos"
 
 edictos = Blueprint("edictos", __name__, template_folder="templates")
 
@@ -106,6 +114,9 @@ def datatable_json():
                 },
                 "expediente": resultado.expediente,
                 "numero_publicacion": resultado.numero_publicacion,
+                "archivo": {
+                    "descargar_url": resultado.descargar_url,
+                },
             }
         )
     # Entregar JSON
@@ -182,6 +193,9 @@ def datatable_json_admin():
                 },
                 "expediente": resultado.expediente,
                 "numero_publicacion": resultado.numero_publicacion,
+                "archivo": {
+                    "descargar_url": url_for("edictos.download", url=quote(resultado.url)),
+                },
             }
         )
     # Entregar JSON
@@ -286,11 +300,48 @@ def list_autoridad_edictos_inactive(autoridad_id):
     )
 
 
+@edictos.route("/edictos/descargar", methods=["GET"])
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def download():
+    """Descargar archivo desde Google Cloud Storage"""
+    url = request.args.get("url")
+    try:
+        # Obtener nombre del blob
+        blob_name = get_blob_name_from_url(url)
+        # Obtener tipo de media
+        media_type = get_media_type_from_filename(blob_name)
+        # Obtener archivo
+        archivo = get_file_from_gcs(current_app.config["CLOUD_STORAGE_DEPOSITO"], blob_name)
+    except MyAnyError as error:
+        flash(str(error), "warning")
+        return redirect(url_for("edictos.list_active"))
+    # Entregar archivo
+    return current_app.response_class(archivo, mimetype=media_type)
+
+
 @edictos.route("/edictos/<int:edicto_id>")
 def detail(edicto_id):
     """Detalle de un Edicto"""
     edicto = Edicto.query.get_or_404(edicto_id)
     return render_template("edictos/detail.jinja2", edicto=edicto)
+
+
+def new_success(edicto):
+    """Mensaje de éxito en nuevo edicto"""
+    piezas = ["Nuevo edicto"]
+    if edicto.expediente != "":
+        piezas.append(f"expediente {edicto.expediente},")
+    if edicto.numero_publicacion != "":
+        piezas.append(f"número {edicto.numero_publicacion},")
+    piezas.append(f"fecha {edicto.fecha.strftime('%Y-%m-%d')} de {edicto.autoridad.clave}")
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(" ".join(piezas)),
+        url=url_for("edictos.detail", edicto_id=edicto.id),
+    )
+    bitacora.save()
+    return bitacora
 
 
 @edictos.route("/edictos/nuevo", methods=["GET", "POST"])
@@ -349,22 +400,17 @@ def new():
             flash("El número de publicación es incorrecto.", "warning")
             es_valido = False
 
-        # Inicializar la liberia Google Cloud Storage con el directorio base, la fecha, las extensiones permitidas y los meses como palabras
-        # gcstorage = GoogleCloudStorage(
-        #     base_directory=autoridad.directorio_edictos,
-        #     upload_date=fecha,
-        #     allowed_extensions=["pdf"],
-        #     month_in_word=True,
-        #     bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_EDICTOS"],
-        # )
-
         # Validar archivo
-        # archivo = request.files["archivo"]
-        # try:
-        #     gcstorage.set_content_type(archivo.filename)
-        # except (MyNotAllowedExtensionError, MyUnknownExtensionError):
-        #     flash("Tipo de archivo no permitido o desconocido.", "warning")
-        #     es_valido = False
+        archivo = request.files["archivo"]
+        storage = GoogleCloudStorage(base_directory=SUBDIRECTORIO, allowed_extensions=["pdf"])
+        try:
+            storage.set_content_type(archivo.filename)
+        except MyNotAllowedExtensionError:
+            flash("Tipo de archivo no permitido.", "warning")
+            es_valido = False
+        except MyUnknownExtensionError:
+            flash("Tipo de archivo desconocido.", "warning")
+            es_valido = False
 
         # No es válido, entonces se vuelve a mostrar el formulario
         if es_valido is False:
@@ -378,38 +424,39 @@ def new():
             numero_publicacion=numero_publicacion,
         )
         edicto.save()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Nuevo Edicto {edicto.descripcion}"),
-            url=url_for("edictos.detail", edicto_id=edicto.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-        return redirect(bitacora.url)
+
+        # Subir a Google Cloud Storage
+        es_exitoso = True
+        try:
+            storage.set_filename(hashed_id=edicto.encode_id(), description=descripcion)
+            storage.upload(archivo.stream.read())
+        except (MyFilenameError, MyNotAllowedExtensionError, MyUnknownExtensionError):
+            flash("Error fatal al subir el archivo a GCS.", "warning")
+            es_exitoso = False
+        except MyMissingConfigurationError:
+            flash("Error al subir el archivo porque falla la configuración de GCS.", "danger")
+            es_exitoso = False
+        except Exception:
+            flash("Error desconocido al subir el archivo.", "danger")
+            es_exitoso = False
+
+        # Si se sube con exito, actualizar el registro con la URL del archivo y mostrar el detalle
+        if es_exitoso:
+            edicto.archivo = storage.filename  # Conservar el nombre original
+            edicto.url = storage.url
+            edicto.save()
+            bitacora = new_success(edicto)
+            flash(bitacora.descripcion, "success")
+            return redirect(bitacora.url)
+
+        # Como no se subio con exito, se cambia el estatus a "B"
+        edicto.estatus = "B"
+        edicto.save()
     # Pre-llenado de los campos
     form.distrito.data = autoridad.distrito.nombre
     form.autoridad.data = autoridad.descripcion
     form.fecha.data = hoy
     return render_template("edictos/new.jinja2", form=form)
-
-
-def new_success(edicto):
-    """Mensaje de éxito en nuevo edicto"""
-    piezas = ["Nuevo edicto"]
-    if edicto.expediente != "":
-        piezas.append(f"expediente {edicto.expediente},")
-    if edicto.numero_publicacion != "":
-        piezas.append(f"número {edicto.numero_publicacion},")
-    piezas.append(f"fecha {edicto.fecha.strftime('%Y-%m-%d')} de {edicto.autoridad.clave}")
-    bitacora = Bitacora(
-        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-        usuario=current_user,
-        descripcion=safe_message(" ".join(piezas)),
-        url=url_for("edictos.detail", edicto_id=edicto.id),
-    )
-    bitacora.save()
-    return bitacora
 
 
 @edictos.route("/edictos/nuevo/<int:autoridad_id>", methods=["GET", "POST"])
@@ -472,6 +519,18 @@ def new_for_autoridad(autoridad_id):
             flash("El número de publicación es incorrecto.", "warning")
             es_valido = False
 
+        # Validar archivo
+        archivo = request.files["archivo"]
+        storage = GoogleCloudStorage(base_directory=SUBDIRECTORIO, allowed_extensions=["pdf"])
+        try:
+            storage.set_content_type(archivo.filename)
+        except MyNotAllowedExtensionError:
+            flash("Tipo de archivo no permitido.", "warning")
+            es_valido = False
+        except MyUnknownExtensionError:
+            flash("Tipo de archivo desconocido.", "warning")
+            es_valido = False
+
         # No es válido, entonces se vuelve a mostrar el formulario
         if es_valido is False:
             return render_template("edictos/new_for_autoridad.jinja2", form=form, autoridad=autoridad)
@@ -485,9 +544,34 @@ def new_for_autoridad(autoridad_id):
             numero_publicacion=numero_publicacion,
         )
         edicto.save()
-        bitacora = new_success(edicto)
-        flash(bitacora.descripcion, "success")
-        return redirect(bitacora.url)
+
+        # Subir a Google Cloud Storage
+        es_exitoso = True
+        try:
+            storage.set_filename(hashed_id=edicto.encode_id(), description=descripcion)
+            storage.upload(archivo.stream.read())
+        except (MyFilenameError, MyNotAllowedExtensionError, MyUnknownExtensionError):
+            flash("Error fatal al subir el archivo a GCS.", "warning")
+            es_exitoso = False
+        except MyMissingConfigurationError:
+            flash("Error al subir el archivo porque falla la configuración de GCS.", "danger")
+            es_exitoso = False
+        except Exception:
+            flash("Error desconocido al subir el archivo.", "danger")
+            es_exitoso = False
+
+        # Si se sube con exito, actualizar el registro con la URL del archivo y mostrar el detalle
+        if es_exitoso:
+            edicto.archivo = storage.filename  # Conservar el nombre original
+            edicto.url = storage.url
+            edicto.save()
+            bitacora = new_success(edicto)
+            flash(bitacora.descripcion, "success")
+            return redirect(bitacora.url)
+
+        # Como no se subio con exito, se cambia el estatus a "B"
+        edicto.estatus = "B"
+        edicto.save()
     # Prellenado de los campos
     form.distrito.data = autoridad.distrito.nombre
     form.autoridad.data = autoridad.descripcion

@@ -12,14 +12,9 @@
                 {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('edictos.list_inactive')) }}{% endif %}
                 {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('edictos.list_active')) }}{% endif %}
             {% endif %}
-            {% if current_user.can_admin('EDICTOS') %}
-                {{ topbar.button_upload('Subir', url_for('edictos.new_for_autoridad', autoridad_id=autoridad.id)) }}
-            {% elif current_user.can_insert('EDICTOS') and current_user.autoridad_id == autoridad.id %}
-                {{ topbar.button_upload('Subir', url_for('edictos.new')) }}
-            {% endif %}
-            {# {% if current_user.can_insert('EDICTOS') and current_user.autoridad_id == autoridad.id%}
+            {% if current_user.can_insert('EDICTOS') and current_user.autoridad_id == autoridad.id%}
                 {{ topbar.button_upload('Nuevo Edicto', url_for('edictos.new')) }}
-            {% endif %} #}
+            {% endif %}
         {% endif %}
     {% endcall %}
 {% endblock %}
