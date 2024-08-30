@@ -15,6 +15,13 @@ from lib.universal_mixin import UniversalMixin
 class InvEquipo(database.Model, UniversalMixin):
     """InvEquipo"""
 
+    ESTADOS = {
+        "ALMACENADO": "ALMACENADO",
+        "EN USO": "EN USO",
+        "EN REPARACION": "EN REPARACION",
+        "INSERVIBLE": "INSERVIBLE",
+    }
+
     TIPOS = {
         "COMPUTADORA": "COMPUTADORA",
         "LAPTOP": "LAPTOP",
@@ -54,6 +61,7 @@ class InvEquipo(database.Model, UniversalMixin):
     numero_nodo: Mapped[Optional[int]]
     numero_switch: Mapped[Optional[int]]
     numero_puerto: Mapped[Optional[int]]
+    estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="inv_equipos_estados", native_enum=False), index=True)
 
     # Hijos
     inv_componentes: Mapped[List["InvComponente"]] = relationship(back_populates="inv_equipo")
