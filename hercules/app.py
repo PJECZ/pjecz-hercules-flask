@@ -28,6 +28,7 @@ from hercules.blueprints.inv_redes.views import inv_redes
 from hercules.blueprints.materias.views import materias
 from hercules.blueprints.modulos.views import modulos
 from hercules.blueprints.municipios.views import municipios
+from hercules.blueprints.nom_personas.views import nom_personas
 from hercules.blueprints.oficinas.views import oficinas
 from hercules.blueprints.peritos.views import peritos
 from hercules.blueprints.peritos_tipos.views import peritos_tipos
@@ -82,6 +83,7 @@ def create_app():
     app.register_blueprint(materias)
     app.register_blueprint(modulos)
     app.register_blueprint(municipios)
+    app.register_blueprint(nom_personas)
     app.register_blueprint(oficinas)
     app.register_blueprint(peritos)
     app.register_blueprint(peritos_tipos)
