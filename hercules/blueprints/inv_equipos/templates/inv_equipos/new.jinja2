@@ -48,6 +48,7 @@
                     {% call f.form_group(form.numero_nodo) %}{% endcall %}
                     {% call f.form_group(form.numero_switch) %}{% endcall %}
                     {% call f.form_group(form.numero_puerto) %}{% endcall %}
+                    {% call f.form_group(form.estado) %}{% endcall %}
                 </div>
             </div>
             {% call f.form_group(form.guardar) %}{% endcall %}
@@ -60,7 +61,9 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Agregar al Select2 inv_modelo estas clases
             $('#inv_modelo').addClass("js-data-ajax js-states form-control");
+            // Cargar las opciones de inv_modelo por AJAX
             $('#inv_modelo').select2({
                 ajax: {
                     url: "/inv_modelos/inv_modelos_json",

@@ -74,6 +74,7 @@ def exportar_reporte_xlsx(tipo: str = None):
             "RED",
             "DIRECCION IP",
             "MAC ADDRESS",
+            "ESTADO",
         ]
     )
 
@@ -97,6 +98,7 @@ def exportar_reporte_xlsx(tipo: str = None):
                 inv_equipo.inv_red.nombre,
                 inv_equipo.direccion_ip,
                 inv_equipo.direccion_mac,
+                inv_equipo.estado,
             ]
         )
         contador += 1
