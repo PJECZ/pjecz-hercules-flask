@@ -29,7 +29,10 @@
         {% call f.form_tag('inv_equipos.edit', fid='inv_equipo_form', **form_kwargs) %}
             <div class="row">
                 <div class="col-md-6">
-                    {% call f.form_group(form.inv_modelo) %}{% endcall %}
+                    {% call f.form_group(form.inv_modelo) %}
+                        <strong>Marca:</strong> {{ inv_equipo.inv_modelo.inv_marca.nombre }}<br>
+                        <strong>Modelo:</strong> {{ inv_equipo.inv_modelo.descripcion }}<br>
+                    {% endcall %}
                     {% call f.form_group(form.descripcion) %}{% endcall %}
                     {% call f.form_group(form.tipo) %}{% endcall %}
                     {% call f.form_group(form.fecha_fabricacion_anio) %}{% endcall %}
@@ -43,6 +46,7 @@
                     {% call f.form_group(form.numero_nodo) %}{% endcall %}
                     {% call f.form_group(form.numero_switch) %}{% endcall %}
                     {% call f.form_group(form.numero_puerto) %}{% endcall %}
+                    {% call f.form_group(form.estado) %}{% endcall %}
                 </div>
             </div>
             {% call f.form_group(form.guardar) %}{% endcall %}
@@ -55,7 +59,9 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Agregar al Select2 inv_modelo estas clases
             $('#inv_modelo').addClass("js-data-ajax js-states form-control");
+            // Cargar las opciones de inv_modelo por AJAX
             $('#inv_modelo').select2({
                 ajax: {
                     url: "/inv_modelos/inv_modelos_json",

@@ -3,13 +3,14 @@ Edictos, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import DateField, StringField, SubmitField
+from flask_wtf.file import FileRequired
+from wtforms import DateField, FileField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length, Optional, Regexp
 
 from lib.safe_string import EXPEDIENTE_REGEXP, NUMERO_PUBLICACION_REGEXP
 
 
-class EdictoForm(FlaskForm):
+class EdictoNewForm(FlaskForm):
     """Formulario Edicto"""
 
     distrito = StringField("Distrito")  # Read only
@@ -20,5 +21,17 @@ class EdictoForm(FlaskForm):
     numero_publicacion = StringField(
         "No. de publicación", validators=[Optional(), Length(max=16), Regexp(NUMERO_PUBLICACION_REGEXP)]
     )
-    # archivo = FileField("Archivo PDF", validators=[FileRequired()])
+    archivo = FileField("Archivo PDF", validators=[FileRequired()])
+    guardar = SubmitField("Guardar")
+
+
+class EdictoEditForm(FlaskForm):
+    """Formulario para editar Edicto"""
+
+    fecha = DateField("Fecha", validators=[DataRequired()])
+    descripcion = StringField("Descripcion", validators=[DataRequired(), Length(max=256)])
+    expediente = StringField("Expediente", validators=[Optional(), Length(max=16), Regexp(EXPEDIENTE_REGEXP)])
+    numero_publicacion = StringField(
+        "No. de publicación", validators=[Optional(), Length(max=16), Regexp(NUMERO_PUBLICACION_REGEXP)]
+    )
     guardar = SubmitField("Guardar")

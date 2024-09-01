@@ -3,6 +3,7 @@ Edictos, modelos
 """
 
 from datetime import date
+from typing import List
 
 from sqlalchemy import Date, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -29,13 +30,20 @@ class Edicto(database.Model, UniversalMixin):
     descripcion: Mapped[str] = mapped_column(String(256))
     expediente: Mapped[str] = mapped_column(String(16))
     numero_publicacion: Mapped[str] = mapped_column(String(16))
-    # archivo: Mapped[str] = mapped_column(String(256), default="", server_default="")
-    # url: Mapped[str] = mapped_column(String(512), default="", server_default="")
+    archivo: Mapped[str] = mapped_column(String(256), default="", server_default="")
+    url: Mapped[str] = mapped_column(String(512), default="", server_default="")
     # Columnas nuevas
     acuse_num: Mapped[int] = mapped_column(default=0)
     edicto_id_original: Mapped[int] = mapped_column(default=0)
 
-    # edictos_acuses: Mapped[List["EdictoAcuse"]] = relationship(back_populates="edicto")
+    edictos_acuses: Mapped[List["EdictoAcuse"]] = relationship(back_populates="edicto")
+
+    @property
+    def descargar_url(self):
+        """URL para descargar el archivo desde el sitio web"""
+        if self.id:
+            return f"https://www.pjecz.gob.mx/consultas/edictos/descargar/?id={self.id}"
+        return ""
 
     def __repr__(self):
         """Representación"""

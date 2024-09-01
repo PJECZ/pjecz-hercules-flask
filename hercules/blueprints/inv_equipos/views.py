@@ -10,7 +10,7 @@ from sqlalchemy import func
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.inv_custodias.models import InvCustodia
-from hercules.blueprints.inv_equipos.forms import InvEquipoForm
+from hercules.blueprints.inv_equipos.forms import InvEquipoEditForm, InvEquipoNewForm
 from hercules.blueprints.inv_equipos.models import InvEquipo
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
@@ -55,6 +55,10 @@ def datatable_json():
             consulta = consulta.filter_by(inv_modelo_id=request.form["inv_modelo_id"])
         if "inv_red_id" in request.form:
             consulta = consulta.filter_by(inv_red_id=request.form["inv_red_id"])
+        if "estado" in request.form:
+            estado = safe_string(request.form["estado"])
+            if estado != "":
+                consulta = consulta.filter_by(estado=estado)
         if "numero_serie" in request.form:
             numero_serie = safe_string(request.form["numero_serie"])
             if numero_serie != "":
@@ -102,6 +106,7 @@ def datatable_json():
                 "inv_modelo_descripcion": resultado.inv_modelo.descripcion,
                 "inv_red_nombre": resultado.inv_red.nombre,
                 "inv_custodia_nombre_completo": resultado.inv_custodia.nombre_completo,
+                "estado": resultado.estado,
             }
         )
     # Entregar JSON
@@ -131,6 +136,18 @@ def list_inactive():
     )
 
 
+@inv_equipos.route("/inv_equipos/estado/<string:estado>")
+@permission_required(MODULO, Permiso.VER)
+def list_by_estado(estado):
+    """Listado de InvEquipo por estado"""
+    return render_template(
+        "inv_equipos/list.jinja2",
+        filtros=json.dumps({"estatus": "A", "estado": estado}),
+        titulo=f"Equipos en estado '{estado}'",
+        estatus="A",
+    )
+
+
 @inv_equipos.route("/inv_equipos/tipo/<string:tipo>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def list_by_tipo(tipo):
@@ -138,7 +155,7 @@ def list_by_tipo(tipo):
     return render_template(
         "inv_equipos/list.jinja2",
         filtros=json.dumps({"estatus": "A", "tipo": tipo}),
-        titulo=f"Equipos tipo {tipo}",
+        titulo=f"Equipos tipo '{tipo}'",
         estatus="A",
     )
 
@@ -202,7 +219,7 @@ def exportar_reporte_xlsx(tipo):
 def new_with_inv_custodia_id(inv_custodia_id):
     """Nuevo InvEquipo"""
     inv_custodia = InvCustodia.query.get_or_404(inv_custodia_id)
-    form = InvEquipoForm()
+    form = InvEquipoNewForm()
     if form.validate_on_submit():
         # Guardar
         inv_equipo = InvEquipo(
@@ -219,6 +236,7 @@ def new_with_inv_custodia_id(inv_custodia_id):
             numero_nodo=form.numero_nodo.data,
             numero_switch=form.numero_switch.data,
             numero_puerto=form.numero_puerto.data,
+            estado=form.estado.data,
         )
         inv_equipo.save()
         # Guardar bitácora
@@ -240,10 +258,12 @@ def new_with_inv_custodia_id(inv_custodia_id):
 def edit(inv_equipo_id):
     """Editar InvEquipo"""
     inv_equipo = InvEquipo.query.get_or_404(inv_equipo_id)
-    form = InvEquipoForm()
+    form = InvEquipoEditForm()
     if form.validate_on_submit():
+        # Es opcional cambiar el inv_modelo
+        if form.inv_modelo.data and form.inv_modelo.data != inv_equipo.inv_modelo_id:
+            inv_equipo.inv_modelo_id = form.inv_modelo.data
         # Guardar
-        inv_equipo.inv_modelo_id = form.inv_modelo.data
         inv_equipo.descripcion = safe_string(form.descripcion.data, save_enie=True)
         inv_equipo.tipo = form.tipo.data
         inv_equipo.fecha_fabricacion_anio = form.fecha_fabricacion_anio.data
@@ -255,6 +275,7 @@ def edit(inv_equipo_id):
         inv_equipo.numero_nodo = form.numero_nodo.data
         inv_equipo.numero_switch = form.numero_switch.data
         inv_equipo.numero_puerto = form.numero_puerto.data
+        inv_equipo.estado = form.estado.data
         inv_equipo.save()
         # Guardar bitácora
         bitacora = Bitacora(
@@ -279,6 +300,7 @@ def edit(inv_equipo_id):
     form.numero_nodo.data = inv_equipo.numero_nodo
     form.numero_switch.data = inv_equipo.numero_switch
     form.numero_puerto.data = inv_equipo.numero_puerto
+    form.estado.data = inv_equipo.estado
     return render_template("inv_equipos/edit.jinja2", form=form, inv_equipo=inv_equipo)
 
 
