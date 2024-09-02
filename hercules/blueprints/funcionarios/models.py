@@ -3,7 +3,7 @@ Funcionarios, modelos
 """
 
 from datetime import date
-from typing import List, Optional
+from typing import List
 
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
