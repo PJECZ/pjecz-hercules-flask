@@ -9,13 +9,17 @@ from redis import Redis
 from config.settings import Settings
 from hercules.blueprints.abogados.views import abogados
 from hercules.blueprints.autoridades.views import autoridades
+from hercules.blueprints.autoridades_funcionarios.views import autoridades_funcionarios
 from hercules.blueprints.bitacoras.views import bitacoras
+from hercules.blueprints.centros_trabajos.views import centros_trabajos
 from hercules.blueprints.distritos.views import distritos
 from hercules.blueprints.domicilios.views import domicilios
 from hercules.blueprints.edictos.views import edictos
 from hercules.blueprints.edictos_acuses.views import edictos_acuses
 from hercules.blueprints.entradas_salidas.views import entradas_salidas
 from hercules.blueprints.estados.views import estados
+from hercules.blueprints.funcionarios.views import funcionarios
+from hercules.blueprints.funcionarios_oficinas.views import funcionarios_oficinas
 from hercules.blueprints.identidades_generos.views import identidades_generos
 from hercules.blueprints.inv_categorias.views import inv_categorias
 from hercules.blueprints.inv_componentes.views import inv_componentes
@@ -64,13 +68,17 @@ def create_app():
     # Registrar blueprints
     app.register_blueprint(abogados)
     app.register_blueprint(autoridades)
+    app.register_blueprint(autoridades_funcionarios)
     app.register_blueprint(bitacoras)
     app.register_blueprint(distritos)
+    app.register_blueprint(centros_trabajos)
     app.register_blueprint(domicilios)
     app.register_blueprint(edictos)
     app.register_blueprint(edictos_acuses)
     app.register_blueprint(entradas_salidas)
     app.register_blueprint(estados)
+    app.register_blueprint(funcionarios)
+    app.register_blueprint(funcionarios_oficinas)
     app.register_blueprint(identidades_generos)
     app.register_blueprint(inv_categorias)
     app.register_blueprint(inv_componentes)
