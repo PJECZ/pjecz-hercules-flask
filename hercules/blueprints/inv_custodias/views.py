@@ -7,15 +7,19 @@ from datetime import date
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import func
 
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.domicilios.models import Domicilio
 from hercules.blueprints.inv_custodias.forms import InvCustodiaForm
 from hercules.blueprints.inv_custodias.models import InvCustodia
 from hercules.blueprints.inv_equipos.models import InvEquipo
 from hercules.blueprints.modulos.models import Modulo
+from hercules.blueprints.oficinas.models import Oficina
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from hercules.blueprints.usuarios.models import Usuario
+from hercules.extensions import database
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_message, safe_string
 
@@ -44,21 +48,23 @@ def datatable_json():
     consulta = InvCustodia.query
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
-        consulta = consulta.filter_by(estatus=request.form["estatus"])
+        consulta = consulta.filter(InvCustodia.estatus == request.form["estatus"])
     else:
-        consulta = consulta.filter_by(estatus="A")
+        consulta = consulta.filter(InvCustodia.estatus == "A")
     if "inv_custodia_id" in request.form:
         try:
-            consulta = consulta.filter_by(id=int(request.form["inv_custodia_id"]))
+            consulta = consulta.filter(InvCustodia.id == int(request.form["inv_custodia_id"]))
         except ValueError:
             pass
     else:
         if "usuario_id" in request.form:
-            consulta = consulta.filter_by(usuario_id=request.form["usuario_id"])
+            consulta = consulta.filter(InvCustodia.usuario_id == request.form["usuario_id"])
         if "nombre_completo" in request.form:
             nombre_completo = safe_string(request.form["nombre_completo"])
             if nombre_completo != "":
                 consulta = consulta.filter(InvCustodia.nombre_completo.contains(nombre_completo))
+        if "domicilio_id" in request.form:
+            consulta = consulta.join(Usuario).join(Oficina).join(Domicilio).filter(Domicilio.id == request.form["domicilio_id"])
     # Ordenar y paginar
     registros = consulta.order_by(InvCustodia.id).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -117,11 +123,60 @@ def list_inactive():
     )
 
 
+@inv_custodias.route("/inv_custodias/domicilio/<int:domicilio_id>")
+@permission_required(MODULO, Permiso.VER)
+def list_by_domicilio_id(domicilio_id):
+    """Listado de InvCustodia por domicilio_id"""
+    domicilio = Domicilio.query.get_or_404(domicilio_id)
+    return render_template(
+        "inv_custodias/list.jinja2",
+        filtros=json.dumps({"estatus": "A", "domicilio_id": domicilio_id}),
+        titulo=f"Custodias en el edificio '{domicilio.edificio}'",
+        estatus="A",
+    )
+
+
 @inv_custodias.route("/inv_custodias/<int:inv_custodia_id>")
 def detail(inv_custodia_id):
     """Detalle de un InvCustodia"""
     inv_custodia = InvCustodia.query.get_or_404(inv_custodia_id)
     return render_template("inv_custodias/detail.jinja2", inv_custodia=inv_custodia)
+
+
+@inv_custodias.route("/inv_custodias/tablero")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def dashboard():
+    """Tablero de InvCustodia"""
+    # Cantidades de custodias por edificio
+    inv_custodias_cantidades_por_edificio = (
+        database.session.query(Domicilio.id, Domicilio.edificio, func.count(InvCustodia.id)).
+        select_from(InvCustodia).
+        join(Usuario).
+        join(Oficina).
+        join(Domicilio).
+        where(InvCustodia.estatus == "A").
+        group_by(Domicilio.id, Domicilio.edificio).
+        order_by(Domicilio.edificio).
+        all()
+    )
+    # Entregar
+    return render_template(
+        "inv_custodias/dashboard.jinja2",
+        inv_custodias_cantidades_por_edificio=inv_custodias_cantidades_por_edificio,
+    )
+
+
+@inv_custodias.route("/inv_custodias/exportar_reporte_xlsx/<int:domicilio_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def exportar_reporte_xlsx(domicilio_id):
+    """Lanzar tarea en el fondo para exportar"""
+    tarea = current_user.launch_task(
+        comando="inv_custodias.tasks.lanzar_exportar_reporte_xlsx",
+        mensaje="Exportando el reporte de custodias a un archivo XLSX...",
+        domicilio_id=domicilio_id,
+    )
+    flash("Se ha lanzado esta tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
+    return redirect(url_for("tareas.detail", tarea_id=tarea.id))
 
 
 @inv_custodias.route("/inv_custodias/move_1_choose_custodia/<int:origen_inv_custodia_id>")

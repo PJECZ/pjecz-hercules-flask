@@ -50,7 +50,7 @@ def exportar_reporte_xlsx(tipo: str = None):
 
     # Consultar los equipos con estatus 'A' y del tipo dado
     tipo = safe_string(tipo)
-    inv_equipos = InvEquipo.query.filter(InvEquipo.tipo == tipo).filter(InvEquipo.estatus == "A").all()
+    inv_equipos = InvEquipo.query.filter(InvEquipo.tipo == tipo).filter(InvEquipo.estatus == "A").order_by(InvEquipo.id).all()
 
     # Iniciar el archivo XLSX
     libro = Workbook()
