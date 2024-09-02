@@ -46,6 +46,7 @@ class Oficina(database.Model, UniversalMixin):
     extension: Mapped[str] = mapped_column(String(24))
 
     # Hijos
+    funcionarios_oficinas: Mapped[List["FuncionarioOficina"]] = relationship(back_populates="oficina")
     usuarios: Mapped[List["Usuario"]] = relationship("Usuario", back_populates="oficina")
 
     def __repr__(self):
