@@ -1,0 +1,36 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Versión Pública de Sentencias {{ sentencia.autoridad.clave }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('V.P. Sentencia') %}
+        {{ topbar.button_previous('V.P. Sentencias de ' + sentencia.autoridad.clave, url_for('blueprint.list_active')) }}
+        {% if current_user.can_edit('MODULO') %}
+            {{ topbar.button_edit('Editar', url_for('blueprint.edit', sentencia_id=sentencia.id)) }}
+        {% endif %}
+        {% if current_user.can_admin('MODULO') %}
+            {% if sentencia.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('blueprint.delete', sentencia_id=sentencia.id)) }}{% endif %}
+            {% if sentencia.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('blueprint.recover', sentencia_id=sentencia.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=sentencia.estatus) %}
+        {{ detail.label_value_big('Nombre o Descripción', sentencia.autoridad.clave) }}
+        {{ detail.label_value('Columna 1', sentencia.columna_1) }}
+        {{ detail.label_value('Columna 2', sentencia.columna_2) }}
+        {{ detail.label_value('Creado', moment(sentencia.creado, local=True).format('llll')) }}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_admin('MODULO') %}
+        {% if sentencia.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + sentencia.autoridad.clave + '?') }}{% endif %}
+        {% if sentencia.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + sentencia.autoridad.clave + '?') }}{% endif %}
+    {% endif %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}
