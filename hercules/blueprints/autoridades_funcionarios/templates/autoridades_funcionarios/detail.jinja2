@@ -2,18 +2,16 @@
 {% import 'macros/detail.jinja2' as detail %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Autoridad Funcionario {{ autoridade_funcionario.descripcion }}{% endblock %}
+{% block title %}Autoridad Funcionario {{ autoridad_funcionario.descripcion }}{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Autoridad Funcionario ' + autoridade_funcionario.descripcion) }}
+    {{ topbar.page('Autoridad Funcionario ' + autoridad_funcionario.descripcion) }}
 {% endblock %}
 
 {% block content %}
     {% call detail.card() %}
-        {{ detail.label_value_big('Autoridad Funcionario', autoridade_funcionario.descripcion) }}
-        {{ detail.label_value('Columna 1', autoridade_funcionario.columna_1) }}
-        {{ detail.label_value('Columna 2', autoridade_funcionario.columna_2) }}
-        {{ detail.label_value('Creado', moment(autoridade_funcionario.creado, local=True).format('llll')) }}
+        {{ detail.label_value('Autoridad', autoridad_funcionario.autoridad.clave, url_for('autoridades.detail', autoridad_id=autoridad_funcionario.autoridad_id)) }}
+        {{ detail.label_value('Funcionario', autoridad_funcionario.funcionario.nombre, url_for('funcionarios.detail', funcionario_id=autoridad_funcionario.funcionario_id)) }}
     {% endcall %}
 {% endblock %}
 

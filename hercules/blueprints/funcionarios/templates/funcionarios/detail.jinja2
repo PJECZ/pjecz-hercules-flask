@@ -1,21 +1,20 @@
 {% extends 'layouts/app.jinja2' %}
 {% import 'macros/detail.jinja2' as detail %}
 {% import 'macros/modals.jinja2' as modals %}
-{% import 'macros/tabs.jinja2' as tabs %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
 {% block title %}Funcionario {{ funcionario.nombre }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Funcionario ' + funcionario.nombre) %}
+    {% call topbar.page_buttons(funcionario.nombre) %}
         {{ topbar.button_previous('Directorio', url_for('funcionarios.list_active')) }}
         {% if current_user.can_view('CENTROS TRABAJOS') %}
             {{ topbar.button('Centros de Trabajo', url_for('centros_trabajos.list_active'), 'mdi:home-group') }}
         {% endif %}
         {# {% if current_user.can_edit('FUNCIONARIOS') %}
             {{ topbar.button_edit('Editar', url_for('funcionarios.edit', funcionario_id=funcionario.id)) }}
-        {% endif %} #}
-        {# {% if current_user.can_admin('FUNCIONARIOS') %}
+        {% endif %}
+        {% if current_user.can_admin('FUNCIONARIOS') %}
             {% if funcionario.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('funcionarios.delete', funcionario_id=funcionario.id)) }}{% endif %}
             {% if funcionario.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('funcionarios.recover', funcionario_id=funcionario.id)) }}{% endif %}
         {% endif %} #}
@@ -23,7 +22,6 @@
 {% endblock %}
 
 {% block content %}
-    {# Informacion del funcionario a la vista de quienes usan el directorio #}
     {% call detail.card(estatus=funcionario.estatus) %}
         {{ detail.label_value_big('Puesto', funcionario.puesto, font_size=1.5) }}
         {{ detail.label_value('Centro de Trabajo', funcionario.centro_trabajo.nombre) }}
@@ -46,136 +44,93 @@
             {{ detail.label_value('Fotografía URL', funcionario.fotografia_url) }}
         {% endcall %}
     {% endif %}
-    {# Tabs #}
-    {% call tabs.header() %}
-        {{ tabs.button('banderas-tab', 'tab_banderas', 'Banderas', 'active') }}
-        {# {% if current_user.can_view('SOPORTES TICKETS') and funcionario.en_soportes %}
-            {{ tabs.button('tickets-tab', 'tab_tickets', 'Tickets') }}
-        {% endif %} #}
-        {% if current_user.can_view('AUTORIDADES FUNCIONARIOS') and funcionario.en_sentencias %}
-            {{ tabs.button('autoridades-tab', 'tab_autoridades', 'Autoridades') }}
-        {% endif %}
-        {% if current_user.can_view('FUNCIONARIOS OFICINAS') and funcionario.en_soportes %}
-            {{ tabs.button('oficinas-tab', 'tab_oficinas', 'Oficinas') }}
-        {% endif %}
-    {% endcall %}
-    {% call tabs.content() %}
-        {% call tabs.div_content('tab_banderas', 'banderas-tab', 'active') %}
-            {% call detail.card() %}
-                {{ detail.label_value_boolean('En funciones', funcionario.en_funciones) }}
-                {{ detail.label_value_boolean('En sentencias', funcionario.en_sentencias) }}
-                {{ detail.label_value_boolean('En soportes', funcionario.en_soportes) }}
-                {{ detail.label_value_boolean('En tesis y jurisprudencias', funcionario.en_tesis_jurisprudencias) }}
+    {# Listado Autoridades-Funcionarios #}
+    {% if current_user.can_view('AUTORIDADES FUNCIONARIOS') and funcionario.en_sentencias %}
+        {% call detail.card('AUTORIDADES FUNCIONARIOS') %}
+            <!-- Filtros Autoridades funcionarios -->
+            <div class="row">
+                <div class="col">
+                    <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosAutoridadesFuncionarios.buscar(); return false;">
+                        <div class="col-4">
+                            <div class="form-floating">
+                                <input id="filtroAutoridad" type="text" class="form-control" aria-label="Autoridad" style="text-transform: uppercase;">
+                                <label for="filtroAutoridad">Autoridad</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input id="filtroAutoridadDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
+                                <label for="filtroAutoridadDescripcion">Autoridad Descripción</label>
+                            </div>
+                        </div>
+                        <div class="col-2 text-end">
+                            <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosAutoridadesFuncionarios.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                            <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosAutoridadesFuncionarios.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- DataTable Autoridades funcionarios -->
+            <table id="autoridades_funcionarios_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Autoridad</th>
+                        <th>Autoridad descripción corta</th>
+                    </tr>
+                </thead>
+            </table>
+            {# {% if current_user.can_insert('AUTORIDADES FUNCIONARIOS') %}
+                <a href="{{ url_for('autoridades_funcionarios.new_with_funcionario', funcionario_id=funcionario.id) }}" class="btn btn-primary">Agregar</a>
+            {% endif %} #}
             {% endcall %}
+    {% endif %}
+    {# Datatable listado Funcionarios-Oficinas #}
+    {% if current_user.can_view('FUNCIONARIOS OFICINAS') and funcionario.en_soportes %}
+        {% call detail.card('FUNCIONARIOS OFICINAS') %}
+            <!-- Filtros Funcionarios Oficinas -->
+            <div class="row">
+                <div class="col">
+                    <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosFuncinariosOficinas.buscar(); return false;">
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input id="filtroOficina" type="text" class="form-control" aria-label="Oficina" style="text-transform: uppercase;">
+                                <label for="filtroOficina">Oficina</label>
+                            </div>
+                        </div>
+                        <div class="col-6 text-end">
+                            <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosFuncinariosOficinas.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                            <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosFuncinariosOficinas.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- DataTable Funcionarios Oficinas -->
+            <table id="funcionarios_oficinas_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Clave</th>
+                        <th>Descripción corta</th>
+                    </tr>
+                </thead>
+            </table>
+            {# {% if current_user.can_insert('FUNCIONARIOS OFICINAS') %}
+                <a href="{{ url_for('funcionarios_oficinas.new_with_funcionario', funcionario_id=funcionario.id) }}" class="btn btn-primary">Agregar</a>
+            {% endif %} #}
+            {# {% if current_user.can_edit('FUNCIONARIOS OFICINAS') %}
+                <a href="{{ url_for('funcionarios.clean', funcionario_id=funcionario.id) }}" class="btn btn-primary">Limpiar</a>
+                <a href="{{ url_for('funcionarios.insert_offices', funcionario_id=funcionario.id) }}" class="btn btn-primary">Asignar domicilio</a>
+            {% endif %} #}
         {% endcall %}
-        {# {% if current_user.can_view('SOPORTES TICKETS') and funcionario.en_soportes %}
-            {% call tabs.div_content('tab_tickets', 'tickets-tab') %}
-                {% call detail.card() %}
-                    <table id="soportes_tickets_datatable" class="table display nowrap" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Categoría</th>
-                                <th>Estado</th>
-                                <th>Descripción</th>
-                                <th>Solución/Cancelación</th>
-                            </tr>
-                        </thead>
-                    </table>
-                {% endcall %}
-            {% endcall %}
-        {% endif %} #}
-        {% if current_user.can_view('AUTORIDADES FUNCIONARIOS') and funcionario.en_sentencias %}
-            {% call tabs.div_content('tab_autoridades', 'autoridades-tab') %}
-                {% call detail.card() %}
-                    <!-- Filtros Autoridades funcionarios -->
-                    <div class="row">
-                        <div class="col">
-                            <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosAutoridadesFuncionarios.buscar(); return false;">
-                                <div class="col-4">
-                                    <div class="form-floating">
-                                        <input id="filtroAutoridad" type="text" class="form-control" aria-label="Autoridad" style="text-transform: uppercase;">
-                                        <label for="filtroAutoridad">Autoridad</label>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="form-floating">
-                                        <input id="filtroAutoridadDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
-                                        <label for="filtroAutoridadDescripcion">Autoridad Descripción</label>
-                                    </div>
-                                </div>
-                                <div class="col-2 text-end">
-                                    <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosAutoridadesFuncionarios.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
-                                    <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosAutoridadesFuncionarios.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    <!-- DataTable Autoridades funcionarios -->
-                    <table id="autoridades_funcionarios_datatable" class="table display nowrap" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Autoridad</th>
-                                <th>Autoridad descripción corta</th>
-                            </tr>
-                        </thead>
-                    </table>
-                    {# {% if current_user.can_insert('AUTORIDADES FUNCIONARIOS') %}
-                        <a href="{{ url_for('autoridades_funcionarios.new_with_funcionario', funcionario_id=funcionario.id) }}" class="btn btn-primary">Agregar</a>
-                    {% endif %} #}
-                {% endcall %}
-            {% endcall %}
-        {% endif %}
-        {% if current_user.can_view('FUNCIONARIOS OFICINAS') and funcionario.en_soportes %}
-            {% call tabs.div_content('tab_oficinas', 'oficinas-tab') %}
-                {% call detail.card() %}
-                    <!-- Filtros Funcionarios Oficinas -->
-                    <div class="row">
-                        <div class="col">
-                            <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosFuncinariosOficinas.buscar(); return false;">
-                                <div class="col-6">
-                                    <div class="form-floating">
-                                        <input id="filtroOficina" type="text" class="form-control" aria-label="Oficina" style="text-transform: uppercase;">
-                                        <label for="filtroOficina">Oficina</label>
-                                    </div>
-                                </div>
-                                <div class="col-6 text-end">
-                                    <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosFuncinariosOficinas.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
-                                    <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosFuncinariosOficinas.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    <!-- DataTable Funcionarios Oficinas -->
-                    <table id="funcionarios_oficinas_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Clave</th>
-                                <th>Descripción corta</th>
-                            </tr>
-                        </thead>
-                    </table>
-                    {# {% if current_user.can_insert('FUNCIONARIOS OFICINAS') %}
-                        <a href="{{ url_for('funcionarios_oficinas.new_with_funcionario', funcionario_id=funcionario.id) }}" class="btn btn-primary">Agregar</a>
-                    {% endif %} #}
-                    {# {% if current_user.can_edit('FUNCIONARIOS OFICINAS') %}
-                        <a href="{{ url_for('funcionarios.clean', funcionario_id=funcionario.id) }}" class="btn btn-primary">Limpiar</a>
-                        <a href="{{ url_for('funcionarios.insert_offices', funcionario_id=funcionario.id) }}" class="btn btn-primary">Asignar domicilio</a>
-                    {% endif %} #}
-                {% endcall %}
-            {% endcall %}
-        {% endif %}
-    {% endcall %}
+    {% endif %}
 {% endblock %}
 
 {% block custom_javascript %}
-    {# {% if current_user.can_admin('FUNCIONARIOS') %}
+    {% if current_user.can_admin('FUNCIONARIOS') %}
         {% if funcionario.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + funcionario.nombre + '?') }}{% endif %}
         {% if funcionario.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + funcionario.nombre + '?') }}{% endif %}
-    {% endif %} #}
-
+    {% endif %}
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
@@ -248,10 +203,9 @@
             ];
             // Filtros Funcionarios Oficinas
             const filtrosFuncinariosOficinas = new FiltrosDataTable('#funcionarios_oficinas_datatable', configDTFuncionariosOficinas);
-            filtrosFuncinariosOficinas.agregarInput('filtroOficina', 'oficina_id');
+            filtrosFuncinariosOficinas.agregarInput('filtroOficina', 'oficina_nombre');
             filtrosFuncinariosOficinas.precargar();
         </script>
     {% endif %}
     {{ detail.moment_js(moment) }}
-
 {% endblock %}

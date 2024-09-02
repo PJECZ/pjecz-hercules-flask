@@ -1,5 +1,5 @@
 """
-Funcionarios Ofiicnas, vistas
+Funcionarios Oficnas, vistas
 """
 
 import json
@@ -49,11 +49,15 @@ def datatable_json():
     if "funcionario_nombre" in request.form:
         funcionario_nombre = safe_string(request.form["funcionario_nombre"], save_enie=True)
         if funcionario_nombre != "":
-            consulta = consulta.join(Funcionario).filter(Funcionario.nombre.contains(funcionario_nombre))
+            consulta = consulta.join(Funcionario).filter(Funcionario.nombres.contains(funcionario_nombre))
     if "oficina_id" in request.form:
         oficina = Oficina.query.get(request.form["oficina_id"])
         if oficina:
             consulta = consulta.filter(FuncionarioOficina.oficina == oficina)
+    if "oficina_nombre" in request.form:
+        oficina_nombre = safe_string(request.form["oficina_nombre"], save_enie=True)
+        if oficina_nombre != "":
+            consulta = consulta.join(Oficina).filter(Oficina.descripcion.contains(oficina_nombre))
     # Ordenar y paginar
     registros = consulta.order_by(FuncionarioOficina.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
