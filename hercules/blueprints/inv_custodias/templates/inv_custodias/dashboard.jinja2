@@ -13,16 +13,16 @@
 {% block content %}
     <!-- Tarjetas con cantidades por edificio -->
     {% call card.container_row() %}
-        {% for tipo, cantidad in inv_custodias_cantidades_por_edificio %}
+        {% for domicilio_id, edificio, cantidad in inv_custodias_cantidades_por_edificio %}
             {% call card.col_md(3) %}
-                {% call card.card(tipo) %}
+                {% call card.card(edificio) %}
                     {% call card.card_body() %}
                         <div class="d-grid gap-2">
-                            <a href="{{ url_for('inv_custodias.list_by_edificio', domicilio_id=domicilio_id) }}" class="btn btn-outline-primary">
+                            <a href="{{ url_for('inv_custodias.list_by_domicilio_id', domicilio_id=domicilio_id) }}" class="btn btn-outline-primary">
                                 <span class="iconify" data-icon="mdi:eye"></span>
                                 Ver <strong>{{ cantidad }}</strong> custodias
                             </a>
-                            <a href="{{ url_for('inv_custodias.exportar_reporte_xlsx', tipo=tipo) }}" class="btn btn-outline-success">
+                            <a href="{{ url_for('inv_custodias.exportar_reporte_xlsx', domicilio_id=domicilio_id) }}" class="btn btn-outline-success">
                                 <span class="iconify" data-icon="mdi:google-spreadsheet"></span>
                                 Exportar XLSX
                             </a>
