@@ -1,0 +1,20 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Autoridad Funcionario {{ autoridad_funcionario.descripcion }}{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Autoridad Funcionario ' + autoridad_funcionario.descripcion) }}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card() %}
+        {{ detail.label_value('Autoridad', autoridad_funcionario.autoridad.clave, url_for('autoridades.detail', autoridad_id=autoridad_funcionario.autoridad_id)) }}
+        {{ detail.label_value('Funcionario', autoridad_funcionario.funcionario.nombre, url_for('funcionarios.detail', funcionario_id=autoridad_funcionario.funcionario_id)) }}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}
