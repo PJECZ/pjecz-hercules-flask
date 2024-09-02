@@ -22,26 +22,20 @@
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosAutoridadesFuncionarios.buscar(); return false;">
-                    <div class="col-3">
-                        <div class="form-floating">
-                            <input id="filtroAutoridad" type="text" class="form-control" aria-label="Autoridad" style="text-transform: uppercase;">
-                            <label for="filtroAutoridad">Autoridad</label>
-                        </div>
-                    </div>
-                    <div class="col-3">
+                    <div class="col-4">
                         <div class="form-floating">
                             <input id="filtroAutoridadDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
                             <label for="filtroAutoridadDescripcion">Autoridad Descripción</label>
                         </div>
                     </div>
 
-                    <div class="col-3">
+                    <div class="col-4">
                         <div class="form-floating">
                             <input id="filtroFuncionarioNombre" type="text" class="form-control" aria-label="Funcionario Nombre" style="text-transform: uppercase;">
                             <label for="filtroFuncionarioNombre">Funcionario Nombre</label>
                         </div>
                     </div>
-                    <div class="col-3 text-end">
+                    <div class="col-4 text-end">
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosAutoridadesFuncionarios.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
                         <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosAutoridadesFuncionarios.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
@@ -112,8 +106,8 @@
         ];
         // Filtros Autoridades funcionarios
         const filtrosAutoridadesFuncionarios = new FiltrosDataTable('#autoridades_funcionarios_datatable', configDataTable);
-        filtrosAutoridadesFuncionarios.agregarInput('filtroAutoridad', 'autoridad_id');
         filtrosAutoridadesFuncionarios.agregarInput('filtroAutoridadDescripcion', 'autoridad_descripcion');
+        filtrosAutoridadesFuncionarios.agregarInput('filtroFuncionarioNombre', 'funcionario_nombre');
         filtrosAutoridadesFuncionarios.precargar();
     </script>
 {% endblock %}

@@ -42,8 +42,8 @@
                     <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosFuncionarios.buscar(); return false;">
                         <div class="col-3">
                             <div class="form-floating">
-                                <input id="filtroEMAIL" type="text" class="form-control" aria-label="Correo electrónico">
-                                <label for="filtroEMAIL">Correo electrónico</label>
+                                <input id="filtroEmail" type="text" class="form-control" aria-label="Correo electrónico">
+                                <label for="filtroEmail">Correo electrónico</label>
                             </div>
                         </div>
                         <div class="col-2">
@@ -138,7 +138,7 @@
             ];
             // Filtros Funcionarios
             const filtrosFuncionarios = new FiltrosDataTable('#funcionarios_datatable', configDataTable);
-            filtrosFuncionarios.agregarInput('filtroEMAIL', 'email');
+            filtrosFuncionarios.agregarInput('filtroEmail', 'email');
             filtrosFuncionarios.agregarInput('filtroNombres', 'nombres');
             filtrosFuncionarios.agregarInput('filtroApellidoPaterno', 'apellido_paterno');
             filtrosFuncionarios.agregarInput('filtroPuesto', 'puesto');

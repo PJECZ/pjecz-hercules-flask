@@ -52,6 +52,7 @@
                     <th>Nombre</th>
                     <th>Teléfono</th>
                     <th>Distrito</th>
+                    <th>Edificio</th>
                 </tr>
             </thead>
         </table>
@@ -71,7 +72,8 @@
             { data: 'detalle' },
             { data: 'nombre' },
             { data: 'telefono' },
-            { data: 'distrito' }
+            { data: 'distrito' },
+            { data: 'edificio' }
         ];
         configDataTable['columnDefs'] = [
             {
@@ -89,6 +91,17 @@
                         return data.nombre_corto;
                     } else {
                         return '<a href="' + data.url + '">' + data.nombre_corto + '</a>';
+                    }
+                }
+            },
+            {
+                targets: 4, // edificio
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.url == '') {
+                        return data.edificio;
+                    } else {
+                        return '<a href="' + data.url + '">' + data.edificio + '</a>';
                     }
                 }
             },

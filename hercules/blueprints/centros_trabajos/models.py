@@ -2,12 +2,10 @@
 Centros de Trabajo, modelos
 """
 
-from datetime import datetime
-from typing import List, Optional
+from typing import List
 
-from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, Integer, String, Text, Uuid
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql.functions import now
 
 from hercules.extensions import database
 from lib.universal_mixin import UniversalMixin
@@ -15,11 +13,6 @@ from lib.universal_mixin import UniversalMixin
 
 class CentroTrabajo(database.Model, UniversalMixin):
     """CentroTrabajo"""
-
-    ESTADOS = {
-        "PENDIENTE": "Pendiente",
-        "CANCELADO": "Cancelado",
-    }
 
     # Nombre de la tabla
     __tablename__ = "centros_trabajos"

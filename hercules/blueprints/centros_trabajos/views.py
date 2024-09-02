@@ -9,11 +9,12 @@ from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.centros_trabajos.models import CentroTrabajo
+from hercules.blueprints.funcionarios.models import Funcionario
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_clave, safe_message, safe_string
+from lib.safe_string import safe_clave, safe_email, safe_string
 
 MODULO = "CENTROS TRABAJOS"
 
@@ -69,6 +70,14 @@ def datatable_json():
                     "url": (
                         url_for("distritos.detail", distrito_id=resultado.distrito_id)
                         if current_user.can_view("DISTRITOS")
+                        else ""
+                    ),
+                },
+                "edificio": {
+                    "edificio": resultado.domicilio.edificio,
+                    "url": (
+                        url_for("domicilios.detail", domicilio_id=resultado.domicilio_id)
+                        if current_user.can_view("DOMICILIOS")
                         else ""
                     ),
                 },

@@ -7,8 +7,10 @@ import json
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
+from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.autoridades_funcionarios.models import AutoridadFuncionario
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.funcionarios.models import Funcionario
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
@@ -43,6 +45,14 @@ def datatable_json():
         consulta = consulta.filter_by(autoridad_id=request.form["autoridad_id"])
     if "funcionario_id" in request.form:
         consulta = consulta.filter_by(funcionario_id=request.form["funcionario_id"])
+    if "funcionario_nombre" in request.form:
+        funcionario_nombre = safe_string(request.form["funcionario_nombre"], save_enie=True)
+        if funcionario_nombre != "":
+            consulta = consulta.join(Funcionario).filter(Funcionario.nombres.contains(funcionario_nombre))
+    if "autoridad_descripcion" in request.form:
+        autoridad_descripcion = safe_string(request.form["autoridad_descripcion"], save_enie=True)
+        if autoridad_descripcion != "":
+            consulta = consulta.join(Autoridad).filter(Autoridad.descripcion_corta.contains(autoridad_descripcion))
     # Ordenar y paginar
     registros = consulta.order_by(AutoridadFuncionario.id).offset(start).limit(rows_per_page).all()
     total = consulta.count()
