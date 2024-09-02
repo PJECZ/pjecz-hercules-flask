@@ -10,9 +10,9 @@
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('sentencias.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('sentencias.list_active')) }}{% endif %}
         {% endif %}
-        {% if current_user.can_insert('SENTENCIAS') %}
+        {# {% if current_user.can_insert('SENTENCIAS') %}
             {{ topbar.button_new('Nuevo Sentencia', url_for('sentencias.new')) }}
-        {% endif %}
+        {% endif %} #}
     {% endcall %}
 {% endblock %}
 
@@ -60,7 +60,7 @@
                     <th>Fecha</th>
                     <th>Sentencia</th>
                     <th>Expediente</th>
-                    <th>Tipo de Juicio</th>
+                    {# <th>Tipo de Juicio</th> #}
                     <th>P. Género</th>
                     <th>Descargar</th>
                 </tr>
@@ -94,7 +94,7 @@
             { data: "fecha" },
             { data: "detalle" },
             { data: "expediente" },
-            { data: "materia_tipo_juicio_descripcion" },
+            //{ data: "materia_tipo_juicio_descripcion" },
             { data: "es_perspectiva_genero" },
             { data: "archivo" }
         ];
@@ -106,15 +106,15 @@
                     return '<a href="' + data.url + '">' + data.sentencia + '</a>';
                 }
             },
-            {
+            /*{
                 targets: 3, // materia_tipo_juicio_descripcion
                 data: null,
                 render: function(data, type, row, meta) {
                     return data.length > 20 ? data.substr(0, 40) + '…' : data;
                 }
-            },
+            },*/
             {
-                targets: 5, // archivo
+                targets: 4, // archivo
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.descargar_url + '" target="_blank">PDF</a>';

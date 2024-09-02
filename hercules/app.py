@@ -38,6 +38,7 @@ from hercules.blueprints.repsvm_agresores.views import repsvm_agresores
 from hercules.blueprints.repsvm_agresores_delitos.views import repsvm_agresores_delitos
 from hercules.blueprints.repsvm_delitos.views import repsvm_delitos
 from hercules.blueprints.roles.views import roles
+from hercules.blueprints.sentencias.views import sentencias
 from hercules.blueprints.sistemas.views import sistemas
 from hercules.blueprints.tareas.views import tareas
 from hercules.blueprints.usuarios.models import Usuario
@@ -93,6 +94,7 @@ def create_app():
     app.register_blueprint(repsvm_agresores_delitos)
     app.register_blueprint(repsvm_delitos)
     app.register_blueprint(roles)
+    app.register_blueprint(sentencias)
     app.register_blueprint(sistemas)
     app.register_blueprint(tareas)
     app.register_blueprint(usuarios)

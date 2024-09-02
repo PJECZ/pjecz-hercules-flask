@@ -6,17 +6,20 @@ import json
 import re
 from urllib.parse import quote
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from pytz import timezone
 
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.distritos.models import Distrito
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.sentencias.models import Sentencia
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
+from lib.exceptions import MyAnyError
+from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs, get_media_type_from_filename
 from lib.safe_string import safe_expediente, safe_message, safe_sentencia, safe_string
 
 HUSO_HORARIO = "America/Mexico_City"
@@ -95,14 +98,14 @@ def datatable_json():
                     "sentencia": resultado.sentencia,
                     "url": url_for("sentencias.detail", sentencia_id=resultado.id),
                 },
-                "fecha": sentencia.fecha.strftime("%Y-%m-%d"),
-                "autoridad": sentencia.autoridad.clave,
-                "expediente": sentencia.expediente,
-                "materia_nombre": sentencia.materia_tipo_juicio.materia.nombre,
-                "materia_tipo_juicio_descripcion": sentencia.materia_tipo_juicio.descripcion,
-                "es_perspectiva_genero": "Sí" if sentencia.es_perspectiva_genero else "",
+                "fecha": resultado.fecha.strftime("%Y-%m-%d"),
+                "autoridad": resultado.autoridad.clave,
+                "expediente": resultado.expediente,
+                # "materia_nombre": resultado.materia_tipo_juicio.materia.nombre,
+                # "materia_tipo_juicio_descripcion": resultado.materia_tipo_juicio.descripcion,
+                "es_perspectiva_genero": "Sí" if resultado.es_perspectiva_genero else "",
                 "archivo": {
-                    "descargar_url": sentencia.descargar_url,
+                    "descargar_url": resultado.descargar_url,
                 },
             }
         )
@@ -168,23 +171,23 @@ def datatable_json_admin():
     # Elaborar datos para DataTable
     data = []
     for resultado in registros:
-        creado_local = sentencia.creado.astimezone(local_tz)  # La columna creado esta en UTC, convertir a local
+        creado_local = resultado.creado.astimezone(local_tz)  # La columna creado esta en UTC, convertir a local
         data.append(
             {
                 "detalle": {
-                    "nombre": resultado.nombre,
+                    "id": resultado.id,
                     "url": url_for("sentencias.detail", sentencia_id=resultado.id),
                 },
                 "creado": creado_local.strftime("%Y-%m-%d %H:%M:%S"),
-                "autoridad": sentencia.autoridad.clave,
-                "fecha": sentencia.fecha.strftime("%Y-%m-%d"),
-                "sentencia": sentencia.sentencia,
-                "expediente": sentencia.expediente,
-                "materia_nombre": sentencia.materia_tipo_juicio.materia.nombre,
-                "materia_tipo_juicio_descripcion": sentencia.materia_tipo_juicio.descripcion,
-                "es_perspectiva_genero": "Sí" if sentencia.es_perspectiva_genero else "",
+                "autoridad": resultado.autoridad.clave,
+                "fecha": resultado.fecha.strftime("%Y-%m-%d"),
+                "sentencia": resultado.sentencia,
+                "expediente": resultado.expediente,
+                # "materia_nombre": resultado.materia_tipo_juicio.materia.nombre,
+                # "materia_tipo_juicio_descripcion": resultado.materia_tipo_juicio.descripcion,
+                "es_perspectiva_genero": "Sí" if resultado.es_perspectiva_genero else "",
                 "archivo": {
-                    "descargar_url": url_for("sentencias.download", url=quote(sentencia.url)),
+                    "descargar_url": url_for("sentencias.download", url=quote(resultado.url)),
                 },
             }
         )
@@ -278,26 +281,26 @@ def list_autoridades(distrito_id):
     )
 
 
-@sentencias.route("/sentencias/autoridad/<int:autoridad_id>")
-def list_autoridad_sentencias(autoridad_id):
-    """Listado de Sentencias activas de una autoridad"""
-    autoridad = Autoridad.query.get_or_404(autoridad_id)
-    form = None
-    plantilla = "sentencias/list.jinja2"
-    if current_user.can_admin("SENTENCIAS") or set(current_user.get_roles()).intersection(set(ROL_REPORTES_TODOS)):
-        plantilla = "sentencias/list_admin.jinja2"
-        form = SentenciaReportForm()
-        form.autoridad_id.data = autoridad.id  # Oculto la autoridad que esta viendo
-        form.fecha_desde.data = datetime.date.today().replace(day=1)  # Por defecto fecha_desde es el primer dia del mes actual
-        form.fecha_hasta.data = datetime.date.today()  # Por defecto fecha_hasta es hoy
-    return render_template(
-        plantilla,
-        autoridad=autoridad,
-        filtros=json.dumps({"autoridad_id": autoridad.id, "estatus": "A"}),
-        titulo=f"V.P. de Sentencias de {autoridad.distrito.nombre_corto}, {autoridad.descripcion_corta}",
-        estatus="A",
-        form=form,
-    )
+# @sentencias.route("/sentencias/autoridad/<int:autoridad_id>")
+# def list_autoridad_sentencias(autoridad_id):
+#     """Listado de Sentencias activas de una autoridad"""
+#     autoridad = Autoridad.query.get_or_404(autoridad_id)
+#     form = None
+#     plantilla = "sentencias/list.jinja2"
+#     if current_user.can_admin("SENTENCIAS") or set(current_user.get_roles()).intersection(set(ROL_REPORTES_TODOS)):
+#         plantilla = "sentencias/list_admin.jinja2"
+#         form = SentenciaReportForm()
+#         form.autoridad_id.data = autoridad.id  # Oculto la autoridad que esta viendo
+#         form.fecha_desde.data = datetime.date.today().replace(day=1)  # Por defecto fecha_desde es el primer dia del mes actual
+#         form.fecha_hasta.data = datetime.date.today()  # Por defecto fecha_hasta es hoy
+#     return render_template(
+#         plantilla,
+#         autoridad=autoridad,
+#         filtros=json.dumps({"autoridad_id": autoridad.id, "estatus": "A"}),
+#         titulo=f"V.P. de Sentencias de {autoridad.distrito.nombre_corto}, {autoridad.descripcion_corta}",
+#         estatus="A",
+#         form=form,
+#     )
 
 
 @sentencias.route("/sentencias/inactivos/autoridad/<int:autoridad_id>")
@@ -317,6 +320,25 @@ def list_autoridad_sentencias_inactive(autoridad_id):
         estatus="B",
         form=None,
     )
+
+
+@sentencias.route("/sentencias/descargar", methods=["GET"])
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def download():
+    """Descargar archivo desde Google Cloud Storage"""
+    url = request.args.get("url")
+    try:
+        # Obtener nombre del blob
+        blob_name = get_blob_name_from_url(url)
+        # Obtener tipo de media
+        media_type = get_media_type_from_filename(blob_name)
+        # Obtener archivo
+        archivo = get_file_from_gcs(current_app.config["CLOUD_STORAGE_DEPOSITO_SENTENCIAS"], blob_name)
+    except MyAnyError as error:
+        flash(str(error), "warning")
+        return redirect(url_for("sentencias.list_active"))
+    # Entregar archivo
+    return current_app.response_class(archivo, mimetype=media_type)
 
 
 @sentencias.route("/sentencias/<int:sentencia_id>")
