@@ -70,7 +70,7 @@ def datatable_json():
     if "autoridad_id" in request.form:
         autoridad = Autoridad.query.get(request.form["autoridad_id"])
         if autoridad:
-            consulta = consulta.filter_by(autoridad=autoridad)
+            consulta = consulta.filter(Edicto.autoridad_id == autoridad.id)
     fecha_desde = None
     fecha_hasta = None
     if "fecha_desde" in request.form and re.match(r"\d{4}-\d{2}-\d{2}", request.form["fecha_desde"]):
@@ -138,8 +138,7 @@ def datatable_json_admin():
     if "autoridad_id" in request.form:
         autoridad = Autoridad.query.get(request.form["autoridad_id"])
         if autoridad:
-            consulta = consulta.filter(Edicto.autoridad == autoridad)
-            print(consulta)
+            consulta = consulta.filter(Edicto.autoridad_id == autoridad.id)
     if "autoridad_clave" in request.form:
         try:
             autoridad_clave = safe_clave(request.form["autoridad_clave"])
@@ -265,7 +264,6 @@ def list_autoridades(distrito_id):
 
 
 @edictos.route("/edictos/autoridad/<int:autoridad_id>")
-@permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_autoridad_edictos(autoridad_id):
     """Listado de Edictos activos de una autoridad"""
     autoridad = Autoridad.query.get_or_404(autoridad_id)

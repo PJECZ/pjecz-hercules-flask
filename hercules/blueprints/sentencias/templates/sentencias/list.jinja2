@@ -6,6 +6,7 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
+        {{ topbar.button_districts('Distritos', url_for('sentencias.list_distritos')) }}
         {% if current_user.can_admin('SENTENCIAS') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('sentencias.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('sentencias.list_active')) }}{% endif %}
@@ -36,14 +37,14 @@
                     </div>
                     <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroFechaDesde" type="date" class="form-control" aria-label="F. de Publicación" style="text-transform: uppercase;">
-                            <label for="filtroFechaDesde">F. de Publicación</label>
+                            <input id="filtroFechaDesde" type="date" class="form-control" aria-label="Fecha Desde" style="text-transform: uppercase;">
+                            <label for="filtroFechaDesde">Fecha Desde</label>
                         </div>
                     </div>
                     <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroFechaHasta" type="date" class="form-control" aria-label="F. de Publicación" style="text-transform: uppercase;">
-                            <label for="filtroFechaHasta">F. de Publicación</label>
+                            <input id="filtroFechaHasta" type="date" class="form-control" aria-label="Fecha Hasta" style="text-transform: uppercase;">
+                            <label for="filtroFechaHasta">Fecha Hasta</label>
                         </div>
                     </div>
                     <div class="col-2 text-end">

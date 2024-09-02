@@ -281,26 +281,26 @@ def list_autoridades(distrito_id):
     )
 
 
-# @sentencias.route("/sentencias/autoridad/<int:autoridad_id>")
-# def list_autoridad_sentencias(autoridad_id):
-#     """Listado de Sentencias activas de una autoridad"""
-#     autoridad = Autoridad.query.get_or_404(autoridad_id)
-#     form = None
-#     plantilla = "sentencias/list.jinja2"
-#     if current_user.can_admin("SENTENCIAS") or set(current_user.get_roles()).intersection(set(ROL_REPORTES_TODOS)):
-#         plantilla = "sentencias/list_admin.jinja2"
-#         form = SentenciaReportForm()
-#         form.autoridad_id.data = autoridad.id  # Oculto la autoridad que esta viendo
-#         form.fecha_desde.data = datetime.date.today().replace(day=1)  # Por defecto fecha_desde es el primer dia del mes actual
-#         form.fecha_hasta.data = datetime.date.today()  # Por defecto fecha_hasta es hoy
-#     return render_template(
-#         plantilla,
-#         autoridad=autoridad,
-#         filtros=json.dumps({"autoridad_id": autoridad.id, "estatus": "A"}),
-#         titulo=f"V.P. de Sentencias de {autoridad.distrito.nombre_corto}, {autoridad.descripcion_corta}",
-#         estatus="A",
-#         form=form,
-#     )
+@sentencias.route("/sentencias/autoridad/<int:autoridad_id>")
+def list_autoridad_sentencias(autoridad_id):
+    """Listado de Sentencias activas de una autoridad"""
+    autoridad = Autoridad.query.get_or_404(autoridad_id)
+    form = None
+    plantilla = "sentencias/list.jinja2"
+    if current_user.can_admin("SENTENCIAS") or set(current_user.get_roles()).intersection(set(ROL_REPORTES_TODOS)):
+        plantilla = "sentencias/list_admin.jinja2"
+        # form = SentenciaReportForm()
+        # form.autoridad_id.data = autoridad.id  # Oculto la autoridad que esta viendo
+        # form.fecha_desde.data = datetime.date.today().replace(day=1)  # Por defecto fecha_desde es el primer dia del mes actual
+        # form.fecha_hasta.data = datetime.date.today()  # Por defecto fecha_hasta es hoy
+    return render_template(
+        plantilla,
+        autoridad=autoridad,
+        filtros=json.dumps({"autoridad_id": autoridad.id, "estatus": "A"}),
+        titulo=f"V.P. de Sentencias de {autoridad.distrito.nombre_corto}, {autoridad.descripcion_corta}",
+        estatus="A",
+        form=form,
+    )
 
 
 @sentencias.route("/sentencias/inactivos/autoridad/<int:autoridad_id>")

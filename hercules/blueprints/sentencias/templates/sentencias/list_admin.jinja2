@@ -9,9 +9,9 @@
     {% call topbar.page_buttons(titulo) %}
         {{ topbar.button_districts('Distritos', url_for('sentencias.list_distritos')) }}
         {% if autoridad %}
-            {% if current_user.can_admin('SENTENCIAS') %}
+            {# {% if current_user.can_admin('SENTENCIAS') %}
                 {{ topbar.button_upload('Subir', url_for('sentencias.new_for_autoridad', autoridad_id=autoridad.id)) }}
-            {% endif %}
+            {% endif %} #}
             {% if current_user.can_edit('SENTENCIAS') %}
                 {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('sentencias.list_autoridad_sentencias_inactive', autoridad_id=autoridad.id)) }}{% endif %}
                 {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('sentencias.list_autoridad_sentencias', autoridad_id=autoridad.id)) }}{% endif %}
@@ -32,19 +32,19 @@
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosSentencias.buscar(); return false;">
-                    <div class="col-2">
+                    <div class="col-4">
                         <div class="form-floating">
-                            <input id="filtroFechaDesde" type="date" class="form-control" aria-label="F. de Publicación" style="text-transform: uppercase;">
-                            <label for="filtroFechaDesde">F. de Publicación</label>
+                            <input id="filtroFechaDesde" type="date" class="form-control" aria-label="Fecha Desde" style="text-transform: uppercase;">
+                            <label for="filtroFechaDesde">Fecha Desde</label>
                         </div>
                     </div>
-                    <div class="col-2">
+                    <div class="col-4">
                         <div class="form-floating">
-                            <input id="filtroFechaHasta" type="date" class="form-control" aria-label="F. de Publicación" style="text-transform: uppercase;">
-                            <label for="filtroFechaHasta">F. de Publicación</label>
+                            <input id="filtroFechaHasta" type="date" class="form-control" aria-label="Fecha Hasta" style="text-transform: uppercase;">
+                            <label for="filtroFechaHasta">Fecha Hasta</label>
                         </div>
                     </div>
-                    <div class="col-3">
+                    {# <div class="col-3">
                         <div class="form-floating">
                             <select id="filtroMateria" class="form-select" aria-label="Materia">
                                 <option selected value="">Todas las Materias</option>
@@ -59,8 +59,8 @@
                             </select>
                             <label class="form-floating-label">Tipo de Juicio</label>
                         </div>
-                    </div>
-                    <div class="col-2 text-end">
+                    </div> #}
+                    <div class="col-4 text-end">
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosSentencias.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
                         <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosSentencias.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
