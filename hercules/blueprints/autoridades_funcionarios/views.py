@@ -15,7 +15,7 @@ from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_message, safe_string
+from lib.safe_string import safe_clave, safe_message, safe_string
 
 MODULO = "AUTORIDADES FUNCIONARIOS"
 
@@ -42,9 +42,18 @@ def datatable_json():
     else:
         consulta = consulta.filter_by(estatus="A")
     if "autoridad_id" in request.form:
-        consulta = consulta.filter_by(autoridad_id=request.form["autoridad_id"])
+        autoridad = Autoridad.query.get(request.form["autoridad_id"])
+        if autoridad:
+            consulta = consulta.filter(AutoridadFuncionario.autoridad_id == autoridad.id)
+    if "autoridad_clave" in request.form:
+        try:
+            autoridad_clave = safe_clave(request.form["autoridad_clave"])
+            if autoridad_clave != "":
+                consulta = consulta.join(Autoridad).filter(Autoridad.clave.contains(autoridad_clave))
+        except ValueError:
+            pass
     if "funcionario_id" in request.form:
-        consulta = consulta.filter_by(funcionario_id=request.form["funcionario_id"])
+        consulta = consulta.filter(AutoridadFuncionario.funcionario_id == request.form["funcionario_id"])
     if "funcionario_nombre" in request.form:
         funcionario_nombre = safe_string(request.form["funcionario_nombre"], save_enie=True)
         if funcionario_nombre != "":
@@ -115,5 +124,41 @@ def list_inactive():
 @autoridades_funcionarios.route("/autoridades_funcionarios/<int:autoridad_funcionario_id>")
 def detail(autoridad_funcionario_id):
     """Detalle de un Autoridad Funcionario"""
-    autoridade_funcionario = AutoridadFuncionario.query.get_or_404(autoridad_funcionario_id)
-    return render_template("autoridades_funcionarios/detail.jinja2", autoridade_funcionario=autoridade_funcionario)
+    autoridad_funcionario = AutoridadFuncionario.query.get_or_404(autoridad_funcionario_id)
+    return render_template("autoridades_funcionarios/detail.jinja2", autoridad_funcionario=autoridad_funcionario)
+
+
+@autoridades_funcionarios.route("/autoridades_funcionarios/eliminar/<int:autoridad_funcionario_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def delete(autoridad_funcionario_id):
+    """Eliminar Autoridad-Funcionario"""
+    autoridad_funcionario = AutoridadFuncionario.query.get_or_404(autoridad_funcionario_id)
+    if autoridad_funcionario.estatus == "A":
+        autoridad_funcionario.delete()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Eliminado Autoridad-Funcionario {autoridad_funcionario.descripcion}"),
+            url=url_for("autoridades_funcionarios.detail", autoridad_funcionario_id=autoridad_funcionario.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("autoridades_funcionarios.detail", autoridad_funcionario_id=autoridad_funcionario.id))
+
+
+@autoridades_funcionarios.route("/autoridades_funcionarios/recuperar/<int:autoridad_funcionario_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def recover(autoridad_funcionario_id):
+    """Recuperar Autoridad-Funcionario"""
+    autoridad_funcionario = AutoridadFuncionario.query.get_or_404(autoridad_funcionario_id)
+    if autoridad_funcionario.estatus == "B":
+        autoridad_funcionario.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Recuperado Autoridad-Funcionario {autoridad_funcionario.descripcion}"),
+            url=url_for("autoridades_funcionarios.detail", autoridad_funcionario_id=autoridad_funcionario.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("autoridades_funcionarios.detail", autoridad_funcionario_id=autoridad_funcionario.id))
