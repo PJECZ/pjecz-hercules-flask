@@ -7,15 +7,14 @@ import json
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_string, safe_message
-
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.materias.forms import MateriaForm
+from hercules.blueprints.materias.models import Materia
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
-from hercules.blueprints.materias.models import Materia
+from lib.datatables import get_datatable_parameters, output_datatable_json
+from lib.safe_string import safe_message, safe_string
 
 MODULO = "MATERIAS"
 
@@ -57,6 +56,24 @@ def datatable_json():
         )
     # Entregar JSON
     return output_datatable_json(draw, total, data)
+
+
+@materias.route("/materias/select_json", methods=["GET", "POST"])
+def select_json():
+    """Select JSON para materias"""
+    # Consultar
+    consulta = Materia.query.filter_by(estatus="A").order_by(Materia.nombre)
+    # Elaborar datos para Select
+    data = []
+    for resultado in consulta.all():
+        data.append(
+            {
+                "id": resultado.id,
+                "nombre": resultado.nombre,
+            }
+        )
+    # Entregar JSON
+    return json.dumps(data)
 
 
 @materias.route("/materias")
