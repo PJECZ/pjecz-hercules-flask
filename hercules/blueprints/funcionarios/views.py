@@ -72,13 +72,13 @@ def datatable_json():
         except ValueError:
             pass
     if "en_funciones" in request.form and request.form["en_funciones"] == "true":
-        consulta = consulta.filter(Funcionario.en_funciones == True)
+        consulta = consulta.filter(Funcionario.en_funciones is True)
     if "en_sentencias" in request.form and request.form["en_sentencias"] == "true":
-        consulta = consulta.filter(Funcionario.en_sentencias == True)
+        consulta = consulta.filter(Funcionario.en_sentencias is True)
     if "en_soportes" in request.form and request.form["en_soportes"] == "true":
-        consulta = consulta.filter(Funcionario.en_soportes == True)
+        consulta = consulta.filter(Funcionario.en_soportes is True)
     if "en_tesis_jurisprudencias" in request.form and request.form["en_tesis_jurisprudencias"] == "true":
-        consulta = consulta.filter(Funcionario.en_tesis_jurisprudencias == True)
+        consulta = consulta.filter(Funcionario.en_tesis_jurisprudencias is True)
     # Ordenar y paginar
     registros = consulta.order_by(Funcionario.id).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -189,3 +189,39 @@ def detail(funcionario_id):
     """Detalle de un Funcionario"""
     funcionario = Funcionario.query.get_or_404(funcionario_id)
     return render_template("funcionarios/detail.jinja2", funcionario=funcionario)
+
+
+@funcionarios.route("/funcionarios/eliminar/<int:funcionario_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def delete(funcionario_id):
+    """Eliminar Funcionario"""
+    funcionario = Funcionario.query.get_or_404(funcionario_id)
+    if funcionario.estatus == "A":
+        funcionario.delete()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Eliminado Funcionario {funcionario.nombre}"),
+            url=url_for("funcionarios.detail", funcionario_id=funcionario.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("funcionarios.detail", funcionario_id=funcionario.id))
+
+
+@funcionarios.route("/funcionarios/recuperar/<int:funcionario_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def recover(funcionario_id):
+    """Recuperar Funcionario"""
+    funcionario = Funcionario.query.get_or_404(funcionario_id)
+    if funcionario.estatus == "B":
+        funcionario.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Recuperado Funcionario {funcionario.nombre}"),
+            url=url_for("funcionarios.detail", funcionario_id=funcionario.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("funcionarios.detail", funcionario_id=funcionario.id))
