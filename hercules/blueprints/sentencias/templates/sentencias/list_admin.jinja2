@@ -32,19 +32,19 @@
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosSentencias.buscar(); return false;">
-                    <div class="col-4">
+                    <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroFechaDesde" type="date" class="form-control" aria-label="Fecha Desde" style="text-transform: uppercase;">
                             <label for="filtroFechaDesde">Fecha Desde</label>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroFechaHasta" type="date" class="form-control" aria-label="Fecha Hasta" style="text-transform: uppercase;">
                             <label for="filtroFechaHasta">Fecha Hasta</label>
                         </div>
                     </div>
-                    {# <div class="col-3">
+                    <div class="col-3">
                         <div class="form-floating">
                             <select id="filtroMateria" class="form-select" aria-label="Materia">
                                 <option selected value="">Todas las Materias</option>
@@ -59,8 +59,8 @@
                             </select>
                             <label class="form-floating-label">Tipo de Juicio</label>
                         </div>
-                    </div> #}
-                    <div class="col-4 text-end">
+                    </div>
+                    <div class="col-2 text-end">
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosSentencias.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
                         <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosSentencias.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
@@ -77,8 +77,8 @@
                     <th>Fecha</th>
                     <th>Sentencia</th>
                     <th>Expediente</th>
-                    {# <th>Materia</th> #}
-                    {# <th>Tipo de Juicio</th> #}
+                    <th>Materia</th>
+                    <th>Tipo de Juicio</th>
                     <th>P. G.</th>
                     <th>Archivo</th>
                 </tr>
@@ -145,8 +145,8 @@
             { data: "fecha" },
             { data: "sentencia" },
             { data: "expediente" },
-            //{ data: "materia_nombre" },
-            //{ data: "materia_tipo_juicio_descripcion" },
+            { data: "materia_nombre" },
+            { data: "materia_tipo_juicio_descripcion" },
             { data: "es_perspectiva_genero" },
             { data: "archivo" }
         ];
@@ -158,15 +158,15 @@
                     return '<a href="' + data.url + '">' + data.id + '</a>';
                 }
             },
-            /* {
+            {
                 targets: 7, // materia_tipo_juicio_descripcion
                 data: null,
                 render: function(data, type, row, meta) {
                     return data.length > 20 ? data.substr(0, 40) + '…' : data;
                 }
-            }, */
+            },
             {
-                targets: 7, // archivo
+                targets: 9, // archivo
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.descargar_url + '" target="_blank">PDF</a>';

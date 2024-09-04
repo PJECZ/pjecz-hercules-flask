@@ -13,6 +13,8 @@ from pytz import timezone
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.distritos.models import Distrito
+from hercules.blueprints.materias.models import Materia
+from hercules.blueprints.materias_tipos_juicios.models import MateriaTipoJuicio
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.sentencias.models import Sentencia
@@ -20,7 +22,7 @@ from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.exceptions import MyAnyError
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs, get_media_type_from_filename
-from lib.safe_string import safe_expediente, safe_message, safe_sentencia, safe_string
+from lib.safe_string import safe_clave, safe_expediente, safe_sentencia, safe_string
 
 HUSO_HORARIO = "America/Mexico_City"
 MODULO = "SENTENCIAS"
@@ -56,6 +58,14 @@ def datatable_json():
         autoridad = Autoridad.query.get(request.form["autoridad_id"])
         if autoridad:
             consulta = consulta.filter(Sentencia.autoridad_id == autoridad.id)
+    if "autoridad_clave" in request.form:
+        try:
+            autoridad_clave = safe_clave(request.form["autoridad_clave"])
+            if autoridad_clave != "":
+                consulta = consulta.join(Autoridad).filter(Autoridad.clave.contains(autoridad_clave))
+                print(consulta)
+        except ValueError:
+            pass
     if "sentencia" in request.form:
         try:
             sentencia = safe_sentencia(request.form["sentencia"])
@@ -82,10 +92,10 @@ def datatable_json():
     if fecha_hasta:
         consulta = consulta.filter(Sentencia.fecha <= fecha_hasta)
     # Filtrar por tipo de juicio
-    # if "materia_tipo_juicio_id" in request.form:
-    #     materia_tipo_juicio = MateriaTipoJuicio.query.get(request.form["materia_tipo_juicio_id"])
-    #     if materia_tipo_juicio:
-    #         consulta = consulta.filter(Sentencia.materia_tipo_juicio == materia_tipo_juicio)
+    if "materia_tipo_juicio_id" in request.form:
+        materia_tipo_juicio = MateriaTipoJuicio.query.get(request.form["materia_tipo_juicio_id"])
+        if materia_tipo_juicio:
+            consulta = consulta.filter(Sentencia.materia_tipo_juicio == materia_tipo_juicio)
     # Ordenar y paginar
     registros = consulta.order_by(Sentencia.fecha.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -101,8 +111,8 @@ def datatable_json():
                 "fecha": resultado.fecha.strftime("%Y-%m-%d"),
                 "autoridad": resultado.autoridad.clave,
                 "expediente": resultado.expediente,
-                # "materia_nombre": resultado.materia_tipo_juicio.materia.nombre,
-                # "materia_tipo_juicio_descripcion": resultado.materia_tipo_juicio.descripcion,
+                "materia_nombre": resultado.materia_tipo_juicio.materia.nombre,
+                "materia_tipo_juicio_descripcion": resultado.materia_tipo_juicio.descripcion,
                 "es_perspectiva_genero": "Sí" if resultado.es_perspectiva_genero else "",
                 "archivo": {
                     "descargar_url": resultado.descargar_url,
@@ -155,14 +165,14 @@ def datatable_json_admin():
     if fecha_hasta:
         consulta = consulta.filter(Sentencia.fecha <= fecha_hasta)
     # Luego filtrar por columnas de otras tablas
-    # if "materia_id" in request.form:
-    #     materia = Materia.query.get(request.form["materia_id"])
-    #     if materia:
-    #         consulta = consulta.join(MateriaTipoJuicio).filter(MateriaTipoJuicio.materia_id == materia.id)
-    # if "materia_tipo_juicio_id" in request.form:
-    #     materia_tipo_juicio = MateriaTipoJuicio.query.get(request.form["materia_tipo_juicio_id"])
-    #     if materia_tipo_juicio:
-    #         consulta = consulta.filter(Sentencia.materia_tipo_juicio_id == materia_tipo_juicio.id)
+    if "materia_id" in request.form:
+        materia = Materia.query.get(request.form["materia_id"])
+        if materia:
+            consulta = consulta.join(MateriaTipoJuicio).filter(MateriaTipoJuicio.materia_id == materia.id)
+    if "materia_tipo_juicio_id" in request.form:
+        materia_tipo_juicio = MateriaTipoJuicio.query.get(request.form["materia_tipo_juicio_id"])
+        if materia_tipo_juicio:
+            consulta = consulta.filter(Sentencia.materia_tipo_juicio_id == materia_tipo_juicio.id)
     # Ordenar y paginar
     registros = consulta.order_by(Sentencia.id).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -183,8 +193,8 @@ def datatable_json_admin():
                 "fecha": resultado.fecha.strftime("%Y-%m-%d"),
                 "sentencia": resultado.sentencia,
                 "expediente": resultado.expediente,
-                # "materia_nombre": resultado.materia_tipo_juicio.materia.nombre,
-                # "materia_tipo_juicio_descripcion": resultado.materia_tipo_juicio.descripcion,
+                "materia_nombre": resultado.materia_tipo_juicio.materia.nombre,
+                "materia_tipo_juicio_descripcion": resultado.materia_tipo_juicio.descripcion,
                 "es_perspectiva_genero": "Sí" if resultado.es_perspectiva_genero else "",
                 "archivo": {
                     "descargar_url": url_for("sentencias.download", url=quote(resultado.url)),

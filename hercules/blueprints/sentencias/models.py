@@ -24,9 +24,8 @@ class Sentencia(database.Model, UniversalMixin):
     # Clave foránea
     autoridad_id: Mapped[int] = mapped_column(ForeignKey("autoridades.id"))
     autoridad: Mapped["Autoridad"] = relationship(back_populates="sentencias")
-    # Clave foránea
-    # materia_tipo_juicio_id: Mapped[int] = mapped_column(ForeignKey("materias_tipos_juicios.id"))
-    # materia_tipo_juicio: Mapped["MateriaTipoJuicio"] = relationship(back_populates="sentencias")
+    materia_tipo_juicio_id: Mapped[int] = mapped_column(ForeignKey("materias_tipos_juicios.id"))
+    materia_tipo_juicio: Mapped["MateriaTipoJuicio"] = relationship(back_populates="sentencias")
 
     # Columnas
     sentencia: Mapped[str] = mapped_column(String(16))

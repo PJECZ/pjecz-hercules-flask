@@ -61,7 +61,7 @@
                     <th>Fecha</th>
                     <th>Sentencia</th>
                     <th>Expediente</th>
-                    {# <th>Tipo de Juicio</th> #}
+                    <th>Tipo de Juicio</th>
                     <th>P. Género</th>
                     <th>Descargar</th>
                 </tr>
@@ -95,7 +95,7 @@
             { data: "fecha" },
             { data: "detalle" },
             { data: "expediente" },
-            //{ data: "materia_tipo_juicio_descripcion" },
+            { data: "materia_tipo_juicio_descripcion" },
             { data: "es_perspectiva_genero" },
             { data: "archivo" }
         ];
@@ -107,13 +107,13 @@
                     return '<a href="' + data.url + '">' + data.sentencia + '</a>';
                 }
             },
-            /*{
+            {
                 targets: 3, // materia_tipo_juicio_descripcion
                 data: null,
                 render: function(data, type, row, meta) {
                     return data.length > 20 ? data.substr(0, 40) + '…' : data;
                 }
-            },*/
+            },
             {
                 targets: 4, // archivo
                 data: null,
