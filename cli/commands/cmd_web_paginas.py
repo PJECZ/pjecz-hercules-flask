@@ -84,19 +84,11 @@ def actualizar(probar: bool = False, rama: str = None):
         for archivo_md in archivos_md:
             contador += 1
 
-            # Inicializar las variables con sus valores por defecto
-            titulo = None
-            resumen = ""
-            fecha_modificacion = None
-            etiquetas = ""
-            vista_previa = ""
-            estado = "PUBLICAR"
+            # Por defecto, definir la clave de la pagina juntando la clave de la rama y el contador con 4 digitos
+            clave = f"{web_rama.clave}-{contador:04d}"
 
             # Definir la ruta al archivo_md sin el archivo mismo
             ruta = str(archivo_md.parent.relative_to(ARCHIVISTA_DIR))
-
-            # Definir la clave de la pagina juntando la clave de la rama y el contador con 4 digitos
-            clave = f"{web_rama.clave}-{contador:04d}"
 
             # Leer el contenido del archivo MD
             with open(file=archivo_md, mode="r", encoding="UTF8") as archivo:
@@ -105,6 +97,14 @@ def actualizar(probar: bool = False, rama: str = None):
 
                 # Inicializar lineas_nuevas como lista vacia para guardar las lineas que no son metadatos
                 lineas_nuevas = []
+
+                # Inicializar las variables de los metadatos
+                titulo = None
+                resumen = ""
+                fecha_modificacion = None
+                etiquetas = ""
+                vista_previa = ""
+                estado = "PUBLICAR"
 
                 # Buscar en las lineas los metadatos
                 hay_contenido = False
@@ -115,6 +115,8 @@ def actualizar(probar: bool = False, rama: str = None):
                         resumen = safe_string(
                             linea[8:].strip(), do_unidecode=False, save_enie=True, to_uppercase=False, max_len=1000
                         )
+                    elif linea.startswith("Key:"):
+                        clave = safe_clave(linea[4:].strip())
                     elif linea.startswith("Date:"):
                         date_match = re.match(r"(\d{4}-\d{2}-\d{2})", linea[5:].strip())
                         if date_match is not None:
@@ -134,11 +136,6 @@ def actualizar(probar: bool = False, rama: str = None):
                         if linea_limpia != "":
                             hay_contenido = True
                         lineas_nuevas.append(linea_limpia)  # Si no es metadato, entonces guardar la linea
-
-                # Si NO hay textos en las lineas se omite este archivo
-                if hay_contenido is False or len(lineas_nuevas) == 0:
-                    click.echo(click.style("0", fg="red"), nl=False)
-                    continue
 
                 # Unir las lineas que no son metadatos
                 contenido_html = markdown("\n".join(lineas_nuevas), extensions=["tables"])
@@ -160,6 +157,11 @@ def actualizar(probar: bool = False, rama: str = None):
 
                 # Convertir la fecha de modificacion de texto a datetime
                 fecha_modificacion = datetime.strptime(fecha_modificacion, "%Y-%m-%d").date()
+
+            # Si NO hay textos en las lineas se omite este archivo
+            if hay_contenido is False or len(lineas_nuevas) == 0:
+                click.echo(click.style("0", fg="red"), nl=False)
+                continue
 
             # Validar clave
             if not isinstance(clave, str) or clave == "":
