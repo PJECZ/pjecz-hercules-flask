@@ -17,8 +17,10 @@
         {% elif current_user.can_insert('EDICTOS') and current_user.autoridad_id == edicto.autoridad_id %}
             {{ topbar.button_upload('Nuevo Edicto', url_for('edictos.new')) }}
         {% endif %}
-        {% if current_user.can_admin('EDICTOS') or (current_user.can_edit('EDICTOS') and edicto.autoridad_id == current_user.autoridad_id) %}
+        {% if current_user.can_edit('EDICTOS') %}
             {{ topbar.button_edit('Editar', url_for('edictos.edit', edicto_id=edicto.id)) }}
+        {% endif %}
+        {% if current_user.can_admin('EDICTOS') %}
             {% if edicto.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('edictos.delete', edicto_id=edicto.id)) }}{% endif %}
             {% if edicto.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('edictos.recover', edicto_id=edicto.id)) }}{% endif %}
         {% endif %}

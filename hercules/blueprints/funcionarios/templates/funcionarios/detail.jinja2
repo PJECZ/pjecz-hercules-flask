@@ -13,37 +13,43 @@
         {% endif %}
         {# {% if current_user.can_edit('FUNCIONARIOS') %}
             {{ topbar.button_edit('Editar', url_for('funcionarios.edit', funcionario_id=funcionario.id)) }}
-        {% endif %}
+        {% endif %}#}
         {% if current_user.can_admin('FUNCIONARIOS') %}
             {% if funcionario.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('funcionarios.delete', funcionario_id=funcionario.id)) }}{% endif %}
             {% if funcionario.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('funcionarios.recover', funcionario_id=funcionario.id)) }}{% endif %}
-        {% endif %} #}
+        {% endif %}
     {% endcall %}
 {% endblock %}
 
 {% block content %}
-    {% call detail.card(estatus=funcionario.estatus) %}
-        {{ detail.label_value_big('Puesto', funcionario.puesto, font_size=1.5) }}
-        {{ detail.label_value('Centro de Trabajo', funcionario.centro_trabajo.nombre) }}
-        {{ detail.label_value('e-mail', funcionario.email) }}
-        {{ detail.label_value_big('Teléfono', funcionario.telefono, font_size=1.5) }}
-        {{ detail.label_value_big('Extensión', funcionario.extension, font_size=1.5) }}
-    {% endcall %}
-    {# Informacion sensible que NO esta a la vista de todos #}
-    {% if current_user.can_admin('FUNCIONARIOS') %}
-        {% call detail.card(estatus=funcionario.estatus) %}
-            {{ detail.label_value('CURP', funcionario.curp) }}
-            {% if current_user.can_view('CENTROS TRABAJOS') %}
-                {{ detail.label_value('Clave del Centro de Trabajo', funcionario.centro_trabajo.clave, url_for('centros_trabajos.detail', centro_trabajo_id=funcionario.centro_trabajo_id)) }}
-            {% else %}
-                {{ detail.label_value('Clave del Centro de Trabajo', funcionario.centro_trabajo.clave) }}
+    <div class="row">
+        <div class="col-md-6">
+            {% call detail.card(estatus=funcionario.estatus) %}
+                {{ detail.label_value_big('Puesto', funcionario.puesto, font_size=1.5) }}
+                {{ detail.label_value('Centro de Trabajo', funcionario.centro_trabajo.nombre) }}
+                {{ detail.label_value('e-mail', funcionario.email) }}
+                {{ detail.label_value_big('Teléfono', funcionario.telefono, font_size=1.5) }}
+                {{ detail.label_value_big('Extensión', funcionario.extension, font_size=1.5) }}
+            {% endcall %}
+        </div>
+        <div class="col-md-6">
+            {# Informacion sensible que NO esta a la vista de todos #}
+            {% if current_user.can_admin('FUNCIONARIOS') %}
+                {% call detail.card(estatus=funcionario.estatus) %}
+                    {{ detail.label_value('CURP', funcionario.curp) }}
+                    {% if current_user.can_view('CENTROS TRABAJOS') %}
+                        {{ detail.label_value('Clave del Centro de Trabajo', funcionario.centro_trabajo.clave, url_for('centros_trabajos.detail', centro_trabajo_id=funcionario.centro_trabajo_id)) }}
+                    {% else %}
+                        {{ detail.label_value('Clave del Centro de Trabajo', funcionario.centro_trabajo.clave) }}
+                    {% endif %}
+                    {{ detail.label_value('Clave del puesto', funcionario.puesto_clave) }}
+                    {{ detail.label_value('Domicilio oficial', funcionario.domicilio_oficial) }}
+                    {{ detail.label_value('Fecha de ingreso', funcionario.ingreso_fecha) }}
+                    {{ detail.label_value('Fotografía URL', funcionario.fotografia_url) }}
+                {% endcall %}
             {% endif %}
-            {{ detail.label_value('Clave del puesto', funcionario.puesto_clave) }}
-            {{ detail.label_value('Domicilio oficial', funcionario.domicilio_oficial) }}
-            {{ detail.label_value('Fecha de ingreso', funcionario.ingreso_fecha) }}
-            {{ detail.label_value('Fotografía URL', funcionario.fotografia_url) }}
-        {% endcall %}
-    {% endif %}
+        </div>
+    </div>
     {# Listado Autoridades-Funcionarios #}
     {% if current_user.can_view('AUTORIDADES FUNCIONARIOS') and funcionario.en_sentencias %}
         {% call detail.card('AUTORIDADES FUNCIONARIOS') %}
@@ -53,8 +59,8 @@
                     <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosAutoridadesFuncionarios.buscar(); return false;">
                         <div class="col-4">
                             <div class="form-floating">
-                                <input id="filtroAutoridad" type="text" class="form-control" aria-label="Autoridad" style="text-transform: uppercase;">
-                                <label for="filtroAutoridad">Autoridad</label>
+                                <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad Clave" style="text-transform: uppercase;">
+                                <label for="filtroAutoridadClave">Autoridad Clave</label>
                             </div>
                         </div>
                         <div class="col-6">
@@ -92,13 +98,19 @@
             <div class="row">
                 <div class="col">
                     <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosFuncinariosOficinas.buscar(); return false;">
-                        <div class="col-6">
+                        <div class="col-4">
                             <div class="form-floating">
-                                <input id="filtroOficina" type="text" class="form-control" aria-label="Oficina" style="text-transform: uppercase;">
-                                <label for="filtroOficina">Oficina</label>
+                                <input id="filtroOficinaClave" type="text" class="form-control" aria-label="Oficina clave" style="text-transform: uppercase;">
+                                <label for="filtroOficinaClave">Oficina clave</label>
                             </div>
                         </div>
-                        <div class="col-6 text-end">
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input id="filtroOficinaDescripcion" type="text" class="form-control" aria-label="Oficina descripción" style="text-transform: uppercase;">
+                                <label for="filtroOficinaDescripcion">Oficina descripción</label>
+                            </div>
+                        </div>
+                        <div class="col-2 text-end">
                             <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosFuncinariosOficinas.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
                             <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosFuncinariosOficinas.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                         </div>
@@ -169,7 +181,7 @@
             ];
             // Filtros Autoridades funcionarios
             const filtrosAutoridadesFuncionarios = new FiltrosDataTable('#autoridades_funcionarios_datatable', configDTAutoridadesFuncionarios);
-            filtrosAutoridadesFuncionarios.agregarInput('filtroAutoridad', 'autoridad_id');
+            filtrosAutoridadesFuncionarios.agregarInput('filtroAutoridadClave', 'autoridad_clave');
             filtrosAutoridadesFuncionarios.agregarInput('filtroAutoridadDescripcion', 'autoridad_descripcion');
             filtrosAutoridadesFuncionarios.precargar();
         </script>
@@ -203,7 +215,8 @@
             ];
             // Filtros Funcionarios Oficinas
             const filtrosFuncinariosOficinas = new FiltrosDataTable('#funcionarios_oficinas_datatable', configDTFuncionariosOficinas);
-            filtrosFuncinariosOficinas.agregarInput('filtroOficina', 'oficina_nombre');
+            filtrosFuncinariosOficinas.agregarInput('filtroOficinaClave', 'oficina_clave');
+            filtrosFuncinariosOficinas.agregarInput('filtroOficinaDescripcion', 'oficina_descripcion');
             filtrosFuncinariosOficinas.precargar();
         </script>
     {% endif %}
