@@ -1,0 +1,139 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Tipo de Juicio {{ materia_tipo_juicio.descripcion }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Tipo de Juicio ' + materia_tipo_juicio.descripcion) %}
+        {{ topbar.button_previous('Tipos de Juicios', url_for('materias_tipos_juicios.list_active')) }}
+        {% if current_user.can_edit('MATERIAS TIPOS JUICIOS') %}
+            {{ topbar.button_edit('Editar', url_for('materias_tipos_juicios.edit', materia_tipo_juicio_id=materia_tipo_juicio.id)) }}
+        {% endif %}
+        {% if current_user.can_admin('MATERIAS TIPOS JUICIOS') %}
+            {% if materia_tipo_juicio.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('materias_tipos_juicios.delete', materia_tipo_juicio_id=materia_tipo_juicio.id)) }}{% endif %}
+            {% if materia_tipo_juicio.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('materias_tipos_juicios.recover', materia_tipo_juicio_id=materia_tipo_juicio.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=materia_tipo_juicio.estatus) %}
+        {{ detail.label_value_big('Descripción', materia_tipo_juicio.descripcion) }}
+        {% if current_user.can_view('MATERIAS') %}
+            {{ detail.label_value('Materia', materia_tipo_juicio.materia.nombre, url_for('materias.detail', materia_id=materia_tipo_juicio.materia_id)) }}
+        {% else %}
+            {{ detail.label_value('Materia', materia_tipo_juicio.materia.nombre) }}
+        {% endif %}
+    {% endcall %}
+    {% if current_user.can_view('SENTENCIAS') %}
+        {% call detail.card('V.P. Sentencias') %}
+            <!-- Filtros Sentencias -->
+            <div class="row">
+                <div class="col">
+                    <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosSentencias.buscar(); return false;">
+                        <div class="col-2">
+                            <div class="form-floating">
+                                <input id="filtroFechaDesde" type="date" class="form-control" aria-label="Fecha Desde" style="text-transform: uppercase;">
+                                <label for="filtroFechaDesde">Fecha Desde</label>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="form-floating">
+                                <input id="filtroFechaHasta" type="date" class="form-control" aria-label="Fecha Hasta" style="text-transform: uppercase;">
+                                <label for="filtroFechaHasta">Fecha Hasta</label>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="form-floating">
+                                <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad Clave" style="text-transform: uppercase;">
+                                <label for="filtroAutoridadClave">Autoridad Clave</label>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="form-floating">
+                                <input id="filtroSentencia" type="text" class="form-control" aria-label="Sentencia" style="text-transform: uppercase;">
+                                <label for="filtroSentencia">Sentencia</label>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="form-floating">
+                                <input id="filtroExpediente" type="text" class="form-control" aria-label="Expediente" style="text-transform: uppercase;">
+                                <label for="filtroExpediente">Expediente</label>
+                            </div>
+                        </div>
+                        <div class="col-2 text-end">
+                            <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosSentencias.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                            <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosSentencias.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- DataTable Sentencias -->
+            <table id="sentencias_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Autoridad</th>
+                        <th>Sentencia</th>
+                        <th>Expediente</th>
+                        <th>P. Género</th>
+                        <th>Descargar</th>
+                    </tr>
+                </thead>
+            </table>
+        {% endcall %}
+    {% endif %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_admin('MATERIAS TIPOS JUICIOS') %}
+        {% if materia_tipo_juicio.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + materia_tipo_juicio.descripcion + '?') }}{% endif %}
+        {% if materia_tipo_juicio.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + materia_tipo_juicio.descripcion + '?') }}{% endif %}
+    {% endif %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    {% if current_user.can_view('SENTENCIAS')%}
+        <script>
+            // DataTable Sentencias
+            const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+            let configDTSentencias = constructorDataTable.config();
+            configDTSentencias['ajax']['url'] = '/sentencias/datatable_json';
+            configDTSentencias['ajax']['data'] = { 'estatus': "A", 'materia_tipo_juicio_id': {{ materia_tipo_juicio.id}} };
+            configDTSentencias['columns'] = [
+                { data: "fecha" },
+                { data: "autoridad" },
+                { data: "detalle" },
+                { data: "expediente" },
+                { data: "es_perspectiva_genero" },
+                { data: "archivo" }
+            ];
+            configDTSentencias['columnDefs'] = [
+                {
+                    targets: 2, // detalle
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '">' + data.sentencia + '</a>';
+                    }
+                },
+                {
+                    targets: 5, // archivo
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.descargar_url + '" target="_blank"><span class="iconify" data-icon="mdi:download"></span> PDF</a>';
+                    }
+                }
+            ];
+            // Filtros Sentencias
+            const filtrosSentencias = new FiltrosDataTable('#sentencias_datatable', configDTSentencias);
+            filtrosSentencias.agregarInput('filtroFechaDesde', 'fecha_desde');
+            filtrosSentencias.agregarInput('filtroFechaHasta', 'fecha_hasta');
+            filtrosSentencias.agregarInput('filtroAutoridadClave', 'autoridad_clave');
+            filtrosSentencias.agregarInput('filtroSentencia', 'sentencia');
+            filtrosSentencias.agregarInput('filtroExpediente', 'expediente');
+            filtrosSentencias.precargar();
+        </script>
+    {% endif %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}

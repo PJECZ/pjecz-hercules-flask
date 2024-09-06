@@ -1,5 +1,5 @@
 {% extends 'layouts/app.jinja2' %}
-{# {% import 'macros/form_inline.jinja2' as f with context %} #}
+{% import 'macros/form_inline.jinja2' as f with context %}
 {% import 'macros/list.jinja2' as list %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
@@ -9,12 +9,12 @@
     {% call topbar.page_buttons(titulo) %}
         {{ topbar.button_districts('Distritos', url_for('sentencias.list_distritos')) }}
         {% if autoridad %}
-            {# {% if current_user.can_admin('SENTENCIAS') %}
-                {{ topbar.button_upload('Subir', url_for('sentencias.new_for_autoridad', autoridad_id=autoridad.id)) }}
-            {% endif %} #}
             {% if current_user.can_edit('SENTENCIAS') %}
                 {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('sentencias.list_autoridad_sentencias_inactive', autoridad_id=autoridad.id)) }}{% endif %}
                 {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('sentencias.list_autoridad_sentencias', autoridad_id=autoridad.id)) }}{% endif %}
+            {% endif %}
+            {% if current_user.can_admin('SENTENCIAS') %}
+                {{ topbar.button_upload('Nueva Sentencia', url_for('sentencias.new_for_autoridad', autoridad_id=autoridad.id)) }}
             {% endif %}
         {% else %}
             {% if current_user.can_edit('SENTENCIAS') %}
@@ -32,19 +32,25 @@
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosSentencias.buscar(); return false;">
-                    <div class="col-4">
+                    <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroFechaDesde" type="date" class="form-control" aria-label="Fecha Desde" style="text-transform: uppercase;">
                             <label for="filtroFechaDesde">Fecha Desde</label>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroFechaHasta" type="date" class="form-control" aria-label="Fecha Hasta" style="text-transform: uppercase;">
                             <label for="filtroFechaHasta">Fecha Hasta</label>
                         </div>
                     </div>
-                    {# <div class="col-3">
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroSentencia" type="text" class="form-control" aria-label="Sentencia" style="text-transform: uppercase;">
+                            <label for="filtroSentencia">Sentencia</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
                         <div class="form-floating">
                             <select id="filtroMateria" class="form-select" aria-label="Materia">
                                 <option selected value="">Todas las Materias</option>
@@ -52,15 +58,15 @@
                             <label class="form-floating-label">Materia</label>
                         </div>
                     </div>
-                    <div class="col-3">
+                    <div class="col-2">
                         <div class="form-floating">
                             <select id="filtroTipoJuicio" class="form-select" aria-label="Tipo de Juicio">
                                 <option selected value="">Todos los Tipos de Juicios</option>
                             </select>
                             <label class="form-floating-label">Tipo de Juicio</label>
                         </div>
-                    </div> #}
-                    <div class="col-4 text-end">
+                    </div>
+                    <div class="col-2 text-end">
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosSentencias.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
                         <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosSentencias.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
@@ -77,8 +83,8 @@
                     <th>Fecha</th>
                     <th>Sentencia</th>
                     <th>Expediente</th>
-                    {# <th>Materia</th> #}
-                    {# <th>Tipo de Juicio</th> #}
+                    <th>Materia</th>
+                    <th>Tipo de Juicio</th>
                     <th>P. G.</th>
                     <th>Archivo</th>
                 </tr>
@@ -145,8 +151,8 @@
             { data: "fecha" },
             { data: "sentencia" },
             { data: "expediente" },
-            //{ data: "materia_nombre" },
-            //{ data: "materia_tipo_juicio_descripcion" },
+            { data: "materia_nombre" },
+            { data: "materia_tipo_juicio_descripcion" },
             { data: "es_perspectiva_genero" },
             { data: "archivo" }
         ];
@@ -158,15 +164,15 @@
                     return '<a href="' + data.url + '">' + data.id + '</a>';
                 }
             },
-            /* {
+            {
                 targets: 7, // materia_tipo_juicio_descripcion
                 data: null,
                 render: function(data, type, row, meta) {
                     return data.length > 20 ? data.substr(0, 40) + '…' : data;
                 }
-            }, */
+            },
             {
-                targets: 7, // archivo
+                targets: 9, // archivo
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.descargar_url + '" target="_blank">PDF</a>';
@@ -177,6 +183,7 @@
         const filtrosSentencias = new FiltrosDataTable('#sentencias_datatable', configDTSentencias);
         filtrosSentencias.agregarInput('filtroFechaDesde', 'fecha_desde');
         filtrosSentencias.agregarInput('filtroFechaHasta', 'fecha_hasta');
+        filtrosSentencias.agregarInput('filtroSentencia', 'sentencia');
         filtrosSentencias.agregarInput('filtroMateria', 'materia_id');
         filtrosSentencias.agregarInput('filtroTipoJuicio', 'materia_tipo_juicio_id');
         filtrosSentencias.precargar();

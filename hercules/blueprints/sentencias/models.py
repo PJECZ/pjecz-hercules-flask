@@ -3,9 +3,9 @@ Sentencias, modelos
 """
 
 from datetime import date
-from typing import List, Optional
+from typing import Optional
 
-from sqlalchemy import JSON, Boolean, Date, Enum, ForeignKey, Integer, String, Text, Uuid
+from sqlalchemy import Date, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.extensions import database
@@ -24,9 +24,8 @@ class Sentencia(database.Model, UniversalMixin):
     # Clave foránea
     autoridad_id: Mapped[int] = mapped_column(ForeignKey("autoridades.id"))
     autoridad: Mapped["Autoridad"] = relationship(back_populates="sentencias")
-    # Clave foránea
-    # materia_tipo_juicio_id: Mapped[int] = mapped_column(ForeignKey("materias_tipos_juicios.id"))
-    # materia_tipo_juicio: Mapped["MateriaTipoJuicio"] = relationship(back_populates="sentencias")
+    materia_tipo_juicio_id: Mapped[int] = mapped_column(ForeignKey("materias_tipos_juicios.id"))
+    materia_tipo_juicio: Mapped["MateriaTipoJuicio"] = relationship(back_populates="sentencias")
 
     # Columnas
     sentencia: Mapped[str] = mapped_column(String(16))

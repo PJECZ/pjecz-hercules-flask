@@ -1,4 +1,5 @@
 {% extends 'layouts/app.jinja2' %}
+{% import 'macros/form_inline.jinja2' as f with context %}
 {% import 'macros/list.jinja2' as list %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
@@ -11,9 +12,9 @@
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('sentencias.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('sentencias.list_active')) }}{% endif %}
         {% endif %}
-        {# {% if current_user.can_insert('SENTENCIAS') %}
-            {{ topbar.button_new('Nuevo Sentencia', url_for('sentencias.new')) }}
-        {% endif %} #}
+        {% if current_user.can_edit('SENTENCIAS') %}
+            {{ topbar.button_new('Nueva Sentencia', url_for('sentencias.new')) }}
+        {% endif %}
     {% endcall %}
 {% endblock %}
 
@@ -23,18 +24,6 @@
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosSentencias.buscar(); return false;">
-                    <div class="col-3">
-                        <div class="form-floating">
-                            <input id="filtroSentencia" type="text" class="form-control" aria-label="Sentencia" style="text-transform: uppercase;">
-                            <label for="filtroSentencia">Sentencia</label>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="form-floating">
-                            <input id="filtroExpediente" type="text" class="form-control" aria-label="Expediente" style="text-transform: uppercase;">
-                            <label for="filtroExpediente">Expediente</label>
-                        </div>
-                    </div>
                     <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroFechaDesde" type="date" class="form-control" aria-label="Fecha Desde" style="text-transform: uppercase;">
@@ -45,6 +34,18 @@
                         <div class="form-floating">
                             <input id="filtroFechaHasta" type="date" class="form-control" aria-label="Fecha Hasta" style="text-transform: uppercase;">
                             <label for="filtroFechaHasta">Fecha Hasta</label>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-floating">
+                            <input id="filtroSentencia" type="text" class="form-control" aria-label="Sentencia" style="text-transform: uppercase;">
+                            <label for="filtroSentencia">Sentencia</label>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-floating">
+                            <input id="filtroExpediente" type="text" class="form-control" aria-label="Expediente" style="text-transform: uppercase;">
+                            <label for="filtroExpediente">Expediente</label>
                         </div>
                     </div>
                     <div class="col-2 text-end">
@@ -61,7 +62,7 @@
                     <th>Fecha</th>
                     <th>Sentencia</th>
                     <th>Expediente</th>
-                    {# <th>Tipo de Juicio</th> #}
+                    <th>Tipo de Juicio</th>
                     <th>P. Género</th>
                     <th>Descargar</th>
                 </tr>
@@ -69,7 +70,7 @@
         </table>
     {% endcall %}
     {# Reporte #}
-    {# {% if form %}
+    {% if form %}
         {% call list.card(title='Reporte de Listas de Acuerdos') %}
             {% call f.form_tag('sentencias.report', fid='sentencias_report_form') %}
                 {% call f.form_group(form.autoridad_id, type='hidden') %}{% endcall %}
@@ -79,7 +80,7 @@
                 {% call f.form_group(form.elaborar) %}{% endcall %}
             {% endcall %}
         {% endcall %}
-    {% endif %} #}
+    {% endif %}
 {% endblock %}
 
 {% block custom_javascript %}
@@ -95,7 +96,7 @@
             { data: "fecha" },
             { data: "detalle" },
             { data: "expediente" },
-            //{ data: "materia_tipo_juicio_descripcion" },
+            { data: "materia_tipo_juicio_descripcion" },
             { data: "es_perspectiva_genero" },
             { data: "archivo" }
         ];
@@ -107,15 +108,15 @@
                     return '<a href="' + data.url + '">' + data.sentencia + '</a>';
                 }
             },
-            /*{
+            {
                 targets: 3, // materia_tipo_juicio_descripcion
                 data: null,
                 render: function(data, type, row, meta) {
                     return data.length > 20 ? data.substr(0, 40) + '…' : data;
                 }
-            },*/
+            },
             {
-                targets: 4, // archivo
+                targets: 5, // archivo
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.descargar_url + '" target="_blank">PDF</a>';
@@ -124,10 +125,10 @@
         ];
         // Filtros Sentencias
         const filtrosSentencias = new FiltrosDataTable('#sentencias_datatable', configDTSentencias);
-        filtrosSentencias.agregarInput('filtroSentencia', 'sentencia');
-        filtrosSentencias.agregarInput('filtroExpediente', 'expediente');
         filtrosSentencias.agregarInput('filtroFechaDesde', 'fecha_desde');
         filtrosSentencias.agregarInput('filtroFechaHasta', 'fecha_hasta');
+        filtrosSentencias.agregarInput('filtroSentencia', 'sentencia');
+        filtrosSentencias.agregarInput('filtroExpediente', 'expediente');
         filtrosSentencias.precargar();
     </script>
 {% endblock %}
