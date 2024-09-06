@@ -11,7 +11,6 @@ import sys
 import click
 from dotenv import load_dotenv
 from markdown import markdown
-from unidecode import unidecode
 
 from hercules.app import create_app
 from hercules.blueprints.web_paginas.models import WebPagina
@@ -65,7 +64,6 @@ def actualizar(probar: bool = False, rama: str = None):
         web_ramas = [web_rama]
 
     # Bucle por cada rama
-    contador = 0
     for web_rama in web_ramas:
 
         # Definir el directorio con la rama
@@ -82,49 +80,46 @@ def actualizar(probar: bool = False, rama: str = None):
         # Bucle por cada archivo MD
         click.echo(f"Actualizando la rama {web_rama.clave}:", nl=False)
         for archivo_md in archivos_md:
-            contador += 1
-
-            # Inicializar las variables con sus valores por defecto
-            titulo = None
-            resumen = ""
-            fecha_modificacion = None
-            etiquetas = ""
-            vista_previa = ""
-            estado = "PUBLICAR"
 
             # Definir la ruta al archivo_md sin el archivo mismo
             ruta = str(archivo_md.parent.relative_to(ARCHIVISTA_DIR))
 
-            # Definir la clave de la pagina juntando la clave de la rama y el contador con 4 digitos
-            clave = f"{web_rama.clave}-{contador:04d}"
+            # Inicializar lineas_nuevas como lista vacia para guardar las lineas que no son metadatos
+            lineas_nuevas = []
+
+            # Inicializar las variables de los metadatos
+            titulo = None
+            resumen = ""
+            clave = None
+            fecha_modificacion = None
+            etiquetas = ""
+            vista_previa = ""
+            estado = "PUBLICAR"
 
             # Leer el contenido del archivo MD
             with open(file=archivo_md, mode="r", encoding="UTF8") as archivo:
                 # Separar el contenido del archivo en lineas
                 lineas = archivo.read().split("\n")
 
-                # Inicializar lineas_nuevas como lista vacia para guardar las lineas que no son metadatos
-                lineas_nuevas = []
-
                 # Buscar en las lineas los metadatos
                 hay_contenido = False
                 for linea in lineas:
                     if linea.startswith("Title:"):
-                        titulo = safe_string(linea[6:].strip(), do_unidecode=False, save_enie=True, to_uppercase=False)
+                        titulo = safe_string(linea[6:], do_unidecode=False, save_enie=True, to_uppercase=False)
                     elif linea.startswith("Summary:"):
-                        resumen = safe_string(
-                            linea[8:].strip(), do_unidecode=False, save_enie=True, to_uppercase=False, max_len=1000
-                        )
+                        resumen = safe_string(linea[8:], do_unidecode=False, save_enie=True, to_uppercase=False, max_len=1000)
+                    elif linea.startswith("Key:"):
+                        clave = safe_clave(linea[4:])
                     elif linea.startswith("Date:"):
                         date_match = re.match(r"(\d{4}-\d{2}-\d{2})", linea[5:].strip())
                         if date_match is not None:
                             fecha_modificacion = date_match.group(1)  # Nos quedamos solo con la fecha en formato YYYY-MM-DD
                     elif linea.startswith("Tags:"):
-                        etiquetas = safe_string(linea[6:].strip(), save_enie=True, to_uppercase=False, max_len=256)
+                        etiquetas = safe_string(linea[6:], save_enie=True, to_uppercase=False, max_len=256)
                     elif linea.startswith("Preview:"):
-                        vista_previa = linea[9:].strip()  # Debe ser un archivo de imagen
+                        vista_previa = linea[9:].strip()  # Debe ser un URL a archivo de imagen
                     elif linea.startswith("Status:"):
-                        linea_estado = safe_string(linea[8:].strip()).upper()  # En Pelican puede ser DRAFT, HIDDEN o PUBLISHED
+                        linea_estado = safe_string(linea[8:]).upper()  # En Pelican puede ser DRAFT, HIDDEN o PUBLISHED
                         if linea_estado == "DRAFT":
                             estado = "BORRADOR"
                         elif linea_estado == "HIDDEN":
@@ -135,35 +130,33 @@ def actualizar(probar: bool = False, rama: str = None):
                             hay_contenido = True
                         lineas_nuevas.append(linea_limpia)  # Si no es metadato, entonces guardar la linea
 
-                # Si NO hay textos en las lineas se omite este archivo
-                if hay_contenido is False or len(lineas_nuevas) == 0:
-                    click.echo(click.style("0", fg="red"), nl=False)
-                    continue
-
                 # Unir las lineas que no son metadatos
                 contenido_html = markdown("\n".join(lineas_nuevas), extensions=["tables"])
 
-                # Si NO hay titulo, entonces se usa el nombre del archivo sin la extension '.md'
-                if titulo is None or titulo == "":
-                    titulo = archivo_md.name[:-3]
-
-                # Si NO hay fecha de modificacion...
-                if fecha_modificacion is None:
-                    # Entonces se busca en el nombre del archivo algo como YYYY-MM-DD
-                    fecha_modificacion_match = re.match(r"(\d{4}-\d{2}-\d{2})", archivo_md.name)
-                    if fecha_modificacion_match is not None:
-                        fecha_modificacion = fecha_modificacion_match.group(1)
-
-                # Si NO hay fecha de modificacion, se usa la fecha fija 2000-01-01
-                if fecha_modificacion is None:
-                    fecha_modificacion = "2000-01-01"
-
-                # Convertir la fecha de modificacion de texto a datetime
-                fecha_modificacion = datetime.strptime(fecha_modificacion, "%Y-%m-%d").date()
-
-            # Validar clave
+            # Validar clave: SI NO HAY CLAVE, entonces se omite este archivo
             if not isinstance(clave, str) or clave == "":
                 click.echo(click.style("c", fg="red"), nl=False)
+                continue
+
+            # Si NO hay titulo, entonces se usa el nombre del archivo sin la extension '.md'
+            if titulo is None or titulo == "":
+                titulo = archivo_md.name[:-3]
+
+            # Si NO hay fecha de modificacion...
+            if fecha_modificacion is None:
+                # Entonces se busca en el nombre del archivo algo como YYYY-MM-DD
+                fecha_modificacion_match = re.match(r"(\d{4}-\d{2}-\d{2})", archivo_md.name)
+                if fecha_modificacion_match is not None:
+                    fecha_modificacion = fecha_modificacion_match.group(1)
+                else:
+                    fecha_modificacion = "2000-01-01"  # Si no tiene, entonces se usa 2000-01-01 por defecto
+
+            # Convertir la fecha de modificacion de texto a datetime
+            fecha_modificacion = datetime.strptime(fecha_modificacion, "%Y-%m-%d").date()
+
+            # Validar que haya contenido
+            if hay_contenido is False or len(lineas_nuevas) == 0:
+                click.echo(click.style("0", fg="red"), nl=False)
                 continue
 
             # Validar titulo
@@ -247,7 +240,7 @@ def actualizar(probar: bool = False, rama: str = None):
         click.echo()
 
     # Mostrar mensaje final
-    click.echo(f"Actualizar ha terminado de procesar {contador} archivos md.")
+    click.echo("Actualizar ha terminado.")
 
 
 cli.add_command(actualizar)

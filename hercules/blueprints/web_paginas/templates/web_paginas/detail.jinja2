@@ -22,13 +22,14 @@
 {% block content %}
     {% call detail.card(estatus=web_pagina.estatus) %}
         {{ detail.label_value('Rama', web_pagina.web_rama.clave + ' - ' + web_pagina.web_rama.nombre, url_for('web_ramas.detail', web_rama_id=web_pagina.web_rama_id)) }}
-        {{ detail.label_value('Clave', web_pagina.clave) }}
         {{ detail.label_value('Titulo', web_pagina.titulo) }}
+        {{ detail.label_value('Ruta', web_pagina.ruta) }}
+        {{ detail.label_value('Clave', web_pagina.clave) }}
         {{ detail.label_value('Resumen', web_pagina.resumen) }}
         {{ detail.label_value('Fecha de modificación', moment(web_pagina.fecha_modificacion, local=True).format('ll')) }}
         {{ detail.label_value('Responsable', web_pagina.responsable) }}
-        {{ detail.label_value('Ruta', web_pagina.ruta) }}
-        {# detail.label_value('Contenido', web_pagina.contenido) #}
+        {{ detail.label_value('Etiquetas', web_pagina.etiquetas) }}
+        {{ detail.label_value('Vista previa', web_pagina.vista_previa) }}
         {{ detail.label_value('Cuándo publicar', web_pagina.tiempo_publicar) }}
         {{ detail.label_value('Cuándo archivar', web_pagina.tiempo_archivar) }}
         {{ detail.label_value('Estado', web_pagina.estado) }}
