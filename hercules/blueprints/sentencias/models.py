@@ -3,9 +3,9 @@ Sentencias, modelos
 """
 
 from datetime import date
-from typing import List, Optional
+from typing import Optional
 
-from sqlalchemy import JSON, Boolean, Date, Enum, ForeignKey, Integer, String, Text, Uuid
+from sqlalchemy import Date, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.extensions import database
