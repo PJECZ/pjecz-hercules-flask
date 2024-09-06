@@ -80,7 +80,7 @@ def enviar_cid_procedimientos_diario(destinatario, probar):
     contenidos.append(f"<p>Reporte generado el {hoy_str}</p>")
     contenidos.append("<ul>")
     for bitacora in bitacoras:
-        contenidos.append(f"<li>{bitacora.usuario.nombre} - {bitacora.descripcion}<li>")
+        contenidos.append(f"<li>{bitacora.usuario.nombre} - {bitacora.descripcion}</li>")
     contenidos.append("</ul>")
     contenido_html = "\n".join(contenidos)
 
