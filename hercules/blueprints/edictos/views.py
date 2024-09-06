@@ -144,7 +144,6 @@ def datatable_json_admin():
             autoridad_clave = safe_clave(request.form["autoridad_clave"])
             if autoridad_clave != "":
                 consulta = consulta.join(Autoridad).filter(Autoridad.clave.contains(autoridad_clave))
-                print(consulta)
         except ValueError:
             pass
     fecha_desde = None

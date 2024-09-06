@@ -15,7 +15,7 @@ from hercules.blueprints.oficinas.models import Oficina
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_message, safe_string
+from lib.safe_string import safe_clave, safe_message, safe_string
 
 MODULO = "FUNCIONARIOS OFICINAS"
 
@@ -53,11 +53,20 @@ def datatable_json():
     if "oficina_id" in request.form:
         oficina = Oficina.query.get(request.form["oficina_id"])
         if oficina:
-            consulta = consulta.filter(FuncionarioOficina.oficina == oficina)
-    if "oficina_nombre" in request.form:
-        oficina_nombre = safe_string(request.form["oficina_nombre"], save_enie=True)
-        if oficina_nombre != "":
-            consulta = consulta.join(Oficina).filter(Oficina.descripcion.contains(oficina_nombre))
+            consulta = consulta.filter(FuncionarioOficina.oficina_id == oficina.id)
+    if "oficina_clave" in request.form:
+        try:
+            oficina_clave = safe_clave(request.form["oficina_clave"])
+            if oficina_clave != "":
+                consulta = consulta.join(Oficina).filter(Oficina.clave.contains(oficina_clave))
+                print(str(consulta))
+        except ValueError:
+            pass
+    if "oficina_descripcion" in request.form:
+        oficina_descripcion = safe_string(request.form["oficina_descripcion"], save_enie=True)
+        if oficina_descripcion != "":
+            consulta = consulta.join(Oficina).filter(Oficina.descripcion_corta.contains(oficina_descripcion))
+            print(consulta)
     # Ordenar y paginar
     registros = consulta.order_by(FuncionarioOficina.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -120,3 +129,39 @@ def detail(funcionario_oficina_id):
     """Detalle de un Funcionario Oficina"""
     funcionario_oficina = FuncionarioOficina.query.get_or_404(funcionario_oficina_id)
     return render_template("funcionarios_oficinas/detail.jinja2", funcionario_oficina=funcionario_oficina)
+
+
+@funcionarios_oficinas.route("/funcionarios_oficinas/eliminar/<int:funcionario_oficina_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def delete(funcionario_oficina_id):
+    """Eliminar Funcionario-Oficina"""
+    funcionario_oficina = FuncionarioOficina.query.get_or_404(funcionario_oficina_id)
+    if funcionario_oficina.estatus == "A":
+        funcionario_oficina.delete()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Eliminado Funcionario-Oficina {funcionario_oficina.descripcion}"),
+            url=url_for("funcionarios_oficinas.detail", funcionario_oficina_id=funcionario_oficina.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("funcionarios_oficinas.detail", funcionario_oficina_id=funcionario_oficina.id))
+
+
+@funcionarios_oficinas.route("/funcionarios_oficinas/recuperar/<int:funcionario_oficina_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def recover(funcionario_oficina_id):
+    """Recuperar Funcionario-Oficina"""
+    funcionario_oficina = FuncionarioOficina.query.get_or_404(funcionario_oficina_id)
+    if funcionario_oficina.estatus == "B":
+        funcionario_oficina.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Recuperado Funcionario-Oficina {funcionario_oficina.descripcion}"),
+            url=url_for("funcionarios_oficinas.detail", funcionario_oficina_id=funcionario_oficina.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("funcionarios_oficinas.detail", funcionario_oficina_id=funcionario_oficina.id))

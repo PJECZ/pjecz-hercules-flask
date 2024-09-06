@@ -149,15 +149,15 @@ def dashboard():
     """Tablero de InvCustodia"""
     # Cantidades de custodias por edificio
     inv_custodias_cantidades_por_edificio = (
-        database.session.query(Domicilio.id, Domicilio.edificio, func.count(InvCustodia.id)).
-        select_from(InvCustodia).
-        join(Usuario).
-        join(Oficina).
-        join(Domicilio).
-        where(InvCustodia.estatus == "A").
-        group_by(Domicilio.id, Domicilio.edificio).
-        order_by(Domicilio.edificio).
-        all()
+        database.session.query(Domicilio.id, Domicilio.edificio, func.count(InvCustodia.id))
+        .select_from(InvCustodia)
+        .join(Usuario)
+        .join(Oficina)
+        .join(Domicilio)
+        .where(InvCustodia.estatus == "A")
+        .group_by(Domicilio.id, Domicilio.edificio)
+        .order_by(Domicilio.edificio)
+        .all()
     )
     # Entregar
     return render_template(

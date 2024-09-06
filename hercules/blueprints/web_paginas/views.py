@@ -125,9 +125,7 @@ def new(web_rama_id):
             web_rama_id=web_rama.id,
             clave=clave,
             titulo=safe_string(form.titulo.data, do_unidecode=False, save_enie=True, to_uppercase=False),
-            resumen=safe_string(form.resumen.data, do_unidecode=False, save_enie=True, to_uppercase=False, max_len=1000),
             fecha_modificacion=date.today(),
-            responsable="",
             ruta=form.ruta.data.strip(),
             contenido="",
             estado="BORRADOR",
@@ -146,6 +144,7 @@ def new(web_rama_id):
         return redirect(bitacora.url)
     # Poner valores por defecto
     form.clave.data = web_rama.clave + "-"
+    form.ruta.data = web_rama.nombre + "/"
     return render_template("web_paginas/new.jinja2", form=form, web_rama=web_rama)
 
 
@@ -170,10 +169,11 @@ def edit(web_pagina_id):
             web_pagina.resumen = safe_string(
                 form.resumen.data, do_unidecode=False, save_enie=True, to_uppercase=False, max_len=1000
             )
+            web_pagina.ruta = form.ruta.data.strip()
             web_pagina.fecha_modificacion = form.fecha_modificacion.data
             web_pagina.responsable = safe_string(form.responsable.data, save_enie=True, to_uppercase=False)
-            web_pagina.ruta = form.ruta.data.strip()
-            web_pagina.estado = form.estado.data
+            web_pagina.etiquetas = safe_string(form.etiquetas.data, save_enie=True, to_uppercase=False)
+            web_pagina.vista_previa = form.vista_previa.data.strip()
             web_pagina.tiempo_publicar = form.tiempo_publicar.data
             web_pagina.tiempo_archivar = form.tiempo_archivar.data
             web_pagina.save()
@@ -189,10 +189,11 @@ def edit(web_pagina_id):
     form.clave.data = web_pagina.clave
     form.titulo.data = web_pagina.titulo
     form.resumen.data = web_pagina.resumen
+    form.ruta.data = web_pagina.ruta
     form.fecha_modificacion.data = web_pagina.fecha_modificacion
     form.responsable.data = web_pagina.responsable
-    form.ruta.data = web_pagina.ruta
-    form.estado.data = web_pagina.estado
+    form.etiquetas.data = web_pagina.etiquetas
+    form.vista_previa.data = web_pagina.vista_previa
     form.tiempo_publicar.data = web_pagina.tiempo_publicar
     form.tiempo_archivar.data = web_pagina.tiempo_archivar
     return render_template("web_paginas/edit.jinja2", form=form, web_pagina=web_pagina)
@@ -211,13 +212,12 @@ def content(web_pagina_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Editado Contenido de Pagina {web_pagina.clave} en Rama {web_pagina.web_rama.clave}"),
+            descripcion=safe_message(f"Editado contenido de Pagina {web_pagina.clave} en Rama {web_pagina.web_rama.clave}"),
             url=url_for("web_paginas.detail", web_pagina_id=web_pagina.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-
     form.contenido.data = web_pagina.contenido
     return render_template("web_paginas/content.jinja2", form=form, web_pagina=web_pagina)
 
