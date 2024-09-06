@@ -61,14 +61,14 @@ def exportar_reporte_xlsx(domicilio_id: int = None):
 
     # Consultar las custodias del domicilio
     inv_custodias = (
-        database.session.query(InvCustodia).
-        join(Usuario, Usuario.id == InvCustodia.usuario_id).
-        join(Oficina, Oficina.id == Usuario.oficina_id).
-        join(Domicilio, Domicilio.id == Oficina.domicilio_id).
-        filter(Domicilio.id == domicilio_id).
-        filter(InvCustodia.estatus == "A").
-        order_by(InvCustodia.id).
-        all()
+        database.session.query(InvCustodia)
+        .join(Usuario, Usuario.id == InvCustodia.usuario_id)
+        .join(Oficina, Oficina.id == Usuario.oficina_id)
+        .join(Domicilio, Domicilio.id == Oficina.domicilio_id)
+        .filter(Domicilio.id == domicilio_id)
+        .filter(InvCustodia.estatus == "A")
+        .order_by(InvCustodia.id)
+        .all()
     )
 
     # Iniciar el archivo XLSX

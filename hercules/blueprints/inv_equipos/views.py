@@ -173,19 +173,19 @@ def dashboard():
     """Tablero de InvEquipo"""
     # Cantidades de equipos por tipo
     inv_equipos_cantidades_por_tipo = (
-        database.session.query(InvEquipo.tipo, func.count(InvEquipo.id)).
-        where(InvEquipo.estatus == "A").
-        group_by(InvEquipo.tipo).
-        order_by(InvEquipo.tipo).
-        all()
+        database.session.query(InvEquipo.tipo, func.count(InvEquipo.id))
+        .where(InvEquipo.estatus == "A")
+        .group_by(InvEquipo.tipo)
+        .order_by(InvEquipo.tipo)
+        .all()
     )
     # Cantidades de equipos por tipo y año de fabricación
     inv_equipos_cantidades_por_tipo_y_fabricacion_anio = (
-        database.session.query(InvEquipo.fecha_fabricacion_anio, InvEquipo.tipo, func.count(InvEquipo.id)).
-        where(InvEquipo.fecha_fabricacion_anio.isnot(None)).
-        where(InvEquipo.estatus == "A").
-        group_by(InvEquipo.fecha_fabricacion_anio, InvEquipo.tipo).
-        all()
+        database.session.query(InvEquipo.fecha_fabricacion_anio, InvEquipo.tipo, func.count(InvEquipo.id))
+        .where(InvEquipo.fecha_fabricacion_anio.isnot(None))
+        .where(InvEquipo.estatus == "A")
+        .group_by(InvEquipo.fecha_fabricacion_anio, InvEquipo.tipo)
+        .all()
     )
     # Estructurar para hacer una tabla con Jinja2 con los años en renglones y los tipos en columnas
     inv_equipos_matriz_tipos_anios = {}
