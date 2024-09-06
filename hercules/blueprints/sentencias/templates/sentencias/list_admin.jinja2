@@ -1,5 +1,5 @@
 {% extends 'layouts/app.jinja2' %}
-{# {% import 'macros/form_inline.jinja2' as f with context %} #}
+{% import 'macros/form_inline.jinja2' as f with context %}
 {% import 'macros/list.jinja2' as list %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
@@ -9,12 +9,12 @@
     {% call topbar.page_buttons(titulo) %}
         {{ topbar.button_districts('Distritos', url_for('sentencias.list_distritos')) }}
         {% if autoridad %}
-            {# {% if current_user.can_admin('SENTENCIAS') %}
-                {{ topbar.button_upload('Subir', url_for('sentencias.new_for_autoridad', autoridad_id=autoridad.id)) }}
-            {% endif %} #}
             {% if current_user.can_edit('SENTENCIAS') %}
                 {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('sentencias.list_autoridad_sentencias_inactive', autoridad_id=autoridad.id)) }}{% endif %}
                 {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('sentencias.list_autoridad_sentencias', autoridad_id=autoridad.id)) }}{% endif %}
+            {% endif %}
+            {% if current_user.can_admin('SENTENCIAS') %}
+                {{ topbar.button_upload('Nueva Sentencia', url_for('sentencias.new_for_autoridad', autoridad_id=autoridad.id)) }}
             {% endif %}
         {% else %}
             {% if current_user.can_edit('SENTENCIAS') %}
@@ -44,7 +44,13 @@
                             <label for="filtroFechaHasta">Fecha Hasta</label>
                         </div>
                     </div>
-                    <div class="col-3">
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroSentencia" type="text" class="form-control" aria-label="Sentencia" style="text-transform: uppercase;">
+                            <label for="filtroSentencia">Sentencia</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
                         <div class="form-floating">
                             <select id="filtroMateria" class="form-select" aria-label="Materia">
                                 <option selected value="">Todas las Materias</option>
@@ -52,7 +58,7 @@
                             <label class="form-floating-label">Materia</label>
                         </div>
                     </div>
-                    <div class="col-3">
+                    <div class="col-2">
                         <div class="form-floating">
                             <select id="filtroTipoJuicio" class="form-select" aria-label="Tipo de Juicio">
                                 <option selected value="">Todos los Tipos de Juicios</option>
@@ -177,6 +183,7 @@
         const filtrosSentencias = new FiltrosDataTable('#sentencias_datatable', configDTSentencias);
         filtrosSentencias.agregarInput('filtroFechaDesde', 'fecha_desde');
         filtrosSentencias.agregarInput('filtroFechaHasta', 'fecha_hasta');
+        filtrosSentencias.agregarInput('filtroSentencia', 'sentencia');
         filtrosSentencias.agregarInput('filtroMateria', 'materia_id');
         filtrosSentencias.agregarInput('filtroTipoJuicio', 'materia_tipo_juicio_id');
         filtrosSentencias.precargar();
