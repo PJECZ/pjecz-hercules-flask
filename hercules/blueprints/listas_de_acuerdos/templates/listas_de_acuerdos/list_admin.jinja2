@@ -14,9 +14,6 @@
                 {{ topbar.button_list_active('Activos', url_for('listas_de_acuerdos.list_active')) }}
             {% endif %}
         {% endif %}
-        {# if current_user.can_insert('LISTAS DE ACUERDOS') %}
-            {{ topbar.button_new('Nuevo Lista de Acuerdos', url_for('listas_de_acuerdos.new')) }}
-        {% endif #}
     {% endcall %}
 {% endblock %}
 
