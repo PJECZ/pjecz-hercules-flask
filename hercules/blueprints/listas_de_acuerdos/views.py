@@ -10,9 +10,11 @@ from flask import Blueprint, current_app, flash, make_response, redirect, render
 from flask_login import current_user, login_required
 from pytz import timezone
 from werkzeug.datastructures import CombinedMultiDict
+from werkzeug.exceptions import NotFound
 
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.materias.models import Materia
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.listas_de_acuerdos.forms import ListaDeAcuerdoNewForm, ListaDeAcuerdoMateriaNewForm
 from hercules.blueprints.listas_de_acuerdos.models import ListaDeAcuerdo
@@ -333,7 +335,7 @@ def new():
         if con_materia:
             materia = form.materia.data
             if materia.id != 1:  # NO DEFINIDO
-                descripcion = safe_string(f"LISTA DE ACUERDOS {materia.nombre}")
+                descripcion = f"LISTA DE ACUERDOS {materia.nombre}"
 
         # Si existe una lista de acuerdos de la misma fecha, dar de baja la antigua
         anterior_borrada = False
@@ -406,13 +408,182 @@ def new():
 
     # Si puede elegir la materia
     if con_materia:
-        form.materia.data = Materia.query.get(1)  # Por defecto NO DEFINIDO
+        materia_por_defecto = Materia.query.get(1)
+        form.materia.data = materia_por_defecto.id  # Es un SelectField, se necesita el id
 
     # Mostrar formulario
     return render_template(
         "listas_de_acuerdos/new.jinja2",
         form=form,
         mi_limite_dias=mi_limite_dias,
+        con_materia=con_materia,
+    )
+
+
+@listas_de_acuerdos.route("/listas_de_acuerdos/nuevo_con_autoridad_id/<int:autoridad_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def new_with_autoridad_id(autoridad_id):
+    """Subir ListaDeAcuerdo para una autoridad como administrador"""
+
+    # Validar autoridad
+    autoridad = Autoridad.query.get_or_404(autoridad_id)
+    if autoridad is None:
+        flash("El juzgado/autoridad no existe.", "warning")
+        return redirect(url_for("listas_de_acuerdos.list_active"))
+    if autoridad.estatus != "A":
+        flash("El juzgado/autoridad no es activa.", "warning")
+        return redirect(url_for("autoridades.detail", autoridad_id=autoridad.id))
+    if not autoridad.distrito.es_distrito_judicial:
+        flash("El juzgado/autoridad no está en un distrito jurisdiccional.", "warning")
+        return redirect(url_for("autoridades.detail", autoridad_id=autoridad.id))
+    if not autoridad.es_jurisdiccional:
+        flash("El juzgado/autoridad no es jurisdiccional.", "warning")
+        return redirect(url_for("autoridades.detail", autoridad_id=autoridad.id))
+    if autoridad.directorio_listas_de_acuerdos is None or autoridad.directorio_listas_de_acuerdos == "":
+        flash("El juzgado/autoridad no tiene directorio para edictos.", "warning")
+        return redirect(url_for("autoridades.detail", autoridad_id=autoridad.id))
+
+    # Google App Engine usa tiempo universal, sin esta correccion las fechas de la noche cambian al dia siguiente
+    ahora_utc = datetime.now(timezone("UTC"))
+    ahora_mx_coah = ahora_utc.astimezone(local_tz)
+
+    # Para validar la fecha
+    hoy = ahora_mx_coah.date()
+    hoy_dt = ahora_mx_coah
+    limite_dt = hoy_dt + timedelta(days=-LIMITE_ADMINISTRADORES_DIAS)
+
+    # Decidir entre formulario sin materia o con materia
+    con_materia = autoridad.organo_jurisdiccional in ORGANOS_JURISDICCIONALES_QUE_PUEDEN_ELEGIR_MATERIA
+    if con_materia:
+        form = ListaDeAcuerdoMateriaNewForm(CombinedMultiDict((request.files, request.form)))
+    else:
+        form = ListaDeAcuerdoNewForm(CombinedMultiDict((request.files, request.form)))
+
+    # Si viene el formulario
+    if form.validate_on_submit():
+        es_valido = True
+
+        # Validar fecha
+        fecha = form.fecha.data
+        if not limite_dt <= datetime(year=fecha.year, month=fecha.month, day=fecha.day, tzinfo=local_tz) <= hoy_dt:
+            flash(f"La fecha no debe ser del futuro ni anterior a {LIMITE_ADMINISTRADORES_DIAS} días.", "warning")
+            es_valido = False
+
+        # Inicializar la liberia GCS con el directorio base, la fecha, las extensiones permitidas y los meses como palabras
+        gcstorage = GoogleCloudStorage(
+            base_directory=autoridad.directorio_listas_de_acuerdos,
+            upload_date=fecha,
+            allowed_extensions=["pdf"],
+            month_in_word=True,
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_LISTAS_DE_ACUERDOS"],
+        )
+
+        # Validar archivo
+        archivo = request.files["archivo"]
+        try:
+            gcstorage.set_content_type(archivo.filename)
+        except (MyFilenameError, MyNotAllowedExtensionError, MyUnknownExtensionError):
+            flash("Tipo de archivo no permitido.", "warning")
+            es_valido = False
+        except Exception:
+            flash("Error desconocido al validar el archivo.", "danger")
+            es_valido = False
+
+        # No es válido, entonces se vuelve a mostrar el formulario
+        if es_valido is False:
+            return render_template(
+                "listas_de_acuerdos/new_with_autoridad.jinja2",
+                form=form,
+                autoridad=autoridad,
+                con_materia=con_materia,
+            )
+
+        # Definir descripcion
+        descripcion = "LISTA DE ACUERDOS"
+        if con_materia:
+            materia = form.materia.data
+            if materia.id != 1:  # NO DEFINIDO
+                descripcion = f"LISTA DE ACUERDOS {materia.nombre}"
+
+        # Si existe una lista de acuerdos de la misma fecha, dar de baja la antigua
+        anterior_borrada = False
+        if con_materia is False:
+            anterior_lista_de_acuerdo = (
+                ListaDeAcuerdo.query.filter(ListaDeAcuerdo.autoridad == autoridad)
+                .filter(ListaDeAcuerdo.fecha == fecha)
+                .filter_by(estatus="A")
+                .first()
+            )
+            if anterior_lista_de_acuerdo:
+                anterior_lista_de_acuerdo.delete()
+                anterior_borrada = True
+        else:
+            anterior_lista_de_acuerdo = (
+                ListaDeAcuerdo.query.filter(ListaDeAcuerdo.autoridad == autoridad)
+                .filter(ListaDeAcuerdo.fecha == fecha)
+                .filter_by(descripcion=descripcion)
+                .filter_by(estatus="A")
+                .first()
+            )
+            if anterior_lista_de_acuerdo:
+                anterior_lista_de_acuerdo.delete()
+                anterior_borrada = True
+
+        # Insertar registro
+        lista_de_acuerdo = ListaDeAcuerdo(
+            autoridad=autoridad,
+            fecha=fecha,
+            descripcion=descripcion,
+        )
+        lista_de_acuerdo.save()
+
+        # Subir a Google Cloud Storage
+        es_exitoso = True
+        try:
+            gcstorage.set_filename(hashed_id=lista_de_acuerdo.encode_id(), description=descripcion)
+            gcstorage.upload(archivo.stream.read())
+        except (MyFilenameError, MyNotAllowedExtensionError, MyUnknownExtensionError):
+            flash("Tipo de archivo no permitido.", "warning")
+            es_exitoso = False
+        except Exception:
+            flash("Error desconocido al subir el archivo.", "danger")
+            es_exitoso = False
+
+        # Si se sube con exito, actualizar el registro con la URL del archivo y mostrar el detalle
+        if es_exitoso:
+            lista_de_acuerdo.archivo = gcstorage.filename
+            lista_de_acuerdo.url = gcstorage.url
+            lista_de_acuerdo.save()
+            if anterior_borrada:
+                bitacora_descripcion = "Reemplazada "
+            else:
+                bitacora_descripcion = "Nueva "
+            bitacora_descripcion += f"lista de acuerdos del {lista_de_acuerdo.fecha.strftime('%Y-%m-%d')} de {autoridad.clave}"
+            bitacora = Bitacora(
+                modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+                usuario=current_user,
+                descripcion=safe_message(bitacora_descripcion),
+                url=url_for("listas_de_acuerdos.detail", lista_de_acuerdo_id=lista_de_acuerdo.id),
+            )
+            bitacora.save()
+            flash(bitacora.descripcion, "success")
+            return redirect(bitacora.url)
+
+    # Llenar de los campos del formulario
+    form.distrito.data = autoridad.distrito.nombre  # Read only
+    form.autoridad.data = autoridad.descripcion  # Read only
+    form.fecha.data = hoy
+
+    # Si puede elegir la materia
+    if con_materia:
+        materia_por_defecto = Materia.query.get(1)
+        form.materia.data = materia_por_defecto.id  # Es un SelectField, se necesita el id
+
+    # Mostrar formulario
+    return render_template(
+        "listas_de_acuerdos/new_with_autoridad.jinja2",
+        form=form,
+        autoridad=autoridad,
         con_materia=con_materia,
     )
 
@@ -513,21 +684,38 @@ def view_file_pdf(lista_de_acuerdo_id):
     lista_de_acuerdo = ListaDeAcuerdo.query.get_or_404(lista_de_acuerdo_id)
 
     # Obtener el contenido del archivo
-    archivo = None
     try:
         archivo = get_file_from_gcs(
             bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_LISTAS_DE_ACUERDOS"],
             blob_name=get_blob_name_from_url(lista_de_acuerdo.url),
         )
     except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
-        pass
-
-    # Si no se obtiene el archivo, no se entrega nada
-    if archivo is None:
-        flash("No se encontró el archivo.", "warning")
-        return ""
+        raise NotFound("No se encontró el archivo.")
 
     # Entregar el archivo
     response = make_response(archivo)
     response.headers["Content-Type"] = "application/pdf"
+    return response
+
+
+@listas_de_acuerdos.route("/listas_de_acuerdos/descargar_archivo_pdf/<int:lista_de_acuerdo_id>")
+def download_file_pdf(lista_de_acuerdo_id):
+    """Descargar archivo PDF de ListaDeAcuerdo"""
+
+    # Consultar la lista de acuerdos
+    lista_de_acuerdo = ListaDeAcuerdo.query.get_or_404(lista_de_acuerdo_id)
+
+    # Obtener el contenido del archivo
+    try:
+        archivo = get_file_from_gcs(
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_LISTAS_DE_ACUERDOS"],
+            blob_name=get_blob_name_from_url(lista_de_acuerdo.url),
+        )
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        raise NotFound("No se encontró el archivo.")
+
+    # Entregar el archivo
+    response = make_response(archivo)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = f"attachment; filename={lista_de_acuerdo.archivo}"
     return response
