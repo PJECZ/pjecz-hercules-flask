@@ -73,10 +73,10 @@ class Autoridad(database.Model, UniversalMixin):
     # Hijos
     autoridades_funcionarios: Mapped[List["AutoridadFuncionario"]] = relationship(back_populates="autoridad")
     edictos: Mapped[List["Edicto"]] = relationship(back_populates="autoridad")
+    listas_de_acuerdos: Mapped[List["ListaDeAcuerdo"]] = relationship(back_populates="autoridad")
     redam: Mapped[List["Redam"]] = relationship("Redam", back_populates="autoridad")
-    usuarios: Mapped[List["Usuario"]] = relationship("Usuario", back_populates="autoridad")
-    edictos: Mapped[List["Edicto"]] = relationship(back_populates="autoridad")
     sentencias: Mapped[List["Sentencia"]] = relationship(back_populates="autoridad")
+    usuarios: Mapped[List["Usuario"]] = relationship("Usuario", back_populates="autoridad")
 
     def __repr__(self):
         """Representación"""
