@@ -5,6 +5,11 @@ Para produccion, configure los siguientes secretos en Google Cloud Secret Manage
 
 - pjecz_hercules_flask_ai_studio_api_key
 - pjecz_hercules_flask_cloud_storage_deposito
+- pjecz_hercules_flask_cloud_storage_deposito_edictos
+- pjecz_hercules_flask_cloud_storage_deposito_glosas
+- pjecz_hercules_flask_cloud_storage_deposito_listas_de_acuerdos
+- pjecz_hercules_flask_cloud_storage_deposito_sentencias
+- pjecz_hercules_flask_cloud_storage_deposito_usuarios
 - pjecz_hercules_flask_estado_clave
 - pjecz_hercules_flask_host
 - pjecz_hercules_flask_redis_url
@@ -18,6 +23,11 @@ Para desarrollo, debe crear un archivo .env con las variables de entorno:
 - AI_STUDIO_API_KEY
 - ESTADO_CLAVE
 - CLOUD_STORAGE_DEPOSITO
+- CLOUD_STORAGE_DEPOSITO_EDICTOS
+- CLOUD_STORAGE_DEPOSITO_GLOSAS
+- CLOUD_STORAGE_DEPOSITO_LISTAS_DE_ACUERDOS
+- CLOUD_STORAGE_DEPOSITO_SENTENCIAS
+- CLOUD_STORAGE_DEPOSITO_USUARIOS
 - HOST
 - REDIS_URL
 - SALT
@@ -65,6 +75,11 @@ class Settings(BaseSettings):
 
     AI_STUDIO_API_KEY: str = get_secret("ai_studio_api_key")
     CLOUD_STORAGE_DEPOSITO: str = get_secret("cloud_storage_deposito")
+    CLOUD_STORAGE_DEPOSITO_EDICTOS: str = get_secret("cloud_storage_deposito_edictos")
+    CLOUD_STORAGE_DEPOSITO_GLOSAS: str = get_secret("cloud_storage_deposito_glosas")
+    CLOUD_STORAGE_DEPOSITO_LISTAS_DE_ACUERDOS: str = get_secret("cloud_storage_deposito_listas_de_acuerdos")
+    CLOUD_STORAGE_DEPOSITO_SENTENCIAS: str = get_secret("cloud_storage_deposito_sentencias")
+    CLOUD_STORAGE_DEPOSITO_USUARIOS: str = get_secret("cloud_storage_deposito_usuarios")
     ESTADO_CLAVE: str = get_secret("estado_clave")
     HOST: str = get_secret("host")
     REDIS_URL: str = get_secret("redis_url")
