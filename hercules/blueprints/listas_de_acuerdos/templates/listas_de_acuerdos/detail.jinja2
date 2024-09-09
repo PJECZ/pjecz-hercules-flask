@@ -1,0 +1,37 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Lista de Acuerdos {{ lista_de_acuerdo.id }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Lista de Acuerdos ' + lista_de_acuerdo.id | string) %}
+        {{ topbar.button_previous('Listas de Acuerdos', url_for('listas_de_acuerdos.list_active')) }}
+        {# if current_user.can_edit('LISTAS DE ACUERDOS') %}
+            {{ topbar.button_edit('Editar', url_for('listas_de_acuerdos.edit', lista_de_acuerdo_id=lista_de_acuerdo.id)) }}
+        {% endif #}
+        {# if current_user.can_admin('LISTAS DE ACUERDOS') %}
+            {% if inv_marca.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('listas_de_acuerdos.delete', lista_de_acuerdo_id=lista_de_acuerdo.id)) }}{% endif %}
+            {% if inv_marca.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('listas_de_acuerdos.recover', lista_de_acuerdo=lista_de_acuerdo.id)) }}{% endif %}
+        {% endif #}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=lista_de_acuerdo.estatus) %}
+        {{ detail.label_value('Descripción', lista_de_acuerdo.descripcion) }}
+        {{ detail.label_value('Fecha', lista_de_acuerdo.fecha) }}
+        {{ detail.label_value('Distrito', lista_de_acuerdo.autoridad.distrito.nombre_corto) }}
+        {{ detail.label_value('Autoridad', lista_de_acuerdo.autoridad.descripcion_corta) }}
+        {{ detail.label_value('Creado', moment(lista_de_acuerdo.creado, local=True).format('llll')) }}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_admin('LISTAS DE ACUERDOS') %}
+        {% if lista_de_acuerdo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + lista_de_acuerdo.id | string + '?') }}{% endif %}
+        {% if lista_de_acuerdo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + lista_de_acuerdo.id | string + '?') }}{% endif %}
+    {% endif %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}
