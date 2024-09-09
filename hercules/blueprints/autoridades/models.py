@@ -71,6 +71,7 @@ class Autoridad(database.Model, UniversalMixin):
     limite_dias_listas_de_acuerdos: Mapped[int] = mapped_column(default=0)
 
     # Hijos
+    audiencias: Mapped[List["Audiencia"]] = relationship(back_populates="autoridad")
     autoridades_funcionarios: Mapped[List["AutoridadFuncionario"]] = relationship(back_populates="autoridad")
     edictos: Mapped[List["Edicto"]] = relationship(back_populates="autoridad")
     redam: Mapped[List["Redam"]] = relationship("Redam", back_populates="autoridad")
