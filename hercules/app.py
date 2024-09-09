@@ -30,6 +30,7 @@ from hercules.blueprints.inv_equipos_fotos.views import inv_equipos_fotos
 from hercules.blueprints.inv_marcas.views import inv_marcas
 from hercules.blueprints.inv_modelos.views import inv_modelos
 from hercules.blueprints.inv_redes.views import inv_redes
+from hercules.blueprints.listas_de_acuerdos.views import listas_de_acuerdos
 from hercules.blueprints.materias.views import materias
 from hercules.blueprints.materias_tipos_juicios.views import materias_tipos_juicios
 from hercules.blueprints.modulos.views import modulos
@@ -92,6 +93,7 @@ def create_app():
     app.register_blueprint(inv_marcas)
     app.register_blueprint(inv_modelos)
     app.register_blueprint(inv_redes)
+    app.register_blueprint(listas_de_acuerdos)
     app.register_blueprint(materias)
     app.register_blueprint(materias_tipos_juicios)
     app.register_blueprint(modulos)

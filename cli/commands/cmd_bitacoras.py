@@ -1,6 +1,7 @@
 """
 CLI Bitacoras
 """
+
 from datetime import datetime, timedelta
 import locale
 import os
@@ -53,10 +54,9 @@ def enviar_cid_procedimientos_diario(destinatario, probar):
     # Definir el tiempo para filtrar a partir de las ultimas 24 horas
     desde_dt = datetime.now() - timedelta(hours=24)
 
-    # Consultar la bitacora
+    # Consultar la bitacora filtrando por el modulo y las ultimas 24 horas
     bitacoras = (
-        Bitacora.query
-        .filter(Bitacora.creado >= desde_dt)
+        Bitacora.query.filter(Bitacora.creado >= desde_dt)
         .filter(Bitacora.modulo_id == modulo.id)
         .filter(Bitacora.estatus == "A")
         .order_by(Bitacora.creado.desc())
