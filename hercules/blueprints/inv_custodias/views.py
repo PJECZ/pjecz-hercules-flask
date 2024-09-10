@@ -103,10 +103,25 @@ def datatable_json():
 @inv_custodias.route("/inv_custodias")
 def list_active():
     """Listado de InvCustodia activos"""
+
+    # Definir filtros por defecto
+    filtros = {"estatus": "A"}
+    titulo = "Custodias"
+
+    # Si viene usuario_id en la URL, agregar a los filtros
+    try:
+        usuario_id = int(request.args.get("usuario_id"))
+        usuario = Usuario.query.get_or_404(usuario_id)
+        filtros = {"estatus": "A", "usuario_id": usuario_id}
+        titulo = f"Custodias de {usuario.nombre}"
+    except (TypeError, ValueError):
+        pass
+
+    # Entregar
     return render_template(
         "inv_custodias/list.jinja2",
-        filtros=json.dumps({"estatus": "A"}),
-        titulo="Custodias",
+        filtros=json.dumps(filtros),
+        titulo=titulo,
         estatus="A",
     )
 
@@ -118,7 +133,7 @@ def list_inactive():
     return render_template(
         "inv_custodias/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Custodias inactivos",
+        titulo="Custodias inactivas",
         estatus="B",
     )
 
