@@ -2,6 +2,8 @@
 Bitácoras
 """
 
+import json
+
 from flask import Blueprint, render_template, request, url_for
 from flask_login import current_user, login_required
 
@@ -87,4 +89,23 @@ def datatable_json():
 @bitacoras.route("/bitacoras")
 def list_active():
     """Listado de Bitácoras activas"""
-    return render_template("bitacoras/list.jinja2")
+
+    # Definir filtros por defecto
+    filtros = {"estatus": "A"}
+    titulo = "Bitácoras"
+
+    # Si viene usuario_id en la URL, agregar a los filtros
+    try:
+        usuario_id = int(request.args.get("usuario_id"))
+        usuario = Usuario.query.get_or_404(usuario_id)
+        filtros = {"estatus": "A", "usuario_id": usuario_id}
+        titulo = f"Bitácoras de {usuario.nombre}"
+    except (TypeError, ValueError):
+        pass
+
+    # Entregar
+    return render_template(
+        "bitacoras/list.jinja2",
+        filtros=json.dumps(filtros),
+        titulo=titulo,
+    )
