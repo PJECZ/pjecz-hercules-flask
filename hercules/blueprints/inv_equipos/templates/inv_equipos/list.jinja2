@@ -37,9 +37,6 @@
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('inv_equipos.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('inv_equipos.list_active')) }}{% endif %}
         {% endif %}
-        {# if current_user.can_insert('INV EQUIPOS') %}
-            {{ topbar.button_new('Nuevo Equipo', url_for('inv_equipos.new')) }}
-        {% endif #}
     {% endcall %}
 {% endblock %}
 
@@ -51,7 +48,7 @@
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosInvEquipos.buscar(); return false;">
                     <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroId" type="text" class="form-control" aria-label="ID">
+                            <input id="filtroId" type="number" class="form-control" aria-label="ID">
                             <label for="filtroId">ID</label>
                         </div>
                     </div>
@@ -172,6 +169,15 @@
                 }
             }
         ];
+        // DataTable estilos en las filas segun estado
+        configDataTable['createdRow'] = function(row, data, dataIndex) {
+            switch (data.estado) {
+                case "ALMACENADO":    $(row).addClass('table-light'); break;
+                case "EN USO":        $(row).addClass('table-primary'); break;
+                case "EN REPARACION": $(row).addClass('table-warning'); break;
+                case "INSERVIBLE":    $(row).addClass('table-dark'); break;
+            }
+        };
         // Filtros InvEquipos
         const filtrosInvEquipos = new FiltrosDataTable('#inv_equipos_datatable', configDataTable);
         filtrosInvEquipos.agregarInput('filtroId', 'inv_equipo_id');

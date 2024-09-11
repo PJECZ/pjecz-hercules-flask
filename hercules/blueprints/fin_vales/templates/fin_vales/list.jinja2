@@ -19,16 +19,28 @@
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosFinVale.buscar(); return false;">
-                    <div class="col-4">
+                    <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroClave" type="text" class="form-control" aria-label="Clave" style="text-transform: uppercase;">
-                            <label for="filtroClave">Clave</label>
+                            <input id="filtroId" type="number" class="form-control" aria-label="ID">
+                            <label for="filtroId">ID</label>
                         </div>
                     </div>
-                    <div class="col-6">
+                    <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroNombre" type="text" class="form-control" aria-label="Nombre" style="text-transform: uppercase;">
-                            <label for="filtroNombre">Nombre</label>
+                            <input id="filtroCreadoDesde" type="date" class="form-control" aria-label="Creado Desde">
+                            <label for="filtroCreadoDesde">Creado Desde</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroCreadoHasta" type="date" class="form-control" aria-label="Creado Hasta">
+                            <label for="filtroCreadoHasta">Creado Hasta</label>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-floating">
+                            <input id="filtroJustificacion" type="text" class="form-control" aria-label="Justificación">
+                            <label for="filtroJustificacion">Justificación</label>
                         </div>
                     </div>
                     <div class="col-2 text-end">
@@ -43,6 +55,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Creado</th>
                     <th>Usuario</th>
                     <th>Justificación</th>
                     <th>Monto</th>
@@ -64,6 +77,7 @@
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
             { data: 'detalle' },
+            { data: 'creado' },
             { data: 'usuario' },
             { data: 'justificacion' },
             { data: 'monto' },
@@ -78,14 +92,14 @@
                 }
             },
             {
-                targets: 1, // usuario
+                targets: 2, // usuario
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<span title="' + data.nombre + '">' + data.email + '</span>';
                 }
             },
             {
-                targets: 2, // justificacion
+                targets: 3, // justificacion
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data.length > 88) {
@@ -95,17 +109,32 @@
                 }
             },
             {
-                targets: 3, // monto
+                targets: 4, // monto
                 data: null,
                 render: function(data, type, row, meta) {
                     return '$ ' + data;
                 }
             }
         ];
+        // DataTable estilos en las filas segun estado
+        configDataTable['createdRow'] = function(row, data, dataIndex) {
+            switch (data.estado) {
+                case "CREADO":                    $(row).addClass('table-warning'); break;
+                case "SOLICITADO":                $(row).addClass('table-success'); break;
+                case "CANCELADO POR SOLICITANTE": $(row).addClass('table-secondary'); break;
+                case "AUTORIZADO":                $(row).addClass('table-primary'); break;
+                case "CANCELADO POR AUTORIZANTE": $(row).addClass('table-secondary'); break;
+                case "ENTREGADO":                 $(row).addClass('table-info'); break;
+                case "POR REVISAR":               $(row).addClass('table-light'); break;
+                case "ARCHIVADO":                 $(row).addClass('table-dark'); break;
+            }
+        };
         // Filtros FinVale
         const filtrosFinVale = new FiltrosDataTable('#fin_vales_datatable', configDataTable);
-        filtrosFinVale.agregarInput('filtroClave', 'clave');
-        filtrosFinVale.agregarInput('filtroNombre', 'nombre');
+        filtrosFinVale.agregarInput('filtroId', 'fin_vale_id');
+        filtrosFinVale.agregarInput('filtroCreadoDesde', 'creado_desde');
+        filtrosFinVale.agregarInput('filtroCreadoHasta', 'creado_hasta');
+        filtrosFinVale.agregarInput('filtroJustificacion', 'justificacion');
         filtrosFinVale.precargar();
     </script>
 {% endblock %}
