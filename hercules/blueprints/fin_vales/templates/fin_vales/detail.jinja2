@@ -8,19 +8,23 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons('Vale ' + fin_vale.id | string) %}
         {{ topbar.button_previous('Vales', url_for('fin_vales.list_active')) }}
+        {% if fin_vale.solicito_email and fin_vale.autorizo_email %}
+            {{ topbar.button_print('Imprimir', url_for('fin_vales.print', fin_vale_id=fin_vale.id)) }}
+        {% endif %}
     {% endcall %}
 {% endblock %}
 
 {% block content %}
     {% if fin_vale.estado in ['CREADO', 'SOLICITADO', 'CANCELADO POR SOLICITANTE', 'AUTORIZADO', 'CANCELADO POR AUTORIZANTE', 'ENTREGADO', 'POR REVISAR', 'ARCHIVADO'] %}
         {% call detail.card(title='Usuario', estatus=fin_vale.estatus) %}
+            {{ detail.label_value('Creado', moment(fin_vale.creado).format('llll')) }}
             {{ detail.label_value('Nombre', fin_vale.usuario.nombre) }}
             {{ detail.label_value('Puesto', fin_vale.usuario.puesto) }}
             {{ detail.label_value('e-mail', fin_vale.usuario.email) }}
             {{ detail.label_value('Oficina', fin_vale.usuario.oficina.clave + ': ' + fin_vale.usuario.oficina.descripcion) }}
-            {{ detail.label_value('Tiempo', moment(fin_vale.creado).format('llll')) }}
             {{ detail.label_value('Tipo', fin_vale.tipo) }}
             {{ detail.label_value('Monto', '$ ' + fin_vale.monto | string) }}
+            {{ detail.label_value('Estado', fin_vale.estado) }}
             {{ detail.label_value('Justificacion', fin_vale.justificacion) }}
             {# detail.label_value('Sello digital', efirma_sello_digital) #}
             {# detail.label_value('URL', efirma_url, efirma_url) #}

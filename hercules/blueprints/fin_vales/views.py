@@ -2,10 +2,13 @@
 Financieros Vales, vistas
 """
 
+from datetime import datetime, time
 import json
+import re
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from pytz import timezone
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.fin_vales.models import FinVale
@@ -26,6 +29,10 @@ ROL_AUTORIZANTES = "FINANCIEROS AUTORIZANTES"
 ROL_ASISTENTES = "FINANCIEROS ASISTENTES"
 ROLES_PUEDEN_VER = (ROL_SOLICITANTES, ROL_AUTORIZANTES, ROL_ASISTENTES)
 ROLES_PUEDEN_IMPRIMIR = (ROL_AUTORIZANTES, ROL_ASISTENTES)
+
+TIMEZONE = "America/Mexico_City"
+local_tz = timezone(TIMEZONE)
+medianoche = time.min
 
 
 @fin_vales.before_request
@@ -48,16 +55,35 @@ def datatable_json():
     else:
         consulta = consulta.filter(FinVale.estatus == "A")
     if "fin_vale_id" in request.form:
-        consulta = consulta.filter_by(id=request.form["fin_vale_id"])
+        try:
+            consulta = consulta.filter(FinVale.id == int(request.form["fin_vale_id"]))
+        except ValueError:
+            pass
     else:
         if "usuario_id" in request.form:
-            consulta = consulta.filter_by(usuario_id=request.form["usuario_id"])
+            consulta = consulta.filter(FinVale.usuario_id == request.form["usuario_id"])
         if "estado" in request.form:
-            consulta = consulta.filter_by(estado=request.form["estado"])
-        # Luego filtrar por columnas de otras tablas
-        if "usuario_email" in request.form:
-            consulta = consulta.join(Usuario)
-            consulta = consulta.filter(Usuario.email.contains(safe_email(request.form["usuario_email"], search_fragment=True)))
+            consulta = consulta.filter(FinVale.estado == request.form["estado"])
+        if "justificacion" in request.form:
+            justificacion = safe_string(request.form["justificacion"], do_unidecode=False, save_enie=True, to_uppercase=False)
+            if justificacion != "":
+                consulta = consulta.filter(FinVale.justificacion.ilike(f"%{justificacion}%"))
+        creado_desde = None
+        creado_hasta = None
+        if "creado_desde" in request.form and re.match(r"\d{4}-\d{2}-\d{2}", request.form["creado_desde"]):
+            creado_desde = request.form["creado_desde"]
+        if "creado_hasta" in request.form and re.match(r"\d{4}-\d{2}-\d{2}", request.form["creado_hasta"]):
+            creado_hasta = request.form["creado_hasta"]
+        if creado_desde and creado_hasta and creado_desde > creado_hasta:
+            creado_desde, creado_hasta = creado_hasta, creado_desde
+        if creado_desde:
+            year, month, day = map(int, creado_desde.split("-"))
+            creado_desde_dt = datetime(year=year, month=month, day=day, hour=0, minute=0, second=0)
+            consulta = consulta.filter(FinVale.creado >= creado_desde_dt)
+        if creado_hasta:
+            year, month, day = map(int, creado_hasta.split("-"))
+            creado_hasta_dt = datetime(year=year, month=month, day=day, hour=23, minute=59, second=59)
+            consulta = consulta.filter(FinVale.creado <= creado_hasta_dt)
     # Ordenar y paginar
     registros = consulta.order_by(FinVale.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -70,6 +96,7 @@ def datatable_json():
                     "id": resultado.id,
                     "url": url_for("fin_vales.detail", fin_vale_id=resultado.id),
                 },
+                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
                 "usuario": {
                     "email": resultado.usuario.email,
                     "nombre": resultado.usuario.nombre,
@@ -97,9 +124,25 @@ def list_active():
             usuario_id = int(request.args.get("usuario_id"))
             usuario = Usuario.query.get_or_404(usuario_id)
             filtros = {"estatus": "A", "usuario_id": usuario_id}
-            titulo = f"Vales de Gasolina de {usuario.nombre}"
+            titulo = f"Administar los Vales de Gasolina de {usuario.nombre}"
         except (TypeError, ValueError):
-            pass
+            filtros = {"estatus": "A"}
+            titulo = "Administrar todos los Vales de Gasolina"
+
+    # Si es ROL_ASISTENTES, mostrar TODOS los vales de su oficina
+    elif ROL_ASISTENTES in current_user.get_roles():
+        filtros = {"estatus": "A"}
+        titulo = "Asistir en Vales de Gasolina"
+
+    # Si es ROL_AUTORIZANTES, mostrar Vales con estado SOLICITADO
+    elif ROL_AUTORIZANTES in current_user.get_roles():
+        filtros = {"estatus": "A", "estado": "SOLICITADO"}
+        titulo = "Vales de Gasolina por autorizar"
+
+    # Si es ROL_SOLICITANTES, mostrar Vales con estado CREADO
+    elif ROL_SOLICITANTES in current_user.get_roles():
+        filtros = {"estatus": "A", "estado": "CREADO"}
+        titulo = "Vales de Gasolina por solicitar"
 
     # Entregar
     return render_template(
@@ -174,3 +217,73 @@ def detail(fin_vale_id):
     # No puede verlo
     flash("No tiene permiso para ver este vale.", "warning")
     return redirect(url_for("fin_vales.list_active"))
+
+
+@fin_vales.route("/fin_vales/imprimir/<int:fin_vale_id>")
+def print(fin_vale_id):
+    """Imprimir un FinVale"""
+
+    # Consultar el vale
+    fin_vale = FinVale.query.get_or_404(fin_vale_id)
+
+    # Determinar el sello digital y la URL de la firma electronica
+    efirma_sello_digital = None
+    efirma_url = None
+    efirma_qr_url = None
+    efirma_motivo = None
+
+    # Si el estado es...
+    if fin_vale.estado == "SOLICITADO":
+        efirma_sello_digital = fin_vale.solicito_efirma_sello_digital
+        efirma_url = fin_vale.solicito_efirma_url
+        efirma_qr_url = fin_vale.solicito_efirma_qr_url
+    elif fin_vale.estado == "CANCELADO POR SOLICITANTE":
+        efirma_sello_digital = fin_vale.solicito_efirma_sello_digital
+        efirma_url = fin_vale.solicito_efirma_url
+        efirma_qr_url = fin_vale.solicito_efirma_qr_url
+        efirma_motivo = fin_vale.solicito_cancelo_motivo
+    elif fin_vale.estado == "AUTORIZADO":
+        efirma_sello_digital = fin_vale.autorizo_efirma_sello_digital
+        efirma_url = fin_vale.autorizo_efirma_url
+        efirma_qr_url = fin_vale.autorizo_efirma_qr_url
+    elif fin_vale.estado == "CANCELADO POR AUTORIZANTE":
+        efirma_sello_digital = fin_vale.autorizo_efirma_sello_digital
+        efirma_url = fin_vale.autorizo_efirma_url
+        efirma_qr_url = fin_vale.autorizo_efirma_qr_url
+        efirma_motivo = fin_vale.autorizo_cancelo_motivo
+
+    # Validar que pueda verlo
+    puede_imprimirlo = False
+
+    # Si es administrador, puede imprimirlo
+    if current_user.can_admin(MODULO):
+        puede_imprimirlo = True
+
+    # Si tiene uno de los roles que pueden imprimir y esta activo, puede imprimirlo
+    if set(current_user.get_roles()).intersection(ROLES_PUEDEN_IMPRIMIR) and fin_vale.estatus == "A":
+        puede_imprimirlo = True
+
+    # Si es el usuario que lo creo y esta activo, puede imprimirlo
+    if fin_vale.usuario_id == current_user.id and fin_vale.estatus == "A":
+        puede_imprimirlo = True
+
+    # Si puede imprimirlo
+    if puede_imprimirlo:
+        # Cortar las lineas del sello digital insertando saltos de linea cada 40 caracteres
+        if efirma_sello_digital is not None:
+            efirma_sello_digital = "<br>".join(
+                [efirma_sello_digital[i : i + 40] for i in range(0, len(efirma_sello_digital), 40)]
+            )
+        # Mostrar la plantilla para imprimir
+        return render_template(
+            "fin_vales/print.jinja2",
+            fin_vale=fin_vale,
+            efirma_sello_digital=efirma_sello_digital,
+            efirma_url=efirma_url,
+            efirma_qr_url=efirma_qr_url,
+            efirma_motivo=efirma_motivo,
+        )
+
+    # No puede imprimirlo
+    flash("No tiene permiso para imprimir este Vale", "warning")
+    return redirect(url_for("fin_vales.detail", fin_vale_id=fin_vale_id))

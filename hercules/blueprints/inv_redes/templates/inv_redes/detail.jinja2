@@ -155,6 +155,15 @@
                     }
                 }
             ];
+            // DataTable estilos en las filas segun estado
+            configDataTable['createdRow'] = function(row, data, dataIndex) {
+                switch (data.estado) {
+                    case "ALMACENADO":    $(row).addClass('table-light'); break;
+                    case "EN USO":        $(row).addClass('table-primary'); break;
+                    case "EN REPARACION": $(row).addClass('table-warning'); break;
+                    case "INSERVIBLE":    $(row).addClass('table-dark'); break;
+                }
+            };
             // Filtros InvEquipos
             const filtrosInvEquipos = new FiltrosDataTable('#inv_equipos_datatable', configDataTable);
             filtrosInvEquipos.agregarInput('filtroId', 'inv_equipo_id');
