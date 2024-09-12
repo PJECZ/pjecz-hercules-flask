@@ -1,0 +1,140 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_admin('FIN VALES') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('fin_vales.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('fin_vales.list_active')) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call list.card() %}
+        <!-- Filtros FinVale -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosFinVale.buscar(); return false;">
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroId" type="number" class="form-control" aria-label="ID">
+                            <label for="filtroId">ID</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroCreadoDesde" type="date" class="form-control" aria-label="Creado Desde">
+                            <label for="filtroCreadoDesde">Creado Desde</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroCreadoHasta" type="date" class="form-control" aria-label="Creado Hasta">
+                            <label for="filtroCreadoHasta">Creado Hasta</label>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-floating">
+                            <input id="filtroJustificacion" type="text" class="form-control" aria-label="Justificación">
+                            <label for="filtroJustificacion">Justificación</label>
+                        </div>
+                    </div>
+                    <div class="col-2 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosFinVale.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosFinVale.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- DataTable FinVale -->
+        <table id="fin_vales_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Creado</th>
+                    <th>Usuario</th>
+                    <th>Justificación</th>
+                    <th>Monto</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable Municipios
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDataTable = constructorDataTable.config();
+        configDataTable['ajax']['url'] = '/fin_vales/datatable_json';
+        configDataTable['ajax']['data'] = {{ filtros }};
+        configDataTable['columns'] = [
+            { data: 'detalle' },
+            { data: 'creado' },
+            { data: 'usuario' },
+            { data: 'justificacion' },
+            { data: 'monto' },
+            { data: 'estado' }
+        ];
+        configDataTable['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.id + '</a>';
+                }
+            },
+            {
+                targets: 2, // usuario
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<span title="' + data.nombre + '">' + data.email + '</span>';
+                }
+            },
+            {
+                targets: 3, // justificacion
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.length > 88) {
+                        return '<span title="' + data + '">...' + data.substring(74, 162) + '...</span>';
+                    }
+                    return data;
+                }
+            },
+            {
+                targets: 4, // monto
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '$ ' + data;
+                }
+            }
+        ];
+        // DataTable estilos en las filas segun estado
+        configDataTable['createdRow'] = function(row, data, dataIndex) {
+            switch (data.estado) {
+                case "CREADO":                    $(row).addClass('table-warning'); break;
+                case "SOLICITADO":                $(row).addClass('table-success'); break;
+                case "CANCELADO POR SOLICITANTE": $(row).addClass('table-secondary'); break;
+                case "AUTORIZADO":                $(row).addClass('table-primary'); break;
+                case "CANCELADO POR AUTORIZANTE": $(row).addClass('table-secondary'); break;
+                case "ENTREGADO":                 $(row).addClass('table-info'); break;
+                case "POR REVISAR":               $(row).addClass('table-light'); break;
+                case "ARCHIVADO":                 $(row).addClass('table-dark'); break;
+            }
+        };
+        // Filtros FinVale
+        const filtrosFinVale = new FiltrosDataTable('#fin_vales_datatable', configDataTable);
+        filtrosFinVale.agregarInput('filtroId', 'fin_vale_id');
+        filtrosFinVale.agregarInput('filtroCreadoDesde', 'creado_desde');
+        filtrosFinVale.agregarInput('filtroCreadoHasta', 'creado_hasta');
+        filtrosFinVale.agregarInput('filtroJustificacion', 'justificacion');
+        filtrosFinVale.precargar();
+    </script>
+{% endblock %}

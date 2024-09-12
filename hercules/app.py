@@ -19,6 +19,7 @@ from hercules.blueprints.edictos.views import edictos
 from hercules.blueprints.edictos_acuses.views import edictos_acuses
 from hercules.blueprints.entradas_salidas.views import entradas_salidas
 from hercules.blueprints.estados.views import estados
+from hercules.blueprints.fin_vales.views import fin_vales
 from hercules.blueprints.funcionarios.views import funcionarios
 from hercules.blueprints.funcionarios_oficinas.views import funcionarios_oficinas
 from hercules.blueprints.identidades_generos.views import identidades_generos
@@ -50,6 +51,7 @@ from hercules.blueprints.sistemas.views import sistemas
 from hercules.blueprints.tareas.views import tareas
 from hercules.blueprints.usuarios.models import Usuario
 from hercules.blueprints.usuarios.views import usuarios
+from hercules.blueprints.usuarios_nominas.views import usuarios_nominas
 from hercules.blueprints.usuarios_roles.views import usuarios_roles
 from hercules.blueprints.web_archivos.views import web_archivos
 from hercules.blueprints.web_paginas.views import web_paginas
@@ -82,6 +84,7 @@ def create_app():
     app.register_blueprint(edictos_acuses)
     app.register_blueprint(entradas_salidas)
     app.register_blueprint(estados)
+    app.register_blueprint(fin_vales)
     app.register_blueprint(funcionarios)
     app.register_blueprint(funcionarios_oficinas)
     app.register_blueprint(identidades_generos)
@@ -112,6 +115,7 @@ def create_app():
     app.register_blueprint(sistemas)
     app.register_blueprint(tareas)
     app.register_blueprint(usuarios)
+    app.register_blueprint(usuarios_nominas)
     app.register_blueprint(usuarios_roles)
     app.register_blueprint(web_archivos)
     app.register_blueprint(web_paginas)

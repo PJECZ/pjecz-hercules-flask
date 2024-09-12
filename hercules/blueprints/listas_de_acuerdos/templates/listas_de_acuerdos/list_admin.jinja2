@@ -14,9 +14,6 @@
                 {{ topbar.button_list_active('Activos', url_for('listas_de_acuerdos.list_active')) }}
             {% endif %}
         {% endif %}
-        {# if current_user.can_insert('LISTAS DE ACUERDOS') %}
-            {{ topbar.button_new('Nuevo Lista de Acuerdos', url_for('listas_de_acuerdos.new')) }}
-        {% endif #}
     {% endcall %}
 {% endblock %}
 
@@ -28,7 +25,7 @@
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosListaDeAcuerdo.buscar(); return false;">
                     <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroId" type="text" class="form-control" aria-label="Id">
+                            <input id="filtroId" type="number" class="form-control" aria-label="Id">
                             <label for="filtroId">ID</label>
                         </div>
                     </div>
