@@ -6,15 +6,14 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {{ topbar.button_districts('Distritos', url_for('audiencias.list_distritos')) }}
         {% if autoridad %}
             {% if current_user.can_admin('AUDIENCIAS') or (current_user.can_edit('AUDIENCIAS') and current_user.autoridad_id == autoridad.id) %}
                 {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('audiencias.list_inactive')) }}{% endif %}
                 {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('audiencias.list_active')) }}{% endif %}
             {% endif %}
-        {# {% if current_user.can_insert('AUDIENCIAS') %}
-            {{ topbar.button_new('Nuevo Audiencia', url_for('audiencias.new')) }}
-        {% endif %} #}
+            {% if current_user.can_insert('AUDIENCIAS') and current_user.autoridad_id == autoridad.id %}
+                {{ topbar.button_new('Nuevo Audiencia', url_for('audiencias.new')) }}
+            {% endif %}
         {% endif %}
     {% endcall %}
 {% endblock %}
@@ -25,16 +24,28 @@
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosAudiencias.buscar(); return false;">
-                    <div class="col-4">
+                    <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroClave" type="text" class="form-control" aria-label="Clave" style="text-transform: uppercase;">
-                            <label for="filtroClave">Clave</label>
+                            <input id="filtroTiempoDesde" type="datetime-local" class="form-control" aria-label="Tiempo Desde">
+                            <label for="filtroTiempoDesde">Tiempo Desde</label>
                         </div>
                     </div>
-                    <div class="col-6">
+                    <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
-                            <label for="filtroDescripcion">Descripción</label>
+                            <input id="filtroTiempoHasta" type="datetime-local" class="form-control" aria-label="Tiempo Hasta">
+                            <label for="filtroTiempoHasta">Tiempo Hasta</label>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-floating">
+                            <input id="filtroTipoAudiencia" type="text" class="form-control" aria-label="Tipo audiencia" style="text-transform: uppercase;">
+                            <label for="filtroTipoAudiencia">Tipo audiencia</label>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-floating">
+                            <input id="filtroExpediente" type="text" class="form-control" aria-label="Expediente" style="text-transform: uppercase;">
+                            <label for="filtroExpediente">Expediente</label>
                         </div>
                     </div>
                     <div class="col-2 text-end">
@@ -93,8 +104,10 @@
     ];
         // Filtros Audiencias
         const filtrosAudiencias = new FiltrosDataTable('#audiencias_datatable', configDataTable);
-        filtrosAudiencias.agregarInput('filtroClave', 'clave');
-        filtrosAudiencias.agregarInput('filtroDescripcion', 'descripcion');
+        filtrosAudiencias.agregarInput('filtroTiempoDesde', 'tiempo_desde');
+        filtrosAudiencias.agregarInput('filtroTiempoHasta', 'tiempo_hasta');
+        filtrosAudiencias.agregarInput('filtroTipoAudiencia', 'tipo_audiencia');
+        filtrosAudiencias.agregarInput('filtroExpediente', 'expediente');
         filtrosAudiencias.precargar();
     </script>
 {% endblock %}

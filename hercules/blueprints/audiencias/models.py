@@ -34,30 +34,30 @@ class Audiencia(database.Model, UniversalMixin):
 
     # Columnas comunes
     tiempo: Mapped[datetime]
-    tipo_audiencia: Mapped[str] = mapped_column(String(256))
+    tipo_audiencia: Mapped[str] = mapped_column(String(256), default="")
 
     # Columnas para Materias C F M L D(CyF) Salas (CyF) TCyA
-    expediente: Mapped[str] = mapped_column(String(64))
-    actores: Mapped[str] = mapped_column(String(256))
-    demandados: Mapped[str] = mapped_column(String(256))
+    expediente: Mapped[str] = mapped_column(String(64), default="")
+    actores: Mapped[str] = mapped_column(String(256), default="")
+    demandados: Mapped[str] = mapped_column(String(256), default="")
 
     # Columnas para Materia Acusatorio Penal Oral
-    sala: Mapped[str] = mapped_column(String(256))
-    caracter: Mapped[str] = mapped_column(Enum(*CARACTERES, name="tipos_caracteres", native_enum=False))
-    causa_penal: Mapped[str] = mapped_column(String(256))
-    delitos: Mapped[str] = mapped_column(String(256))
+    sala: Mapped[str] = mapped_column(String(256), default="")
+    caracter: Mapped[str] = mapped_column(Enum(*CARACTERES, name="tipos_caracteres", native_enum=False), default="NO DEFINIDO")
+    causa_penal: Mapped[str] = mapped_column(String(256), default="")
+    delitos: Mapped[str] = mapped_column(String(256), default="")
 
     # Columnas para Distritales Penales
-    toca: Mapped[str] = mapped_column(String(256))
-    expediente_origen: Mapped[str] = mapped_column(String(256))
-    imputados: Mapped[str] = mapped_column(String(256))
+    toca: Mapped[str] = mapped_column(String(256), default="")
+    expediente_origen: Mapped[str] = mapped_column(String(256), default="")
+    imputados: Mapped[str] = mapped_column(String(256), default="")
 
     # Columnas para Salas Penales
     # toca
     # expediente_origen
     # delitos
-    origen: Mapped[str] = mapped_column(String(256))
+    origen: Mapped[str] = mapped_column(String(256), default="")
 
     def __repr__(self):
         """Representación"""
-        return f"<Audiencia {self.id}>"
+        return f"<Audiencia>"
