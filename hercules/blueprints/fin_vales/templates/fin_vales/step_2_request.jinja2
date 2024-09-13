@@ -1,0 +1,31 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Solicitar Vale de Gasolina {{ fin_vale.id }}{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Solicitar Vale de Gasolina ' + fin_vale.id | string) }}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(title='Este vale es para') %}
+        {{ detail.label_value('Creado', moment(fin_vale.creado).format('llll')) }}
+        {{ detail.label_value('Usuario', fin_vale.nombre + ' (' + fin_vale.email + ')') }}
+        {{ detail.label_value('Puesto', fin_vale.usuario.puesto) }}
+        {{ detail.label_value('Monto', '$ ' + fin_vale.monto | string) }}
+        {{ detail.label_value('Justificación', fin_vale.justificacion) }}
+    {% endcall %}
+    {% call f.card(title='Solicitar con firma electrónica') %}
+        {% set form_kwargs = {'fin_vale_id': fin_vale.id} %}
+        {% call f.form_tag('fin_vales.step_2_request', fid='step_2_request_form', **form_kwargs) %}
+            {% call f.form_group(form.contrasena) %}{% endcall %}
+            {% call f.form_group(form.solicitar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}
