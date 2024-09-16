@@ -42,6 +42,7 @@ class Usuario(database.Model, UserMixin, UniversalMixin):
     api_key: Mapped[Optional[str]] = mapped_column(String(128))
     api_key_expiracion: Mapped[Optional[datetime]]
     contrasena: Mapped[Optional[str]] = mapped_column(String(256))
+    efirma_registro_id: Mapped[Optional[int]]
 
     # Hijos
     bitacoras: Mapped[List["Bitacora"]] = relationship("Bitacora", back_populates="usuario")
