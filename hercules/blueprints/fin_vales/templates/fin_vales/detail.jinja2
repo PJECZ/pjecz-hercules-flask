@@ -13,9 +13,6 @@
         {% endif %}
         {% if current_user.can_edit('FIN VALES') and fin_vale.estatus == 'A' %}
             {{ topbar.button_edit('Editar', url_for('fin_vales.edit', fin_vale_id=fin_vale.id)) }}
-            {% if fin_vale.estado == 'CREADO' %}
-                {{ topbar.button('Solicitar', url_for('fin_vales.step_2_request', fin_vale_id=fin_vale.id), 'mdi:check') }}
-            {% endif %}
         {% endif %}
         {% if current_user.can_admin('FIN VALES') %}
             {% if fin_vale.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('fin_vales.delete', fin_vale_id=fin_vale.id)) }}{% endif %}
@@ -70,6 +67,9 @@
             {{ detail.label_value('Nombre', fin_vale.solicito_nombre) }}
             {{ detail.label_value('Puesto', fin_vale.solicito_puesto) }}
             {{ detail.label_value('e-mail', fin_vale.solicito_email) }}
+            {% if fin_vale.estado == 'CREADO' and fin_vale.estatus == 'A' and "FINANCIEROS SOLICITANTES" in current_user.get_roles() %}
+                {{ detail.button_md('Solicitar', url_for('fin_vales.step_2_request', fin_vale_id=fin_vale.id), 'mdi:check', '', 'btn-outline-success') }}
+            {% endif %}
         {% endcall %}
     {% endif %}
     {% if fin_vale.estado == 'CANCELADO POR SOLICITANTE' %}
@@ -99,6 +99,9 @@
             {{ detail.label_value('Nombre', fin_vale.autorizo_nombre) }}
             {{ detail.label_value('Puesto', fin_vale.autorizo_puesto) }}
             {{ detail.label_value('e-mail', fin_vale.autorizo_email) }}
+            {% if fin_vale.estado == 'SOLICITADO' and fin_vale.estatus == 'A' and "FINANCIEROS AUTORIZANTES" in current_user.get_roles() %}
+                {{ detail.button_md('Autorizar', url_for('fin_vales.step_3_authorize', fin_vale_id=fin_vale.id), 'mdi:check', '', 'btn-outline-primary') }}
+            {% endif %}
         {% endcall %}
     {% endif %}
     {% if fin_vale.estado == 'CANCELADO POR AUTORIZANTE' %}

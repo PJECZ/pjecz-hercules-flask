@@ -211,23 +211,23 @@
 {%- endmacro -%}
 
 {# Button small #}
-{%- macro button_sm(label, url, icon='', target='', color_class='btn-success') -%}
-    <a class="btn btn-block btn-sm {{ color_class }} w-100 mb-2" href="{{ url }}" {% if target %}target="{{ target }}"{% endif %}>
+{%- macro button_sm(label, url, icon='', target='', color_class='btn-outline-primary') -%}
+    <a class="btn btn-block btn-sm {{ color_class }} w-100 my-2" href="{{ url }}" {% if target %}target="{{ target }}"{% endif %}>
         {% if icon %}<span class="iconify" data-icon="{{ icon }}"></span>{% endif %}
         {{ label }}
     </a>
 {%- endmacro -%}
 
 {# Button medium #}
-{%- macro button_md(label, url, icon='', target='', color_class='btn-success') -%}
-    <a class="btn btn-block btn-md {{ color_class }} w-100 mb-2" href="{{ url }}" {% if target %}target="{{ target }}"{% endif %}>
+{%- macro button_md(label, url, icon='', target='', color_class='btn-outline-primary') -%}
+    <a class="btn btn-block btn-md {{ color_class }} w-100 my-2" href="{{ url }}" {% if target %}target="{{ target }}"{% endif %}>
         <span class="iconify" data-icon="{{ icon }}"></span> {{ label }}
     </a>
 {%- endmacro -%}
 
 {# Button extra large #}
-{%- macro button_xl(label, url, icon='', target='', color_class='btn-success') -%}
-    <a class="btn btn-block btn-xl {{ color_class }} w-100 mb-2" href="{{ url }}" {% if target %}target="{{ target }}"{% endif %}>
+{%- macro button_xl(label, url, icon='', target='', color_class='btn-outline-primary') -%}
+    <a class="btn btn-block btn-xl {{ color_class }} w-100 my-2" href="{{ url }}" {% if target %}target="{{ target }}"{% endif %}>
         <span class="iconify" data-icon="{{ icon }}"></span> {{ label }}
     </a>
 {%- endmacro -%}
