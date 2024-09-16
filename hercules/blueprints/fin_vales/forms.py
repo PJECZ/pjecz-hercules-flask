@@ -17,14 +17,12 @@ MONTOS = [
 class FinValeEditForm(FlaskForm):
     """Formulario para editar un vale"""
 
-    usuario_email = SelectField(
-        label="Cambiar al usuario con su e-mail", coerce=str, validators=[Optional()], validate_choice=False
-    )
+    usuario_email = SelectField("Cambiar al usuario con e-mail", coerce=str, validators=[Optional()], validate_choice=False)
     solicito_email = SelectField(
-        label="Cambiar al solicitante con su e-mail", coerce=str, validators=[Optional()], validate_choice=False
+        "Cambiar al solicitante con e-mail", coerce=str, validators=[Optional()], validate_choice=False
     )
     autorizo_email = SelectField(
-        label="Cambiar al autorizante con su e-mail", coerce=str, validators=[Optional()], validate_choice=False
+        "Cambiar al autorizante con e-mail", coerce=str, validators=[Optional()], validate_choice=False
     )
     justificacion = TextAreaField("Justificación", validators=[DataRequired(), Length(max=1024)], render_kw={"rows": 4})
     monto = SelectField("Monto", choices=MONTOS, validators=[DataRequired()])
@@ -34,6 +32,9 @@ class FinValeEditForm(FlaskForm):
 class FinValeStep1CreateForm(FlaskForm):
     """Formulario paso 1 crear FinVale"""
 
+    usuario_email = StringField("E-mail del usuario")  # Read only
+    solicito_email = StringField("E-mail del solicitante")  # Read only
+    autorizo_email = StringField("E-mail del autorizante")  # Read only
     justificacion = TextAreaField("Justificación", validators=[DataRequired(), Length(max=1024)], render_kw={"rows": 4})
     monto = SelectField("Monto", choices=MONTOS, validators=[DataRequired()])
     guardar = SubmitField("Guardar")

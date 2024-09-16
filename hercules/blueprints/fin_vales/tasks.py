@@ -33,6 +33,9 @@ FIN_VALES_EFIRMA_QR_URL = os.getenv("FIN_VALES_EFIRMA_QR_URL", "")
 FIN_VALES_EFIRMA_APP_ID = os.getenv("FIN_VALES_EFIRMA_APP_ID", "")
 FIN_VALES_EFIRMA_APP_PASS = os.getenv("FIN_VALES_EFIRMA_APP_PASS", "")
 
+ROL_SOLICITANTES = "FINANCIEROS SOLICITANTES"  # Rol que debe estar en la base de datos
+ROL_AUTORIZANTES = "FINANCIEROS AUTORIZANTES"  # Rol que debe estar en la base de datos
+
 TIMEOUT = 24  # Segundos de espera para la respuesta del motor de firma
 
 bitacora = logging.getLogger(__name__)
@@ -91,6 +94,10 @@ def solicitar(fin_vale_id: int, usuario_id: int, contrasena: str):
         raise MyNotValidParamError(mensaje)
     if solicita.efirma_registro_id is None or solicita.efirma_registro_id == 0:
         mensaje = f"El usuario {solicita.email} no tiene registro en el motor de firma"
+        bitacora.error(mensaje)
+        raise MyNotValidParamError(mensaje)
+    if ROL_SOLICITANTES not in solicita.get_roles():
+        mensaje = f"El usuario {solicita.email} no tiene el rol {ROL_SOLICITANTES}"
         bitacora.error(mensaje)
         raise MyNotValidParamError(mensaje)
 
@@ -270,6 +277,10 @@ def cancelar_solicitar(fin_vale_id: int, contrasena: str, motivo: str):
         mensaje = f"El usuario {fin_vale.solicito_email} no tiene registro en el motor de firma"
         bitacora.error(mensaje)
         raise MyNotValidParamError(mensaje)
+    if ROL_SOLICITANTES not in solicito.get_roles():
+        mensaje = f"El usuario {solicito.email} no tiene el rol {ROL_SOLICITANTES}"
+        bitacora.error(mensaje)
+        raise MyNotValidParamError(mensaje)
 
     # Preparar los datos que se van a enviar al motor de firma
     datos = {
@@ -409,6 +420,10 @@ def autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
         raise MyNotValidParamError(mensaje)
     if autoriza.efirma_registro_id is None or autoriza.efirma_registro_id == 0:
         mensaje = f"El usuario {autoriza.email} no tiene registro en el motor de firma"
+        bitacora.error(mensaje)
+        raise MyNotValidParamError(mensaje)
+    if ROL_AUTORIZANTES not in autoriza.get_roles():
+        mensaje = f"El usuario {autoriza.email} no tiene el rol {ROL_AUTORIZANTES}"
         bitacora.error(mensaje)
         raise MyNotValidParamError(mensaje)
 
@@ -589,6 +604,10 @@ def cancelar_autorizar(fin_vale_id: int, contrasena: str, motivo: str):
         raise MyNotValidParamError(mensaje)
     if autorizo.efirma_registro_id is None or autorizo.efirma_registro_id == 0:
         mensaje = f"El usuario {fin_vale.autorizo_email} no tiene registro en el motor de firma"
+        bitacora.error(mensaje)
+        raise MyNotValidParamError(mensaje)
+    if ROL_AUTORIZANTES not in autorizo.get_roles():
+        mensaje = f"El usuario {autorizo.email} no tiene el rol {ROL_AUTORIZANTES}"
         bitacora.error(mensaje)
         raise MyNotValidParamError(mensaje)
 

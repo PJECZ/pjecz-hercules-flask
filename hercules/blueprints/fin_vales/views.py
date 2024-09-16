@@ -120,7 +120,9 @@ def datatable_json():
                 "acciones": {
                     "editar_url": url_for("fin_vales.edit", fin_vale_id=resultado.id) if resultado.estado == "CREADO" else None,
                     "imprimir_url": (
-                        url_for("fin_vales.print", fin_vale_id=resultado.id) if resultado.estado == "SOLICITADO" else None
+                        url_for("fin_vales.print", fin_vale_id=resultado.id)
+                        if resultado.estado in ["SOLICITADO", "AUTORIZADO"]
+                        else None
                     ),
                 },
             }
@@ -486,14 +488,44 @@ def edit(fin_vale_id):
 @permission_required(MODULO, Permiso.CREAR)
 def step_1_create():
     """Formulario paso 1 crear FinVale"""
+
+    # Si viene el formulario
     form = FinValeStep1CreateForm()
     if form.validate_on_submit():
+
+        # Si tiene el e-mail de quien va a solicitar, consultarlo
+        solicito_email = None
+        solicito_nombre = None
+        solicito_puesto = None
+        solicito = Usuario.query.filter_by(email=form.solicito_email.data).first()
+        if solicito is not None:
+            solicito_email = solicito.email
+            solicito_nombre = solicito.nombre
+            solicito_puesto = solicito.puesto
+
+        # Si tiene el e-mail de quien va a autorizar, consultarlo
+        autorizo_email = None
+        autorizo_nombre = None
+        autorizo_puesto = None
+        autorizo = Usuario.query.filter_by(email=form.autorizo_email.data).first()
+        if autorizo is not None:
+            autorizo_email = autorizo.email
+            autorizo_nombre = autorizo.nombre
+            autorizo_puesto = autorizo.puesto
+
+        # Guardar el vale
         fin_vale = FinVale(
-            usuario=current_user,
+            usuario_id=current_user.id,
             estado="CREADO",
             justificacion=safe_string(form.justificacion.data, max_len=1020, to_uppercase=False, save_enie=True),
             monto=float(form.monto.data),
             tipo="GASOLINA",
+            solicito_email=solicito_email,
+            solicito_nombre=solicito_nombre,
+            solicito_puesto=solicito_puesto,
+            autorizo_email=autorizo_email,
+            autorizo_nombre=autorizo_nombre,
+            autorizo_puesto=autorizo_puesto,
         )
         fin_vale.save()
         bitacora = Bitacora(
@@ -504,9 +536,26 @@ def step_1_create():
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
+
+        # Redireccionar a la pagina de detalle
         return redirect(bitacora.url)
+
+    # Definir valores por defecto del formulario
+    form.usuario_email.data = current_user.email
+    form.solicito_email.data = ""
+    form.autorizo_email.data = ""
     form.justificacion.data = f"Solicito un vale de gasolina de $200.00 (Doscientos pesos 00/100 M.N.), para {current_user.nombre} con el objetivo de ir a DESTINO."
     form.monto.data = "200.0"
+
+    # Consultar el ultimo vale del usuario, si existe se toman los valores
+    ultimo_vale = FinVale.query.filter(FinVale.usuario_id == current_user.id).order_by(FinVale.id.desc()).first()
+    if ultimo_vale is not None:
+        form.solicito_email.data = ultimo_vale.solicito_email
+        form.autorizo_email.data = ultimo_vale.autorizo_email
+        form.justificacion.data = ultimo_vale.justificacion
+        form.monto.data = str(ultimo_vale.monto)
+
+    # Entregar formulario
     return render_template("fin_vales/step_1_create.jinja2", form=form)
 
 
@@ -547,13 +596,13 @@ def step_2_request(fin_vale_id):
         # Lanzar la tarea en el fondo
         tarea = current_user.launch_task(
             comando="fin_vales.tasks.solicitar",
-            mensaje="Comunicandose con el motor de firma electronica...",
+            mensaje="Elaborando solicitud en el motor de firmas electrónicas...",
             fin_vale_id=fin_vale.id,
             usuario_id=current_user.id,
             contrasena=form.contrasena.data,
         )
-        flash("Se ha lanzado esta tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
-        return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+        flash(f"{tarea.mensaje} Esta página se va a recargar en 10 segundos...", "info")
+        return redirect(url_for("fin_vales.detail", fin_vale_id=fin_vale_id))
 
     # Entregar formulario
     return render_template("fin_vales/step_2_request.jinja2", form=form, fin_vale=fin_vale)
@@ -599,13 +648,13 @@ def cancel_2_request(fin_vale_id):
         # Lanzar la tarea en el fondo
         tarea = current_user.launch_task(
             comando="fin_vales.tasks.cancelar_solicitar",
-            mensaje="Comunicandose con el motor de firma electronica...",
+            mensaje="Cancelando solicitud en el motor de firmas electrónicas...",
             fin_vale_id=fin_vale.id,
             usuario_id=current_user.id,
             contrasena=form.contrasena.data,
         )
-        flash("Se ha lanzado esta tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
-        return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+        flash(f"{tarea.mensaje} Esta página se va a recargar en 10 segundos...", "info")
+        return redirect(url_for("fin_vales.detail", fin_vale_id=fin_vale_id))
 
     # Mostrar formulario
     return render_template("fin_vales/cancel_2_request.jinja2", form=form, fin_vale=fin_vale)
@@ -648,13 +697,13 @@ def step_3_authorize(fin_vale_id):
         # Lanzar la tarea en el fondo
         tarea = current_user.launch_task(
             comando="fin_vales.tasks.autorizar",
-            mensaje="Comunicandose con el motor de firma electronica...",
+            mensaje="Elaborando autorización en el motor de firmas electrónicas...",
             fin_vale_id=fin_vale.id,
             usuario_id=current_user.id,
             contrasena=form.contrasena.data,
         )
-        flash("Se ha lanzado esta tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
-        return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+        flash(f"{tarea.mensaje} Esta página se va a recargar en 10 segundos...", "info")
+        return redirect(url_for("fin_vales.detail", fin_vale_id=fin_vale_id))
 
     # Mostrar formulario
     return render_template("fin_vales/step_3_authorize.jinja2", form=form, fin_vale=fin_vale)
@@ -700,13 +749,13 @@ def cancel_3_authorize(fin_vale_id):
         # Lanzar la tarea en el fondo
         tarea = current_user.launch_task(
             comando="fin_vales.tasks.cancelar_autorizar",
-            mensaje="Comunicandose con el motor de firma electronica...",
+            mensaje="Cancelando autorización en el motor de firmas electrónicas...",
             fin_vale_id=fin_vale.id,
             usuario_id=current_user.id,
             contrasena=form.contrasena.data,
         )
-        flash("Se ha lanzado esta tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
-        return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+        flash(f"{tarea.mensaje} Esta página se va a recargar en 10 segundos...", "info")
+        return redirect(url_for("fin_vales.detail", fin_vale_id=fin_vale_id))
 
     # Mostrar formulario
     return render_template("fin_vales/cancel_3_authorize.jinja2", form=form, fin_vale=fin_vale)

@@ -10,12 +10,11 @@
 {% endblock %}
 
 {% block content %}
-    {% call detail.card(title='Este vale es para') %}
-        {{ detail.label_value('Usuario', current_user.nombre + ' (' + current_user.email + ')') }}
-        {{ detail.label_value('Puesto', current_user.puesto) }}
-    {% endcall %}
-    {% call f.card(title='Crear una solicitud con') %}
+    {% call f.card(title='<strong>Nota:</strong> para cambiar el solicitante y autorizante debe editar despues de guardar') %}
         {% call f.form_tag('fin_vales.step_1_create', fid='step_1_create_form') %}
+            {% call f.form_group(form.usuario_email, readonly=True) %}{% endcall %}
+            {% call f.form_group(form.solicito_email, readonly=True) %}{% endcall %}
+            {% call f.form_group(form.autorizo_email, readonly=True) %}{% endcall %}
             {% call f.form_group(form.monto) %}{% endcall %}
             {% call f.form_group(form.justificacion) %}{% endcall %}
             {% call f.form_group(form.guardar) %}{% endcall %}
