@@ -96,4 +96,4 @@ class FinVale(database.Model, UniversalMixin):
 
     def __repr__(self):
         """Representación"""
-        return f"<FinVale {self.clave}>"
+        return f"<FinVale {self.id}>"
