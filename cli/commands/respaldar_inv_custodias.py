@@ -30,16 +30,6 @@ def respaldar_inv_custodias():
                 "usuario_id",
                 "usuario_nombre",
                 "usuario_email",
-                "inv_marca_id",
-                "inv_marca_nombre",
-                "inv_modelo_id",
-                "inv_modelo_descripcion",
-                "inv_equipo_id",
-                "inv_equipo_descripcion",
-                "inv_equipo_tipo",
-                "inv_equipo_direccion_ip",
-                "inv_equipo_direccion_mac",
-                "estatus",
             ]
         )
         for inv_custodia in InvCustodia.query.filter_by(estatus="A").order_by(InvCustodia.id).all():
@@ -50,16 +40,6 @@ def respaldar_inv_custodias():
                     inv_custodia.usuario_id,
                     inv_custodia.usuario.nombre,
                     inv_custodia.usuario.email,
-                    inv_custodia.inv_equipo.inv_modelo.inv_marca_id,
-                    inv_custodia.inv_equipo.inv_modelo.inv_marca.nombre,
-                    inv_custodia.inv_equipo.inv_modelo_id,
-                    inv_custodia.inv_equipo.inv_modelo.descripcion,
-                    inv_custodia.inv_equipo_id,
-                    inv_custodia.inv_equipo.descripcion,
-                    inv_custodia.inv_equipo.tipo,
-                    inv_custodia.inv_equipo.direccion_ip,
-                    inv_custodia.inv_equipo.direccion_mac,
-                    inv_custodia.estatus,
                 ]
             )
             contador += 1
