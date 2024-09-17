@@ -61,13 +61,19 @@
             {{ detail.label_value('Tiempo', moment(fin_vale.solicito_efirma_tiempo).format('llll')) }}
             {{ detail.label_value_new_tab('Folio y URL', fin_vale.solicito_efirma_folio, fin_vale.solicito_efirma_url) }}
             {{ detail.label_value('Sello digital', fin_vale.solicito_efirma_sello_digital) }}
-            {% if fin_vale.estado == 'SOLICITADO' and fin_vale.estatus == 'A' %}
-                {% if fin_vale.estado in ['SOLICITADO', 'AUTORIZADO', 'ENTREGADO', 'POR REVISAR', 'ARCHIVADO'] %}
-                    {{ detail.button_md('Imprimir', url_for('fin_vales.print', fin_vale_id=fin_vale.id), 'mdi:printer', '', 'btn-outline-secondary') }}
-                {% endif %}
-                {% if "FINANCIEROS SOLICITANTES" in current_user.get_roles() %}
-                    {{ detail.button_md('Cancelar', url_for('fin_vales.cancel_2_request', fin_vale_id=fin_vale.id), 'mdi:check', '', 'btn-outline-warning') }}
-                {% endif %}
+            {% if fin_vale.estatus == 'A' %}
+                <div class="row">
+                    {% if fin_vale.estado in ['SOLICITADO', 'AUTORIZADO', 'ENTREGADO', 'POR REVISAR', 'ARCHIVADO'] %}
+                        <div class="col">
+                            {{ detail.button_md('Imprimir', url_for('fin_vales.print', fin_vale_id=fin_vale.id), 'mdi:printer', '', 'btn-outline-secondary') }}
+                        </div>
+                    {% endif %}
+                    {% if fin_vale.estado == "SOLICITADO" and "FINANCIEROS SOLICITANTES" in current_user.get_roles() %}
+                        <div class="col">
+                            {{ detail.button_md('Cancelar', url_for('fin_vales.cancel_2_request', fin_vale_id=fin_vale.id), 'mdi:check', '', 'btn-outline-warning') }}
+                        </div>
+                    {% endif %}
+                </div>
             {% endif %}
         {% endcall %}
     {% elif fin_vale.solicito_email %}
@@ -101,13 +107,19 @@
             {{ detail.label_value('Tiempo', fin_vale.autorizo_efirma_tiempo) }}
             {{ detail.label_value_new_tab('Folio y URL', fin_vale.autorizo_efirma_folio, fin_vale.autorizo_efirma_url) }}
             {{ detail.label_value('Sello digital', fin_vale.autorizo_efirma_sello_digital) }}
-            {% if fin_vale.estado == 'AUTORIZADO' and fin_vale.estatus == 'A' %}
-                {% if fin_vale.estado in ['AUTORIZADO', 'ENTREGADO', 'POR REVISAR', 'ARCHIVADO'] %}
-                    {{ detail.button_md('Imprimir', url_for('fin_vales.print', fin_vale_id=fin_vale.id), 'mdi:printer', '', 'btn-outline-secondary') }}
-                {% endif %}
-                {% if "FINANCIEROS AUTORIZANTES" in current_user.get_roles() %}
-                    {{ detail.button_md('Cancelar', url_for('fin_vales.cancel_3_authorize', fin_vale_id=fin_vale.id), 'mdi:check', '', 'btn-outline-warning') }}
-                {% endif %}
+            {% if fin_vale.estatus == 'A' %}
+                <div class="row">
+                    {% if fin_vale.estado in ['AUTORIZADO', 'ENTREGADO', 'POR REVISAR', 'ARCHIVADO'] %}
+                        <div class="col">
+                            {{ detail.button_md('Imprimir', url_for('fin_vales.print', fin_vale_id=fin_vale.id), 'mdi:printer', '', 'btn-outline-secondary') }}
+                        </div>
+                    {% endif %}
+                    {% if fin_vale.estado == "AUTORIZADO" and "FINANCIEROS AUTORIZANTES" in current_user.get_roles() %}
+                        <div class="col">
+                            {{ detail.button_md('Cancelar', url_for('fin_vales.cancel_3_authorize', fin_vale_id=fin_vale.id), 'mdi:check', '', 'btn-outline-warning') }}
+                        </div>
+                    {% endif %}
+                </div>
             {% endif %}
         {% endcall %}
     {% elif fin_vale.autorizo_email %}
