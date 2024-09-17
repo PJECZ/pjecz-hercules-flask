@@ -1,0 +1,68 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {% if autoridad %}
+            {% if current_user.can_admin('AUDIENCIAS') or (current_user.can_edit('AUDIENCIAS') and current_user.autoridad_id == autoridad.id) %}
+                {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('audiencias.list_inactive')) }}{% endif %}
+                {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('audiencias.list_active')) }}{% endif %}
+            {% endif %}
+            {# {% if current_user.can_insert('AUDIENCIAS') %}
+                {{ topbar.button_new('Nuevo Audiencia', url_for('audiencias.new')) }}
+            {% endif %} #}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call list.card() %}
+        <!-- DataTable Audiencias -->
+        <table id="audiencias_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Fechas y horas</th>
+                    <th>Tipos de audiencias</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable Audiencias
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDataTable = constructorDataTable.config();
+        configDataTable['ajax']['url'] = '/audiencias/datatable_json';
+        configDataTable['ajax']['data'] = {{ filtros }};
+        configDataTable['columns'] = [
+            { data: "tiempo" },
+            { data: "detalle" }
+        ];
+        configDataTable['columnDefs'] = [
+            {
+                targets: 0,
+                type: "date",
+                render: function (data, type, row) {
+                    return data;
+                }
+            },
+            {
+                targets: 1,
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.tipo_audiencia + '</a>';
+                }
+            }
+        ];
+        // Filtros Audiencias
+        const filtrosAudiencias = new FiltrosDataTable('#audiencias_datatable', configDataTable);
+        filtrosAudiencias.precargar();
+    </script>
+{% endblock %}
