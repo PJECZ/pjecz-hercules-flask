@@ -32,10 +32,6 @@ from hercules.blueprints.usuarios_roles.models import UsuarioRol
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_email, safe_message, safe_string
 
-MODULO = "FIN VALES"
-
-fin_vales = Blueprint("fin_vales", __name__, template_folder="templates")
-
 # Roles que deben estar en la base de datos
 ROL_SOLICITANTES = "FINANCIEROS SOLICITANTES"
 ROL_AUTORIZANTES = "FINANCIEROS AUTORIZANTES"
@@ -43,9 +39,14 @@ ROL_ASISTENTES = "FINANCIEROS ASISTENTES"
 ROLES_PUEDEN_VER = (ROL_SOLICITANTES, ROL_AUTORIZANTES, ROL_ASISTENTES)
 ROLES_PUEDEN_IMPRIMIR = (ROL_AUTORIZANTES, ROL_ASISTENTES)
 
+# Zona horaria
 TIMEZONE = "America/Mexico_City"
 local_tz = timezone(TIMEZONE)
 medianoche = time.min
+
+MODULO = "FIN VALES"
+
+fin_vales = Blueprint("fin_vales", __name__, template_folder="templates")
 
 
 @fin_vales.before_request
@@ -109,7 +110,7 @@ def datatable_json():
                     "id": resultado.id,
                     "url": url_for("fin_vales.detail", fin_vale_id=resultado.id),
                 },
-                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
+                "creado": resultado.creado.astimezone(local_tz).strftime("%Y-%m-%d %H:%M"),
                 "usuario": {
                     "email": resultado.usuario.email,
                     "nombre": resultado.usuario.nombre,

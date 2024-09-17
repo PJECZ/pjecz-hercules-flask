@@ -43,6 +43,7 @@ ORGANOS_JURISDICCIONALES_QUE_PUEDEN_ELEGIR_MATERIA = (
 HORAS_BUENO = 14
 HORAS_CRITICO = 16
 
+# Zona horaria
 TIMEZONE = "America/Mexico_City"
 local_tz = timezone(TIMEZONE)
 medianoche = time.min
