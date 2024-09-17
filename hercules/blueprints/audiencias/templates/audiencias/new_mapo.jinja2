@@ -1,0 +1,36 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Subir Audiencia de Materia Acusatoria Penal Oral{% endblock %}
+
+{% block custom_head %}
+    {{ f.drop_zone_css() }}
+{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Nuevo Audiencia de Materia Acusatoria Penal Oral') }}
+{% endblock %}
+
+{% block content %}
+    {% call f.card() %}
+        {% call f.form_tag_multipart('audiencias.new_mapo', fid='audiencia_form') %}
+            {# Comunes #}
+            {% call f.form_group(form.distrito, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.autoridad, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.tiempo_fecha) %}{% endcall %}
+            {% call f.form_group(form.tiempo_horas_minutos) %}{% endcall %}
+            {% call f.form_group(form.tipo_audiencia) %}{% endcall %}
+            {# Materia Acusatoria Penal Oral #}
+            {% call f.form_group(form.sala) %}{% endcall %}
+            {% call f.form_group(form.caracter) %}{% endcall %}
+            {% call f.form_group(form.causa_penal) %}{% endcall %}
+            {% call f.form_group(form.delitos) %}{% endcall %}
+            {% call f.form_group(form.guardar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {{ f.drop_zone_js() }}
+{% endblock %}
