@@ -8,6 +8,9 @@ import logging
 import os
 
 from dotenv import load_dotenv
+import sendgrid
+from sendgrid.helpers.mail import Email, To, Content, Mail
+import pytz
 import requests
 
 from lib.exceptions import (
@@ -26,15 +29,21 @@ from hercules.blueprints.fin_vales.models import FinVale
 from hercules.blueprints.usuarios.models import Usuario
 from hercules.extensions import database
 
-load_dotenv()  # Take environment variables from .env
+# Zona horaria
+TIMEZONE = "America/Mexico_City"
+local_tz = pytz.timezone(TIMEZONE)
+
+# Cargar las variables de entorno
+load_dotenv()
 FIN_VALES_EFIRMA_SER_FIRMA_CADENA_URL = os.getenv("FIN_VALES_EFIRMA_SER_FIRMA_CADENA_URL", "")
 FIN_VALES_EFIRMA_CAN_FIRMA_CADENA_URL = os.getenv("FIN_VALES_EFIRMA_CAN_FIRMA_CADENA_URL", "")
 FIN_VALES_EFIRMA_QR_URL = os.getenv("FIN_VALES_EFIRMA_QR_URL", "")
 FIN_VALES_EFIRMA_APP_ID = os.getenv("FIN_VALES_EFIRMA_APP_ID", "")
 FIN_VALES_EFIRMA_APP_PASS = os.getenv("FIN_VALES_EFIRMA_APP_PASS", "")
 
-ROL_SOLICITANTES = "FINANCIEROS SOLICITANTES"  # Rol que debe estar en la base de datos
-ROL_AUTORIZANTES = "FINANCIEROS AUTORIZANTES"  # Rol que debe estar en la base de datos
+# Roles que deben estar en la base de datos
+ROL_SOLICITANTES = "FINANCIEROS SOLICITANTES"
+ROL_AUTORIZANTES = "FINANCIEROS AUTORIZANTES"
 
 TIMEOUT = 24  # Segundos de espera para la respuesta del motor de firma
 
@@ -206,6 +215,39 @@ def solicitar(fin_vale_id: int, usuario_id: int, contrasena: str):
     fin_vale.solicito_efirma_error = ""
     fin_vale.estado = "SOLICITADO"
     fin_vale.save()
+
+    # Definir el remitente del mensaje de correo electronico
+    remitente_email = Email(os.environ.get("SENDGRID_FROM_EMAIL", "plataforma.web@pjecz.gob.mx"))
+
+    # Definir el destinatario del mensaje de correo electronico
+    destinatario_email = To(fin_vale.usuario.email)
+
+    # Definir el asunto del mensaje de correo electronico
+    asunto = f"Vale de Gasolina {fin_vale_id} Solicitado"
+
+    # Definir el contenido del mensaje de correo electronico
+    host = os.environ.get("HOST", "http://127.0.0.1:5000")
+    detalle_url = f"{host}/fin_vales/{fin_vale.id}"
+    imprimir_url = f"{host}/fin_vales/imprimir/{fin_vale.id}"
+    contenidos = []
+    contenidos.append("<h2>Plataforma Hércules - Vales de Gasolina</h2>")
+    contenidos.append(f"<p>La <a href='{detalle_url}'>solicitud del vale {fin_vale.id}</a> ya fue firmada.</p>")
+    contenidos.append(f"<p><strong>Recomendamos siempre ahorrar papel e impresiones.</strong>")
+    contenidos.append(f"Solo de ser necesario <a href='{imprimir_url}'>imprima esta página con la solicitud.</a></p>")
+    contenidos.append("<p>Que tenga buen dia.</p>")
+    contenidos.append(f"<p>Nota: Este mensaje fue creado por un programa. <strong>Favor de NO responder.</strong></p>")
+    contenido = Content("text/html", "\n".join(contenidos))
+
+    # Enviar el mensaje de correo electronico
+    api_key = os.environ.get("SENDGRID_API_KEY", "")
+    if api_key != "":
+        try:
+            send_grid = sendgrid.SendGridAPIClient(api_key=api_key)
+            mail = Mail(remitente_email, destinatario_email, asunto, contenido)
+            send_grid.client.mail.send.post(request_body=mail.get())
+        except Exception as error:
+            mensaje = "Fallo el enviar el mensaje de correo electrónico. " + safe_string(str(error))
+            bitacora.warning(mensaje)
 
     # Entregar
     mensaje = f"Se firmo electronicamente el vale {fin_vale_id} y ahora esta SOLICITADO"
@@ -535,6 +577,39 @@ def autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
     fin_vale.autorizo_efirma_error = ""
     fin_vale.estado = "AUTORIZADO"
     fin_vale.save()
+
+    # Definir el remitente del mensaje de correo electronico
+    remitente_email = Email(os.environ.get("SENDGRID_FROM_EMAIL", "plataforma.web@pjecz.gob.mx"))
+
+    # Definir el destinatario del mensaje de correo electronico
+    destinatario_email = To(fin_vale.usuario.email)
+
+    # Definir el asunto del mensaje de correo electronico
+    asunto = f"Vale de Gasolina {fin_vale_id} Autorizado"
+
+    # Definir el contenido del mensaje de correo electronico
+    host = os.environ.get("HOST", "http://127.0.0.1:5000")
+    detalle_url = f"{host}/fin_vales/{fin_vale.id}"
+    imprimir_url = f"{host}/fin_vales/imprimir/{fin_vale.id}"
+    contenidos = []
+    contenidos.append("<h2>Plataforma Hércules - Vales de Gasolina</h2>")
+    contenidos.append(f"<p>La <a href='{detalle_url}'>autorización del vale {fin_vale.id}</a> ya fue firmada.</p>")
+    contenidos.append(f"<p><strong>Recomendamos siempre ahorrar papel e impresiones.</strong>")
+    contenidos.append(f"Solo de ser necesario <a href='{imprimir_url}'>imprima esta página con la solicitud.</a></p>")
+    contenidos.append("<p>Que tenga buen dia.</p>")
+    contenidos.append(f"<p>Nota: Este mensaje fue creado por un programa. <strong>Favor de NO responder.</strong></p>")
+    contenido = Content("text/html", "\n".join(contenidos))
+
+    # Enviar el mensaje de correo electronico
+    api_key = os.environ.get("SENDGRID_API_KEY", "")
+    if api_key != "":
+        try:
+            send_grid = sendgrid.SendGridAPIClient(api_key=api_key)
+            mail = Mail(remitente_email, destinatario_email, asunto, contenido)
+            send_grid.client.mail.send.post(request_body=mail.get())
+        except Exception as error:
+            mensaje = "Fallo el enviar el mensaje de correo electrónico. " + safe_string(str(error))
+            bitacora.warning(mensaje)
 
     # Entregar
     mensaje = f"Se firmo electronicamente el vale {fin_vale_id} y ahora esta AUTORIZADO"
