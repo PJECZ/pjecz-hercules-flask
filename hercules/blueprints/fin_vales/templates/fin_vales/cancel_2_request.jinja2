@@ -1,0 +1,38 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Cancelar solicitud del Vale de Gasolina {{ fin_vale.id }}{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Cancelar solicitud del Vale de Gasolina ' + fin_vale.id | string) }}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(title='Este vale es para') %}
+        {{ detail.label_value('Creado', moment(fin_vale.creado).format('llll')) }}
+        {{ detail.label_value('Usuario', fin_vale.usuario.nombre + ' (' + fin_vale.usuario.email + ')') }}
+        {{ detail.label_value('Puesto', fin_vale.usuario.puesto) }}
+        {{ detail.label_value('Monto', '$ ' + fin_vale.monto | string) }}
+        {{ detail.label_value('Justificación', fin_vale.justificacion) }}
+    {% endcall %}
+    {% call detail.card(title='Solicitado por') %}
+        {{ detail.label_value('Tiempo', moment(fin_vale.solicito_efirma_tiempo).format('llll')) }}
+        {{ detail.label_value('Usuario', fin_vale.solicito_nombre + ' (' + fin_vale.solicito_email + ')') }}
+        {{ detail.label_value('Puesto', fin_vale.solicito_puesto) }}
+        {{ detail.label_value_new_tab('eFirma', fin_vale.solicito_efirma_folio, fin_vale.solicito_efirma_url) }}
+    {% endcall %}
+    {% call f.card(title='Cancelar esta solicitud') %}
+        {% set form_kwargs = {'fin_vale_id': fin_vale.id} %}
+        {% call f.form_tag('fin_vales.cancel_2_request', fid='cancel_2_request_form', **form_kwargs) %}
+            {% call f.form_group(form.motivo) %}{% endcall %}
+            {% call f.form_group(form.contrasena) %}{% endcall %}
+            {% call f.form_group(form.cancelar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}

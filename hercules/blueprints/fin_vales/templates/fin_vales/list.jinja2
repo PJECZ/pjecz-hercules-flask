@@ -10,6 +10,9 @@
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('fin_vales.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('fin_vales.list_active')) }}{% endif %}
         {% endif %}
+        {% if current_user.can_insert('FIN VALES') %}
+            {{ topbar.button_new('Nuevo Vale de Gasolina', url_for('fin_vales.step_1_create')) }}
+        {% endif %}
     {% endcall %}
 {% endblock %}
 
@@ -60,6 +63,7 @@
                     <th>Justificación</th>
                     <th>Monto</th>
                     <th>Estado</th>
+                    <th>Acc.</th>
                 </tr>
             </thead>
         </table>
@@ -81,7 +85,8 @@
             { data: 'usuario' },
             { data: 'justificacion' },
             { data: 'monto' },
-            { data: 'estado' }
+            { data: 'estado' },
+            { data: 'acciones' }
         ];
         configDataTable['columnDefs'] = [
             {
@@ -95,6 +100,9 @@
                 targets: 2, // usuario
                 data: null,
                 render: function(data, type, row, meta) {
+                    if (data.email.length > 24) {
+                        return '<span title="' + data.nombre + '">' + data.email.substring(0, 24) + '...</span>';
+                    }
                     return '<span title="' + data.nombre + '">' + data.email + '</span>';
                 }
             },
@@ -113,6 +121,22 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     return '$ ' + data;
+                }
+            },
+            {
+                targets: 6, // acciones
+                data: null,
+                render: function(data, type, row, meta) {
+                    let botones = '';
+                    if (data.editar_url) {
+                        botones += '<a href="' + data.editar_url + '" title="Editar" class="btn btn-outline-primary btn-sm">' +
+                            '<span class="iconify" data-icon="mdi:edit"></span></a>';
+                    }
+                    if (data.imprimir_url) {
+                        botones += '<a href="' + data.imprimir_url + '" title="Imprimir" class="btn btn-outline-primary btn-sm" target="_blank">' +
+                            '<span class="iconify" data-icon="mdi:printer"></span></a>';
+                    }
+                    return botones;
                 }
             }
         ];

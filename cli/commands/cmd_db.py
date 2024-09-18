@@ -24,6 +24,10 @@ from cli.commands.respaldar_autoridades import respaldar_autoridades
 from cli.commands.respaldar_distritos import respaldar_distritos
 from cli.commands.respaldar_domicilios import respaldar_domicilios
 from cli.commands.respaldar_estados import respaldar_estados
+from cli.commands.respaldar_inv_custodias import respaldar_inv_custodias
+from cli.commands.respaldar_inv_equipos import respaldar_inv_equipos
+from cli.commands.respaldar_inv_marcas import respaldar_inv_marcas
+from cli.commands.respaldar_inv_modelos import respaldar_inv_modelos
 from cli.commands.respaldar_materias import respaldar_materias
 from cli.commands.respaldar_modulos import respaldar_modulos
 from cli.commands.respaldar_municipios import respaldar_municipios
@@ -89,8 +93,16 @@ def reiniciar(ctx):
 
 
 @click.command()
-def respaldar():
+@click.option("--inventarios", is_flag=True, help="Respaldar inventarios")
+def respaldar(inventarios: bool):
     """Respaldar"""
+    if inventarios:
+        respaldar_inv_marcas()
+        respaldar_inv_modelos()
+        respaldar_inv_equipos()
+        respaldar_inv_custodias()
+        click.echo("Termina respaldar inventarios.")
+        return
     respaldar_autoridades()
     respaldar_distritos()
     respaldar_domicilios()
