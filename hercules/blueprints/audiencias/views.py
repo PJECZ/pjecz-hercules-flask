@@ -175,7 +175,7 @@ def datatable_json_admin():
         if tipo_audiencia != "":
             consulta = consulta.filter(Audiencia.tipo_audiencia.contains(tipo_audiencia))
     # Ordenar y paginar
-    registros = consulta.order_by(Audiencia.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(Audiencia.creado.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
