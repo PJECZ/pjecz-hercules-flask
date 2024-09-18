@@ -20,7 +20,7 @@
         {% if current_user.can_edit('EDICTOS') %}
             {{ topbar.button_edit('Editar', url_for('edictos.edit', edicto_id=edicto.id)) }}
         {% endif %}
-        {% if current_user.can_admin('EDICTOS') %}
+        {% if current_user.can_insert('EDICTOS') %}
             {% if edicto.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('edictos.delete', edicto_id=edicto.id)) }}{% endif %}
             {% if edicto.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('edictos.recover', edicto_id=edicto.id)) }}{% endif %}
         {% endif %}
@@ -42,12 +42,19 @@
         {{ detail.label_value_new_tab('Acuse', 'De clic aqui', url_for('edictos.checkout', id_hashed=edicto.encode_id())) }}
         {{ detail.label_value('Creado', moment(edicto.creado).format('llll')) }}
     {% endcall %}
+    {% call detail.card() %}
+        <object data="{{ url_for('edictos.view_file_pdf', edicto_id=edicto.id) }}" type="application/pdf" width="100%" height="600px">
+            <p class="mb-0">El navegador no puede mostrar el archivo PDF o no existe en el depósito.</p>
+        </object>
+    {% endcall %}
 {% endblock %}
 
 {% block custom_javascript %}
+    {# Los usuarios que pueden insertar registros tienen permiso para eliminar y recuperar #}
+    {% set descrito = 'el edicto del ' + edicto.fecha.strftime("%Y-%m-%d") + ' de ' + edicto.autoridad.clave %}
     {% if current_user.can_admin('EDICTOS') %}
-        {% if edicto.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + edicto.autoridad.clave + '?') }}{% endif %}
-        {% if edicto.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + edicto.autoridad.clave + '?') }}{% endif %}
+        {% if edicto.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + descrito + '?') }}{% endif %}
+        {% if edicto.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + descrito + '?') }}{% endif %}
     {% endif %}
     {{ detail.moment_js(moment) }}
 {% endblock %}

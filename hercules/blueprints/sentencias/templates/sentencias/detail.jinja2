@@ -16,7 +16,7 @@
         {% if current_user.can_edit('SENTENCIAS') %}
             {{ topbar.button_edit('Editar', url_for('sentencias.edit', sentencia_id=sentencia.id)) }}
         {% endif %}
-        {% if current_user.can_admin('SENTENCIAS') %}
+        {% if current_user.can_insert('SENTENCIAS') %}
             {% if sentencia.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('sentencias.delete', sentencia_id=sentencia.id)) }}{% endif %}
             {% if sentencia.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('sentencias.recover', sentencia_id=sentencia.id)) }}{% endif %}
         {% endif %}
@@ -42,12 +42,19 @@
         {{ detail.label_value_new_tab('Acuse', 'De clic aqui', url_for('sentencias.checkout', id_hashed=sentencia.encode_id())) }}
         {{ detail.label_value('Creado', moment(sentencia.creado).format('llll')) }}
     {% endcall %}
+    {% call detail.card() %}
+        <object data="{{ url_for('sentencias.view_file_pdf', sentencia_id=sentencia.id) }}" type="application/pdf" width="100%" height="600px">
+            <p class="mb-0">El navegador no puede mostrar el archivo PDF o no existe en el depósito.</p>
+        </object>
+    {% endcall %}
 {% endblock %}
 
 {% block custom_javascript %}
-    {% if current_user.can_admin('SENTENCIAS') %}
-        {% if sentencia.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + sentencia.autoridad.clave + '?') }}{% endif %}
-        {% if sentencia.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + sentencia.autoridad.clave + '?') }}{% endif %}
+    {# Los usuarios que pueden insertar registros tienen permiso para eliminar y recuperar #}
+    {% set descrito = 'la sentencia del ' + sentencia.fecha.strftime("%Y-%m-%d") + ' de ' + sentencia.autoridad.clave %}
+    {% if current_user.can_insert('SENTENCIAS') %}
+        {% if sentencia.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + descrito + '?') }}{% endif %}
+        {% if sentencia.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + descrito + '?') }}{% endif %}
     {% endif %}
     {{ detail.moment_js(moment) }}
 {% endblock %}

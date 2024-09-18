@@ -7,15 +7,15 @@ import json
 import re
 from urllib.parse import quote
 
-from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from pytz import timezone
 from sqlalchemy.sql.functions import count
 from werkzeug.datastructures import CombinedMultiDict
+from werkzeug.exceptions import NotFound
 
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.bitacoras.models import Bitacora
-from hercules.blueprints.distritos.models import Distrito
 from hercules.blueprints.materias.models import Materia
 from hercules.blueprints.materias_tipos_juicios.models import MateriaTipoJuicio
 from hercules.blueprints.modulos.models import Modulo
@@ -26,9 +26,12 @@ from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.exceptions import (
     MyAnyError,
+    MyBucketNotFoundError,
     MyFilenameError,
+    MyFileNotFoundError,
     MyMissingConfigurationError,
     MyNotAllowedExtensionError,
+    MyNotValidParamError,
     MyUnknownExtensionError,
 )
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs, get_media_type_from_filename
@@ -122,10 +125,10 @@ def datatable_json():
     if fecha_hasta:
         consulta = consulta.filter(Sentencia.fecha <= fecha_hasta)
     # Filtrar por tipo de juicio
-    if "materia_tipo_juicio_id" in request.form:
-        materia_tipo_juicio = MateriaTipoJuicio.query.get(request.form["materia_tipo_juicio_id"])
-        if materia_tipo_juicio:
-            consulta = consulta.filter(Sentencia.materia_tipo_juicio == materia_tipo_juicio)
+    if "tipo_juicio" in request.form:
+        tipo_juicio = safe_string(request.form["tipo_juicio"], save_enie=True)
+        if tipo_juicio != "":
+            consulta = consulta.join(MateriaTipoJuicio).filter(MateriaTipoJuicio.descripcion.contains(tipo_juicio))
     # Ordenar y paginar
     registros = consulta.order_by(Sentencia.fecha.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -165,46 +168,31 @@ def datatable_json_admin():
         consulta = consulta.filter_by(estatus=request.form["estatus"])
     else:
         consulta = consulta.filter_by(estatus="A")
+    if "sentencia_id" in request.form:
+        try:
+            sentencia_id = int(request.form["sentencia_id"])
+            consulta = consulta.filter(Sentencia.id == sentencia_id)
+        except ValueError:
+            pass
     if "autoridad_id" in request.form:
         autoridad = Autoridad.query.get(request.form["autoridad_id"])
         if autoridad:
             consulta = consulta.filter(Sentencia.autoridad_id == autoridad.id)
+    if "autoridad_clave" in request.form:
+        try:
+            autoridad_clave = safe_clave(request.form["autoridad_clave"])
+            if autoridad_clave != "":
+                consulta = consulta.join(Autoridad).filter(Autoridad.clave.contains(autoridad_clave))
+        except ValueError:
+            pass
     if "sentencia" in request.form:
         try:
             sentencia = safe_sentencia(request.form["sentencia"])
             consulta = consulta.filter(Sentencia.sentencia == sentencia)
         except (IndexError, ValueError):
             pass
-    if "expediente" in request.form:
-        try:
-            expediente = safe_expediente(request.form["expediente"])
-            consulta = consulta.filter(Sentencia.expediente == expediente)
-        except (IndexError, ValueError):
-            pass
-    # Filtrar por fechas, si vienen invertidas se corrigen
-    fecha_desde = None
-    fecha_hasta = None
-    if "fecha_desde" in request.form and re.match(r"\d{4}-\d{2}-\d{2}", request.form["fecha_desde"]):
-        fecha_desde = request.form["fecha_desde"]
-    if "fecha_hasta" in request.form and re.match(r"\d{4}-\d{2}-\d{2}", request.form["fecha_hasta"]):
-        fecha_hasta = request.form["fecha_hasta"]
-    if fecha_desde and fecha_hasta and fecha_desde > fecha_hasta:
-        fecha_desde, fecha_hasta = fecha_hasta, fecha_desde
-    if fecha_desde:
-        consulta = consulta.filter(Sentencia.fecha >= fecha_desde)
-    if fecha_hasta:
-        consulta = consulta.filter(Sentencia.fecha <= fecha_hasta)
-    # Luego filtrar por columnas de otras tablas
-    if "materia_id" in request.form:
-        materia = Materia.query.get(request.form["materia_id"])
-        if materia:
-            consulta = consulta.join(MateriaTipoJuicio).filter(MateriaTipoJuicio.materia_id == materia.id)
-    if "materia_tipo_juicio_id" in request.form:
-        materia_tipo_juicio = MateriaTipoJuicio.query.get(request.form["materia_tipo_juicio_id"])
-        if materia_tipo_juicio:
-            consulta = consulta.filter(Sentencia.materia_tipo_juicio_id == materia_tipo_juicio.id)
     # Ordenar y paginar
-    registros = consulta.order_by(Sentencia.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(Sentencia.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Zona horaria local
     local_tz = timezone(HUSO_HORARIO)
@@ -335,31 +323,6 @@ def list_inactive():
         )
     # No es jurisdiccional, se redirige al listado de distritos
     return redirect(url_for("sentencias.list_distritos"))
-
-
-@sentencias.route("/sentencias/distritos")
-def list_distritos():
-    """Listado de Distritos"""
-    return render_template(
-        "sentencias/list_distritos.jinja2",
-        distritos=Distrito.query.filter_by(es_distrito_judicial=True).filter_by(estatus="A").order_by(Distrito.nombre).all(),
-    )
-
-
-@sentencias.route("/sentencias/distrito/<int:distrito_id>")
-def list_autoridades(distrito_id):
-    """Listado de Autoridades de un distrito"""
-    distrito = Distrito.query.get_or_404(distrito_id)
-    return render_template(
-        "sentencias/list_autoridades.jinja2",
-        distrito=distrito,
-        autoridades=Autoridad.query.filter(Autoridad.distrito == distrito)
-        .filter_by(es_jurisdiccional=True)
-        .filter_by(es_notaria=False)
-        .filter_by(estatus="A")
-        .order_by(Autoridad.clave)
-        .all(),
-    )
 
 
 @sentencias.route("/sentencias/autoridad/<int:autoridad_id>")
@@ -838,89 +801,92 @@ def edit(sentencia_id):
     )
 
 
-def delete_success(sentencia):
+def delete_success(sentencia, descripcion):
     """Mensaje de éxito al eliminar una sentencia"""
     bitacora = Bitacora(
         modulo=Modulo.query.filter_by(nombre=MODULO).first(),
         usuario=current_user,
-        descripcion=safe_message(
-            f"Eliminada la sentencia {sentencia.sentencia}, expediente {sentencia.expediente} de {sentencia.autoridad.clave}"
-        ),
+        descripcion=safe_message(descripcion),
         url=url_for("sentencias.detail", sentencia_id=sentencia.id),
     )
     bitacora.save()
-    return bitacora
 
 
 @sentencias.route("/sentencias/eliminar/<int:sentencia_id>")
-@permission_required(MODULO, Permiso.ADMINISTRAR)
+@permission_required(MODULO, Permiso.CREAR)
 def delete(sentencia_id):
     """Eliminar Sentencia"""
     sentencia = Sentencia.query.get_or_404(sentencia_id)
+    bitacora_descripcion = f"Eliminada la sentencia {sentencia.sentencia} de {sentencia.autoridad.clave}"
     if sentencia.estatus == "A":
-        hoy = datetime.date.today()
-        hoy_dt = datetime.datetime(year=hoy.year, month=hoy.month, day=hoy.day)
+        # Los administradores puede eliminar cualquiera dentro de los limites
         if current_user.can_admin("SENTENCIAS"):
+            hoy = datetime.date.today()
+            hoy_dt = datetime.datetime(year=hoy.year, month=hoy.month, day=hoy.day)
             limite_dt = hoy_dt + datetime.timedelta(days=-LIMITE_ADMINISTRADORES_DIAS)
-            if limite_dt.timestamp() <= sentencia.creado.timestamp():
-                sentencia.delete()
-                bitacora = delete_success(sentencia)
-                flash(bitacora.descripcion, "success")
-            else:
-                flash(f"No tiene permiso para eliminar si fue creado hace {LIMITE_ADMINISTRADORES_DIAS} días o más.", "warning")
-        elif current_user.autoridad_id == sentencia.autoridad_id:
-            limite_dt = hoy_dt + datetime.timedelta(days=-LIMITE_DIAS)
-            if limite_dt.timestamp() <= sentencia.creado.timestamp():
-                sentencia.delete()
-                bitacora = delete_success(sentencia)
-                flash(bitacora.descripcion, "success")
-            else:
-                flash(f"No tiene permiso para eliminar si fue creado hace {LIMITE_DIAS} días o más.", "warning")
+            if limite_dt.timestamp() > sentencia.creado.timestamp():
+                flash("No puede eliminar porque fue creado antes de la fecha límite.", "warning")
+                return redirect(url_for("sentencias.detail", sentencia_id=sentencia.id))
+            sentencia.delete()
+            delete_success(sentencia, bitacora_descripcion)
+            flash("Sentencia eliminada exitosamente", "success")
+        # Los jurisdiccionales solo pueden eliminar las suyas y que sean de hoy
+        elif current_user.autoridad_id == sentencia.autoridad_id and sentencia.fecha == datetime.date.today():
+            sentencia.delete()
+            delete_success(sentencia, bitacora_descripcion)
+            flash("Sentencia eliminada exitosamente", "success")
         else:
-            flash("No tiene permiso para eliminar.", "warning")
+            flash("No tiene permiso para eliminar o sólo puede eliminar de hoy.", "warning")
     return redirect(url_for("sentencias.detail", sentencia_id=sentencia.id))
 
 
-def recover_success(sentencia):
+def recover_success(sentencia, descripcion):
     """Mensaje de éxito al recuperar una sentencia"""
     bitacora = Bitacora(
         modulo=Modulo.query.filter_by(nombre=MODULO).first(),
         usuario=current_user,
-        descripcion=safe_message(
-            f"Recuperada la sentencia {sentencia.sentencia}, expediente {sentencia.expediente} de {sentencia.autoridad.clave}"
-        ),
+        descripcion=safe_message(descripcion),
         url=url_for("sentencias.detail", sentencia_id=sentencia.id),
     )
     bitacora.save()
-    return bitacora
 
 
 @sentencias.route("/sentencias/recuperar/<int:sentencia_id>")
-@permission_required(MODULO, Permiso.ADMINISTRAR)
+@permission_required(MODULO, Permiso.CREAR)
 def recover(sentencia_id):
     """Recuperar Sentencia"""
     sentencia = Sentencia.query.get_or_404(sentencia_id)
+    bitacora_descripcion = f"Recuperada la sentencia del {sentencia.sentencia} de {sentencia.autoridad.clave}"
     if sentencia.estatus == "B":
-        hoy = datetime.date.today()
-        hoy_dt = datetime.datetime(year=hoy.year, month=hoy.month, day=hoy.day)
+        # Evitar que se recupere si ya existe una con la misma sentencia
+        if (
+            Sentencia.query.filter(Sentencia.autoridad == current_user.autoridad)
+            .filter(Sentencia.sentencia == sentencia.sentencia)
+            .filter_by(estatus="A")
+            .first()
+        ):
+            flash(
+                f"No se puede recuperar la sentencia {sentencia.sentencia}, ya hay una sentencia activa con el mismo número.",
+                "warning",
+            )
+            return redirect(url_for("sentencias.detail", sentencia_id=sentencia.id))
+        # Los administradores pueden recuperar cualquiera dentro de los limites
         if current_user.can_admin("SENTENCIAS"):
+            hoy = datetime.date.today()
+            hoy_dt = datetime.datetime(year=hoy.year, month=hoy.month, day=hoy.day)
             limite_dt = hoy_dt + datetime.timedelta(days=-LIMITE_ADMINISTRADORES_DIAS)
-            if limite_dt.timestamp() <= sentencia.creado.timestamp():
-                sentencia.recover()
-                bitacora = recover_success(sentencia)
-                flash(bitacora.descripcion, "success")
-            else:
-                flash(f"No tiene permiso para eliminar si fue creado hace {LIMITE_ADMINISTRADORES_DIAS} días o más.", "warning")
-        elif current_user.autoridad_id == sentencia.autoridad_id:
-            limite_dt = hoy_dt + datetime.timedelta(days=-LIMITE_DIAS)
-            if limite_dt.timestamp() <= sentencia.creado.timestamp():
-                sentencia.recover()
-                bitacora = recover_success(sentencia)
-                flash(bitacora.descripcion, "success")
-            else:
-                flash(f"No tiene permiso para recuperar si fue creado hace {LIMITE_DIAS} días o más.", "warning")
+            if limite_dt.timestamp() > sentencia.creado.timestamp():
+                flash("No puede recuperar porque fue creado antes de la fecha límite.", "warning")
+                return redirect(url_for("sentencias.detail", sentencia_id=sentencia.id))
+            sentencia.recover()
+            recover_success(sentencia, bitacora_descripcion)
+            flash("Sentencia recuperada exitosamente", "success")
+        elif current_user.autoridad_id == sentencia.autoridad_id and sentencia.fecha == datetime.date.today():
+            sentencia.recover()
+            recover_success(sentencia, bitacora_descripcion)
+            flash("Sentencia recuperada exitosamente", "success")
         else:
-            flash("No tiene permiso para recuperar.", "warning")
+            flash("No tiene permiso para recuperar o sólo puede recuperar de hoy.", "warning")
     return redirect(url_for("sentencias.detail", sentencia_id=sentencia.id))
 
 
@@ -944,7 +910,7 @@ def report():
             # Si la autoridad del usuario no es la del formulario, se niega el acceso
             if current_user.autoridad_id != autoridad.id:
                 flash("No tiene permiso para acceder a este reporte.", "warning")
-                return redirect(url_for("listas_de_acuerdos.list_active"))
+                return redirect(url_for("sentencias.list_active"))
         # Si es por tipos de juicios
         if por_tipos_de_juicios:
             # Entregar pagina con los tipos de juicios y sus cantidades
@@ -980,3 +946,25 @@ def report():
     # No viene el formulario, por lo tanto se advierte del error
     flash("Error: datos incorrectos para hacer el reporte de sentencias.", "warning")
     return redirect(url_for("sentencias.list_active"))
+
+
+@sentencias.route("/sentencias/ver_archivo_pdf/<int:sentencia_id>")
+def view_file_pdf(sentencia_id):
+    """Ver archivo PDF de Sentencia para insertarlo en un iframe en el detalle"""
+
+    # Consultar la sentencia
+    sentencia = Sentencia.query.get_or_404(sentencia_id)
+
+    # Obtener el contenido del archivo
+    try:
+        archivo = get_file_from_gcs(
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_SENTENCIAS"],
+            blob_name=get_blob_name_from_url(sentencia.url),
+        )
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        raise NotFound("No se encontró el archivo.") from error
+
+    # Entregar el archivo
+    response = make_response(archivo)
+    response.headers["Content-Type"] = "application/pdf"
+    return response
