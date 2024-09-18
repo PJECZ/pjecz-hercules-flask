@@ -51,6 +51,7 @@ class Usuario(database.Model, UserMixin, UniversalMixin):
     tareas: Mapped[List["Tarea"]] = relationship("Tarea", back_populates="usuario")
     usuarios_nominas: Mapped[List["UsuarioNomina"]] = relationship("UsuarioNomina", back_populates="usuario")
     usuarios_roles: Mapped[List["UsuarioRol"]] = relationship("UsuarioRol", back_populates="usuario")
+    soportes_tickets: Mapped[List["SoporteTicket"]] = relationship(back_populates="usuario")
 
     # Propiedades
     modulos_menu_principal_consultados = []

@@ -49,6 +49,11 @@ class Oficina(database.Model, UniversalMixin):
     funcionarios_oficinas: Mapped[List["FuncionarioOficina"]] = relationship(back_populates="oficina")
     usuarios: Mapped[List["Usuario"]] = relationship("Usuario", back_populates="oficina")
 
+    @property
+    def clave_descripcion(self):
+        """Junta clave y descripcion_corta"""
+        return self.clave + ": " + self.descripcion_corta
+
     def __repr__(self):
         """Representación"""
         return f"<Oficina {self.clave}>"
