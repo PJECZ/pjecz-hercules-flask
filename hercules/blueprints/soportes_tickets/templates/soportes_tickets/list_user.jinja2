@@ -14,7 +14,7 @@
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('soportes_tickets.list_active')) }}{% endif %}
         {% endif %}
         {% if current_user.can_insert('SOPORTES TICKETS') %}
-            {# {{ topbar.button_new('Nuevo Ticket', url_for('soportes_tickets.new')) }} #}
+            {{ topbar.button_new('Nuevo Ticket', url_for('soportes_tickets.new')) }}
         {% endif %}
     {% endcall %}
 {% endblock %}
@@ -31,25 +31,13 @@
                             <label for="filtroId">Id</label>
                         </div>
                     </div>
-                    <div class="col-5">
-                        <div class="form-floating">
-                            <input id="filtroUsuario" type="text" class="form-control" aria-label="Usuario" style="text-transform: uppercase;">
-                            <label for="filtroUsuario">Usuario</label>
-                        </div>
-                    </div>
-                    <div class="col-5">
-                        <div class="form-floating">
-                            <input id="filtroOficina" type="text" class="form-control" aria-label="Oficina" style="text-transform: uppercase;">
-                            <label for="filtroOficina">Oficina</label>
-                        </div>
-                    </div>
-                    <div class="col-5">
+                    <div class="col-4">
                         <div class="form-floating">
                             <input id="filtroCategoria" type="text" class="form-control" aria-label="Categoría" style="text-transform: uppercase;">
                             <label for="filtroCategoria">Categoría</label>
                         </div>
                     </div>
-                    <div class="col-5">
+                    <div class="col-4">
                         <div class="form-floating">
                             <select id="filtroEstado" class="form-control" aria-label="Estado" onchange="filtrosTickets.buscar(); return false;" style="flex: inherit;">
                                 <option selected value=""></option>
@@ -72,11 +60,10 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Usuario</th>
-                    <th>Oficina</th>
+                    <th>Descripción</th>
                     <th>Categoría</th>
                     <th>Estado</th>
-                    <th>Descripción</th>
+                    <th>Resolución</th>
                 </tr>
             </thead>
         </table>
@@ -94,11 +81,10 @@
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
             { data: 'detalle' },
-            { data: 'usuario' },
-            { data: 'oficina' },
+            { data: 'descripcion' },
             { data: 'categoria' },
             { data: 'estado' },
-            { data: 'descripcion' }
+            { data: 'resolucion' }
         ];
         configDataTable['columnDefs'] = [
             {
@@ -109,32 +95,14 @@
                 }
             },
             {
-                targets: 1, // usuario
+                targets: 1, // descripcion
                 data: null,
                 render: function(data, type, row, meta) {
-                    texto_corto = data.nombre;
-                    if (texto_corto.length > 24 ) {
-                        texto_corto = data.nombre.substr(0, 24) + '…';
-                    }
-                    if (data.url != "" )
-                        return "<a href='" + data.url + "'><span title='" + data.nombre + "'>" + texto_corto + "</span></a>";
-                    else
-                        return "<span title='" + data.nombre + "'>" + texto_corto + "</span>";
+                    return '<span title="' + data + '">' + data.substr(0, 32) + '…' + '</span>';
                 }
             },
             {
-                targets: 2, // oficina
-                data: null,
-                render: function(data, type, row, meta) {
-                    if (data.url != "" ) { 
-                        return "<a href='" + data.url + "'><span title='" + data.nombre + "'>" + data.clave + "</span></a>";
-                    } else {
-                        return "<span title='" + data.nombre + "'>" + data.clave + "</span>";
-                    }
-                }
-            },
-            {
-                targets: 3, // categoría
+                targets: 2, // categoría
                 data: null,
                 render: function(data, type, row, meta) {
                     texto_corto = data.nombre;
@@ -149,7 +117,7 @@
                 }
             },
             {
-                targets: 4, // estado
+                targets: 3, // estado
                 data: null,
                 render: function(data, type, row, meta) {
                     let bgcolor = "bg-dark";
@@ -164,7 +132,7 @@
                 }
             },
             {
-                targets: 5, // descripcion
+                targets: 4, // resolucion
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<span title="' + data + '">' + data.substr(0, 32) + '…' + '</span>';
@@ -185,8 +153,6 @@
         // Filtros tickets
         const filtrosTickets = new FiltrosDataTable('#soportes_tickets_datatable', configDataTable);
         filtrosTickets.agregarInput('filtroId', 'soporte_ticket_id');
-        filtrosTickets.agregarInput('filtroUsuario', 'usuario');
-        filtrosTickets.agregarInput('filtroOficina', 'oficina');
         filtrosTickets.agregarInput('filtroCategoria', 'categoria');
         filtrosTickets.agregarInput('filtroEstado', 'estado');
         filtrosTickets.precargar();
