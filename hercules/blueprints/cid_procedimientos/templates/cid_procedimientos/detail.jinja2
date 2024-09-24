@@ -1,0 +1,261 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/accordion.jinja2' as accordion %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Procedimiento {{ cid_procedimiento.codigo }}{% endblock %}
+
+{% block custom_head %}
+    <style>
+        .bg-yellow {
+            color: rgb(6, 6, 6);
+            background-color: #f3ebb3;
+        }
+        .bg-blue {
+            color: rgb(42, 42, 42);
+            background-color: #7ebdf7;
+        }
+        .bg-green {
+            color: rgb(37, 37, 37);
+            background-color: #64cb90;
+        }
+    </style>
+{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Procedimiento ' + cid_procedimiento.codigo) %}
+        {{ topbar.button_previous('Procedimientos', url_for('cid_procedimientos.list_active')) }}
+        {# {% if current_user.can_edit('CID PROCEDIMEINTOS') %}
+            {{ topbar.button_edit('Editar', url_for('cid_procedimientos.edit', cid_procedimiento_id=cid_procedimiento.id)) }}
+        {% endif %} #}
+        {# {% if current_user.can_admin('CID PROCEDIMEINTOS') %}
+            {% if cid_procedimiento.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('cid_procedimientos.delete', cid_procedimiento_id=cid_procedimiento.id)) }}{% endif %}
+            {% if cid_procedimiento.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('cid_procedimientos.recover', cid_procedimiento_id=cid_procedimiento.id)) }}{% endif %}
+        {% endif %} #}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% set accordion_id = 'procedimiento_accordion' %}
+    {% call accordion.div(accordion_id, estatus=cid_procedimiento.estatus) %}
+        {# Muestra el área actual como un pill #}
+        {# {% if show_cambiar_area %}
+            <a href="{{url_for('cid_procedimientos.cambiar_area', cid_procedimiento_id=cid_procedimiento.id)}}">
+                <div class="mb-3 d-inline-flex align-items-center">
+                    <span class="badge rounded-pill
+                        {% if cid_procedimiento.cid_area.estatus == 'A' %}
+                            bg-success
+                        {% elif cid_procedimiento.cid_area.estatus == 'B' %}
+                            bg-warning
+                        {% else %}
+                            bg-secondary
+                        {% endif %}
+                        p-2
+                    "
+                    data-bs-toggle="tooltip" data-bs-placement="top" title="Modifica el área si es necesario dando clic en este botón"
+                    >
+                        <i class="iconify ms-2" data-icon="mdi:file-document-edit" style="font-size: 20px;"></i>
+                        {{ cid_procedimiento.cid_area.nombre }}
+                    </span>
+                </div>
+            </a>
+        {% else %}
+            <span class="badge rounded-pill
+                {% if cid_procedimiento.cid_area.estatus == 'A' %}
+                    bg-success
+                {% elif cid_procedimiento.cid_area.estatus == 'B' %}
+                    bg-warning
+                {% else %}
+                    bg-secondary
+                {% endif %}
+                p-2
+            "
+            >
+                <i class="iconify ms-2" data-icon="mdi:file" style="font-size: 20px;"></i>
+                {{ cid_procedimiento.cid_area.nombre }}
+            </span>
+        {% endif%} #}
+        {% call accordion.item('generales_item', 'Generales', accordion_id, expanded=True, estatus=cid_procedimiento.estatus) %}
+            {{ detail.label_value('ID', cid_procedimiento.id) }}
+            {{ detail.label_value('Título', cid_procedimiento.titulo_procedimiento) }}
+            {{ detail.label_value('Código', cid_procedimiento.codigo) }}
+            {{ detail.label_value('Revisión', cid_procedimiento.revision) }}
+            {{ detail.label_value('Fecha', cid_procedimiento.fecha) }}
+            <div class="row">
+                <div class="col-md-3 text-end">Seguimiento</div>
+                <div class="col-md-9">
+                    {% if cid_procedimiento.seguimiento == "EN ELABORACION" %}
+                        <span class="badge rounded-pill bg-yellow"><span class="iconify" data-icon="mdi:account-edit"></span> {{ cid_procedimiento.seguimiento }} </span>
+                    {% elif cid_procedimiento.seguimiento == "ELABORADO" %}
+                        <span class="badge rounded-pill bg-warning text-dark"><span class="iconify" data-icon="mdi:account-check"></span> {{ cid_procedimiento.seguimiento }} </span>
+                    {% elif cid_procedimiento.seguimiento == "EN REVISION" %}
+                        <span class="badge rounded-pill bg-blue"><span class="iconify" data-icon="mdi:account-search"></span> {{ cid_procedimiento.seguimiento }} </span>
+                    {% elif cid_procedimiento.seguimiento == "REVISADO" %}
+                        <span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:file-check"></span> {{ cid_procedimiento.seguimiento }} </span>
+                    {% elif cid_procedimiento.seguimiento == "EN AUTORIZACION" %}
+                        <span class="badge rounded-pill bg-green"><span class="iconify" data-icon="mdi:file-document-check"></span> {{ cid_procedimiento.seguimiento }} </span>
+                    {% elif cid_procedimiento.seguimiento == "AUTORIZADO" %}
+                        <span class="badge rounded-pill bg-success"><span class="iconify" data-icon="mdi:shield-check"></span> {{ cid_procedimiento.seguimiento }} </span>
+                    {% else %}
+                        <strong>{{ cid_procedimiento.seguimiento }}</strong>
+                    {% endif %}
+                </div>
+            </div>
+                <div class="row">
+                <div class="col-md-3 text-end">Seguimiento posterior</div>
+                <div class="col-md-9">
+                    {% if cid_procedimiento.seguimiento_posterior == "EN ELABORACION" %}
+                        <span class="badge rounded-pill bg-yellow"><span class="iconify" data-icon="mdi:account-edit"></span> {{ cid_procedimiento.seguimiento_posterior }} </span>
+                    {% elif cid_procedimiento.seguimiento_posterior == "ELABORADO" %}
+                        <span class="badge rounded-pill bg-warning text-dark"><span class="iconify" data-icon="mdi:account-check"></span> {{ cid_procedimiento.seguimiento_posterior }} </span>
+                    {% elif cid_procedimiento.seguimiento_posterior == "EN REVISION" %}
+                        <span class="badge rounded-pill bg-blue"><span class="iconify" data-icon="mdi:account-search"></span> {{ cid_procedimiento.seguimiento_posterior }} </span>
+                    {% elif cid_procedimiento.seguimiento_posterior == "REVISADO" %}
+                        <span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:file-check"></span> {{ cid_procedimiento.seguimiento_posterior }} </span>
+                    {% elif cid_procedimiento.seguimiento_posterior == "EN AUTORIZACION" %}
+                        <span class="badge rounded-pill bg-green"><span class="iconify" data-icon="mdi:file-document-check"></span> {{ cid_procedimiento.seguimiento_posterior }} </span>
+                    {% elif cid_procedimiento.seguimiento_posterior == "AUTORIZADO" %}
+                        <span class="badge rounded-pill bg-success"><span class="iconify" data-icon="mdi:shield-check"></span> {{ cid_procedimiento.seguimiento_posterior }} </span>
+                    {% else %}
+                        <strong>{{ cid_procedimiento.seguimiento_posterior }}</strong>
+                    {% endif %}
+                </div>
+            </div>
+            {# {{ detail.label_value('Usuario', cid_procedimiento.usuario.nombre) }} #}
+            {{ detail.label_value('Firma guardada', cid_procedimiento.firma) }}
+            {{ detail.label_value('Firma al vuelo', firma_al_vuelo) }}
+            {{ detail.label_value_new_tab('Archivo PDF', cid_procedimiento.archivo, cid_procedimiento.url) }}
+            {{ detail.label_value('Distrito', cid_procedimiento.autoridad.distrito.nombre_corto) }}
+            {{ detail.label_value('Autoridad', cid_procedimiento.autoridad.descripcion_corta) }}
+            {# {% if current_user.can_view('CID AREAS') %}
+                {{ detail.label_value('Área', cid_procedimiento.cid_area.nombre, url_for('cid_areas.detail', cid_area_id=cid_procedimiento.cid_area_id)) }}
+            {% else %}
+                {{ detail.label_value('Área', cid_procedimiento.cid_area.nombre) }}
+            {% endif %} #}
+        {% endcall %}
+        {% call accordion.item('objetivos_item', 'Objetivo', accordion_id, estatus=cid_procedimiento.estatus) %}
+            {{ objetivo }}
+        {% endcall %}
+        {% call accordion.item('alcance_item', 'Alcance', accordion_id, estatus=cid_procedimiento.estatus) %}
+            {{ alcance }}
+        {% endcall %}
+        {% call accordion.item('documentos_item', 'Documentos de Referencia', accordion_id, estatus=cid_procedimiento.estatus) %}
+            {{ documentos }}
+        {% endcall %}
+        {% call accordion.item('definiciones_item', 'Definiciones', accordion_id, estatus=cid_procedimiento.estatus) %}
+            {{ definiciones }}
+        {% endcall %}
+        {% call accordion.item('responsabilidades_item', 'Responsabilidades', accordion_id, estatus=cid_procedimiento.estatus) %}
+            {{ responsabilidades }}
+        {% endcall %}
+        {% call accordion.item('desarrollo_item', 'Desarrollo', accordion_id, estatus=cid_procedimiento.estatus) %}
+            {{ desarrollo }}
+        {% endcall %}
+         <!-- Registros -->
+        {% call accordion.item('registro_item', 'Registros', accordion_id, estatus=cid_procedimiento.estatus) %}
+                <table id="registro_dataTable1_detail" class="table table-striped responsive" width="100%">
+                    <thead>
+                        <th>Código</th>
+                        <th>Nombre registro</th>
+                        <th>Responsable</th>
+                        <th>Años de retención</th>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+        {% endcall %}
+        {% call accordion.item('control_cambios_item', 'Control de Cambios', accordion_id, estatus=cid_procedimiento.estatus) %}
+            <table id="control_dataTable1_detail" class="table table-striped responsive" width="100%">
+                <thead>
+                    <th>No. Revisión</th>
+                    <th>Cambios y/o Actualizaciónes</th>
+                    <th>Solicitud de cambio No.</th>
+                    <th>Fecha</th>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        {% endcall %}
+        {% call accordion.item('autorizaciones', 'Autorizaciones', accordion_id, estatus=cid_procedimiento.estatus) %}
+            {{ detail.label_value('Elaboró nombre', cid_procedimiento.elaboro_nombre) }}
+            {{ detail.label_value('Elaboró puesto', cid_procedimiento.elaboro_puesto) }}
+            {{ detail.label_value('Elaboró correo', cid_procedimiento.elaboro_email) }}
+            {{ detail.label_value('Revisó nombre', cid_procedimiento.reviso_nombre) }}
+            {{ detail.label_value('Revisó puesto', cid_procedimiento.reviso_puesto) }}
+            {{ detail.label_value('Revisó correo', cid_procedimiento.reviso_email) }}
+            {{ detail.label_value('Autorizó nombre', cid_procedimiento.aprobo_nombre) }}
+            {{ detail.label_value('Autorizó puesto', cid_procedimiento.aprobo_puesto) }}
+            {{ detail.label_value('Autorizó correo', cid_procedimiento.aprobo_email) }}
+        {% endcall %}
+    {% endcall %}
+    {% if cid_procedimiento.formatos|length > 0 %}
+        {% call detail.card(title='Formatos') %}
+            <table id="formatos_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Descripciones</th>
+                        <th>URLs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for cid_formato in cid_procedimiento.formatos %}
+                    {% if cid_formato.estatus == "A" %}
+                    <tr>
+                        <td>{{ cid_formato.codigo if cid_formato.codigo is not none else "-" }}</td>
+                        <td><a href="{{ url_for('cid_formatos.detail', cid_formato_id=cid_formato.id) }}">{{ cid_formato.descripcion }}</a></td>
+                        <td><a href="{{ cid_formato.url }}" target="_blank">Abrir</a></td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endcall %}
+    {% endif %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {# {% if current_user.can_admin('CID PROCEDIMEINTOS') %}
+        {% if cid_procedimiento.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + cid_procedimiento.codigo + '?') }}{% endif %}
+        {% if cid_procedimiento.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + cid_procedimiento.codigo + '?') }}{% endif %}
+    {% endif %} #}
+    <!-- Detalle Registros -->
+    <script>
+        let datos = {{ registros }};
+        $(document).ready(function(){
+            var Arrayfinal = [];
+            Object.keys(datos).forEach(item =>{
+                var tempArr = new Array();
+                datos[item].forEach(a => {
+                    tempArr.push(a);
+                });
+                Arrayfinal.push(tempArr);
+            });
+
+            $("#registro_dataTable1_detail").DataTable({
+                data:Arrayfinal
+            });
+        });
+    </script>
+    <!-- Detalle Control de cambios -->
+    <script>
+        let datos_cambio = {{ control_cambios }};
+        $(document).ready(function(){
+            var Arrayfinal = [];
+            Object.keys(datos_cambio).forEach(item =>{
+                var tempArr = new Array();
+                datos_cambio[item].forEach(a => {
+                    tempArr.push(a);
+                });
+                Arrayfinal.push(tempArr);
+            });
+
+            $("#control_dataTable1_detail").DataTable({
+                data:Arrayfinal
+            });
+        });
+    </script>
+{% endblock %}
