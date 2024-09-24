@@ -1,0 +1,442 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view("SOPORTES CATEGORIAS") %}
+            {{ topbar.button('Categorías', url_for('soportes_categorias.list_active'), "mdi:car-wrench") }}
+        {% endif %}
+        {% if current_user.can_admin('SOPORTES TICKETS') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('soportes_tickets.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('soportes_tickets.list_active')) }}{% endif %}
+        {% endif %}
+        {% if current_user.can_insert('SOPORTES TICKETS') %}
+            {{ topbar.button_new('Nuevo Ticket', url_for('soportes_tickets.new')) }}
+        {% endif %}
+        <a class="btn btn-sm btn-success active"><span class="iconify" data-icon="mdi:alert-circle"></span> Sin Atender</a>
+        {{ topbar.button('Trabajando', url_for("soportes_tickets.list_working"), 'mdi:plus-circle') }}
+        {% if current_user.can_admin("SOPORTES TICKETS") %}
+            {{ topbar.button('Todos',  url_for("soportes_tickets.list_all"), "mdi:star-circle") }}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    <div id="cercanos">
+    {% call list.card(title="Sin Atender - Cercanos") %}
+        <!-- Filtros tickets -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosTickets_cercanos.buscar(); return false;">
+                    <div class="col-3">
+                        <div class="form-floating">
+                            <input id="filtroId_cercanos" type="text" class="form-control" aria-label="Id" style="text-transform: uppercase;">
+                            <label for="filtroId_cercanos">Id</label>
+                        </div>
+                    </div>
+                    <div class="col-9">
+                        <div class="form-floating">
+                            <input id="filtroUsuario_cercanos" type="text" class="form-control" aria-label="Usuario" style="text-transform: uppercase;">
+                            <label for="filtroUsuario_cercanos">Usuario</label>
+                        </div>
+                    </div>
+                    <div class="col-5">
+                        <div class="form-floating">
+                            <input id="filtroOficina_cercanos" type="text" class="form-control" aria-label="Oficina" style="text-transform: uppercase;">
+                            <label for="filtroOficina_cercanos">Oficina</label>
+                        </div>
+                    </div>
+                    <div class="col-5">
+                        <div class="form-floating">
+                            <input id="filtroCategoria_cercanos" type="text" class="form-control" aria-label="Categoría" style="text-transform: uppercase;">
+                            <label for="filtroCategoria_cercanos">Categoría</label>
+                        </div>
+                    </div>
+                    <div class="col-2 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosTickets_cercanos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosTickets_cercanos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- DataTable tickets -->
+        <table id="soportes_tickets_datatable_cercanos" class="table display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Oficina</th>
+                    <th>Categoría</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+    </div>
+    <div id="categorizados">
+    {% call list.card(title="Sin Atender - Categorizados") %}
+        <!-- Filtros tickets -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosTickets_mios.buscar(); return false;">
+                    <div class="col-3">
+                        <div class="form-floating">
+                            <input id="filtroId_mios" type="text" class="form-control" aria-label="Id" style="text-transform: uppercase;">
+                            <label for="filtroId_mios">Id</label>
+                        </div>
+                    </div>
+                    <div class="col-9">
+                        <div class="form-floating">
+                            <input id="filtroUsuario_mios" type="text" class="form-control" aria-label="Usuario" style="text-transform: uppercase;">
+                            <label for="filtroUsuario_mios">Usuario</label>
+                        </div>
+                    </div>
+                    <div class="col-5">
+                        <div class="form-floating">
+                            <input id="filtroOficina_mios" type="text" class="form-control" aria-label="Oficina" style="text-transform: uppercase;">
+                            <label for="filtroOficina_mios">Oficina</label>
+                        </div>
+                    </div>
+                    <div class="col-5">
+                        <div class="form-floating">
+                            <input id="filtroCategoria_mios" type="text" class="form-control" aria-label="Categoría" style="text-transform: uppercase;">
+                            <label for="filtroCategoria_mios">Categoría</label>
+                        </div>
+                    </div>
+                    <div class="col-2 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosTickets_mios.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosTickets_mios.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- DataTable tickets -->
+        <table id="soportes_tickets_datatable_mios" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Oficina</th>
+                    <th>Categoría</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+    </div>
+    {% call list.card(title="Sin Atender - TODOS") %}
+        <!-- Filtros tickets -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosTickets_todos.buscar(); return false;">
+                    <div class="col-3">
+                        <div class="form-floating">
+                            <input id="filtroId_todos" type="text" class="form-control" aria-label="Id" style="text-transform: uppercase;">
+                            <label for="filtroId_todos">Id</label>
+                        </div>
+                    </div>
+                    <div class="col-9">
+                        <div class="form-floating">
+                            <input id="filtroUsuario_todos" type="text" class="form-control" aria-label="Usuario" style="text-transform: uppercase;">
+                            <label for="filtroUsuario_todos">Usuario</label>
+                        </div>
+                    </div>
+                    <div class="col-5">
+                        <div class="form-floating">
+                            <input id="filtroOficina_todos" type="text" class="form-control" aria-label="Oficina" style="text-transform: uppercase;">
+                            <label for="filtroOficina_todos">Oficina</label>
+                        </div>
+                    </div>
+                    <div class="col-5">
+                        <div class="form-floating">
+                            <input id="filtroCategoria_todos" type="text" class="form-control" aria-label="Categoría" style="text-transform: uppercase;">
+                            <label for="filtroCategoria_todos">Categoría</label>
+                        </div>
+                    </div>
+                    <div class="col-2 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosTickets_todos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosTickets_todos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- DataTable tickets -->
+        <table id="soportes_tickets_datatable_todos" class="table display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Oficina</th>
+                    <th>Categoría</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+    </script>
+    <script>
+        // DataTable tickets
+        let configDTCercanos = constructorDataTable.config();
+        configDTCercanos['ajax']['url'] = '/soportes_tickets/datatable_json';
+        configDTCercanos['ajax']['data'] = {"estado": "SIN ATENDER", "estatus": "A", "soportes_tickets_abiertos": "CERCANOS"};
+        configDTCercanos['columns'] = [
+            { data: 'detalle' },
+            { data: 'usuario' },
+            { data: 'oficina' },
+            { data: 'categoria' },
+            { data: 'descripcion' }
+        ];
+        configDTCercanos['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.id + '</a>';
+                }
+            },
+            {
+                targets: 1, // usuario
+                data: null,
+                render: function(data, type, row, meta) {
+                    texto_corto = data.nombre;
+                    if (texto_corto.length > 24 ) {
+                        texto_corto = data.nombre.substr(0, 24) + '…';
+                    }
+                    if (data.url != "" )
+                        return "<a href='" + data.url + "'><span title='" + data.nombre + "'>" + texto_corto + "</span></a>";
+                    else
+                        return "<span title='" + data.nombre + "'>" + texto_corto + "</span>";
+                }
+            },
+            {
+                targets: 2, // oficina
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.url != "" ) { 
+                        return "<a href='" + data.url + "'><span title='" + data.nombre + "'>" + data.clave + "</span></a>";
+                    } else {
+                        return "<span title='" + data.nombre + "'>" + data.clave + "</span>";
+                    }
+                }
+            },
+            {
+                targets: 3, // categoría
+                data: null,
+                render: function(data, type, row, meta) {
+                    texto_corto = data.nombre;
+                    if (texto_corto.length > 16 ) {
+                        texto_corto = data.nombre.substr(0, 16) + '…';
+                    }
+                    if (data.url != "" ) { 
+                        return "<a href='" + data.url + "'><span title='" + data.nombre + "'>" + texto_corto + "</span></a>";
+                    } else {
+                        return "<span title='" + data.nombre + "'>" + texto_corto + "</span>";
+                    }
+                }
+            },
+            {
+                targets: 4, // descripcion
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<span title="' + data + '">' + data.substr(0, 32) + '…' + '</span>';
+                }
+            },
+        ];
+        // Colorear renglones
+        configDTCercanos['rowCallback'] = function( row, data )  {
+            $(row).css("background-color", "#fef9e7");
+        };
+        // Filtros tickets
+        const filtrosTickets_cercanos = new FiltrosDataTable('#soportes_tickets_datatable_cercanos', configDTCercanos);
+        filtrosTickets_cercanos.agregarInput('filtroId_cercanos', 'soporte_ticket_id');
+        filtrosTickets_cercanos.agregarInput('filtroUsuario_cercanos', 'usuario');
+        filtrosTickets_cercanos.agregarInput('filtroOficina_cercanos', 'oficina');
+        filtrosTickets_cercanos.agregarInput('filtroCategoria_cercanos', 'categoria');
+        filtrosTickets_cercanos.precargar();
+    </script>
+    <script>
+        // DataTable tickets
+        let configDTMios = constructorDataTable.config();
+        configDTMios['ajax']['url'] = '/soportes_tickets/datatable_json';
+        configDTMios['ajax']['data'] = {"estado": "SIN ATENDER", "estatus": "A", "soportes_tickets_abiertos": "CATEGORIZADOS"};
+        configDTMios['columns'] = [
+            { data: 'detalle' },
+            { data: 'usuario' },
+            { data: 'oficina' },
+            { data: 'categoria' },
+            { data: 'descripcion' }
+        ];
+        configDTMios['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.id + '</a>';
+                }
+            },
+            {
+                targets: 1, // usuario
+                data: null,
+                render: function(data, type, row, meta) {
+                    texto_corto = data.nombre;
+                    if (texto_corto.length > 24 ) {
+                        texto_corto = data.nombre.substr(0, 24) + '…';
+                    }
+                    if (data.url != "" )
+                        return "<a href='" + data.url + "'><span title='" + data.nombre + "'>" + texto_corto + "</span></a>";
+                    else
+                        return "<span title='" + data.nombre + "'>" + texto_corto + "</span>";
+                }
+            },
+            {
+                targets: 2, // oficina
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.url != "" ) { 
+                        return "<a href='" + data.url + "'><span title='" + data.nombre + "'>" + data.clave + "</span></a>";
+                    } else {
+                        return "<span title='" + data.nombre + "'>" + data.clave + "</span>";
+                    }
+                }
+            },
+            {
+                targets: 3, // categoría
+                data: null,
+                render: function(data, type, row, meta) {
+                    texto_corto = data.nombre;
+                    if (texto_corto.length > 16 ) {
+                        texto_corto = data.nombre.substr(0, 16) + '…';
+                    }
+                    if (data.url != "" ) { 
+                        return "<a href='" + data.url + "'><span title='" + data.nombre + "'>" + texto_corto + "</span></a>";
+                    } else {
+                        return "<span title='" + data.nombre + "'>" + texto_corto + "</span>";
+                    }
+                }
+            },
+            {
+                targets: 4, // descripcion
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<span title="' + data + '">' + data.substr(0, 32) + '…' + '</span>';
+                }
+            },
+        ];
+        // Colorear renglones
+        configDTMios['rowCallback'] = function( row, data )  {
+            $(row).css("background-color", "#fef9e7");
+        };
+        // Filtros tickets
+        const filtrosTickets_mios = new FiltrosDataTable('#soportes_tickets_datatable_mios', configDTMios);
+        filtrosTickets_mios.agregarInput('filtroId_mios', 'soporte_ticket_id');
+        filtrosTickets_mios.agregarInput('filtroUsuario_mios', 'usuario');
+        filtrosTickets_mios.agregarInput('filtroOficina_mios', 'oficina');
+        filtrosTickets_mios.agregarInput('filtroCategoria_mios', 'categoria');
+        filtrosTickets_mios.precargar();
+    </script>
+    <script>
+        // DataTable tickets
+        let configDTTodos = constructorDataTable.config();
+        configDTTodos['ajax']['url'] = '/soportes_tickets/datatable_json';
+        configDTTodos['ajax']['data'] = {"estado": "SIN ATENDER", "estatus": "A", "soportes_tickets_abiertos": "TODOS"};
+        configDTTodos['columns'] = [
+            { data: 'detalle' },
+            { data: 'usuario' },
+            { data: 'oficina' },
+            { data: 'categoria' },
+            { data: 'descripcion' }
+        ];
+        configDTTodos['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.id + '</a>';
+                }
+            },
+            {
+                targets: 1, // usuario
+                data: null,
+                render: function(data, type, row, meta) {
+                    texto_corto = data.nombre;
+                    if (texto_corto.length > 24 ) {
+                        texto_corto = data.nombre.substr(0, 24) + '…';
+                    }
+                    if (data.url != "" )
+                        return "<a href='" + data.url + "'><span title='" + data.nombre + "'>" + texto_corto + "</span></a>";
+                    else
+                        return "<span title='" + data.nombre + "'>" + texto_corto + "</span>";
+                }
+            },
+            {
+                targets: 2, // oficina
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.url != "" ) { 
+                        return "<a href='" + data.url + "'><span title='" + data.nombre + "'>" + data.clave + "</span></a>";
+                    } else {
+                        return "<span title='" + data.nombre + "'>" + data.clave + "</span>";
+                    }
+                }
+            },
+            {
+                targets: 3, // categoría
+                data: null,
+                render: function(data, type, row, meta) {
+                    texto_corto = data.nombre;
+                    if (texto_corto.length > 16 ) {
+                        texto_corto = data.nombre.substr(0, 16) + '…';
+                    }
+                    if (data.url != "" ) { 
+                        return "<a href='" + data.url + "'><span title='" + data.nombre + "'>" + texto_corto + "</span></a>";
+                    } else {
+                        return "<span title='" + data.nombre + "'>" + texto_corto + "</span>";
+                    }
+                }
+            },
+            {
+                targets: 4, // descripcion
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<span title="' + data + '">' + data.substr(0, 32) + '…' + '</span>';
+                }
+            },
+        ];
+        // Colorear renglones
+        configDTTodos['rowCallback'] = function( row, data )  {
+            $(row).css("background-color", "#fef9e7");
+        };
+        // Filtros tickets
+        const filtrosTickets_todos = new FiltrosDataTable('#soportes_tickets_datatable_todos', configDTTodos);
+        filtrosTickets_todos.agregarInput('filtroId_todos', 'soporte_ticket_id');
+        filtrosTickets_todos.agregarInput('filtroUsuario_todos', 'usuario');
+        filtrosTickets_todos.agregarInput('filtroOficina_todos', 'oficina');
+        filtrosTickets_todos.agregarInput('filtroCategoria_todos', 'categoria');
+        filtrosTickets_todos.precargar();
+    </script>
+    <script>
+    // --- Ocultar listdos vacíos
+    let cercanos = $('#soportes_tickets_datatable_cercanos').DataTable()
+    $('#soportes_tickets_datatable_cercanos').on( 'init.dt', function () {
+        if ( ! cercanos.data().count() ){
+            $('#cercanos').hide();
+        }
+    });
+    let categorizados = $('#soportes_tickets_datatable_mios').DataTable();
+    $('#soportes_tickets_datatable_mios').on( 'init.dt', function () {
+        if ( ! categorizados.data().count() ){
+            $('#categorizados').hide();
+        }
+    });
+    </script>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {{ topbar.button('tickets', url_for('soportes_tickets.list_active'), "mdi:tools") }}
+        {% if current_user.can_admin('SOPORTES CATEGORIAS') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('soportes_categorias.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('soportes_categorias.list_active')) }}{% endif %}
+        {% endif %}
+        {% if current_user.can_insert('SOPORTES CATEGORIAS') %}
+            {{ topbar.button_new('Nueva Categoría', url_for('soportes_categorias.new')) }}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call list.card() %}
+        <!-- Filtros categorias -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosCategorias.buscar(); return false;">
+                    <div class="col-4">
+                        <div class="form-floating">
+                            <input id="filtroNombre" type="text" class="form-control" aria-label="Nombre" style="text-transform: uppercase;">
+                            <label for="filtroNombre">Nombre</label>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-floating">
+                            <input id="filtroAtendidoPor" type="text" class="form-control" aria-label="Atendido Por" style="text-transform: uppercase;">
+                            <label for="filtroAtendidoPor">Atendido Por</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <select id="filtroDepartamento" class="form-control" aria-label="Departamento" onchange="filtrosCategorias.buscar(); return false;" style="flex: inherit;">
+                                <option selected value=""></option>
+                                {% for departamento in departamentos %}
+                                    <option value="{{departamento}}">{{departamento}}</option>
+                                {% endfor %}
+                            </select>
+                            <label for="filtroDepartamento">Departamento</label>
+                        </div>
+                    </div>
+                    <div class="col-2 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosCategorias.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosCategorias.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- DataTable categorias -->
+        <table id="soportes_categorias_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Atendido por</th>
+                    <th>Departamento</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable categorias
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDataTable = constructorDataTable.config();
+        configDataTable['ajax']['url'] = '/soportes_categorias/datatable_json';
+        configDataTable['ajax']['data'] = {{ filtros }};
+        configDataTable['columns'] = [
+            { data: 'detalle' },
+            { data: 'atendido_por' },
+            { data: 'departamento' }
+        ];
+        configDataTable['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    texto_corto = data.nombre
+                    if (data.nombre.length > 32)    {
+                        texto_corto = data.nombre.substr(0, 32) + '...';
+                    }
+                    return '<a href="' + data.url + '"><span title="' + data.nombre + '">' + texto_corto + '</span></a>';
+                }
+            }
+        ];
+        // Filtros categorias
+        const filtrosCategorias = new FiltrosDataTable('#soportes_categorias_datatable', configDataTable);
+        filtrosCategorias.agregarInput('filtroNombre', 'nombre');
+        filtrosCategorias.agregarInput('filtroAtendidoPor', 'atendido_por');
+        filtrosCategorias.agregarInput('filtroDepartamento', 'departamento');
+        filtrosCategorias.precargar();
+    </script>
+{% endblock %}
