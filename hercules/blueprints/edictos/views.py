@@ -7,13 +7,13 @@ import json
 import re
 from urllib.parse import quote
 
-from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
+from werkzeug.exceptions import NotFound
 
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.bitacoras.models import Bitacora
-from hercules.blueprints.distritos.models import Distrito
 from hercules.blueprints.edictos.forms import EdictoEditForm, EdictoNewForm
 from hercules.blueprints.edictos.models import Edicto
 from hercules.blueprints.modulos.models import Modulo
@@ -22,9 +22,12 @@ from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.exceptions import (
     MyAnyError,
+    MyBucketNotFoundError,
     MyFilenameError,
+    MyFileNotFoundError,
     MyMissingConfigurationError,
     MyNotAllowedExtensionError,
+    MyNotValidParamError,
     MyUnknownExtensionError,
 )
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs, get_media_type_from_filename
@@ -238,30 +241,6 @@ def list_inactive():
     )
 
 
-@edictos.route("/edictos/distritos")
-def list_distritos():
-    """Listado de Distritos"""
-    return render_template(
-        "edictos/list_distritos.jinja2",
-        distritos=Distrito.query.filter_by(es_distrito_judicial=True).filter_by(estatus="A").order_by(Distrito.nombre).all(),
-    )
-
-
-@edictos.route("/edictos/distrito/<int:distrito_id>")
-def list_autoridades(distrito_id):
-    """Listado de Autoridades de un distrito"""
-    distrito = Distrito.query.get_or_404(distrito_id)
-    return render_template(
-        "edictos/list_autoridades.jinja2",
-        distrito=distrito,
-        autoridades=Autoridad.query.filter_by(distrito=distrito)
-        .filter_by(es_jurisdiccional=True)
-        .filter_by(estatus="A")
-        .order_by(Autoridad.clave)
-        .all(),
-    )
-
-
 @edictos.route("/edictos/autoridad/<int:autoridad_id>")
 def list_autoridad_edictos(autoridad_id):
     """Listado de Edictos activos de una autoridad"""
@@ -308,7 +287,7 @@ def download():
         # Obtener tipo de media
         media_type = get_media_type_from_filename(blob_name)
         # Obtener archivo
-        archivo = get_file_from_gcs(current_app.config["CLOUD_STORAGE_DEPOSITO"], blob_name)
+        archivo = get_file_from_gcs(current_app.config["CLOUD_STORAGE_DEPOSITO_EDICTOS"], blob_name)
     except MyAnyError as error:
         flash(str(error), "warning")
         return redirect(url_for("edictos.list_active"))
@@ -677,3 +656,25 @@ def recover(edicto_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(url_for("edictos.detail", edicto_id=edicto.id))
+
+
+@edictos.route("/edictos/ver_archivo_pdf/<int:edicto_id>")
+def view_file_pdf(edicto_id):
+    """Ver archivo PDF de Edicto para insertarlo en un iframe en el detalle"""
+
+    # Consultar la edicto
+    edicto = Edicto.query.get_or_404(edicto_id)
+
+    # Obtener el contenido del archivo
+    try:
+        archivo = get_file_from_gcs(
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_EDICTOS"],
+            blob_name=get_blob_name_from_url(edicto.url),
+        )
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        raise NotFound("No se encontró el archivo.") from error
+
+    # Entregar el archivo
+    response = make_response(archivo)
+    response.headers["Content-Type"] = "application/pdf"
+    return response

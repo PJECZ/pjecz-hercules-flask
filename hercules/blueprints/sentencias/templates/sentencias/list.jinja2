@@ -7,12 +7,7 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {{ topbar.button_districts('Distritos', url_for('sentencias.list_distritos')) }}
-        {% if current_user.can_admin('SENTENCIAS') %}
-            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('sentencias.list_inactive')) }}{% endif %}
-            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('sentencias.list_active')) }}{% endif %}
-        {% endif %}
-        {% if current_user.can_edit('SENTENCIAS') %}
+        {% if autoridad and current_user.autoridad_id == autoridad.id and current_user.can_insert('SENTENCIAS') %}
             {{ topbar.button_new('Nueva Sentencia', url_for('sentencias.new')) }}
         {% endif %}
     {% endcall %}
@@ -36,16 +31,22 @@
                             <label for="filtroFechaHasta">Fecha Hasta</label>
                         </div>
                     </div>
-                    <div class="col-3">
+                    <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroSentencia" type="text" class="form-control" aria-label="Sentencia" style="text-transform: uppercase;">
                             <label for="filtroSentencia">Sentencia</label>
                         </div>
                     </div>
-                    <div class="col-3">
+                    <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroExpediente" type="text" class="form-control" aria-label="Expediente" style="text-transform: uppercase;">
                             <label for="filtroExpediente">Expediente</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroTipoJuicio" type="text" class="form-control" aria-label="Tipo de juicio" style="text-transform: uppercase;">
+                            <label for="filtroTipoJuicio">Tipo de Juicio</label>
                         </div>
                     </div>
                     <div class="col-2 text-end">
@@ -129,6 +130,7 @@
         filtrosSentencias.agregarInput('filtroFechaHasta', 'fecha_hasta');
         filtrosSentencias.agregarInput('filtroSentencia', 'sentencia');
         filtrosSentencias.agregarInput('filtroExpediente', 'expediente');
+        filtrosSentencias.agregarInput('filtroTipoJuicio', 'tipo_juicio');
         filtrosSentencias.precargar();
     </script>
 {% endblock %}
