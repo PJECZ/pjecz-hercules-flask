@@ -2,6 +2,7 @@
 {% import 'macros/detail.jinja2' as detail %}
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
+{% import 'macros/list.jinja2' as list %}
 
 {% block title %}Ticket: {{ ticket.id }}{% endblock %}
 
@@ -71,6 +72,23 @@
             {{ detail.label_value('Respuesta/Solucion', ticket.soluciones) }}
         </div>
     {% endcall %}
+    <!-- Archivos Adjuntos -->
+    {% call list.card('Archivos Adjuntos') %}
+        <!-- DataTable adjuntos -->
+        <div id="adjuntos">
+        <table id="soportes_adjuntos_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+        </table>
+        </div>
+        {% if ticket.estado == 'SIN ATENDER' %}
+            <a class="btn btn-primary" href="{{url_for('soportes_adjuntos.new', soporte_ticket_id=ticket.id)}}">Adjuntar Archivo</a>
+        {% endif %}
+    {% endcall %}
 {% endblock %}
 
 {% block custom_javascript %}
@@ -92,5 +110,48 @@
                 case "CERRADO":     $('.card-body').css("background-color", "#eceff1"); $('.card').css("border-color", "#546e7a"); $('#estado').css("color", "#546e7a"); break;
             }
         }
+    </script>
+    <!-- dataTable Adjuntos -->
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable Adjuntos
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDataTable = constructorDataTable.config();
+        configDataTable['ajax']['url'] = '/soportes_adjuntos/datatable_json';
+        configDataTable['ajax']['data'] = {"estatus": "A", "ticket_id": {{ticket.id}}};
+        configDataTable['columns'] = [
+            { data: 'detalle' },
+            { data: 'descripcion' }
+        ];
+        configDataTable['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.nombre + '</a>';
+                }
+            },
+            {
+                targets: 1, // descripcion
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.lengt > 32 )
+                        return '<span title="' + data + '">' + data.substr(0, 32) + '…' + '</span>';
+                    return '<span title="' + data + '">' + data + '</span>';
+                }
+            }
+        ];
+        const filtrosAdjuntos = new FiltrosDataTable('#soportes_adjuntos_datatable', configDataTable);
+        filtrosAdjuntos.precargar();
+    </script>
+    <script>
+    // --- Ocultar listdos vacíos
+    let adjuntos = $('#soportes_adjuntos_datatable').DataTable()
+    $('#soportes_adjuntos_datatable').on( 'init.dt', function () {
+        if ( ! adjuntos.data().count() ){
+            $('#adjuntos').hide();
+        }
+    });
     </script>
 {% endblock %}
