@@ -318,6 +318,7 @@ def list_all():
         "soportes_tickets/list_all.jinja2",
         filtros=json.dumps({"estatus": "A"}),
         titulo="Tickets - Todos",
+        estados=SoporteTicket.ESTADOS,
     )
 
 
