@@ -50,7 +50,7 @@
                 {% if current_user.can_view("BITACORAS") %}
                     {{ detail.button_md(label='Bitácoras', url=url_for('bitacoras.list_active', usuario_id=usuario.id), icon='mdi:calendar-clock', color_class='btn-outline-secondary') }}
                 {% endif %}
-                {% if current_user.can_view("INV CUSTODIAS") %}
+                {% if current_user.can_view("INV CUSTODIAS") and usuario.curp %}
                     {{ detail.button_md(label='Custodias', url=url_for('inv_custodias.list_active', usuario_id=usuario.id), icon='mdi:shield-account', color_class='btn-outline-secondary') }}
                 {% endif %}
                 {% if current_user.can_view("ENTRADAS SALIDAS") %}
@@ -58,10 +58,10 @@
                 {% endif %}
             </div>
             <div class="col-md-3">
-                {% if current_user.can_admin("USUARIOS NOMINAS") %}
+                {% if current_user.can_admin("USUARIOS NOMINAS") and usuario.curp %}
                     {{ detail.button_md(label='Recibos de Nómina', url=url_for('usuarios_nominas.list', usuario_id=usuario.id), icon='mdi:account-cash', color_class='btn-outline-secondary') }}
                 {% endif %}
-                {% if current_user.can_admin("FIN VALES") %}
+                {% if current_user.can_admin("FIN VALES") and usuario.curp %}
                     {{ detail.button_md(label='Vales de Gasolina', url=url_for('fin_vales.list_active', usuario_id=usuario.id), icon='mdi:gas-station', color_class='btn-outline-secondary') }}
                 {% endif %}
             </div>

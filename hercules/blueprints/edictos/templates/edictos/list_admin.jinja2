@@ -95,26 +95,24 @@
         ];
         configDataTable['columnDefs'] = [
                 {
-                    targets: 0,
+                    targets: 0, // creado
                     type: "date",
                     render: function (data, type, row) {
                         return moment.utc(data).local().format("YYYY-MM-DD HH:mm:ss");
                     }
                 },
                 {
-                    targets: 2,
+                    targets: 2, // fecha
                     type: "date",
                     render: function (data, type, row) {
                         return moment(data).format("DD MMM YYYY");
                     }
                 },
                 {
-                    targets: 3,
+                    targets: 3, // detalle
                     data: null,
                     render: function(data, type, row, meta) {
-                        return '<a href="' + data.url + '">' +
-                            (data.descripcion.length > 40 ? data.descripcion.substr(0, 40) + '…' : data.descripcion) +
-                            '</a>';
+                        return '<a href="' + data.url + '">' + (data.descripcion.length > 40 ? data.descripcion.substring(0, 40) + '…' : data.descripcion) + '</a>';
                     }
                 },
         ];

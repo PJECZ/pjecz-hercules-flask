@@ -47,7 +47,7 @@ def datatable_json():
         consulta = consulta.filter(Redam.expediente.contains(request.form["expediente"]))
     if "autoridad_id" in request.form:
         consulta = consulta.filter_by(autoridad_id=request.form["autoridad_id"])
-    registros = consulta.order_by(Redam.id.desc()).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(Redam.nombre).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
