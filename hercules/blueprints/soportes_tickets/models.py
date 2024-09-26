@@ -49,7 +49,7 @@ class SoporteTicket(database.Model, UniversalMixin):
     # Clave primaria
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    # Claves foráneas TODO:
+    # Claves foráneas
     funcionario_id: Mapped[int] = mapped_column(ForeignKey("funcionarios.id"))
     funcionario: Mapped["Funcionario"] = relationship(back_populates="soportes_tickets")
     soporte_categoria_id: Mapped[int] = mapped_column(ForeignKey("soportes_categorias.id"))
@@ -66,8 +66,8 @@ class SoporteTicket(database.Model, UniversalMixin):
         Enum(*DEPARTAMENTOS, name="soportes_tickets_departamentos", native_enum=False), index=True
     )
 
-    # Hijos TODO:
-    # soportes_adjuntos = db.relationship("SoporteAdjunto", back_populates="soporte_ticket")
+    # Hijos
+    soportes_adjuntos: Mapped[List["SoporteAdjunto"]] = relationship(back_populates="soporte_ticket")
 
     def __repr__(self):
         """Representación"""

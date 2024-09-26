@@ -2,29 +2,18 @@
 {% import 'macros/detail.jinja2' as detail %}
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
+{% import 'macros/list.jinja2' as list %}
 
 {% block title %}Ticket: {{ ticket.id }}{% endblock %}
 
 {% block topbar_actions %}
     {% call topbar.page_buttons('Ticket: ' + ticket.id | string) %}
         {{ topbar.button_previous('Tickets', url_for('soportes_tickets.list_active')) }}
-        {% if current_user.can_edit('SOPORTES TICKETS') %}
+        {% if current_user.can_edit('SOPORTES TICKETS') and ticket.estado == 'SIN ATENDER' %}
             {{ topbar.button_edit('Editar', url_for('soportes_tickets.edit', soporte_ticket_id=ticket.id)) }}
         {% endif %}
         {% if ticket.estatus == 'A' %}
-            {% if funcionario and current_user.can_edit('SOPORTES TICKETS') %}
-                {# Es funcionario de soporte #}
-                {% if ticket.estado == 'SIN ATENDER' %}
-                    {{ topbar.button_primary('Tomar', url_for('soportes_tickets.take', soporte_ticket_id=ticket.id), 'mdi:hand-back-right') }}
-                    {{ topbar.button_primary('Categorizar', url_for('soportes_tickets.categorize', soporte_ticket_id=ticket.id), 'mdi:order-bool-descending') }}
-                    {{ topbar.button_primary('Cerrar', url_for('soportes_tickets.close', soporte_ticket_id=ticket.id), 'mdi:alert-octagon') }}
-                {% elif ticket.estado == 'TRABAJANDO' %}
-                    {{ topbar.button_primary('Resolver', url_for('soportes_tickets.done', soporte_ticket_id=ticket.id), 'mdi:check') }}
-                    {{ modals.button_modal('Soltar', url_for('soportes_tickets.release', soporte_ticket_id=ticket.id), 'soltar', 'mdi:stop-circle-outline', '¿Deseas soltar el Ticket?') }}
-                    {{ topbar.button_primary('Categorizar', url_for('soportes_tickets.categorize', soporte_ticket_id=ticket.id), 'mdi:order-bool-descending') }}
-                    {{ topbar.button_primary('Cerrar', url_for('soportes_tickets.close', soporte_ticket_id=ticket.id), 'mdi:alert-octagon') }}
-                {% endif %}
-            {% else %}
+            {% if not funcionario and current_user.can_edit('SOPORTES TICKETS') %}
                 {# Es Usuario #}
                 {% if ticket.estado == 'SIN ATENDER' %}
                     {{ modals.button_modal('Cancelar', url_for('soportes_tickets.cancel', soporte_ticket_id=ticket.id), 'cancelar', 'mdi:cancel', '¿Desea cancelar el ticket?')}}
@@ -70,6 +59,56 @@
         <div class="fs-5">
             {{ detail.label_value('Respuesta/Solucion', ticket.soluciones) }}
         </div>
+        <!-- Botones de acciones -->
+        {% if ticket.estatus == 'A' %}
+            {% if funcionario and current_user.can_edit('SOPORTES TICKETS') %}
+                {# Es funcionario de soporte #}
+                <div class="row">
+                    {% if ticket.estado == "SIN ATENDER" %}
+                        <div class="col-4">
+                            {{ detail.button_md('Tomar', url_for('soportes_tickets.take', soporte_ticket_id=ticket.id), 'mdi:hand-back-right', '', 'btn-outline-primary') }}
+                        </div>
+                        <div class="col-4">
+                            {{ detail.button_md('Categorizar', url_for('soportes_tickets.categorize', soporte_ticket_id=ticket.id), 'mdi:order-bool-descending', '', 'btn-outline-primary') }}
+                        </div>
+                        <div class="col-4">
+                            {{ detail.button_md('Cerrar', url_for('soportes_tickets.close', soporte_ticket_id=ticket.id), 'mdi:alert-octagon', '', 'btn-outline-secondary') }}
+                        </div>
+                    {% endif %}
+                    {% if ticket.estado == "TRABAJANDO" %}
+                        <div class="col-3">
+                            {{ detail.button_md('Resolver', url_for('soportes_tickets.done', soporte_ticket_id=ticket.id), 'mdi:check', '', 'btn-outline-success') }}
+                        </div>
+                        <div class="col-3">
+                            {{ detail.button_md('Soltar', url_for('soportes_tickets.release', soporte_ticket_id=ticket.id), 'mdi:stop-circle-outline', '', 'btn-outline-secondary') }}
+                        </div>
+                        <div class="col-3">
+                            {{ detail.button_md('Categorizar', url_for('soportes_tickets.categorize', soporte_ticket_id=ticket.id), 'mdi:order-bool-descending', '', 'btn-outline-primary') }}
+                        </div>
+                        <div class="col-3">
+                            {{ detail.button_md('Cerrar', url_for('soportes_tickets.close', soporte_ticket_id=ticket.id), 'mdi:alert-octagon', '', 'btn-outline-secondary') }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% endif %}
+    {% endcall %}
+    <!-- Archivos Adjuntos -->
+    {% call list.card('Archivos Adjuntos') %}
+        <!-- DataTable adjuntos -->
+        <div id="adjuntos">
+        <table id="soportes_adjuntos_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+        </table>
+        </div>
+        {% if ticket.estado == 'SIN ATENDER' %}
+            <a class="btn btn-primary" href="{{url_for('soportes_adjuntos.new', soporte_ticket_id=ticket.id)}}">Adjuntar Archivo</a>
+        {% endif %}
     {% endcall %}
 {% endblock %}
 
@@ -77,7 +116,9 @@
     {% if current_user.can_admin('SOPORTES TICKETS') %}
         {% if ticket.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar ' + ticket.id | string + '?') }}{% endif %}
         {% if ticket.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar ' + ticket.id | string + '?') }}{% endif %}
-        {{ modals.custom_javascript('Soltar', '¿Desea soltar este ticket?', 'soltar') }}
+        {# {{ modals.custom_javascript('Soltar', '¿Desea soltar este ticket?', 'soltar') }} #}
+    {% endif %}
+    {% if not funcionario and current_user.can_edit('SOPORTES TICKETS') %}
         {{ modals.custom_javascript('Cancelar Ticket', '¿Deseas cancelar este ticket?', 'cancelar') }}
     {% endif %}
     {{ detail.moment_js(moment) }}
@@ -92,5 +133,48 @@
                 case "CERRADO":     $('.card-body').css("background-color", "#eceff1"); $('.card').css("border-color", "#546e7a"); $('#estado').css("color", "#546e7a"); break;
             }
         }
+    </script>
+    <!-- dataTable Adjuntos -->
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable Adjuntos
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDataTable = constructorDataTable.config();
+        configDataTable['ajax']['url'] = '/soportes_adjuntos/datatable_json';
+        configDataTable['ajax']['data'] = {"estatus": "A", "ticket_id": {{ticket.id}}};
+        configDataTable['columns'] = [
+            { data: 'detalle' },
+            { data: 'descripcion' }
+        ];
+        configDataTable['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.nombre + '</a>';
+                }
+            },
+            {
+                targets: 1, // descripcion
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.lengt > 32 )
+                        return '<span title="' + data + '">' + data.substr(0, 32) + '…' + '</span>';
+                    return '<span title="' + data + '">' + data + '</span>';
+                }
+            }
+        ];
+        const filtrosAdjuntos = new FiltrosDataTable('#soportes_adjuntos_datatable', configDataTable);
+        filtrosAdjuntos.precargar();
+    </script>
+    <script>
+    // --- Ocultar listdos vacíos
+    let adjuntos = $('#soportes_adjuntos_datatable').DataTable()
+    $('#soportes_adjuntos_datatable').on( 'init.dt', function () {
+        if ( ! adjuntos.data().count() ){
+            $('#adjuntos').hide();
+        }
+    });
     </script>
 {% endblock %}
