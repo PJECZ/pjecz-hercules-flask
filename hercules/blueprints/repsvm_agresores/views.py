@@ -63,14 +63,7 @@ def datatable_json():
                     "nombre": resultado.nombre,
                     "url": url_for("repsvm_agresores.detail", repsvm_agresor_id=resultado.id),
                 },
-                "distrito": {
-                    "nombre_corto": resultado.distrito.nombre_corto,
-                    "url": (
-                        url_for("distritos.detail", distrito_id=resultado.distrito_id)
-                        if current_user.can_view("DISTRITOS")
-                        else ""
-                    ),
-                },
+                "distrito_nombre_corto": resultado.distrito.nombre_corto,
                 "change_consecutivo": {
                     "id": resultado.id,
                     "consecutivo": resultado.consecutivo,

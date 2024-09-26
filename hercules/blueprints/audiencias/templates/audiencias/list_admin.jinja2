@@ -99,14 +99,14 @@
         ];
         configDataTable['columnDefs'] = [
             {
-                targets: 0,
+                targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.id + '</a>';
                 }
             },
             {
-                targets: 1,
+                targets: 1,  // creado
                 type: "date",
                 render: function (data, type, row) {
                     return moment.utc(data).local().format("YYYY-MM-DD HH:mm:ss");

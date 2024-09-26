@@ -80,19 +80,18 @@
         ];
         configDataTable['columnDefs'] = [
             {
-                targets: 0,
+                targets: 0, // fecha
                 type: "date",
                 render: function (data, type, row) {
                     return moment(data).format("DD MMM YYYY");
                 }
             },
             {
-                targets: 1,
+                targets: 1, //detalle
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '"><span title="'+ data.descripcion + '">' +
-                        (data.descripcion.length > 40 ? data.descripcion.substr(0, 40) + '…' : data.descripcion) +
-                        '</span></a>';
+                        (data.descripcion.length > 40 ? data.descripcion.substring(0, 40) + '…' : data.descripcion) + '</span></a>';
                 }
             }
         ];
