@@ -30,8 +30,9 @@
 {% block content %}
     {% call detail.card(estatus=ticket.estatus) %}
         {{ detail.label_value_big('Estado', ticket.estado) }}
-        <div class="fs-5">
-            {{ detail.label_value('Descripción', ticket.descripcion) }}
+        <div class="row">
+            <div class="col-md-3 text-end">Descripción</div>
+            <div class="col-md-9"><textarea style="border: 1px solid lightslategray; padding:2px; width:100%; height:12em" disabled>{{ ticket.descripcion }}</textarea></div>
         </div>
         {{ detail.label_value('Creado', moment(ticket.creado, local=True).format('llll')) }}
         {% if current_user.can_view('USUARIOS') %}
@@ -55,10 +56,11 @@
         {% endif %}
         {% if ticket.estado in ('CERRADO', 'TERMINADO') %}
             {{ detail.label_value('Resolución', moment(ticket.resolucion, local=True).format('llll')) }}
+            <div class="row">
+                <div class="col-md-3 text-end">Respuesta/Solucion</div>
+                <div class="col-md-9"><textarea style="border: 1px solid lightslategray; padding:2px; width:100%; height:5em" disabled>{{ ticket.soluciones }}</textarea></div>
+            </div>
         {% endif %}
-        <div class="fs-5">
-            {{ detail.label_value('Respuesta/Solucion', ticket.soluciones) }}
-        </div>
         <!-- Botones de acciones -->
         {% if ticket.estatus == 'A' %}
             {% if funcionario and current_user.can_edit('SOPORTES TICKETS') %}
