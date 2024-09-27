@@ -105,15 +105,17 @@
 {%- endmacro -%}
 
 {# Detail boolean #}
-{%- macro label_value_boolean(label, value) -%}
-    <div class="row">
-        <div class="col-md-3 text-end">
-            {{ label }}
+{%- macro label_value_boolean(label, value, ignore_is_false=False) -%}
+    {% if ignore_is_false == False or (ignore_is_false and value) %}
+        <div class="row">
+            <div class="col-md-3 text-end">
+                {{ label }}
+            </div>
+            <div class="col-md-9">
+                {% if value %}<strong>Sí</strong>{% else %}No{% endif %}
+            </div>
         </div>
-        <div class="col-md-9">
-            {% if value %}<strong>Sí</strong>{% else %}No{% endif %}
-        </div>
-    </div>
+    {% endif %}
 {%- endmacro -%}
 
 {# JavaScript Datatable #}
