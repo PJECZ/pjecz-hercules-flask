@@ -38,13 +38,17 @@ def datatable_json():
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
     consulta = UsuarioNomina.query
-    # Primero filtrar por columnas propias
-    if "usuario_id" in request.form:
-        consulta = consulta.filter(UsuarioNomina.usuario_id == current_user.id)
-    # Luego filtrar por columnas de otras tablas
-    if "usuario_email" in request.form:
-        consulta = consulta.join(Usuario)
-        consulta = consulta.filter(Usuario.email.contains(safe_email(request.form["usuario_email"], search_fragment=True)))
+    # Solo si es ADMINISTRADOR y viene usuario_id en el formulario, se pueden ver los recibos de otro usuario
+    if current_user.can_admin(MODULO) and "usuario_id" in request.form:
+        try:
+            usuario_id = int(request.form["usuario_id"])
+            consulta = consulta.filter(UsuarioNomina.usuario_id == usuario_id)
+        except (TypeError, ValueError):
+            usuario_id = current_user.id
+            consulta = consulta.filter(UsuarioNomina.usuario_id == usuario_id)
+    else:
+        usuario_id = current_user.id
+        consulta = consulta.filter(UsuarioNomina.usuario_id == usuario_id)
     # Ordenar y paginar
     registros = consulta.order_by(UsuarioNomina.fecha.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -79,34 +83,29 @@ def datatable_json():
 def list():
     """Listado de UsuarioNomina"""
 
-    # Definir filtros por defecto, solo para el usuario actual
-    filtros = {"usuario_id": current_user.id, "estatus": "A"}
-    titulo = f"Recibos de Nómina de {current_user.nombre}"
+    # Definir los valores por defecto, solo para el usuario actual
+    usuario = current_user
+    mensaje_curp = ""
 
-    # Si es ADMINISTRADOR y viene usuario_id en la URL, agregar a los filtros
-    if current_user.can_admin(MODULO):
+    # Si es ADMINISTRADOR y viene usuario_id en la URL, se pueden ver los recibos de otro usuario
+    if current_user.can_admin(MODULO) and request.args.get("usuario_id") is not None:
         try:
-            usuario_id = int(request.args.get("usuario_id"))
-            usuario = Usuario.query.get_or_404(usuario_id)
-            filtros = {"estatus": "A", "usuario_id": usuario_id}
-            titulo = f"Recibos de Nómina de {usuario.nombre}"
+            usuario = Usuario.query.get_or_404(int(request.args.get("usuario_id")))
         except (TypeError, ValueError):
             pass
 
     # Validar el CURP del Usuario, si NO tiene o es incorrecto se omite el listado y se muestra un mensaje
-    mensaje_curp = ""
     try:
-        safe_curp(current_user.curp)
+        safe_curp(usuario.curp)
     except ValueError:
-        mensaje_curp = f"El CURP {current_user.curp} es incorrecto. Solicite por medio de un Ticket su corrección."
+        mensaje_curp = "El CURP en la base de datos es incorrecto o está vacío. Solicite por medio de un Ticket su corrección."
 
     # Entregar
     return render_template(
         "usuarios_nominas/list.jinja2",
-        filtros=json.dumps(filtros),
-        titulo=titulo,
+        filtros=json.dumps({"estatus": "A", "usuario_id": usuario.id}),
+        titulo=f"Recibos de Nómina de {usuario.nombre}",
         mensaje_curp=mensaje_curp,
-        usuario_id=current_user.id,
     )
 
 
@@ -117,13 +116,13 @@ def download_file_pdf(usuario_nomina_id):
     # Consultar el Timbrado
     usuario_nomina = UsuarioNomina.query.get_or_404(usuario_nomina_id)
 
-    # Seguridad de liga
-    if usuario_nomina.usuario.curp != current_user.curp:
-        raise NotFound("NO son iguales el CURP de su usuario al del recibo.")
-
-    # Si no tiene URL, redirigir a la página de detalle
+    # Si no tiene URL, causar error
     if usuario_nomina.url_pdf == "":
         raise NotFound("Este recibo NO tiene un archivo PDF.")
+
+    # Validar CURP del usuario, o que tenga el rol ADMINISTRADOR
+    if usuario_nomina.usuario.curp != current_user.curp and not current_user.can_admin(MODULO):
+        raise NotFound("No coinciden las CURP del recibo con su usuario.")
 
     # Si no tiene nombre para el archivo en archivo_pdf, elaborar uno con el UUID
     descarga_nombre = usuario_nomina.archivo_pdf
@@ -161,13 +160,13 @@ def download_file_xml(usuario_nomina_id):
     # Consultar el Timbrado
     usuario_nomina = UsuarioNomina.query.get_or_404(usuario_nomina_id)
 
-    # Seguridad de liga
-    if usuario_nomina.usuario.curp != current_user.curp:
-        raise NotFound("NO son iguales el CURP de su usuario al del recibo.")
-
-    # Si no tiene URL, redirigir a la página de detalle
+    # Si no tiene URL, causar error
     if usuario_nomina.url_xml == "":
         raise NotFound("Este recibo NO tiene un archivo XML.")
+
+    # Validar CURP del usuario, o que tenga el rol ADMINISTRADOR
+    if usuario_nomina.usuario.curp != current_user.curp and not current_user.can_admin(MODULO):
+        raise NotFound("No coinciden las CURP del recibo con su usuario.")
 
     # Si no tiene nombre para el archivo en archivo_xml, elaborar uno con el UUID
     descarga_nombre = usuario_nomina.archivo_xml

@@ -181,6 +181,7 @@ def datatable_json():
                     "url": url_for("usuarios.detail", usuario_id=resultado.id),
                 },
                 "nombre": resultado.nombre,
+                "curp": resultado.curp,
                 "puesto": resultado.puesto,
                 "autoridad": {
                     "clave": resultado.autoridad.clave,
