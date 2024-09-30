@@ -8,6 +8,7 @@ from redis import Redis
 
 from config.settings import Settings
 from hercules.blueprints.abogados.views import abogados
+from hercules.blueprints.arc_juzgados_extintos.views import arc_juzgados_extintos
 from hercules.blueprints.audiencias.views import audiencias
 from hercules.blueprints.autoridades.views import autoridades
 from hercules.blueprints.autoridades_funcionarios.views import autoridades_funcionarios
@@ -77,6 +78,7 @@ def create_app():
 
     # Registrar blueprints
     app.register_blueprint(abogados)
+    app.register_blueprint(arc_juzgados_extintos)
     app.register_blueprint(audiencias)
     app.register_blueprint(autoridades)
     app.register_blueprint(autoridades_funcionarios)
