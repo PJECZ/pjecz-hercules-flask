@@ -98,6 +98,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Rol</th>
+                        <th>Estatus</th>
                     </tr>
                 </thead>
             </table>
@@ -127,7 +128,8 @@
             configDTUsuariosRoles['ajax']['data'] = { 'estatus': "A", 'usuario_id': {{ usuario.id}} };
             configDTUsuariosRoles['columns'] = [
                 { data: "detalle" },
-                { data: "rol" }
+                { data: "rol" },
+                { data: "toggle_estatus" }
             ];
             configDTUsuariosRoles['columnDefs'] = [
                 {
@@ -146,12 +148,77 @@
                         }
                         return '<a href="' + data.url + '">' + data.nombre + '</a>';
                     }
+                },
+                {
+                    targets: 2, // toggle_estatus
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        if (data.url === '') return data.estatus;
+                        let myId = 'usuario_rol_estatus_' + data.id;
+                        let myRow = 'usuario_rol_row_' + data.id;
+                        let myOnClick = "toggleEstatus('#" + myId + "', '" + data.url + "', '#" + myRow + "')";
+                        if (data.estatus === 'A') {
+                            return '<button id="' + myId + '" type="button" class="btn btn-sm btn-outline-primary" onclick="' + myOnClick + '"><span class="iconify" data-icon="mdi:toggle-switch"></span></button>';
+                        } else {
+                            return '<button id="' + myId + '" type="button" class="btn btn-sm btn-light" onclick="' + myOnClick + '"><span class="iconify" data-icon="mdi:toggle-switch-off"></span></button>';
+                        }
+                    }
                 }
             ];
-            // NO hay filtros
+            // DataTable filas
+            configDTUsuariosRoles['createdRow'] = function(row, data, dataIndex) {
+                // Cambiar estilo en las fila segun estatus
+                switch (data.estatus) {
+                    // case "A": $(row).addClass('table-light'); break;
+                    case "B": $(row).addClass('table-secondary'); break;
+                }
+                // Definir un ID unico para cada fila
+                if (data.hasOwnProperty('toggle_estatus')) {
+                    $(row).attr('id', 'usuario_rol_row_' + data.toggle_estatus.id);
+                }
+            };
+            // Filtros usuarios-roles
             const filtrosDTUsuariosRoles = new FiltrosDataTable('#usuarios_roles_datatable', configDTUsuariosRoles);
             filtrosDTUsuariosRoles.agregarInput('filtroUsuarioRolRolNombre', 'rol_nombre');
             filtrosDTUsuariosRoles.precargar();
+            // Preparar headers para POST
+            const myHeaders = new Headers();
+            myHeaders.append("X-CSRF-TOKEN", "{{ csrf_token() }}");
+            const myInit = {
+                method: 'POST',
+                headers: myHeaders,
+                mode: 'cors',
+                cache: 'default'
+            };
+            // Boton toggle_estatus
+            function toggleEstatus(id, url, row) {
+                $(id).prop("disabled", true); // Deshabilitar boton para evitar multiples clicks
+                fetch(url, myInit)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (data.estatus === 'A') {
+                                $(id).removeClass('btn-light');
+                                $(id).addClass('btn-outline-primary'); // Color azul
+                                $(id).html('<span class="iconify" data-icon="mdi:toggle-switch"></span>'); // Icono toggle-switch
+                                $(row).removeClass('table-secondary');
+                            } else {
+                                $(id).removeClass('btn-outline-primary');
+                                $(id).addClass('btn-light'); // Color gris
+                                $(id).html('<span class="iconify" data-icon="mdi:toggle-switch-off"></span>'); // Icono toggle-switch-off
+                                $(row).addClass('table-secondary');
+                            }
+                            // console.log(data.message);
+                            console.log(row);
+                        } else {
+                            console.log(data.message);
+                        }
+                        $(id).prop("disabled", false); // Habilitar boton
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            }
         </script>
     {% endif %}
     {{ detail.moment_js(moment) }}

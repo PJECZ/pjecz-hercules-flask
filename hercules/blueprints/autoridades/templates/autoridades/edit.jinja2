@@ -12,19 +12,41 @@
     {% call f.card() %}
         {% set form_kwargs = {'autoridad_id': autoridad.id} %}
         {% call f.form_tag('autoridades.edit', fid='autoridad_form', **form_kwargs) %}
-            {% call f.form_group(form.clave) %}{% endcall %}
-            {% call f.form_group(form.distrito) %}{% endcall %}
-            {% call f.form_group(form.municipio) %}{% endcall %}
-            {% call f.form_group(form.descripcion) %}{% endcall %}
-            {% call f.form_group(form.descripcion_corta) %}{% endcall %}
-            {% call f.form_group(form.es_archivo_solicitante) %}{% endcall %}
-            {% call f.form_group(form.es_cemasc) %}{% endcall %}
-            {% call f.form_group(form.es_defensoria) %}{% endcall %}
-            {% call f.form_group(form.es_extinto) %}{% endcall %}
-            {% call f.form_group(form.es_jurisdiccional) %}{% endcall %}
-            {% call f.form_group(form.es_notaria) %}{% endcall %}
-            {% call f.form_group(form.es_organo_especializado) %}{% endcall %}
-            {% call f.form_group(form.es_revisor_escrituras) %}{% endcall %}
+            <div class="row">
+                <div class="col-md-12">
+                    {% call f.form_group(form.descripcion) %}{% endcall %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    {% call f.form_group(form.descripcion_corta) %}{% endcall %}
+                    {% call f.form_group(form.clave) %}{% endcall %}
+                    {% call f.form_group(form.distrito) %}{% endcall %}
+                    {% call f.form_group(form.materia) %}{% endcall %}
+                    {% call f.form_group(form.municipio) %}{% endcall %}
+                    {% call f.form_group(form.organo_jurisdiccional) %}{% endcall %}
+                    {% call f.form_group(form.sede) %}{% endcall %}
+                </div>
+                <div class="col-md-6">
+                    {% call f.form_group(form.es_archivo_solicitante) %}{% endcall %}
+                    {% call f.form_group(form.es_cemasc) %}{% endcall %}
+                    {% call f.form_group(form.es_defensoria) %}{% endcall %}
+                    {% call f.form_group(form.es_extinto) %}{% endcall %}
+                    {% call f.form_group(form.es_jurisdiccional) %}{% endcall %}
+                    {% call f.form_group(form.es_notaria) %}{% endcall %}
+                    {% call f.form_group(form.es_organo_especializado) %}{% endcall %}
+                    {% call f.form_group(form.es_revisor_escrituras) %}{% endcall %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    {% call f.form_group(form.directorio_edictos) %}{% endcall %}
+                    {% call f.form_group(form.directorio_glosas) %}{% endcall %}
+                    {% call f.form_group(form.directorio_listas_de_acuerdos) %}{% endcall %}
+                    {% call f.form_group(form.directorio_sentencias) %}{% endcall %}
+                    {% call f.form_group(form.limite_dias_listas_de_acuerdos) %}{% endcall %}
+                </div>
+            </div>
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}
     {% endcall %}
