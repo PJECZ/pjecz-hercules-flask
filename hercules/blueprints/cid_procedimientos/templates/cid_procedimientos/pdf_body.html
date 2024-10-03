@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        margin: 50;
+        padding: 4px 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>OBJETIVO</h2>
+
+    {{ objetivo }}<br />
+
+    <h2>ALCANCE</h2>
+
+    {{ alcance }}<br />
+
+    <h2>DOCUMENTOS DE REFERENCIA</h2>
+
+    {{ documentos }}<br />
+
+    <h2>DEFINICIONES</h2>
+
+    {{ definiciones }}<br />
+
+    <h2>RESPONSABILIDADES</h2>
+
+    {{ responsabilidades }}<br />
+
+    <h2>DESARROLLO</h2>
+
+    {{ desarrollo }}<br />
+
+    <h2>REGISTROS</h2>
+    <table id="registro_pdf" class="table table-striped" width="100%">
+      <thead>
+        <th>Código</th>
+        <th>Nombre registro</th>
+        <th>Responsable</th>
+        <th>Años de retención</th>
+      </thead>
+      <tbody>
+        <div>&nbsp;</div>
+        <br />
+        {{ registros }}
+      </tbody>
+    </table>
+    <br />
+    <h2>CONTROL DE CAMBIOS</h2>
+    <table id="control_pdf" class="table table-striped" width="100%">
+      <thead>
+        <th width="15%">N° Revisión</th>
+        <th width="50%">Cambios y/o Actualizaciónes</th>
+        <th width="25%">Solicitud de cambio N°</th>
+        <th width="10%">Fecha</th>
+      </thead>
+      <tbody>
+        <div>&nbsp;</div>
+        <br />
+        {{ control_cambios }}
+      </tbody>
+    </table>
+    <br />
+    <h2>AUTORIZACIONES</h2>
+
+    <br />
+    <table width="100%" cellpadding="10">
+      <tr>
+        <td align="center">Elaboró</td>
+        <td align="center">Revisó</td>
+        <td align="center">Aprobó</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td align="center">
+          {{elaboro_firma}}
+          <hr />
+          {{elaboro_nombre}}<br />{{elaboro_puesto}}
+        </td>
+        <td align="center">
+          {{reviso_firma}}
+          <hr />
+          {{reviso_nombre}}<br />{{reviso_puesto}}
+        </td>
+        <td align="center">
+          {{autorizo_firma}}
+          <hr />
+          {{aprobo_nombre}}<br />{{aprobo_puesto}}
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

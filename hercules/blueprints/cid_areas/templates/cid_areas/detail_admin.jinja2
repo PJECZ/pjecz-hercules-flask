@@ -1,0 +1,236 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}SICGD Área{% endblock %}
+
+{% block custom_head %}
+    <style>
+    .bg-yellow {
+        color: rgb(6, 6, 6);
+        background-color: #f3ebb3;
+    }
+    .bg-blue {
+        color: rgb(42, 42, 42);
+        background-color: #7ebdf7;
+    }
+    .bg-green {
+        color: rgb(37, 37, 37);
+        background-color: #64cb90;
+    }
+    </style>
+{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('SICGD Área ' + cid_area.nombre) %}
+        {{ topbar.button_previous('Areas', url_for('cid_areas.list_active')) }}
+        {% if current_user.can_edit('CID AREAS') %}
+            {{ topbar.button_edit('Editar', url_for('cid_areas.edit', cid_area_id=cid_area.id)) }}
+            {% if cid_area.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('cid_areas.delete', cid_area_id=cid_area.id)) }}{% endif %}
+            {% if cid_area.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('cid_areas.recover', cid_area_id=cid_area.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {# Detalle del área #}
+    {% call detail.card(estatus=cid_area.estatus) %}
+        {{ detail.label_value_big('Clave', cid_area.clave) }}
+        {{ detail.label_value('Nombre', cid_area.nombre) }}
+    {% endcall %}
+    {# Datatable con las Autoridades del Área #}
+    {% if current_user.can_view('CID AREAS AUTORIDADES') %}
+        {% call detail.card(title='Autoridades') %}
+            <table id="cid_areas_autoridades_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Autoridad clave</th>
+                        <th>Distrito</th>
+                        <th>Autoridad descripcion corta</th>
+                    </tr>
+                </thead>
+            </table>
+        {% endcall %}
+    {% endif %}
+    {# Datatable con los Procedimientos del Área #}
+    {% if current_user.can_view('CID PROCEDIMIENTOS') %}
+        {% call list.card('Procedimientos') %}
+            <!-- Filtros CidProcedimientos -->
+            <div class="row">
+                <div class="col">
+                    <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosCidProcedimientos.buscar(); return false;">
+                        <div class="col-2">
+                            <div class="form-floating">
+                                <input id="filtroId" type="text" class="form-control" aria-label="Id">
+                                <label for="filtroId">ID</label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-floating">
+                                <input id="filtroCodigo" type="text" class="form-control" aria-label="Codigo" style="text-transform: uppercase;">
+                                <label for="filtroCodigo">Código</label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-floating">
+                                <input id="filtroTituloProcedimiento" type="text" class="form-control" aria-label="Procedimiento" style="text-transform: uppercase;">
+                                <label for="filtroTituloProcedimiento">Procedimiento</label>
+                            </div>
+                        </div>
+                        <div class="col-2 text-end">
+                            <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosCidProcedimientos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                            <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosCidProcedimientos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        <!-- Datatable de procedimientos -->
+            <table id="cid_procedimientos_datatable_admin" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Procedimiento</th>
+                        <th>Código</th>
+                        <th>Fecha</th>
+                        <th>Usuario</th>
+                        <th>Seguimiento</th>
+                        <th>Seguimiento posterior</th>
+                    </tr>
+                </thead>
+            </table>
+        {% endcall %}
+    {% endif %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_edit('CID AREAS') %}
+        {% if cid_area.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + cid_area.nombre + '?') }}{% endif %}
+        {% if cid_area.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + cid_area.nombre + '?') }}{% endif %}
+    {% endif %}
+    {{ detail.config_datatable() }}
+    {% if current_user.can_view('CID AREAS AUTORIDADES') %}
+        <script>
+            configDataTable['ajax']['url'] = '/cid_areas_autoridades/datatable_json';
+            configDataTable['ajax']['data'] = { 'estatus': "A", 'cid_area_id': {{ cid_area.id}} };
+            configDataTable['columns'] = [
+                { data: 'detalle' },
+                { data: 'autoridad' },
+                { data: 'distrito_nombre_corto' },
+                { data: 'autoridad_descripcion_corta' }
+            ];
+            configDataTable['columnDefs'] = [
+                {
+                    targets: 0, // detalle
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '">' + data.id + '</a>';
+                    }
+                },
+                {
+                    targets: 1, // autoridad
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        if (data.url == '') {
+                            return data.clave;
+                        } else {
+                            return '<a href="' + data.url + '">' + data.clave + '</a>';
+                        }
+                    }
+                }
+            ];
+            $('#cid_areas_autoridades_datatable').DataTable(configDataTable);
+        </script>
+     {% endif %}
+     {% if current_user.can_view('CID PROCEDIMIENTOS') %}
+        <script src="/static/js/datatables-constructor.js"></script>
+        <script src="/static/js/datatables-filtros.js"></script>
+        <script>
+            const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+            let configDTCidProcedimientos = constructorDataTable.config();
+            configDTCidProcedimientos['ajax']['url'] = '/cid_procedimientos/datatable_json_admin';
+            configDTCidProcedimientos['ajax']['data'] = { 'estatus': "A", 'cid_areas': [{{ cid_area.id}}] };
+            configDTCidProcedimientos['columns'] = [
+                { data: 'detalle' },
+                { data: 'titulo_procedimiento' },
+                { data: 'codigo' },
+                { data: 'fecha' },
+                { data: 'usuario' },
+                { data: 'seguimiento' },
+                { data: 'seguimiento_posterior' },
+            ];
+            configDTCidProcedimientos['columnDefs'] = [
+                {
+                    targets: 0, // detalle
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '">' + data.id + '</a>';
+                    }
+                },
+                {
+                    targets: 1, // titulo_procedimiento
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        if (data.length > 64)
+                            return '<span title="' + data + '">' + data.substr(0, 64) + '…' + '</span>';
+                        return data;
+                    }
+                },
+                {
+                    targets: 4, // usuario
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        if (data.nombre.length > 16) {
+                            interior = '<span title="' + data.nombre + '">' + data.nombre.substring(0, 16) + '…' + '</span>';
+                        } else {
+                            interior = data.nombre;
+                        }
+                        if (data.url == '') {
+                            return interior;
+                        }
+                        return '<a href="' + data.url + '">' + interior + '</a>';
+                    }
+                },
+                {
+                    targets: 5, // seguimiento
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        switch (data)    {
+                            case "EN ELABORACION": return '<span class="badge rounded-pill bg-yellow text-dark"><span class="iconify" data-icon="mdi:account-edit"></span> EN ELABORACION </span>';   break;
+                            case "ELABORADO":     return '<span class="badge rounded-pill bg-warning text-dark"><span class="iconify" data-icon="mdi:account-check"></span> ELABORADO </span>';   break;
+                            case "EN REVISION":     return '<span class="badge rounded-pill bg-blue"><span class="iconify" data-icon="mdi:account-search"></span> EN REVISION </span>';   break;
+                            case "REVISADO":      return '<span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:file-check"></span> REVISADO </span>';   break;
+                            case "EN AUTORIZACION":  return '<span class="badge rounded-pill bg-green"><span class="iconify" data-icon="mdi:file-document-check"></span> EN AUTORIZACION </span>';  break;
+                            case "AUTORIZADO":       return '<span class="badge rounded-pill bg-success"><span class="iconify" data-icon="mdi:shield-check"></span> AUTORIZADO </span>';  break;
+                        }
+                        return data;
+                    }
+                },
+                {
+                    targets: 6, // seguimiento posterior
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        switch (data)    {
+                            case "EN ELABORACION": return '<span class="badge rounded-pill bg-yellow text-dark"><span class="iconify" data-icon="mdi:account-edit"></span> EN ELABORACION </span>';   break;
+                            case "ELABORADO":     return '<span class="badge rounded-pill bg-warning text-dark"><span class="iconify" data-icon="mdi:account-check"></span> ELABORADO </span>';   break;
+                            case "EN REVISION":     return '<span class="badge rounded-pill bg-blue"><span class="iconify" data-icon="mdi:account-search"></span> EN REVISION </span>';   break;
+                            case "REVISADO":      return '<span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:file-check"></span> REVISADO </span>';   break;
+                            case "EN AUTORIZACION":  return '<span class="badge rounded-pill bg-green"><span class="iconify" data-icon="mdi:file-document-check"></span> EN AUTORIZACION </span>';  break;
+                            case "AUTORIZADO":       return '<span class="badge rounded-pill bg-success"><span class="iconify" data-icon="mdi:shield-check"></span> AUTORIZADO </span>';  break;
+                        }
+                        return data;
+                    }
+                },
+            ];
+            // Filtros Cid Procedimientos
+            const filtrosCidProcedimientos = new FiltrosDataTable('#cid_procedimientos_datatable_admin', configDTCidProcedimientos);
+            filtrosCidProcedimientos.agregarInput('filtroId', 'cid_procedmiento_id');
+            filtrosCidProcedimientos.agregarInput('filtroCodigo', 'codigo');
+            filtrosCidProcedimientos.agregarInput('filtroTituloProcedimiento', 'titulo_procedimiento');
+            filtrosCidProcedimientos.precargar();
+        </script>
+     {% endif %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}

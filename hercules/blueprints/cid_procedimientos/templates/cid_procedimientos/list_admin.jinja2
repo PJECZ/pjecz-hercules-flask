@@ -35,23 +35,22 @@
                     {% if show_button_list_all_autorized %}
                         <a class="dropdown-item" href="{{ url_for('cid_procedimientos.list_authorized') }}">Todos los autorizados</a>
                     {% endif %}
+                    {% if show_button_list_owned %}
+                        <a class="dropdown-item" href="{{ url_for('cid_procedimientos.list_owned') }}"><span class="iconify" data-icon="mdi:table-heart"></span>Propios</a>
+                    {% endif %}
                 </div>
             </div>
             {% if show_button_list_all %}
                 <a class="btn btn-sm btn-outline-info" href="{{url_for('cid_procedimientos.list_all_active')}}"><span class="iconify" data-icon="mdi:archive-check"></span> Todos los procedimientos</a>
-            {% endif %}
-            {% if show_button_list_owned %}
-                {# {{ topbar.button('Propios', url_for('cid_procedimientos.list_owned'), 'mdi:table-heart') }} #}
-                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('cid_procedimientos.list_owned') }}"><span class="iconify" data-icon="mdi:table-heart"></span>Propios</a>
             {% endif %}
             {% if current_user.can_admin('CID PROCEDIMIENTOS') %}
                 {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('cid_procedimientos.list_all_inactive')) }}{% endif %}
                 {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('cid_procedimientos.list_all_active')) }}{% endif %}
             {% endif %}
         </div>
-        {# {% if current_user.can_insert('CID PROCEDIMIENTOS') %}
+        {% if current_user.can_insert('CID PROCEDIMIENTOS') %}
             {{ topbar.button_new('Nuevo Procedimiento', url_for('cid_procedimientos.new')) }}
-        {% endif %} #}
+        {% endif %}
     {% endcall %}
 {% endblock %}
 

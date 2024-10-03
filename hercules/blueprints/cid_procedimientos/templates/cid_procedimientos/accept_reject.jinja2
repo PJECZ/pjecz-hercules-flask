@@ -1,0 +1,41 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Aceptar o Rechazar un Procedimiento{% endblock %}
+
+{% block custom_head %}
+    <!-- font awesom-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        #rechazar { background-color:#B80000; border-color:#B80000; box-sizing: border-box; float: right; }
+        #aceptar { box-sizing: border-box; float: left;}
+    </style>
+{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Aceptar o Rechazar un Procedimiento') }}
+{% endblock %}
+
+{% block content %}
+    {% call f.card() %}
+        {% set form_kwargs = {'cid_procedimiento_id': cid_procedimiento.id} %}
+        {% call f.form_tag('cid_procedimientos.accept_reject', fid='cid_procedimiento_accept_reject_form', **form_kwargs) %}
+            {% if cid_procedimiento.seguimiento == "ELABORADO" %}
+                {% call f.form_group(form.elaboro_nombre, readonly=true) %}{% endcall %}
+            {% elif cid_procedimiento.seguimiento == "REVISADO" %}
+                {% call f.form_group(form.reviso_nombre, readonly=true) %}{% endcall %}
+            {% endif %}
+            {% call f.form_group(form.titulo_procedimiento, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.codigo, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.revision, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.seguimiento, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.seguimiento_posterior, readonly=true) %}{% endcall %}
+            <label><strong>Ver archivo PDF antes de aceptar</strong></label>&nbsp;<i class="fas fa-arrow-down"></i><br>
+            <i class="far fa-file-pdf"  style="font-size:20px;"></i> <a href='{{cid_procedimiento.url}}' name="PDF" target="_blank"> Abrir archivo PDF - {{cid_procedimiento.titulo_procedimiento}}</a>&nbsp;<br><br>
+            <div></div>
+            {% call f.form_group(form.aceptar) %}{% endcall %}
+            {% call f.form_group(form.rechazar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}

@@ -206,6 +206,19 @@ def datatable_json():
     return output_datatable_json(draw, total, data)
 
 
+@usuarios.route("/usuarios/select_json", methods=["GET", "POST"])
+def select_json():
+    """Select JSON para Usuarios"""
+    # Consultar
+    usuarios_p = Usuario.query.filter_by(estatus="A").order_by(Usuario.email)
+    if "searchString" in request.form:
+        usuarios_p = usuarios_p.filter(Usuario.email.contains(safe_email(request.form["searchString"], search_fragment=True)))
+    results = []
+    for usuario in usuarios_p.order_by(Usuario.email).limit(10).all():
+        results.append({"id": usuario.email, "text": usuario.email, "nombre": usuario.nombre})
+    return {"results": results, "pagination": {"more": False}}
+
+
 @usuarios.route("/usuarios/api_key_request/<int:usuario_id>", methods=["GET", "POST"])
 @login_required
 @permission_required(MODULO, Permiso.ADMINISTRAR)

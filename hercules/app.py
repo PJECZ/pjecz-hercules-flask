@@ -13,6 +13,9 @@ from hercules.blueprints.autoridades.views import autoridades
 from hercules.blueprints.autoridades_funcionarios.views import autoridades_funcionarios
 from hercules.blueprints.bitacoras.views import bitacoras
 from hercules.blueprints.centros_trabajos.views import centros_trabajos
+from hercules.blueprints.cid_areas.views import cid_areas
+from hercules.blueprints.cid_areas_autoridades.views import cid_areas_autoridades
+from hercules.blueprints.cid_formatos.views import cid_formatos
 from hercules.blueprints.cid_procedimientos.views import cid_procedimientos
 from hercules.blueprints.distritos.views import distritos
 from hercules.blueprints.domicilios.views import domicilios
@@ -80,6 +83,9 @@ def create_app():
     app.register_blueprint(bitacoras)
     app.register_blueprint(distritos)
     app.register_blueprint(centros_trabajos)
+    app.register_blueprint(cid_areas)
+    app.register_blueprint(cid_areas_autoridades)
+    app.register_blueprint(cid_formatos)
     app.register_blueprint(cid_procedimientos)
     app.register_blueprint(domicilios)
     app.register_blueprint(edictos)
