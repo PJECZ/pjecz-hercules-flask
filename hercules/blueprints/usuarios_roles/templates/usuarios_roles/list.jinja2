@@ -20,6 +20,8 @@
 
 {% block content %}
     {% call list.card() %}
+        <!-- Filtros Usuarios-Roles -->
+        <!-- DataTable Usuarios-Roles -->
         <table id="usuarios_roles_datatable" class="table display nowrap" style="width:100%">
             <thead>
                 <tr>
@@ -35,8 +37,12 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    {{ list.config_datatable() }}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
     <script>
+        // DataTable Usuarios-Roles
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDataTable = constructorDataTable.config();
         configDataTable['ajax']['url'] = '/usuarios_roles/datatable_json';
         configDataTable['ajax']['data'] = {}; // Por defecto no se filtra nada
         configDataTable['columns'] = [
@@ -82,6 +88,8 @@
                 }
             }
         ];
-        $('#usuarios_roles_datatable').DataTable(configDataTable);
+        // Filtros Usuarios-Roles
+        const filtrosObjetos = new FiltrosDataTable('#usuarios_roles_datatable', configDataTable);
+        filtrosObjetos.precargar();
     </script>
 {% endblock %}

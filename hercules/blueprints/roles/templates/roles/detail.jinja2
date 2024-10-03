@@ -21,7 +21,7 @@
 {% block content %}
     {% if current_user.can_view('PERMISOS') %}
         {% call detail.card('Permisos') %}
-            <!-- Filtros permisos -->
+            <!-- Filtros Permisos -->
             <div class="row">
                 <div class="col">
                     <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosPermisos.buscar(); return false;">
@@ -54,7 +54,7 @@
                     </form>
                 </div>
             </div>
-            <!-- Datatable permisos -->
+            <!-- Datatable Permisos -->
             <table id="permisos_datatable" class="table display nowrap" style="width:100%">
                 <thead>
                     <tr>
@@ -71,7 +71,7 @@
     {% endif %}
     {% if current_user.can_view('USUARIOS ROLES') %}
         {% call detail.card('Usuarios') %}
-            <!-- Filtros usuarios-roles -->
+            <!-- Filtros UsuariosRoles -->
             <div class="row">
                 <div class="col">
                     <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosUsuariosRoles.buscar(); return false;">
@@ -100,7 +100,7 @@
                     </form>
                 </div>
             </div>
-            <!-- Datatable usuarios-roles -->
+            <!-- Datatable UsuariosRoles -->
             <table id="usuarios_roles_datatable" class="table display nowrap" style="width:100%">
                 <thead>
                     <tr>
@@ -169,7 +169,7 @@
     {% endif %}
     {% if current_user.can_view('USUARIOS ROLES') %}
         <script>
-            // DataTable usuarios-roles
+            // DataTable UsuariosRoles
             let configDTUsuariosRoles = constructorDataTable.config();
             configDTUsuariosRoles['ajax']['url'] = '/usuarios_roles/datatable_json';
             configDTUsuariosRoles['ajax']['data'] = { 'estatus': "A", 'rol_id': {{ rol.id}} };
@@ -221,7 +221,7 @@
                     }
                 }
             ];
-            // DataTable filas
+            // DataTable UsuariosRoles filas
             configDTUsuariosRoles['createdRow'] = function(row, data, dataIndex) {
                 // Cambiar estilo en las fila segun estatus
                 switch (data.estatus) {
@@ -233,7 +233,7 @@
                     $(row).attr('id', 'usuario_rol_row_' + data.toggle_estatus.id);
                 }
             };
-            // Filtros usuarios-roles
+            // Filtros UsuariosRoles
             const filtrosUsuariosRoles = new FiltrosDataTable('#usuarios_roles_datatable', configDTUsuariosRoles);
             filtrosUsuariosRoles.agregarInput('filtroEMail', 'email');
             filtrosUsuariosRoles.agregarInput('filtroNombres', 'nombres');

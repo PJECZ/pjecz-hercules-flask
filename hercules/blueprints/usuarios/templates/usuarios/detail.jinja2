@@ -165,7 +165,7 @@
                     }
                 }
             ];
-            // DataTable filas
+            // DataTable UsuariosRoles filas
             configDTUsuariosRoles['createdRow'] = function(row, data, dataIndex) {
                 // Cambiar estilo en las fila segun estatus
                 switch (data.estatus) {
@@ -177,7 +177,7 @@
                     $(row).attr('id', 'usuario_rol_row_' + data.toggle_estatus.id);
                 }
             };
-            // Filtros usuarios-roles
+            // Filtros UsuariosRoles
             const filtrosDTUsuariosRoles = new FiltrosDataTable('#usuarios_roles_datatable', configDTUsuariosRoles);
             filtrosDTUsuariosRoles.agregarInput('filtroUsuarioRolRolNombre', 'rol_nombre');
             filtrosDTUsuariosRoles.precargar();
