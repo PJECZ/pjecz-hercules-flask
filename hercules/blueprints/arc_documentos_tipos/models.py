@@ -26,7 +26,7 @@ class ArcDocumentoTipo(database.Model, UniversalMixin):
     nombre: Mapped[str] = mapped_column(String(32), unique=True)
 
     # Hijos TODO:
-    # arc_documentos_tipos = db.relationship("ArcDocumento", back_populates="arc_documento_tipo", lazy="noload")
+    arc_documentos: Mapped[List["ArcDocumento"]] = relationship(back_populates="arc_documento_tipo")
     # arc_remesas = db.relationship("ArcRemesa", back_populates="arc_documento_tipo", lazy="noload")
 
     def __repr__(self):

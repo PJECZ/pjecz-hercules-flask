@@ -71,6 +71,7 @@ class Autoridad(database.Model, UniversalMixin):
     limite_dias_listas_de_acuerdos: Mapped[int] = mapped_column(default=0)
 
     # Hijos
+    arc_documentos: Mapped[List["ArcDocumento"]] = relationship(back_populates="autoridad")
     audiencias: Mapped[List["Audiencia"]] = relationship(back_populates="autoridad")
     autoridades_funcionarios: Mapped[List["AutoridadFuncionario"]] = relationship(back_populates="autoridad")
     cid_procedimientos: Mapped[List["CIDProcedimiento"]] = relationship(back_populates="autoridad")
