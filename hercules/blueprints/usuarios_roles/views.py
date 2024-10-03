@@ -110,7 +110,7 @@ def datatable_json():
 
 @usuarios_roles.route("/usuarios_roles")
 def list_active():
-    """Listado de Usuarios-Roles activos"""
+    """Listado de Usuarios-Roles"""
     return render_template(
         "usuarios_roles/list.jinja2",
         titulo="Usuarios-Roles",
