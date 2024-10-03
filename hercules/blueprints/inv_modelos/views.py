@@ -208,27 +208,27 @@ def recover(inv_modelo_id):
 @inv_modelos.route("/inv_modelos/inv_modelos_json", methods=["POST"])
 def query_inv_modelos_json():
     """Proporcionar el JSON para elegir un InvModelo con Select2"""
-    inv_modelos = InvModelo.query
+    consulta = InvModelo.query
     # Filtrar si viene el ID de InvMarca
     if "inv_marca_id" in request.args:
         try:
-            inv_modelos = inv_modelos.filter(InvModelo.inv_marca_id == int(request.args["inv_marca_id"]))
+            consulta = consulta.filter(InvModelo.inv_marca_id == int(request.args["inv_marca_id"]))
         except ValueError:
             pass
     # Filtrar por descripción de InvModelo
     if "descripcion" in request.form:
         descripcion = safe_string(request.form["descripcion"], save_enie=True)
         if descripcion != "":
-            inv_modelos = inv_modelos.filter(InvModelo.descripcion.contains(descripcion))
+            consulta = consulta.filter(InvModelo.descripcion.contains(descripcion))
     # Filtrar por el nombre de InvMarca o por la descripción de InvModelo
     if "nombre_o_descripcion" in request.form:
         nombre_o_descripcion = safe_string(request.form["nombre_o_descripcion"], save_enie=True)
         if nombre_o_descripcion != "":
-            inv_modelos = inv_modelos.join(InvMarca).filter(
+            consulta = consulta.join(InvMarca).filter(
                 or_(InvMarca.nombre.contains(nombre_o_descripcion), InvModelo.descripcion.contains(nombre_o_descripcion))
             )
     # Entregar las opciones para Select2
     results = []
-    for inv_modelo in inv_modelos.filter(InvModelo.estatus == "A").order_by(InvModelo.descripcion).limit(15).all():
+    for inv_modelo in consulta.filter(InvModelo.estatus == "A").order_by(InvModelo.descripcion).limit(15).all():
         results.append({"id": inv_modelo.id, "text": f"{inv_modelo.inv_marca.nombre} - {inv_modelo.descripcion}"})
     return {"results": results, "pagination": {"more": False}}

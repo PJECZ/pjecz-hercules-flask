@@ -4,6 +4,11 @@
 
 {% block title %}Editar Usuario {{ usuario.email }}{% endblock %}
 
+{% block custom_head %}
+    <!-- Select2 bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+{% endblock %}
+
 {% block topbar_actions %}
     {{ topbar.page('Editar Usuario ' + usuario.email) }}
 {% endblock %}
@@ -27,6 +32,7 @@
 {% endblock %}
 
 {% block custom_javascript %}
+    <!-- Select distrito-autoridad -->
     <script>
         // Llamar a /distritos/select_json para cargar el select distrito
         fetch('/distritos/select_json')
@@ -60,6 +66,38 @@
                     // Seleccionar la autoridad del usuario
                     document.getElementById('autoridad').value = {{ usuario.autoridad_id }};
                 });
+        });
+    </script>
+    <!-- Select2 oficina -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        // Cuando esté listo el DOM
+        $(document).ready(function(){
+            // Agregar clases al select
+            $("#oficina").addClass('js-example-placeholder-single js-states form-control');
+            // Definir AJAX para que al escribir desde 4 caracteres se haga la consulta
+            $(".js-example-placeholder-single").select2({
+                placeholder: "Escriba por lo menos 4 caracteres para buscar",
+                allowClear: true,
+                minimumInputLength: 4,
+                ajax: {
+                    url: '/oficinas/select_json',
+                    headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+                    dataType: 'json',
+                    delay: 250,
+                    type: "POST",
+                    data: function (params) {
+                        return { 'searchString': params.term }
+                    }
+                }
+            });
+            // Agregar el valor (actual del registro) al select
+            let data = {
+                id: {{ usuario.oficina_id }},
+                text: "{{ usuario.oficina.clave }} - {{ usuario.oficina.descripcion_corta }}"
+            };
+            let newOption = new Option(data.text, data.id, true, true);
+            $(".js-example-placeholder-single").append(newOption).trigger('change');
         });
     </script>
 {% endblock %}

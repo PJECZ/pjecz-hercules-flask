@@ -328,7 +328,7 @@ def query_usuarios_json():
 @fin_vales.route("/fin_vales/solicitantes_json", methods=["POST"])
 def query_solicitantes_json():
     """Proporcionar el JSON de solicitantes para elegir con un Select2"""
-    usuarios = (
+    solicitantes = (
         Usuario.query.select_from(Usuario)
         .join(UsuarioRol)
         .join(Rol)
@@ -339,10 +339,10 @@ def query_solicitantes_json():
     if "searchString" in request.form:
         email = safe_email(request.form["searchString"], search_fragment=True)
         if email != "":
-            usuarios = usuarios.filter(Usuario.email.contains(email))
-    usuarios = usuarios.filter(Usuario.estatus == "A")
+            solicitantes = solicitantes.filter(Usuario.email.contains(email))
+    solicitantes = solicitantes.filter(Usuario.estatus == "A")
     resultados = []
-    for usuario in usuarios.order_by(Usuario.email).limit(10).all():
+    for usuario in solicitantes.order_by(Usuario.email).limit(10).all():
         resultados.append({"id": usuario.email, "text": usuario.email})
     return {"results": resultados, "pagination": {"more": False}}
 
@@ -350,7 +350,7 @@ def query_solicitantes_json():
 @fin_vales.route("/fin_vales/autorizantes_json", methods=["POST"])
 def query_autorizantes_json():
     """Proporcionar el JSON de autorizantes para elegir con un Select2"""
-    usuarios = (
+    autorizantes = (
         Usuario.query.select_from(Usuario)
         .join(UsuarioRol)
         .join(Rol)
@@ -361,10 +361,10 @@ def query_autorizantes_json():
     if "searchString" in request.form:
         email = safe_email(request.form["searchString"], search_fragment=True)
         if email != "":
-            usuarios = usuarios.filter(Usuario.email.contains(email))
-    usuarios = usuarios.filter(Usuario.estatus == "A")
+            autorizantes = autorizantes.filter(Usuario.email.contains(email))
+    autorizantes = autorizantes.filter(Usuario.estatus == "A")
     resultados = []
-    for usuario in usuarios.order_by(Usuario.email).limit(10).all():
+    for usuario in autorizantes.order_by(Usuario.email).limit(10).all():
         resultados.append({"id": usuario.email, "text": usuario.email})
     return {"results": resultados, "pagination": {"more": False}}
 
