@@ -6,6 +6,7 @@ import json
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import or_
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
@@ -26,6 +27,25 @@ oficinas = Blueprint("oficinas", __name__, template_folder="templates")
 @permission_required(MODULO, Permiso.VER)
 def before_request():
     """Permiso por defecto"""
+
+
+@oficinas.route("/oficinas/select_json", methods=["POST"])
+def query_oficinas_json():
+    """Proporcionar el JSON de oficinas para elegir con un Select2"""
+    consulta = Oficina.query.filter(Oficina.estatus == "A")
+    if "searchString" in request.form:
+        clave_o_descripcion_corta = safe_string(request.form["searchString"], save_enie=True)
+        if clave_o_descripcion_corta != "":
+            consulta = consulta.filter(
+                or_(
+                    Oficina.clave.contains(clave_o_descripcion_corta),
+                    Oficina.descripcion_corta.contains(clave_o_descripcion_corta),
+                ),
+            )
+    resultados = []
+    for oficina in consulta.order_by(Oficina.clave).limit(20).all():
+        resultados.append({"id": oficina.id, "text": f"{oficina.clave} - {oficina.descripcion_corta}"})
+    return {"results": resultados, "pagination": {"more": False}}
 
 
 @oficinas.route("/oficinas/datatable_json", methods=["GET", "POST"])
