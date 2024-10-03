@@ -45,6 +45,7 @@ class Usuario(database.Model, UserMixin, UniversalMixin):
     efirma_registro_id: Mapped[Optional[int]]
 
     # Hijos
+    arc_documentos_bitacoras: Mapped[List["ArcDocumentoBitacora"]] = relationship(back_populates="usuario")
     bitacoras: Mapped[List["Bitacora"]] = relationship("Bitacora", back_populates="usuario")
     entradas_salidas: Mapped[List["EntradaSalida"]] = relationship("EntradaSalida", back_populates="usuario")
     fin_vales: Mapped[List["FinVale"]] = relationship("FinVale", back_populates="usuario")
