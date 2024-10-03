@@ -9,7 +9,7 @@ from flask_login import current_user, login_required
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_clave, safe_message, safe_string
-from hercules.blueprints.autoridades.forms import AutoridadForm
+from hercules.blueprints.autoridades.forms import AutoridadEditForm, AutoridadNewForm
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.distritos.models import Distrito
@@ -183,7 +183,7 @@ def detail(autoridad_id):
 @permission_required(MODULO, Permiso.CREAR)
 def new():
     """Nueva Autoridad"""
-    form = AutoridadForm()
+    form = AutoridadNewForm()
     if form.validate_on_submit():
         # Validar que la clave no se repita
         clave = safe_clave(form.clave.data)
@@ -193,10 +193,13 @@ def new():
         # Guardar
         autoridad = Autoridad(
             distrito_id=form.distrito.data,
+            materia_id=form.materia.data,
             municipio_id=form.municipio.data,
             clave=clave,
             descripcion=safe_string(form.descripcion.data, save_enie=True),
             descripcion_corta=safe_string(form.descripcion_corta.data, save_enie=True),
+            organo_jurisdiccional=form.organo_jurisdiccional.data,
+            sede=form.sede.data,
             es_archivo_solicitante=form.es_archivo_solicitante.data,
             es_cemasc=form.es_cemasc.data,
             es_defensoria=form.es_defensoria.data,
@@ -224,7 +227,7 @@ def new():
 def edit(autoridad_id):
     """Editar Autoridad"""
     autoridad = Autoridad.query.get_or_404(autoridad_id)
-    form = AutoridadForm()
+    form = AutoridadEditForm()
     if form.validate_on_submit():
         es_valido = True
         # Si cambia la clave verificar que no este en uso
@@ -237,6 +240,7 @@ def edit(autoridad_id):
         # Si es valido actualizar
         if es_valido:
             autoridad.distrito_id = form.distrito.data
+            autoridad.materia_id = form.materia.data
             autoridad.municipio_id = form.municipio.data
             autoridad.clave = clave
             autoridad.descripcion = safe_string(form.descripcion.data, save_enie=True)
@@ -249,6 +253,13 @@ def edit(autoridad_id):
             autoridad.es_notaria = form.es_notaria.data
             autoridad.es_organo_especializado = form.es_organo_especializado.data
             autoridad.es_revisor_escrituras = form.es_revisor_escrituras.data
+            autoridad.organo_jurisdiccional = form.organo_jurisdiccional.data
+            autoridad.sede = form.sede.data
+            autoridad.directorio_edictos = form.directorio_edictos.data
+            autoridad.directorio_glosas = form.directorio_glosas.data
+            autoridad.directorio_listas_de_acuerdos = form.directorio_listas_de_acuerdos.data
+            autoridad.directorio_sentencias = form.directorio_sentencias.data
+            autoridad.limite_dias_listas_de_acuerdos = form.limite_dias_listas_de_acuerdos.data
             autoridad.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -260,6 +271,7 @@ def edit(autoridad_id):
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
     form.distrito.data = autoridad.distrito_id  # Usa id porque es un SelectField
+    form.materia.data = autoridad.materia_id  # Usa id porque es un SelectField
     form.municipio.data = autoridad.municipio_id  # Usa id porque es un SelectField
     form.clave.data = autoridad.clave
     form.descripcion.data = autoridad.descripcion
@@ -272,6 +284,13 @@ def edit(autoridad_id):
     form.es_notaria.data = autoridad.es_notaria
     form.es_organo_especializado.data = autoridad.es_organo_especializado
     form.es_revisor_escrituras.data = autoridad.es_revisor_escrituras
+    form.organo_jurisdiccional.data = autoridad.organo_jurisdiccional
+    form.sede.data = autoridad.sede
+    form.directorio_edictos.data = autoridad.directorio_edictos
+    form.directorio_glosas.data = autoridad.directorio_glosas
+    form.directorio_listas_de_acuerdos.data = autoridad.directorio_listas_de_acuerdos
+    form.directorio_sentencias.data = autoridad.directorio_sentencias
+    form.limite_dias_listas_de_acuerdos.data = autoridad.limite_dias_listas_de_acuerdos
     return render_template("autoridades/edit.jinja2", form=form, autoridad=autoridad)
 
 

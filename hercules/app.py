@@ -8,6 +8,7 @@ from redis import Redis
 
 from config.settings import Settings
 from hercules.blueprints.abogados.views import abogados
+from hercules.blueprints.arc_juzgados_extintos.views import arc_juzgados_extintos
 from hercules.blueprints.audiencias.views import audiencias
 from hercules.blueprints.autoridades.views import autoridades
 from hercules.blueprints.autoridades_funcionarios.views import autoridades_funcionarios
@@ -52,6 +53,9 @@ from hercules.blueprints.repsvm_delitos.views import repsvm_delitos
 from hercules.blueprints.roles.views import roles
 from hercules.blueprints.sentencias.views import sentencias
 from hercules.blueprints.sistemas.views import sistemas
+from hercules.blueprints.soportes_adjuntos.views import soportes_adjuntos
+from hercules.blueprints.soportes_categorias.views import soportes_categorias
+from hercules.blueprints.soportes_tickets.views import soportes_tickets
 from hercules.blueprints.tareas.views import tareas
 from hercules.blueprints.usuarios.models import Usuario
 from hercules.blueprints.usuarios.views import usuarios
@@ -77,6 +81,7 @@ def create_app():
 
     # Registrar blueprints
     app.register_blueprint(abogados)
+    app.register_blueprint(arc_juzgados_extintos)
     app.register_blueprint(audiencias)
     app.register_blueprint(autoridades)
     app.register_blueprint(autoridades_funcionarios)
@@ -121,6 +126,9 @@ def create_app():
     app.register_blueprint(roles)
     app.register_blueprint(sentencias)
     app.register_blueprint(sistemas)
+    app.register_blueprint(soportes_adjuntos)
+    app.register_blueprint(soportes_categorias)
+    app.register_blueprint(soportes_tickets)
     app.register_blueprint(tareas)
     app.register_blueprint(usuarios)
     app.register_blueprint(usuarios_nominas)

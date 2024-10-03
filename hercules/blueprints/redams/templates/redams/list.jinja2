@@ -24,17 +24,17 @@
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosRedams.buscar(); return false;">
                     <div class="col-4">
                         <div class="form-floating">
-                            <input id="filtroExpediente" type="text" class="form-control" aria-label="Expediente" style="text-transform: uppercase;">
-                            <label for="filtroExpediente">Expediente</label>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="form-floating">
                             <input id="filtroNombre" type="text" class="form-control" aria-label="Nombre" style="text-transform: uppercase;">
                             <label for="filtroNombre">Nombre</label>
                         </div>
                     </div>
-                    <div class="col-2 text-end">
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroExpediente" type="text" class="form-control" aria-label="Expediente" style="text-transform: uppercase;">
+                            <label for="filtroExpediente">Expediente</label>
+                        </div>
+                    </div>
+                    <div class="col-6 text-end">
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosRedams.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
                         <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosRedams.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>

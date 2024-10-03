@@ -31,7 +31,7 @@ class UsuarioForm(FlaskForm):
 
     distrito = SelectField("Distrito", choices=None, validate_choice=False)  # Las opciones se agregan con JS
     autoridad = SelectField("Autoridad", choices=None, validate_choice=False)  # Las opciones se agregan con JS
-    oficina = SelectField("Oficina", coerce=int, validators=[DataRequired()])
+    oficina = SelectField("Oficina", coerce=int, validate_choice=False)  # Select2
     email = StringField("e-mail", validators=[DataRequired(), Email()])
     nombres = StringField("Nombres", validators=[DataRequired(), Length(max=256)])
     apellido_paterno = StringField("Apellido primero", validators=[DataRequired(), Length(max=256)])
@@ -39,11 +39,3 @@ class UsuarioForm(FlaskForm):
     curp = StringField("CURP", validators=[Optional(), Length(max=256)])
     puesto = StringField("Puesto", validators=[Optional(), Length(max=256)])
     guardar = SubmitField("Guardar")
-
-    def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de oficina"""
-        super().__init__(*args, **kwargs)
-        self.oficina.choices = [
-            (o.id, o.clave + " - " + o.descripcion_corta)
-            for o in Oficina.query.filter_by(estatus="A").order_by(Oficina.clave).all()
-        ]
