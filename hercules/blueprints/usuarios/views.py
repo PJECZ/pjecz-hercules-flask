@@ -412,8 +412,8 @@ def edit(usuario_id):
                 flash("La e-mail ya está en uso. Debe de ser único.", "warning")
         # Si es valido actualizar
         if es_valido:
-            usuario.autoridad_id = form.autoridad.data  # Es Select2
-            usuario.oficina_id = form.oficina.data  # Es Select2
+            usuario.autoridad_id = form.autoridad.data  # Combo select distrito-autoridad
+            usuario.oficina_id = form.oficina.data  # Select2
             usuario.email = email
             usuario.nombres = safe_string(form.nombres.data, save_enie=True)
             usuario.apellido_paterno = safe_string(form.apellido_paterno.data, save_enie=True)
@@ -430,6 +430,8 @@ def edit(usuario_id):
             bitacora.save()
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
+    # No es necesario pasar autoridad_id porque se va a tomar de usuario con JS
+    # Tampoco es necesario pasar oficina_id porque se va a tomar de usuario con JS
     form.email.data = usuario.email
     form.nombres.data = usuario.nombres
     form.apellido_paterno.data = usuario.apellido_paterno
