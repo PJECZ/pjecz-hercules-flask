@@ -63,7 +63,7 @@ class ArcDocumento(database.Model, UniversalMixin):
     notas: Mapped[Optional[str]] = mapped_column(String(256))
 
     # Hijos
-    # arc_documentos_bitacoras = db.relationship("ArcDocumentoBitacora", back_populates="arc_documento", lazy="noload")
+    arc_documentos_bitacoras: Mapped[List["ArcDocumentoBitacora"]] = relationship(back_populates="arc_documento")
     # arc_solicitudes = db.relationship("ArcSolicitud", back_populates="arc_documento", lazy="noload")
     # arc_remesas_documentos = db.relationship("ArcRemesaDocumento", back_populates="arc_documento", lazy="noload")
 

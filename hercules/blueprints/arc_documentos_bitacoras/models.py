@@ -36,8 +36,8 @@ class ArcDocumentoBitacora(database.Model, UniversalMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     # Clave foránea
-    # arc_documento_id = db.Column(db.Integer, db.ForeignKey("arc_documentos.id"), index=True, nullable=False)
-    # arc_documento = db.relationship("ArcDocumento", back_populates="arc_documentos_bitacoras")
+    arc_documento_id: Mapped[int] = mapped_column(ForeignKey("arc_documentos.id"))
+    arc_documento: Mapped["ArcDocumento"] = relationship(back_populates="arc_documentos_bitacoras")
     usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"))
     usuario: Mapped["Usuario"] = relationship(back_populates="arc_documentos_bitacoras")
 

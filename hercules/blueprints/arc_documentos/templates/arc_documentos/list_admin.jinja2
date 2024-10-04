@@ -22,7 +22,7 @@
             {{ topbar.button('Tipos de Documentos', url_for('arc_documentos_tipos.list_active'), 'mdi:file-code') }}
         {% endif %}
         {% if current_user.can_insert('ARC DOCUMENTOS') %}
-            {# {{ topbar.button_new('Nuevo Documento', url_for('arc_documentos.new')) }} #}
+            {{ topbar.button_new('Nuevo Documento', url_for('arc_documentos.new')) }}
         {% endif %}
     {% endcall %}
 {% endblock %}
@@ -152,7 +152,7 @@
                 targets: 3, // Juicio
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data.length > 16) {
+                    if (data.length < 16) {
                         return data;
                     }
                     return '<span title="' + data + '">' + data.substr(0, 16) + '…' + '</span>';
