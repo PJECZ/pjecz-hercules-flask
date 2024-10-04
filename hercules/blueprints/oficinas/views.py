@@ -29,25 +29,6 @@ def before_request():
     """Permiso por defecto"""
 
 
-@oficinas.route("/oficinas/select_json", methods=["POST"])
-def query_oficinas_json():
-    """Proporcionar el JSON de oficinas para elegir con un Select2"""
-    consulta = Oficina.query.filter(Oficina.estatus == "A")
-    if "searchString" in request.form:
-        clave_o_descripcion_corta = safe_string(request.form["searchString"], save_enie=True)
-        if clave_o_descripcion_corta != "":
-            consulta = consulta.filter(
-                or_(
-                    Oficina.clave.contains(clave_o_descripcion_corta),
-                    Oficina.descripcion_corta.contains(clave_o_descripcion_corta),
-                ),
-            )
-    resultados = []
-    for oficina in consulta.order_by(Oficina.clave).limit(20).all():
-        resultados.append({"id": oficina.id, "text": f"{oficina.clave} - {oficina.descripcion_corta}"})
-    return {"results": resultados, "pagination": {"more": False}}
-
-
 @oficinas.route("/oficinas/datatable_json", methods=["GET", "POST"])
 def datatable_json():
     """DataTable JSON para listado de Oficinas"""
@@ -260,3 +241,22 @@ def recover(oficina_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(url_for("oficinas.detail", oficina_id=oficina.id))
+
+
+@oficinas.route("/oficinas/select_json", methods=["POST"])
+def query_oficinas_json():
+    """Proporcionar el JSON de oficinas para elegir con un Select2"""
+    consulta = Oficina.query.filter(Oficina.estatus == "A")
+    if "searchString" in request.form:
+        clave_o_descripcion_corta = safe_string(request.form["searchString"], save_enie=True)
+        if clave_o_descripcion_corta != "":
+            consulta = consulta.filter(
+                or_(
+                    Oficina.clave.contains(clave_o_descripcion_corta),
+                    Oficina.descripcion_corta.contains(clave_o_descripcion_corta),
+                ),
+            )
+    resultados = []
+    for oficina in consulta.order_by(Oficina.clave).limit(20).all():
+        resultados.append({"id": oficina.id, "text": f"{oficina.clave} - {oficina.descripcion_corta}"})
+    return {"results": resultados, "pagination": {"more": False}}
