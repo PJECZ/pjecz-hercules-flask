@@ -25,7 +25,7 @@
     {% call detail.card(estatus=usuario.estatus) %}
         <div class="row">
             <div class="col-md-6">
-                {{ detail.label_value_big('e-mail', usuario.email) }}
+                {# detail.label_value_big('e-mail', usuario.email) #}
                 {{ detail.label_value('Nombre', usuario.nombre) }}
                 {{ detail.label_value('CURP', usuario.curp) }}
                 {% if current_user.can_view("DISTRITOS") %}
@@ -44,6 +44,8 @@
                     {{ detail.label_value('Oficina', usuario.oficina.clave + ' - ' + usuario.oficina.descripcion_corta) }}
                 {% endif %}
                 {{ detail.label_value('Puesto', usuario.puesto) }}
+                {{ detail.label_value('Workspace', usuario.workspace) }}
+                {{ detail.label_value('ID eFirma', usuario.efirma_registro_id) }}
                 {# detail.label_value('Creado', moment(usuario.creado).format('llll')) #}
             </div>
             <div class="col-md-3">

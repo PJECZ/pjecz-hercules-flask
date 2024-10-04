@@ -3,11 +3,11 @@ Usuarios, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import HiddenField, PasswordField, SelectField, StringField, SubmitField
+from wtforms import HiddenField, IntegerField, PasswordField, SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, Email, Length, Optional, Regexp
 
+from hercules.blueprints.usuarios.models import Usuario
 from lib.safe_string import CONTRASENA_REGEXP
-from hercules.blueprints.oficinas.models import Oficina
 
 CONTRASENA_MENSAJE = "De 8 a 48 caracteres con al menos una mayúscula, una minúscula y un número. No acentos, ni eñe."
 
@@ -36,6 +36,8 @@ class UsuarioForm(FlaskForm):
     nombres = StringField("Nombres", validators=[DataRequired(), Length(max=256)])
     apellido_paterno = StringField("Apellido primero", validators=[DataRequired(), Length(max=256)])
     apellido_materno = StringField("Apellido segundo", validators=[Optional(), Length(max=256)])
-    curp = StringField("CURP", validators=[Optional(), Length(max=256)])
+    curp = StringField("CURP habilita recibos de nómina", validators=[Optional(), Length(max=256)])
     puesto = StringField("Puesto", validators=[Optional(), Length(max=256)])
+    workspace = SelectField("Workspace", choices=Usuario.WORKSPACES.items(), validators=[DataRequired()])
+    efirma_registro_id = IntegerField("ID eFirma habilita firma electrónica", validators=[Optional()])
     guardar = SubmitField("Guardar")

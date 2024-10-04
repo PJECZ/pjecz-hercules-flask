@@ -7,7 +7,7 @@ from typing import List, Optional
 
 from flask import current_app
 from flask_login import UserMixin
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.blueprints.permisos.models import Permiso
@@ -19,6 +19,13 @@ from lib.universal_mixin import UniversalMixin
 
 class Usuario(database.Model, UserMixin, UniversalMixin):
     """Usuario"""
+
+    WORKSPACES = {
+        "BUSINESS STARTED": "Business Started",
+        "BUSINESS STANDARD": "Business Standard",
+        "COAHUILA": "Coahuila",
+        "EXTERNO": "Externo",
+    }
 
     # Nombre de la tabla
     __tablename__ = "usuarios"
@@ -37,12 +44,22 @@ class Usuario(database.Model, UserMixin, UniversalMixin):
     nombres: Mapped[str] = mapped_column(String(256))
     apellido_paterno: Mapped[str] = mapped_column(String(256))
     apellido_materno: Mapped[str] = mapped_column(String(256))
-    curp: Mapped[str] = mapped_column(String(18))
-    puesto: Mapped[str] = mapped_column(String(256))
+    curp: Mapped[str] = mapped_column(String(18), default="")
+    puesto: Mapped[str] = mapped_column(String(256), default="")
+    efirma_registro_id: Mapped[Optional[int]]
+    workspace: Mapped[str] = mapped_column(Enum(*WORKSPACES, name="usuarios_workspaces", native_enum=False), index=True)
+
+    # Columnas que NO aparecen en nuevo o editar porque vienen de otros lugares
+    email_personal: Mapped[str] = mapped_column(String(256), default="")
+    telefono: Mapped[str] = mapped_column(String(48), default="")
+    telefono_celular: Mapped[str] = mapped_column(String(48), default="")
+    extension: Mapped[str] = mapped_column(String(24), default="")
+    fotografia_url: Mapped[str] = mapped_column(String(512), default="")
+
+    # Columnas que NO deben ser expuestas
     api_key: Mapped[Optional[str]] = mapped_column(String(128))
     api_key_expiracion: Mapped[Optional[datetime]]
     contrasena: Mapped[Optional[str]] = mapped_column(String(256))
-    efirma_registro_id: Mapped[Optional[int]]
 
     # Hijos
     bitacoras: Mapped[List["Bitacora"]] = relationship("Bitacora", back_populates="usuario")
