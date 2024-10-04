@@ -362,6 +362,8 @@ def new():
             apellido_materno=safe_string(form.apellido_materno.data, save_enie=True),
             curp=safe_string(form.curp.data),
             puesto=safe_string(form.puesto.data),
+            workspace=form.workspace.data,
+            efirma_registro_id=form.efirma_registro_id.data,
             api_key="",
             api_key_expiracion=datetime(year=2000, month=1, day=1, hour=0, minute=0, second=0),
             contrasena=generar_contrasena(),
@@ -385,6 +387,8 @@ def new():
     oficina_por_defecto = Oficina.query.filter_by(clave="ND").first()
     if oficina_por_defecto is None:
         oficina_por_defecto = None
+    # Valores por defecto
+    form.workspace.data = "COAHUILA"
     # Entregar
     return render_template(
         "usuarios/new.jinja2",
@@ -420,6 +424,8 @@ def edit(usuario_id):
             usuario.apellido_materno = safe_string(form.apellido_materno.data, save_enie=True)
             usuario.curp = safe_string(form.curp.data)
             usuario.puesto = safe_string(form.puesto.data)
+            usuario.workspace = form.workspace.data
+            usuario.efirma_registro_id = form.efirma_registro_id.data
             usuario.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -438,6 +444,8 @@ def edit(usuario_id):
     form.apellido_materno.data = usuario.apellido_materno
     form.curp.data = usuario.curp
     form.puesto.data = usuario.puesto
+    form.workspace.data = usuario.workspace
+    form.efirma_registro_id.data = usuario.efirma_registro_id
     return render_template("usuarios/edit.jinja2", form=form, usuario=usuario)
 
 
