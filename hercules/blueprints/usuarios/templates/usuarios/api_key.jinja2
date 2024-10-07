@@ -11,10 +11,10 @@
 {% endblock %}
 
 {% block content %}
-    {% call detail.card(title='Usuario') %}
-        {{ detail.label_value('Nombre', usuario.nombre) }}
-        {{ detail.label_value('Puesto', usuario.puesto) }}
-    {% endcall %}
+    {# call detail.card(title='Usuario') #}
+        {# detail.label_value('Nombre', usuario.nombre) #}
+        {# detail.label_value('Puesto', usuario.puesto) #}
+    {# endcall #}
     {% call detail.card(title='API Key') %}
         <form onsubmit="preventFormSubmit()">
             <div class="mb-3">

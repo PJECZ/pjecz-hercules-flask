@@ -18,6 +18,7 @@ from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.distritos.models import Distrito
 from hercules.blueprints.entradas_salidas.models import EntradaSalida
 from hercules.blueprints.modulos.models import Modulo
+from hercules.blueprints.oficinas.models import Oficina
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import anonymous_required, permission_required
 from hercules.blueprints.usuarios.forms import AccesoForm, UsuarioForm
@@ -352,15 +353,17 @@ def new():
             flash("El e-mail ya está en uso. Debe de ser único.", "warning")
             return render_template("usuarios/new.jinja2", form=form)
         # Guadar
-        autoridad = Autoridad.query.get_or_404(form.autoridad.data)
         usuario = Usuario(
-            autoridad=autoridad,
+            autoridad_id=form.autoridad.data,
+            oficina_id=form.oficina.data,
             email=email,
             nombres=safe_string(form.nombres.data, save_enie=True),
             apellido_paterno=safe_string(form.apellido_paterno.data, save_enie=True),
             apellido_materno=safe_string(form.apellido_materno.data, save_enie=True),
             curp=safe_string(form.curp.data),
             puesto=safe_string(form.puesto.data),
+            workspace=form.workspace.data,
+            efirma_registro_id=form.efirma_registro_id.data,
             api_key="",
             api_key_expiracion=datetime(year=2000, month=1, day=1, hour=0, minute=0, second=0),
             contrasena=generar_contrasena(),
@@ -375,13 +378,24 @@ def new():
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    # Consultar el distrito por defecto
+    # Consultar el distrito por defecto con clave ND
     distrito_por_defecto_id = 1
     distrito_por_defecto = Distrito.query.filter_by(clave="ND").first()
     if distrito_por_defecto is not None:
         distrito_por_defecto_id = distrito_por_defecto.id
+    # Consultar la oficina por defecto con clave ND
+    oficina_por_defecto = Oficina.query.filter_by(clave="ND").first()
+    if oficina_por_defecto is None:
+        oficina_por_defecto = None
+    # Valores por defecto
+    form.workspace.data = "COAHUILA"
     # Entregar
-    return render_template("usuarios/new.jinja2", form=form, distrito_por_defecto_id=distrito_por_defecto_id)
+    return render_template(
+        "usuarios/new.jinja2",
+        form=form,
+        distrito_por_defecto_id=distrito_por_defecto_id,
+        oficina_por_defecto=oficina_por_defecto,
+    )
 
 
 @usuarios.route("/usuarios/edicion/<int:usuario_id>", methods=["GET", "POST"])
@@ -402,14 +416,16 @@ def edit(usuario_id):
                 flash("La e-mail ya está en uso. Debe de ser único.", "warning")
         # Si es valido actualizar
         if es_valido:
-            autoridad = Autoridad.query.get_or_404(form.autoridad.data)
-            usuario.autoridad = autoridad
+            usuario.autoridad_id = form.autoridad.data  # Combo select distrito-autoridad
+            usuario.oficina_id = form.oficina.data  # Select2
             usuario.email = email
             usuario.nombres = safe_string(form.nombres.data, save_enie=True)
             usuario.apellido_paterno = safe_string(form.apellido_paterno.data, save_enie=True)
             usuario.apellido_materno = safe_string(form.apellido_materno.data, save_enie=True)
             usuario.curp = safe_string(form.curp.data)
             usuario.puesto = safe_string(form.puesto.data)
+            usuario.workspace = form.workspace.data
+            usuario.efirma_registro_id = form.efirma_registro_id.data
             usuario.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -420,12 +436,16 @@ def edit(usuario_id):
             bitacora.save()
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
+    # No es necesario pasar autoridad_id porque se va a tomar de usuario con JS
+    # Tampoco es necesario pasar oficina_id porque se va a tomar de usuario con JS
     form.email.data = usuario.email
     form.nombres.data = usuario.nombres
     form.apellido_paterno.data = usuario.apellido_paterno
     form.apellido_materno.data = usuario.apellido_materno
     form.curp.data = usuario.curp
     form.puesto.data = usuario.puesto
+    form.workspace.data = usuario.workspace
+    form.efirma_registro_id.data = usuario.efirma_registro_id
     return render_template("usuarios/edit.jinja2", form=form, usuario=usuario)
 
 

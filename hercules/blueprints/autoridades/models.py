@@ -31,6 +31,18 @@ class Autoridad(database.Model, UniversalMixin):
         "TRIBUNAL DE CONCILIACION Y ARBITRAJE": "Tribunal de Conciliación y Arbitraje",
     }
 
+    SEDES = {
+        "ND": "ND",
+        "DACN": "DACN",
+        "DMNC": "DMNC",
+        "DPRR": "DPRR",
+        "DRGR": "DRGR",
+        "DSBN": "DSBN",
+        "DSLT": "DSLT",
+        "DSPD": "DSPD",
+        "DTRC": "DTRC",
+    }
+
     # Nombre de la tabla
     __tablename__ = "autoridades"
 
@@ -69,6 +81,9 @@ class Autoridad(database.Model, UniversalMixin):
         Enum(*AUDIENCIAS_CATEGORIAS, name="autoridades_audiencias_categorias", native_enum=False), index=True
     )
     limite_dias_listas_de_acuerdos: Mapped[int] = mapped_column(default=0)
+    sede: Mapped[str] = mapped_column(
+        Enum(*SEDES, name="autoridades_sedes", native_enum=False), index=True
+    )  # Clave del distrito judicial geografico
 
     # Hijos
     arc_documentos: Mapped[List["ArcDocumento"]] = relationship(back_populates="autoridad")
