@@ -23,6 +23,7 @@ from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.arc_documentos_bitacoras.models import ArcDocumentoBitacora
 from hercules.blueprints.arc_documentos_tipos.models import ArcDocumentoTipo
 from hercules.blueprints.arc_juzgados_extintos.models import ArcJuzgadoExtinto
+from hercules.blueprints.arc_solicitudes.models import ArcSolicitud
 
 
 from hercules.blueprints.arc_documentos.forms import (

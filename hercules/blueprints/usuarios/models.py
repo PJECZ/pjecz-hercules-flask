@@ -63,6 +63,10 @@ class Usuario(database.Model, UserMixin, UniversalMixin):
 
     # Hijos
     arc_documentos_bitacoras: Mapped[List["ArcDocumentoBitacora"]] = relationship(back_populates="usuario")
+    arc_solicitudes_asignado: Mapped[List["ArcSolicitud"]] = relationship(back_populates="usuario_asignado")
+    arc_solicitudes_bitacoras: Mapped[List["ArcSolicitudBitacora"]] = relationship(back_populates="usuario")
+    # arc_remesas = db.relationship("ArcRemesa", back_populates="usuario_asignado", lazy="noload")
+    # arc_remesas_bitacoras = db.relationship("ArcRemesaBitacora", back_populates="usuario", lazy="noload")
     bitacoras: Mapped[List["Bitacora"]] = relationship("Bitacora", back_populates="usuario")
     entradas_salidas: Mapped[List["EntradaSalida"]] = relationship("EntradaSalida", back_populates="usuario")
     fin_vales: Mapped[List["FinVale"]] = relationship("FinVale", back_populates="usuario")

@@ -64,7 +64,7 @@ class ArcDocumento(database.Model, UniversalMixin):
 
     # Hijos
     arc_documentos_bitacoras: Mapped[List["ArcDocumentoBitacora"]] = relationship(back_populates="arc_documento")
-    # arc_solicitudes = db.relationship("ArcSolicitud", back_populates="arc_documento", lazy="noload")
+    arc_solicitudes: Mapped[List["ArcSolicitud"]] = relationship(back_populates="arc_documento")
     # arc_remesas_documentos = db.relationship("ArcRemesaDocumento", back_populates="arc_documento", lazy="noload")
 
     def __repr__(self):

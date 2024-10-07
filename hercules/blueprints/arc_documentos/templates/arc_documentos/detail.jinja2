@@ -13,7 +13,7 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons('Expediente - ' + documento.id | string ) %}
-        {# {{ topbar.button_previous('Archivo', url_for('arc_archivos.list_active')) }} #}
+        {{ topbar.button_previous('Archivo', url_for('arc_archivos.list_active')) }}
         {{ topbar.button_previous('Expedientes', url_for('arc_documentos.list_active')) }}
         {% if mostrar_secciones['boton_eliminar'] %}
             {% if documento.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('arc_documentos.delete', arc_documento_id=documento.id)) }}{% endif %}
@@ -23,7 +23,7 @@
             {{ topbar.button_edit('Editar', url_for('arc_documentos.edit', arc_documento_id=documento.id)) }}
         {% endif %}
         {% if mostrar_secciones['boton_solicitar'] %}
-            {# {{ topbar.button_new('Solicitar', url_for('arc_solicitudes.new', documento_id=documento.id)) }} #}
+            {{ topbar.button_new('Solicitar', url_for('arc_solicitudes.new', documento_id=documento.id)) }}
         {% endif %}
         {% if current_user.can_insert('ARC SOLICITUDES') and documento.ubicacion == 'JUZGADO' %}
             {# {{ topbar.button_new('Añadir a Remesa', url_for('arc_remesas.add_document', documento_id=documento.id)) }} #}
@@ -321,8 +321,8 @@
         ];
         
         // Creación del Objeto manejador TODO:
-        /*const datatable_solicitudes = new FiltrosDataTable('#arc_solicitudes_datatable', configDataTable_solicitudes);
-        datatable_solicitudes.precargar();*/
+        const datatable_solicitudes = new FiltrosDataTable('#arc_solicitudes_datatable', configDataTable_solicitudes);
+        datatable_solicitudes.precargar();
     </script>
     <!-- DataTable para Historial de Remesas -->
     <script>
