@@ -26,8 +26,8 @@ class ArcDocumentoNewArchivoForm(FlaskForm):
     juicio = StringField("Juicio", validators=[Optional(), Length(max=128)])
     juzgados_origen = StringField("Instancias de Origen")
     tipo = SelectField("Tipo de Documento", coerce=int, validate_choice=False, validators=[DataRequired()])
-    ubicacion = SelectField("Ubicación", choices=ArcDocumento.UBICACIONES, validators=[DataRequired()])
-    tipo_juzgado = SelectField("Tipo de Instancia", choices=ArcDocumento.TIPO_JUZGADOS, validators=[DataRequired()])
+    ubicacion = SelectField("Ubicación", choices=ArcDocumento.UBICACIONES.items(), validators=[DataRequired()])
+    tipo_juzgado = SelectField("Tipo de Instancia", choices=ArcDocumento.TIPO_JUZGADOS.items(), validators=[DataRequired()])
     # Campos opcionales para la bitácora o historial
     fojas = IntegerField("Fojas", validators=[DataRequired()])
     notas = TextAreaField("Notas", validators=[Optional(), Length(max=256)])
@@ -48,7 +48,7 @@ class ArcDocumentoNewSolicitanteForm(FlaskForm):
     juzgados_origen = StringField("Instancias de Origen")
     tipo = SelectField("Tipo de Documento", coerce=int, validate_choice=False, validators=[DataRequired()])
     ubicacion_readonly = StringField("Ubicación")
-    tipo_juzgado = SelectField("Tipo de Instancia", choices=ArcDocumento.TIPO_JUZGADOS, validators=[DataRequired()])
+    tipo_juzgado = SelectField("Tipo de Instancia", choices=ArcDocumento.TIPO_JUZGADOS.items(), validators=[DataRequired()])
     # Campos opcionales para la bitácora o historial
     fojas = IntegerField("Fojas", validators=[DataRequired()])
     notas = TextAreaField("Notas", validators=[Optional(), Length(max=256)])
@@ -69,7 +69,7 @@ class ArcDocumentoNewNoUbicacionForm(FlaskForm):
     juzgados_origen = StringField("Instancias de Origen")
     tipo = SelectField("Tipo de Documento", coerce=int, validate_choice=False, validators=[DataRequired()])
     ubicacion_readonly = StringField("Ubicación")
-    tipo_juzgado = SelectField("Tipo de Instancia", choices=ArcDocumento.TIPO_JUZGADOS, validators=[DataRequired()])
+    tipo_juzgado = SelectField("Tipo de Instancia", choices=ArcDocumento.TIPO_JUZGADOS.items(), validators=[DataRequired()])
     # Campos opcionales para la bitácora o historial
     fojas = IntegerField("Fojas", validators=[DataRequired()])
     notas = TextAreaField("Notas", validators=[Optional(), Length(max=256)])
@@ -89,8 +89,8 @@ class ArcDocumentoEditArchivoForm(FlaskForm):
     juicio = StringField("Juicio", validators=[Optional(), Length(max=128)])
     juzgados_origen = StringField("Instancias de Origen")
     tipo = SelectField("Tipo de Documento", coerce=int, validate_choice=False, validators=[DataRequired()])
-    ubicacion = SelectField("Ubicación", choices=ArcDocumento.UBICACIONES, validators=[DataRequired()])
-    tipo_juzgado = SelectField("Tipo de Instancia", choices=ArcDocumento.TIPO_JUZGADOS, validators=[DataRequired()])
+    ubicacion = SelectField("Ubicación", choices=ArcDocumento.UBICACIONES.items(), validators=[DataRequired()])
+    tipo_juzgado = SelectField("Tipo de Instancia", choices=ArcDocumento.TIPO_JUZGADOS.items(), validators=[DataRequired()])
     # Campos opcionales para la bitácora o historial
     fojas = IntegerField("Fojas", validators=[DataRequired()])
     notas = TextAreaField("Notas", validators=[Optional(), Length(max=256)])
@@ -112,7 +112,7 @@ class ArcDocumentoEditSolicitanteForm(FlaskForm):
     juzgados_origen = StringField("Instancias de Origen")
     tipo = SelectField("Tipo de Documento", coerce=int, validate_choice=False, validators=[DataRequired()])
     ubicacion_readonly = StringField("Ubicación")
-    tipo_juzgado = SelectField("Tipo de Instancia", choices=ArcDocumento.TIPO_JUZGADOS, validators=[DataRequired()])
+    tipo_juzgado = SelectField("Tipo de Instancia", choices=ArcDocumento.TIPO_JUZGADOS.items(), validators=[DataRequired()])
     # Campos opcionales para la bitácora o historial
     fojas = IntegerField("Fojas", validators=[DataRequired()])
     notas = TextAreaField("Notas", validators=[Optional(), Length(max=256)])
@@ -134,7 +134,7 @@ class ArcDocumentoEditNoUbicacionForm(FlaskForm):
     juzgados_origen = StringField("Instancias de Origen")
     tipo = SelectField("Tipo de Documento", coerce=int, validate_choice=False, validators=[DataRequired()])
     ubicacion_readonly = StringField("Ubicación")
-    tipo_juzgado = SelectField("Tipo de Instancia", choices=ArcDocumento.TIPO_JUZGADOS, validators=[DataRequired()])
+    tipo_juzgado = SelectField("Tipo de Instancia", choices=ArcDocumento.TIPO_JUZGADOS.items(), validators=[DataRequired()])
     # Campos opcionales para la bitácora o historial
     fojas = IntegerField("Fojas", validators=[DataRequired()])
     notas = TextAreaField("Notas", validators=[Optional(), Length(max=256)])

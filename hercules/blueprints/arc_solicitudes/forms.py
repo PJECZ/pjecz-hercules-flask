@@ -42,6 +42,6 @@ class ArcSolicitudFoundForm(FlaskForm):
     observaciones = TextAreaField("Observaciones", validators=[Optional(), Length(max=256)])
     encontrado = SubmitField("Encontrado")
     # Formulario de No Encontrado
-    razon = SelectField("Razón", choices=ArcSolicitud.RAZONES, validators=[Optional()])
+    razon = SelectField("Razón", choices=ArcSolicitud.RAZONES.items(), validators=[Optional()])
     observaciones = TextAreaField("Observaciones", validators=[Optional(), Length(max=256)])
     no_encontrado = SubmitField("NO Encontrado")
