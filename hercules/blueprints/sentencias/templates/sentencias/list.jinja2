@@ -26,6 +26,12 @@
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosSentencias.buscar(); return false;">
                     <div class="col-2">
                         <div class="form-floating">
+                            <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad clave" style="text-transform: uppercase;">
+                            <label for="filtroAutoridadClave">Autoridad clave</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
                             <input id="filtroFechaDesde" type="date" class="form-control" aria-label="Fecha Desde">
                             <label for="filtroFechaDesde">Fecha Desde</label>
                         </div>
@@ -46,12 +52,6 @@
                         <div class="form-floating">
                             <input id="filtroExpediente" type="text" class="form-control" aria-label="Expediente" style="text-transform: uppercase;">
                             <label for="filtroExpediente">Expediente</label>
-                        </div>
-                    </div>
-                    <div class="col-2">
-                        <div class="form-floating">
-                            <input id="filtroTipoJuicio" type="text" class="form-control" aria-label="Tipo de juicio" style="text-transform: uppercase;">
-                            <label for="filtroTipoJuicio">Tipo de Juicio</label>
                         </div>
                     </div>
                     <div class="col-2 text-end">
@@ -126,11 +126,11 @@
         ];
         // Filtros Sentencias
         const filtrosSentencias = new FiltrosDataTable('#sentencias_datatable', configDTSentencias);
+        filtrosSentencias.agregarInput('filtroAutoridadClave', 'autoridad_clave');
         filtrosSentencias.agregarInput('filtroFechaDesde', 'fecha_desde');
         filtrosSentencias.agregarInput('filtroFechaHasta', 'fecha_hasta');
         filtrosSentencias.agregarInput('filtroSentencia', 'sentencia');
         filtrosSentencias.agregarInput('filtroExpediente', 'expediente');
-        filtrosSentencias.agregarInput('filtroTipoJuicio', 'tipo_juicio');
         filtrosSentencias.precargar();
     </script>
 {% endblock %}

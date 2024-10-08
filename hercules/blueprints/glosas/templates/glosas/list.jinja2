@@ -25,6 +25,12 @@
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDTGlosas.buscar(); return false;">
                     <div class="col-2">
                         <div class="form-floating">
+                            <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad clave" style="text-transform: uppercase;">
+                            <label for="filtroAutoridadClave">Autoridad clave</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
                             <input id="filtroFechaDesde" type="date" class="form-control" aria-label="Fecha Desde">
                             <label for="filtroFechaDesde">Fecha Desde</label>
                         </div>
@@ -47,7 +53,7 @@
                             <label for="filtroExpediente">Expediente</label>
                         </div>
                     </div>
-                    <div class="col-4 text-end">
+                    <div class="col-2 text-end">
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDTGlosas.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
                         <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDTGlosas.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
@@ -109,10 +115,11 @@
         ];
         // Filtros Glosa
         const filtrosDTGlosas = new FiltrosDataTable('#glosas_datatable', configDTGlosas);
-        filtrosDTGlosas.agregarInput('filtroDescripcion', 'descripcion');
-        filtrosDTGlosas.agregarInput('filtroExpediente', 'expediente');
+        filtrosDTGlosas.agregarInput('filtroAutoridadClave', 'autoridad_clave');
         filtrosDTGlosas.agregarInput('filtroFechaDesde', 'fecha_desde');
         filtrosDTGlosas.agregarInput('filtroFechaHasta', 'fecha_hasta');
+        filtrosDTGlosas.agregarInput('filtroDescripcion', 'descripcion');
+        filtrosDTGlosas.agregarInput('filtroExpediente', 'expediente');
         filtrosDTGlosas.precargar();
     </script>
 {% endblock %}

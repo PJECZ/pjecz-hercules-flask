@@ -81,7 +81,7 @@ def datatable_json():
     if "expediente" in request.form:
         try:
             expediente = safe_expediente(request.form["expediente"])
-            consulta = consulta.filter_by(expediente=expediente)
+            consulta = consulta.filter(Glosa.expediente == expediente)
         except (IndexError, ValueError):
             pass
 
@@ -152,7 +152,7 @@ def admin_datatable_json():
     if "expediente" in request.form:
         try:
             expediente = safe_expediente(request.form["expediente"])
-            consulta = consulta.filter_by(expediente=expediente)
+            consulta = consulta.filter(Glosa.expediente == expediente)
         except (IndexError, ValueError):
             pass
 
@@ -229,7 +229,7 @@ def list_active():
 
     # Si es administrador
     if titulo is None and current_user.can_admin(MODULO):
-        titulo = "Todos las Glosas"
+        titulo = "Todas las Glosas"
         filtros = {"estatus": "A"}
 
     # Si puede editar o crear, solo ve lo de su autoridad

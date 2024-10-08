@@ -49,6 +49,28 @@
             </div>
         </div>
     {% endcall %}
+    <div class="row">
+        <div class="col-md-3">
+            {% call detail.card(title='Agenda de audiencias') %}
+                <div style="height: 150px"></div>
+            {% endcall %}
+        </div>
+        <div class="col-md-3">
+            {% call detail.card(title='Edictos') %}
+                <div style="height: 150px"></div>
+            {% endcall %}
+        </div>
+        <div class="col-md-3">
+            {% call detail.card(title='Listas de acuerdos') %}
+                <div style="height: 150px"></div>
+            {% endcall %}
+        </div>
+        <div class="col-md-3">
+            {% call detail.card(title='V.P. de Sentencias') %}
+                <div style="height: 150px"></div>
+            {% endcall %}
+        </div>
+    </div>
     {% if current_user.can_view('USUARIOS') %}
         {% call detail.card('Usuarios') %}
             <!-- Filtros usuarios -->

@@ -5,7 +5,6 @@ Edictos, vistas
 import json
 import re
 from datetime import date, datetime, timedelta
-from urllib.parse import quote
 
 from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
@@ -22,7 +21,6 @@ from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.exceptions import (
-    MyAnyError,
     MyBucketNotFoundError,
     MyFilenameError,
     MyFileNotFoundError,
@@ -93,13 +91,13 @@ def datatable_json():
     if "expediente" in request.form:
         try:
             expediente = safe_expediente(request.form["expediente"])
-            consulta = consulta.filter_by(expediente=expediente)
+            consulta = consulta.filter(Edicto.expediente == expediente)
         except (IndexError, ValueError):
             pass
     if "numero_publicacion" in request.form:
         try:
             numero_publicacion = safe_numero_publicacion(request.form["numero_publicacion"])
-            consulta = consulta.filter_by(numero_publicacion=numero_publicacion)
+            consulta = consulta.filter(Edicto.numero_publicacion == numero_publicacion)
         except (IndexError, ValueError):
             pass
 
@@ -172,13 +170,13 @@ def admin_datatable_json():
     if "expediente" in request.form:
         try:
             expediente = safe_expediente(request.form["expediente"])
-            consulta = consulta.filter_by(expediente=expediente)
+            consulta = consulta.filter(Edicto.expediente == expediente)
         except (IndexError, ValueError):
             pass
     if "numero_publicacion" in request.form:
         try:
             numero_publicacion = safe_numero_publicacion(request.form["numero_publicacion"])
-            consulta = consulta.filter_by(numero_publicacion=numero_publicacion)
+            consulta = consulta.filter(Edicto.numero_publicacion == numero_publicacion)
         except (IndexError, ValueError):
             pass
 

@@ -22,7 +22,13 @@
         <!-- Filtros Edictos -->
         <div class="row">
             <div class="col">
-                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosEdictos.buscar(); return false;">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDTEdictos.buscar(); return false;">
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad clave" style="text-transform: uppercase;">
+                            <label for="filtroAutoridadClave">Autoridad clave</label>
+                        </div>
+                    </div>
                     <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroFechaDesde" type="date" class="form-control" aria-label="Fecha Desde">
@@ -47,9 +53,9 @@
                             <label for="filtroExpediente">Expediente</label>
                         </div>
                     </div>
-                    <div class="col-4 text-end">
-                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosEdictos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
-                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosEdictos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                    <div class="col-2 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDTEdictos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDTEdictos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
                 </form>
             </div>
@@ -76,10 +82,10 @@
     <script>
         // DataTable Edictos
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
-        let configDataTable = constructorDataTable.config();
-        configDataTable['ajax']['url'] = '/edictos/datatable_json';
-        configDataTable['ajax']['data'] = {{ filtros }};
-        configDataTable['columns'] = [
+        let configDTEdictos = constructorDataTable.config();
+        configDTEdictos['ajax']['url'] = '/edictos/datatable_json';
+        configDTEdictos['ajax']['data'] = {{ filtros }};
+        configDTEdictos['columns'] = [
             { data: "fecha" },
             { data: "autoridad_clave" },
             { data: "detalle" },
@@ -87,7 +93,7 @@
             { data: "numero_publicacion" },
             { data: "creado" }
         ];
-        configDataTable['columnDefs'] = [
+        configDTEdictos['columnDefs'] = [
             {
                 targets: 0, // fecha
                 type: "date",
@@ -108,11 +114,12 @@
             }
         ];
         // Filtros Edictos
-        const filtrosEdictos = new FiltrosDataTable('#edictos_datatable', configDataTable);
-        filtrosEdictos.agregarInput('filtroFechaDesde', 'fecha_desde');
-        filtrosEdictos.agregarInput('filtroFechaHasta', 'fecha_hasta');
-        filtrosEdictos.agregarInput('filtroDescripcion', 'descripcion');
-        filtrosEdictos.agregarInput('filtroExpediente', 'expediente');
-        filtrosEdictos.precargar();
+        const filtrosDTEdictos = new FiltrosDataTable('#edictos_datatable', configDTEdictos);
+        filtrosDTEdictos.agregarInput('filtroAutoridadClave', 'autoridad_clave');
+        filtrosDTEdictos.agregarInput('filtroFechaDesde', 'fecha_desde');
+        filtrosDTEdictos.agregarInput('filtroFechaHasta', 'fecha_hasta');
+        filtrosDTEdictos.agregarInput('filtroDescripcion', 'descripcion');
+        filtrosDTEdictos.agregarInput('filtroExpediente', 'expediente');
+        filtrosDTEdictos.precargar();
     </script>
 {% endblock %}

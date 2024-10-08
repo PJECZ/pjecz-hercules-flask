@@ -74,11 +74,11 @@ def datatable_json():
 
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
-        consulta = consulta.filter_by(estatus=request.form["estatus"])
+        consulta = consulta.filter(ListaDeAcuerdo.estatus == request.form["estatus"])
     else:
-        consulta = consulta.filter_by(estatus="A")
+        consulta = consulta.filter(ListaDeAcuerdo.estatus == "A")
     if "autoridad_id" in request.form:
-        consulta = consulta.filter_by(autoridad_id=request.form["autoridad_id"])
+        consulta = consulta.filter(ListaDeAcuerdo.autoridad_id == request.form["autoridad_id"])
     elif "autoridad_clave" in request.form:
         autoridad_clave = safe_clave(request.form["autoridad_clave"])
         if autoridad_clave != "":
@@ -155,7 +155,7 @@ def admin_datatable_json():
     else:
         consulta = consulta.filter(ListaDeAcuerdo.estatus == "A")
     if "autoridad_id" in request.form:
-        consulta = consulta.filter_by(autoridad_id=request.form["autoridad_id"])
+        consulta = consulta.filter(ListaDeAcuerdo.autoridad_id == request.form["autoridad_id"])
     elif "autoridad_clave" in request.form:
         autoridad_clave = safe_clave(request.form["autoridad_clave"])
         if autoridad_clave != "":
