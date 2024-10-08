@@ -15,6 +15,7 @@ from hercules.blueprints.arc_documentos_tipos.views import arc_documentos_tipos
 from hercules.blueprints.arc_juzgados_extintos.views import arc_juzgados_extintos
 from hercules.blueprints.arc_remesas.views import arc_remesas
 from hercules.blueprints.arc_remesas_bitacoras.views import arc_remesas_bitacoras
+from hercules.blueprints.arc_remesas_documentos.views import arc_remesas_documentos
 from hercules.blueprints.arc_solicitudes.views import arc_solicitudes
 from hercules.blueprints.arc_solicitudes_bitacoras.views import arc_solicitudes_bitacoras
 from hercules.blueprints.audiencias.views import audiencias
@@ -93,6 +94,7 @@ def create_app():
     app.register_blueprint(arc_juzgados_extintos)
     app.register_blueprint(arc_remesas)
     app.register_blueprint(arc_remesas_bitacoras)
+    app.register_blueprint(arc_remesas_documentos)
     app.register_blueprint(arc_solicitudes)
     app.register_blueprint(arc_solicitudes_bitacoras)
     app.register_blueprint(audiencias)
