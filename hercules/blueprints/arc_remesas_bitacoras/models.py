@@ -36,8 +36,8 @@ class ArcRemesaBitacora(database.Model, UniversalMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     # Clave foránea
-    # arc_remesa_id = db.Column(db.Integer, db.ForeignKey("arc_remesas.id"), index=True, nullable=False)
-    # arc_remesa = db.relationship("ArcRemesa", back_populates="arc_remesas_bitacoras")
+    arc_remesa_id: Mapped[int] = mapped_column(ForeignKey("arc_remesas.id"))
+    arc_remesa: Mapped["ArcRemesa"] = relationship(back_populates="arc_remesas_bitacoras")
     usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"))
     usuario: Mapped["Usuario"] = relationship(back_populates="arc_remesas_bitacoras")
 

@@ -18,7 +18,7 @@ from hercules.blueprints.usuarios.decorators import permission_required
 
 from hercules.blueprints.arc_solicitudes.models import ArcSolicitud
 
-# from hercules.blueprints.arc_remesas.models import ArcRemesa
+from hercules.blueprints.arc_remesas.models import ArcRemesa
 from hercules.blueprints.distritos.models import Distrito
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.usuarios.models import Usuario
