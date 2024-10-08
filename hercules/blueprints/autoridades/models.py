@@ -78,6 +78,7 @@ class Autoridad(database.Model, UniversalMixin):
     redam: Mapped[List["Redam"]] = relationship("Redam", back_populates="autoridad")
     sentencias: Mapped[List["Sentencia"]] = relationship(back_populates="autoridad")
     usuarios: Mapped[List["Usuario"]] = relationship("Usuario", back_populates="autoridad")
+    req_requisiciones : Mapped[List["ReqRequisicion"]] = relationship("ReqRequisicion", back_populates="autoridad")
 
     def __repr__(self):
         """Representación"""

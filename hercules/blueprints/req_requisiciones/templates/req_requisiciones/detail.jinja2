@@ -1,0 +1,192 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Requisiciones{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(req_requisicion.observaciones) %}
+        {{ topbar.button_previous('Requisiciones', url_for('req_requisiciones.list_active')) }}
+        {% if req_requisicion.estado in ['CREADO', 'SOLICITADO', 'CANCELADO POR SOLICITANTE', 'AUTORIZADO', 'CANCELADO POR AUTORIZANTE', 'REVISADO', 'CANCELADO POR REVISANTE'] %}
+            {{ topbar.button_print('Imprimir', url_for('req_requisiciones.detail_print', req_requisicion_id=req_requisicion.id)) }}
+        {% endif %}
+        {% if req_requisicion.solicito_email  %}
+            
+        {% endif %}
+        {% if req_requisicion.estado == "CREADO" %}
+            {{ topbar.button('Solicitar', url_for('req_requisiciones.step_2_request', req_requisicion_id=req_requisicion.id), 'mdi:check') }}
+        {% endif %}
+        {% if req_requisicion.estado == "SOLICITADO" and req_requisicion.estatus == 'A' %}
+            {{ topbar.button_authorize('Autorizar', url_for('req_requisiciones.step_3_authorize', req_requisicion_id=req_requisicion.id)) }}
+             {{ topbar.button('Cancelar solicitado', url_for('req_requisiciones.cancel_2_request', req_requisicion_id=req_requisicion.id), 'mdi:close') }}
+        {% endif %}
+        {% if req_requisicion.estado == "AUTORIZADO"  and req_requisicion.estatus == 'A' %}
+            {{ topbar.button_review('Revisar', url_for('req_requisiciones.step_4_review', req_requisicion_id=req_requisicion.id)) }}
+            {{ topbar.button_delete('Cancelar Autorizado', url_for('req_requisiciones.cancel_2_request', req_requisicion_id=req_requisicion.id)) }}
+        {% endif %}
+        {% if current_user.can_edit('REQ REQUISICIONES') %}
+            {% if req_requisicion.estatus == 'A' %}
+                {{ topbar.button_delete('Eliminar', url_for('req_requisiciones.delete', req_requisicion_id=req_requisicion.id)) }}
+            {% endif %}
+            {% if req_requisicion.estatus == 'B' %}
+                {{ topbar.button_recover('Recuperar', url_for('req_requisiciones.recover', req_requisicion_id=req_requisicion.id)) }}
+            {% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+
+{% block content %}
+    {% if req_requisicion.estado in ['CREADO', 'SOLICITADO', 'CANCELADO POR SOLICITANTE', 'AUTORIZADO', 'CANCELADO POR AUTORIZANTE', 'REVISADO', 'CANCELADO POR REVISANTE'] %}
+        {% call detail.card(title='Usuario', estatus=req_requisicion.estatus) %}
+            {{ detail.label_value('Nombre', usuario.nombres) }}
+            {{ detail.label_value('Puesto', usuario.puesto) }}
+            {{ detail.label_value('e-mail', usuario.email) }}
+            {{ detail.label_value('Oficina', usuario.oficina.clave + ': ' + usuario.oficina.descripcion) }}
+            {{ detail.label_value('Tiempo', moment(req_requisicion.creado).format('llll')) }}
+            {{ detail.label_value('Link de firma electronica' ,req_requisicion.solicito_efirma_url )}}
+        {% endcall %}
+    {% endif %}
+
+    {% if req_requisicion.estado in ['SOLICITADO', 'CANCELADO POR SOLICITANTE', 'AUTORIZADO', 'CANCELADO POR AUTORIZANTE', 'ENTREGADO','REVISADO', 'CANCELADO POR REVISANTE',] %}
+        {% call detail.card(title='Solicitado', estatus=req_requisicion.estatus) %}
+            {{ detail.label_value('Nombre', req_requisicion.solicito_nombre) }}
+            {{ detail.label_value('Puesto', req_requisicion.solicito_puesto) }}
+            {{ detail.label_value('e-mail', req_requisicion.solicito_email) }}
+            {{ detail.label_value('Tiempo', moment(req_requisicion.solicito_efirma_tiempo).format('llll')) }}
+            {{ detail.label_value('Mensaje', req_requisicion.solicito_efirma_mensaje) }}
+            {{ detail.label_value('Link de firma electronica' ,req_requisicion.solicito_efirma_url )}}
+        {% endcall %}
+    {% endif %}
+
+    {% if req_requisicion.estado in ['AUTORIZADO', 'CANCELADO POR AUTORIZANTE', 'ENTREGADO','REVISADO', 'CANCELADO POR REVISANTE',] %}
+        {% call detail.card(title='Autorizado', estatus=req_requisicion.estatus) %}
+            {{ detail.label_value('Nombre', req_requisicion.autorizo_nombre) }}
+            {{ detail.label_value('Puesto', req_requisicion.autorizo_puesto) }}
+            {{ detail.label_value('e-mail', req_requisicion.autorizo_email) }}
+            {{ detail.label_value('Tiempo', moment(req_requisicion.autorizo_efirma_tiempo).format('llll')) }}
+            {{ detail.label_value('Mensaje', req_requisicion.autorizo_efirma_mensaje) }}
+            {{ detail.label_value('Link de firma electronica' ,req_requisicion.autorizo_efirma_url )}}
+        {% endcall %}
+    {% endif %}
+
+    {% if req_requisicion.estado in ['REVISADO', 'CANCELADO POR REVISANTE', 'ENTREGADO'] %}
+        {% call detail.card(title='Revisado', estatus=req_requisicion.estatus) %}
+            {{ detail.label_value('Nombre', req_requisicion.reviso_nombre) }}
+            {{ detail.label_value('Puesto', req_requisicion.reviso_puesto) }}
+            {{ detail.label_value('e-mail', req_requisicion.reviso_email) }}
+            {{ detail.label_value('Tiempo', moment(req_requisicion.reviso_efirma_tiempo).format('llll')) }}
+            {{ detail.label_value('Mensaje', req_requisicion.reviso_efirma_mensaje) }}
+            {{ detail.label_value('Link de firma electronica' ,req_requisicion.reviso_efirma_url )}}
+        {% endcall %}
+    {% endif %}
+
+
+
+    {% call detail.card(title='Requisición', estatus=req_requisicion.estatus) %}               
+            <div class="container-fluid">
+                <div class="row d-flex justify-content-end">
+                    <div class="col-md-3">
+                        {{ detail.labeldown_valueup('Gasto', req_requisicion.consecutivo) }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ detail.labeldown_valueup('Fecha de captura', req_requisicion.fecha) }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-7">
+                        {{ detail.labeldown_valueup('Área solicitante', autoridad.descripcion) }}
+                    </div>
+                    <div class="col-md-5">
+                        {{ detail.labeldown_valueup('Glosa', req_requisicion.glosa) }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ detail.labeldown_valueup('Programa', req_requisicion.programa) }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ detail.labeldown_valueup('Fuente de financiamiento', req_requisicion.fuente) }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-9">
+                       {{ detail.labeldown_valueup('Area final a quien  se entregara', req_requisicion.area) }} 
+                    </div>
+                    <div class="col-md-3">
+                       {{ detail.labeldown_valueup('Fecha requerida', req_requisicion.fecha_requerida) }} 
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        {{ detail.labeldown_valueup('Observaciones', req_requisicion.observaciones) }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        {{ detail.labeldown_valueup('Justificación', req_requisicion.justificacion) }}
+                    </div>
+                </div>
+
+            </div>
+    
+        {% endcall %}
+
+
+        {% call detail.card() %}
+            <div class="row">
+                <div class="col-md-12" id="divArticulos">
+
+                    <div class="row" style="border-bottom:1px solid #666">
+                        <div class="col-md-2"><label>No. código</label></div>
+                        <div class="col-md-3"><label>Descripción</label></div>
+                        <div class="col-md-1"><label>U. medida</label></div>
+                        <div class="col-md-1"><label>Clave</label></div>
+                        <div class="col-md-1"><label>Cantidad</label></div>
+                        <div class="col-md-4"><label>Detalle</label></div>
+                    </div>
+                    {% if req_requisicion_registro %}
+                        {% for campos in req_requisicion_registro %}
+                            <div class="row" style="border-bottom:0px solid #666;" id="div">
+                                <div class="col-md-2">{{ detail.label_value('', campos.ReqCatalogo.id) }}</div>
+                                <div class="col-md-3">{{ detail.label_value('', campos.ReqCatalogo.descripcion) }}</div>
+                                <div class="col-md-1">{{ detail.label_value('', campos.ReqCatalogo.unidad_medida) }}</div>
+                                <div class="col-md-1">{{ detail.label_value('', campos.ReqCatalogo.clave) }}</div>
+                                <div class="col-md-1"> {{ detail.label_value('', campos.ReqRequisicionRegistro.cantidad) }}</div>
+                                <div class="col-md-4"></div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="row">
+                            <div class="col-md-12 text-center mt-5">
+                                No hay registros
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 text-center mt-5">
+                   
+                </div>
+            </div>
+        {% endcall %}
+    
+{% endblock %}
+
+
+
+{% block custom_javascript %}
+    {% if current_user.can_edit('REQ REQUISICIONES') %}
+        {% if req_requisicion.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar la requisición' + req_requisicion.consecutivo + '?') }}{% endif %}
+        {% if req_requisicion.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + req_requisicion.consecutivo + '?') }}{% endif %}
+    {% endif %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}
