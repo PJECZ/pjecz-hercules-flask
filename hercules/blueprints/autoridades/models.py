@@ -90,6 +90,7 @@ class Autoridad(database.Model, UniversalMixin):
     autoridades_funcionarios: Mapped[List["AutoridadFuncionario"]] = relationship(back_populates="autoridad")
     cid_procedimientos: Mapped[List["CIDProcedimiento"]] = relationship(back_populates="autoridad")
     edictos: Mapped[List["Edicto"]] = relationship(back_populates="autoridad")
+    glosas: Mapped[List["Glosa"]] = relationship(back_populates="autoridad")
     listas_de_acuerdos: Mapped[List["ListaDeAcuerdo"]] = relationship(back_populates="autoridad")
     redam: Mapped[List["Redam"]] = relationship("Redam", back_populates="autoridad")
     sentencias: Mapped[List["Sentencia"]] = relationship(back_populates="autoridad")

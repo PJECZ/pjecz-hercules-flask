@@ -48,4 +48,4 @@ class Sentencia(database.Model, UniversalMixin):
 
     def __repr__(self):
         """Representación"""
-        return f"<Sentencia {self.archivo}>"
+        return f"<Sentencia {self.id}>"

@@ -30,6 +30,13 @@ class ListaDeAcuerdo(database.Model, UniversalMixin):
     archivo: Mapped[str] = mapped_column(String(256), default="")
     url: Mapped[str] = mapped_column(String(512), default="")
 
+    @property
+    def descargar_url(self):
+        """URL para descargar el archivo desde el sitio web"""
+        if self.id:
+            return f"https://www.pjecz.gob.mx/consultas/listas-de-acuerdos/descargar/?id={self.id}"
+        return ""
+
     def __repr__(self):
         """Representación"""
-        return f"<ListaDeAcuerdo {self.archivo}>"
+        return f"<ListaDeAcuerdo {self.id}>"

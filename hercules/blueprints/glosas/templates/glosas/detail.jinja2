@@ -1,0 +1,69 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% if glosa.descripcion | length > 24 %}
+    {% set title = 'Glosa ' + glosa.descripcion[:24] + '...' + ' del ' + glosa.autoridad.clave %}
+{% else %}
+    {% set title = 'Glosa ' + glosa.descripcion + ' del ' + glosa.autoridad.clave %}
+{% endif %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(title) %}
+        {# Ir al listado activos #}
+        {{ topbar.button_previous('Glosas', url_for('glosas.list_active')) }}
+        {# Los administradores pueden subir a la autoridad que tienen a la vista #}
+        {% if current_user.can_admin('GLOSAS') %}
+            {{ topbar.button_previous('Glosas del ' + glosa.autoridad.clave, url_for('glosas.list_active') + '?autoridad_clave=' + glosa.autoridad.clave) }}
+            {{ topbar.button_new('Subir Glosa para ' + glosa.autoridad.clave, url_for('glosas.new_with_autoridad_id', autoridad_id=glosa.autoridad_id)) }}
+        {% elif current_user.can_insert('GLOSAS') and current_user.autoridad_id == glosa.autoridad_id %}
+            {{ topbar.button_upload('Subir Glosa', url_for('glosas.new')) }}
+        {% else %}
+            {{ topbar.button_previous('Glosas del ' + glosa.autoridad.clave, url_for('glosas.list_active') + '?autoridad_clave=' + glosa.autoridad.clave) }}
+        {% endif %}
+        {# Los usuarios que pueden editar si les pertenece #}
+        {% if current_user.can_admin('GLOSAS') or (current_user.can_edit('GLOSAS') and current_user.autoridad_id == glosa.autoridad_id) %}
+            {{ topbar.button_edit('Editar', url_for('glosas.edit', glosa_id=glosa.id)) }}
+        {% endif %}
+        {# Los usuarios con permiso para insertar pueden eliminar y recuperar #}
+        {% if current_user.can_insert('GLOSAS') %}
+            {% if glosa.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('glosas.delete', glosa_id=glosa.id)) }}{% endif %}
+            {% if glosa.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('glosas.recover', glosa_id=glosa.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=glosa.estatus) %}
+        {{ detail.label_value('Descripción', glosa.descripcion) }}
+        {{ detail.label_value('Distrito', glosa.autoridad.distrito.nombre) }}
+        {{ detail.label_value('Autoridad', glosa.autoridad.descripcion) }}
+        {{ detail.label_value('Fecha', moment(glosa.fecha, local=True).format("DD MMM YYYY")) }}
+        {{ detail.label_value('Tipo de juicio', glosa.tipo_juicio) }}
+        {{ detail.label_value('Expediente', glosa.expediente) }}
+        {{ detail.label_value('Creado', moment(glosa.creado).format('llll')) }}
+        <div class="row">
+            <div class="col">
+                {{ detail.button_md(label='Descargar', url=url_for('glosas.download_file_pdf', glosa_id=glosa.id), icon='mdi:download') }}
+            </div>
+        </div>
+    {% endcall %}
+    {% call detail.card() %}
+        <object data="{{ url_for('glosas.view_file_pdf', glosa_id=glosa.id) }}" type="application/pdf" width="100%" height="600px">
+            <p class="mb-0">El navegador no puede mostrar el archivo PDF o no existe en el depósito.</p>
+        </object>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {# Los usuarios que pueden insertar registros tienen permiso para eliminar y recuperar #}
+    {% set descrito = 'la glosa con descripción ' + glosa.descripcion %}
+    {% if current_user.can_insert('GLOSAS') %}
+        {% if glosa.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar ' + descrito + '?') }}{% endif %}
+        {% if glosa.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar ' + descrito + '?') }}{% endif %}
+    {% endif %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}
