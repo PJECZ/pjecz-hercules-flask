@@ -5,10 +5,12 @@ Archivo - Remesas Documentos, vistas
 import json
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import text
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_string, safe_message
 
+from hercules.extensions import database
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
@@ -223,8 +225,9 @@ def delete(arc_remesa_documento_id):
         return redirect(url_for("arc_remesas.detail", remesa_id=remesa_id))
 
     # Elimina permanentemente el registro de documento anexo a esta remesa.
-    sql = text(f"DELETE FROM {ArcRemesaDocumento.__tablename__} WHERE id = {arc_remesa_documento_id};")
-    db.engine.execute(sql)
+    documento = database.session.query(ArcRemesaDocumento).filter_by(id=arc_remesa_documento_id).first()
+    database.session.delete(documento)
+    database.session.commit()
     # Actualizar el número de documentos anexos de la remesa
     remesa.num_documentos = ArcRemesaDocumento.query.filter_by(arc_remesa=remesa).count()
     remesa.save()

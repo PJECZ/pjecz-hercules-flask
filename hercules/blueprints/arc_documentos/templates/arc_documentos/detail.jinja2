@@ -25,8 +25,8 @@
         {% if mostrar_secciones['boton_solicitar'] %}
             {{ topbar.button_new('Solicitar', url_for('arc_solicitudes.new', documento_id=documento.id)) }}
         {% endif %}
-        {% if current_user.can_insert('ARC SOLICITUDES') and documento.ubicacion == 'JUZGADO' %}
-            {# {{ topbar.button_new('Añadir a Remesa', url_for('arc_remesas.add_document', documento_id=documento.id)) }} #}
+        {% if current_user.can_insert('ARC REMESAS') and documento.ubicacion == 'JUZGADO' %}
+            {{ topbar.button_new('Añadir a Remesa', url_for('arc_remesas.add_document', documento_id=documento.id)) }}
         {% endif %}
     {% endcall %}
 {% endblock %}
