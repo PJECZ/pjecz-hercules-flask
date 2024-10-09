@@ -4,11 +4,11 @@ Archivo - Solicitudes, vistas
 
 import json
 from datetime import datetime
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for, abort
 from flask_login import current_user, login_required
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_string, safe_message
+from lib.safe_string import safe_string, safe_message, safe_expediente
 
 from hercules.blueprints.arc_solicitudes.models import ArcSolicitud
 from hercules.blueprints.arc_solicitudes_bitacoras.models import ArcSolicitudBitacora
