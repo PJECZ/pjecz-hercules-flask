@@ -155,7 +155,7 @@ def datatable_json():
                 "expediente": sentencia.expediente,
                 "materia_nombre": sentencia.materia_tipo_juicio.materia.nombre,
                 "materia_tipo_juicio_descripcion": sentencia.materia_tipo_juicio.descripcion,
-                "descripcion": sentencia.descripcion if len(sentencia.descripcion) < 12 else sentencia.descripcion[:12] + "…",
+                "descripcion": sentencia.descripcion if len(sentencia.descripcion) < 48 else sentencia.descripcion[:48] + "…",
                 "es_perspectiva_genero": "Sí" if sentencia.es_perspectiva_genero else "",
                 "creado": sentencia.creado.astimezone(local_tz).strftime("%Y-%m-%d %H:%M"),
             }
