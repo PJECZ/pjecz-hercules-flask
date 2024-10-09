@@ -530,7 +530,7 @@ def new_with_autoridad_id(autoridad_id):
     form.fecha.data = hoy
 
     # Entregar el formulario
-    return render_template("glosas/new_for_autoridad.jinja2", form=form)
+    return render_template("glosas/new_for_autoridad.jinja2", form=form, autoridad=autoridad)
 
 
 @glosas.route("/glosas/editar/<int:glosa_id>", methods=["GET", "POST"])
