@@ -1,5 +1,5 @@
 """
-Edictos, vistas
+Glosas, vistas
 """
 
 import json
@@ -14,8 +14,8 @@ from werkzeug.exceptions import NotFound
 
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.bitacoras.models import Bitacora
-from hercules.blueprints.edictos.forms import EdictoEditForm, EdictoNewForm
-from hercules.blueprints.edictos.models import Edicto
+from hercules.blueprints.glosas.forms import GlosaEditForm, GlosaNewForm
+from hercules.blueprints.glosas.models import Glosa
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
@@ -29,57 +29,47 @@ from lib.exceptions import (
     MyNotValidParamError,
     MyUnknownExtensionError,
 )
-from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs, get_media_type_from_filename
-from lib.safe_string import safe_clave, safe_expediente, safe_message, safe_numero_publicacion, safe_string
+from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
+from lib.safe_string import safe_clave, safe_expediente, safe_message, safe_string
 from lib.storage import GoogleCloudStorage
-from lib.time_to_text import dia_mes_ano
 
 # Zona horaria
 TIMEZONE = "America/Mexico_City"
 local_tz = timezone(TIMEZONE)
 
 # Constantes de este módulo
-MODULO = "EDICTOS"
-LIMITE_DIAS = 365  # Un anio
-LIMITE_ADMINISTRADORES_DIAS = 3650  # Administradores pueden manipular diez anios
+MODULO = "GLOSAS"
+LIMITE_DIAS = 365  # Un año
+LIMITE_ADMINISTRADORES_DIAS = 3650  # Administradores pueden manipular diez años
+ORGANOS_JURISDICCIONALES = ["PLENO O SALA DEL TSJ", "TRIBUNAL DE CONCILIACION Y ARBITRAJE"]
 
-edictos = Blueprint("edictos", __name__, template_folder="templates")
-
-
-@edictos.route("/edictos/acuses/<id_hashed>")
-def checkout(id_hashed):
-    """Acuse"""
-    edicto = Edicto.query.get_or_404(Edicto.decode_id(id_hashed))
-    dia, mes, anio = dia_mes_ano(edicto.creado)
-    return render_template("edictos/checkout.jinja2", edicto=edicto, dia=dia, mes=mes.upper(), anio=anio)
+glosas = Blueprint("glosas", __name__, template_folder="templates")
 
 
-@edictos.before_request
+@glosas.before_request
 @login_required
 @permission_required(MODULO, Permiso.VER)
 def before_request():
     """Permiso por defecto"""
 
 
-@edictos.route("/edictos/datatable_json", methods=["GET", "POST"])
+@glosas.route("/glosas/datatable_json", methods=["GET", "POST"])
 def datatable_json():
-    """DataTable JSON con Edictos"""
+    """DataTable JSON con Glosas"""
 
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
 
     # Consultar
-    consulta = Edicto.query
+    consulta = Glosa.query
 
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
-        consulta = consulta.filter(Edicto.estatus == request.form["estatus"])
+        consulta = consulta.filter(Glosa.estatus == request.form["estatus"])
     else:
-        consulta = consulta.filter(Edicto.estatus == "A")
+        consulta = consulta.filter(Glosa.estatus == "A")
     if "autoridad_id" in request.form:
-        autoridad = Autoridad.query.get(request.form["autoridad_id"])
-        if autoridad:
-            consulta = consulta.filter(Edicto.autoridad_id == autoridad.id)
+        consulta = consulta.filter(Glosa.autoridad_id == request.form["autoridad_id"])
     elif "autoridad_clave" in request.form:
         autoridad_clave = safe_clave(request.form["autoridad_clave"])
         if autoridad_clave != "":
@@ -87,17 +77,11 @@ def datatable_json():
     if "descripcion" in request.form:
         descripcion = safe_string(request.form["descripcion"], save_enie=True)
         if descripcion != "":
-            consulta = consulta.filter(Edicto.descripcion.contains(descripcion))
+            consulta = consulta.filter(Glosa.descripcion.contains(descripcion))
     if "expediente" in request.form:
         try:
             expediente = safe_expediente(request.form["expediente"])
-            consulta = consulta.filter(Edicto.expediente == expediente)
-        except (IndexError, ValueError):
-            pass
-    if "numero_publicacion" in request.form:
-        try:
-            numero_publicacion = safe_numero_publicacion(request.form["numero_publicacion"])
-            consulta = consulta.filter(Edicto.numero_publicacion == numero_publicacion)
+            consulta = consulta.filter(Glosa.expediente == expediente)
         except (IndexError, ValueError):
             pass
 
@@ -111,28 +95,28 @@ def datatable_json():
     if fecha_desde and fecha_hasta and fecha_desde > fecha_hasta:
         fecha_desde, fecha_hasta = fecha_hasta, fecha_desde
     if fecha_desde:
-        consulta = consulta.filter(Edicto.fecha >= fecha_desde)
+        consulta = consulta.filter(Glosa.fecha >= fecha_desde)
     if fecha_hasta:
-        consulta = consulta.filter(Edicto.fecha <= fecha_hasta)
+        consulta = consulta.filter(Glosa.fecha <= fecha_hasta)
 
     # Ordenar y paginar
-    registros = consulta.order_by(Edicto.id.desc()).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(Glosa.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
 
     # Elaborar datos para DataTable
     data = []
-    for edicto in registros:
+    for glosa in registros:
         data.append(
             {
-                "fecha": edicto.fecha.strftime("%Y-%m-%d 00:00:00"),
-                "autoridad_clave": edicto.autoridad.clave,
+                "fecha": glosa.fecha.strftime("%Y-%m-%d 00:00:00"),
+                "autoridad_clave": glosa.autoridad.clave,
                 "detalle": {
-                    "descripcion": edicto.descripcion,
-                    "url": url_for("edictos.detail", edicto_id=edicto.id),
+                    "descripcion": glosa.descripcion,
+                    "url": url_for("glosas.detail", glosa_id=glosa.id),
                 },
-                "expediente": edicto.expediente,
-                "numero_publicacion": edicto.numero_publicacion,
-                "creado": edicto.creado.astimezone(local_tz).strftime("%Y-%m-%d %H:%M"),
+                "expediente": glosa.expediente,
+                "tipo_juicio": glosa.tipo_juicio,
+                "creado": glosa.creado.astimezone(local_tz).strftime("%Y-%m-%d %H:%M"),
             }
         )
 
@@ -140,25 +124,23 @@ def datatable_json():
     return output_datatable_json(draw, total, data)
 
 
-@edictos.route("/edictos/admin_datatable_json", methods=["GET", "POST"])
+@glosas.route("/glosas/admin_datatable_json", methods=["GET", "POST"])
 def admin_datatable_json():
-    """DataTable JSON con Edicto para administrador"""
+    """DataTable JSON con Glosa para administrador"""
 
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
 
     # Consultar
-    consulta = Edicto.query
+    consulta = Glosa.query
 
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
-        consulta = consulta.filter(Edicto.estatus == request.form["estatus"])
+        consulta = consulta.filter(Glosa.estatus == request.form["estatus"])
     else:
-        consulta = consulta.filter(Edicto.estatus == "A")
+        consulta = consulta.filter(Glosa.estatus == "A")
     if "autoridad_id" in request.form:
-        autoridad = Autoridad.query.get(request.form["autoridad_id"])
-        if autoridad:
-            consulta = consulta.filter(Edicto.autoridad_id == autoridad.id)
+        consulta = consulta.filter(Glosa.autoridad_id == request.form["autoridad_id"])
     elif "autoridad_clave" in request.form:
         autoridad_clave = safe_clave(request.form["autoridad_clave"])
         if autoridad_clave != "":
@@ -166,17 +148,11 @@ def admin_datatable_json():
     if "descripcion" in request.form:
         descripcion = safe_string(request.form["descripcion"], save_enie=True)
         if descripcion != "":
-            consulta = consulta.filter(Edicto.descripcion.contains(descripcion))
+            consulta = consulta.filter(Glosa.descripcion.contains(descripcion))
     if "expediente" in request.form:
         try:
             expediente = safe_expediente(request.form["expediente"])
-            consulta = consulta.filter(Edicto.expediente == expediente)
-        except (IndexError, ValueError):
-            pass
-    if "numero_publicacion" in request.form:
-        try:
-            numero_publicacion = safe_numero_publicacion(request.form["numero_publicacion"])
-            consulta = consulta.filter(Edicto.numero_publicacion == numero_publicacion)
+            consulta = consulta.filter(Glosa.expediente == expediente)
         except (IndexError, ValueError):
             pass
 
@@ -190,29 +166,32 @@ def admin_datatable_json():
     if fecha_desde and fecha_hasta and fecha_desde > fecha_hasta:
         fecha_desde, fecha_hasta = fecha_hasta, fecha_desde
     if fecha_desde:
-        consulta = consulta.filter(Edicto.fecha >= fecha_desde)
+        consulta = consulta.filter(Glosa.fecha >= fecha_desde)
     if fecha_hasta:
-        consulta = consulta.filter(Edicto.fecha <= fecha_hasta)
+        consulta = consulta.filter(Glosa.fecha <= fecha_hasta)
 
     # Ordenar y paginar
-    registros = consulta.order_by(Edicto.id.desc()).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(Glosa.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
 
     # Elaborar datos para DataTable
     data = []
-    for resultado in registros:
+    for glosa in registros:
+        # La columna creado esta en UTC, convertir a local
+        creado_local = glosa.creado.astimezone(local_tz)
+        # Acumular datos
         data.append(
             {
                 "detalle": {
-                    "id": resultado.id,
-                    "url": url_for("edictos.detail", edicto_id=resultado.id),
+                    "id": glosa.id,
+                    "url": url_for("glosas.detail", glosa_id=glosa.id),
                 },
-                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
-                "autoridad": resultado.autoridad.clave,
-                "fecha": resultado.fecha.strftime("%Y-%m-%d"),
-                "descripcion": resultado.descripcion,
-                "expediente": resultado.expediente,
-                "numero_publicacion": resultado.numero_publicacion,
+                "creado": creado_local.strftime("%Y-%m-%d %H:%M"),
+                "autoridad_clave": glosa.autoridad.clave,
+                "fecha": glosa.fecha.strftime("%Y-%m-%d"),
+                "descripcion": glosa.descripcion,
+                "expediente": glosa.expediente,
+                "tipo_juicio": glosa.tipo_juicio,
             }
         )
 
@@ -220,19 +199,19 @@ def admin_datatable_json():
     return output_datatable_json(draw, total, data)
 
 
-@edictos.route("/edictos")
+@glosas.route("/glosas")
 def list_active():
-    """Listado de Edictos activos"""
+    """Listado de Glosas activas"""
 
     # Definir valores por defecto
-    plantilla = "edictos/list.jinja2"
+    plantilla = "glosas/list.jinja2"
     filtros = None
     titulo = None
     autoridad = None
 
     # Si es administrador
     if current_user.can_admin(MODULO):
-        plantilla = "edictos/list_admin.jinja2"
+        plantilla = "glosas/list_admin.jinja2"
 
     # Si viene autoridad_id o autoridad_clave en la URL, agregar a los filtros
     try:
@@ -244,26 +223,26 @@ def list_active():
             autoridad = Autoridad.query.filter_by(clave=autoridad_clave).first()
         if autoridad is not None:
             filtros = {"estatus": "A", "autoridad_id": autoridad.id}
-            titulo = f"Edictos de {autoridad.descripcion_corta}"
+            titulo = f"Glosas de {autoridad.descripcion_corta}"
     except (TypeError, ValueError):
         pass
 
     # Si es administrador
     if titulo is None and current_user.can_admin(MODULO):
-        titulo = "Todos los Edictos"
+        titulo = "Todas las Glosas"
         filtros = {"estatus": "A"}
 
     # Si puede editar o crear, solo ve lo de su autoridad
     if titulo is None and (current_user.can_insert(MODULO) or current_user.can_edit(MODULO)):
         autoridad = None  # Para no mostrar el botón 'Todos los...'
         filtros = {"estatus": "A", "autoridad_id": current_user.autoridad.id}
-        titulo = f"Edictos de {current_user.autoridad.descripcion_corta}"
+        titulo = f"Glosas de {current_user.autoridad.descripcion_corta}"
 
     # De lo contrario, es observador
     if titulo is None:
         autoridad = None
         filtros = {"estatus": "A"}
-        titulo = "Edictos"
+        titulo = "Glosas"
 
     # Entregar
     return render_template(
@@ -275,45 +254,45 @@ def list_active():
     )
 
 
-@edictos.route("/edictos/inactivos")
+@glosas.route("/glosas/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Edictos inactivos"""
-    # Solo los administradores ven todas los edictos inactivas
+    """Listado de Glosas inactivas"""
+    # Solo los administradores ven todas las glosas inactivas
     return render_template(
-        "edictos/list.jinja2",
+        "glosas/list_admin.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Todos los Edictos inactivos",
+        titulo="Todas las Glosas inactivas",
         estatus="B",
     )
 
 
-@edictos.route("/edictos/<int:edicto_id>")
-def detail(edicto_id):
-    """Detalle de un Edicto"""
-    edicto = Edicto.query.get_or_404(edicto_id)
-    return render_template("edictos/detail.jinja2", edicto=edicto)
+@glosas.route("/glosas/<int:glosa_id>")
+def detail(glosa_id):
+    """Detalle de una Glosa"""
+    glosa = Glosa.query.get_or_404(glosa_id)
+    return render_template("glosas/detail.jinja2", glosa=glosa)
 
 
-@edictos.route("/edictos/nuevo", methods=["GET", "POST"])
+@glosas.route("/glosas/nuevo", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
 def new():
-    """Subir Edicto como juzgado"""
+    """Subir Glosa como Juzgado"""
 
     # Validar autoridad
     autoridad = current_user.autoridad
     if autoridad is None or autoridad.estatus != "A":
         flash("El juzgado/autoridad no existe o no es activa.", "warning")
-        return redirect(url_for("edictos.list_active"))
+        return redirect(url_for("glosas.list_active"))
     if not autoridad.distrito.es_distrito_judicial:
         flash("El juzgado/autoridad no está en un distrito jurisdiccional.", "warning")
-        return redirect(url_for("edictos.list_active"))
+        return redirect(url_for("glosas.list_active"))
     if not autoridad.es_jurisdiccional:
         flash("El juzgado/autoridad no es jurisdiccional.", "warning")
-        return redirect(url_for("edictos.list_active"))
-    if autoridad.directorio_edictos is None or autoridad.directorio_edictos == "":
-        flash("El juzgado/autoridad no tiene directorio para edictos.", "warning")
-        return redirect(url_for("edictos.list_active"))
+        return redirect(url_for("glosas.list_active"))
+    if autoridad.directorio_glosas is None or autoridad.directorio_glosas == "":
+        flash("El juzgado/autoridad no tiene directorio para glosas.", "warning")
+        return redirect(url_for("glosas.list_active"))
 
     # Definir la fecha límite para el juzgado
     hoy = date.today()
@@ -321,7 +300,7 @@ def new():
     limite_dt = hoy_dt + timedelta(days=-LIMITE_DIAS)
 
     # Si viene el formulario
-    form = EdictoNewForm(CombinedMultiDict((request.files, request.form)))
+    form = GlosaNewForm(CombinedMultiDict((request.files, request.form)))
     if form.validate_on_submit():
         es_valido = True
 
@@ -332,7 +311,10 @@ def new():
             form.fecha.data = hoy
             es_valido = False
 
-        # Validar descripcion
+        # Tomar tipo de juicio
+        tipo_juicio = form.tipo_juicio.data
+
+        # Validar descripción
         descripcion = safe_string(form.descripcion.data, save_enie=True)
         if descripcion == "":
             flash("La descripción es incorrecta.", "warning")
@@ -345,20 +327,13 @@ def new():
             flash("El expediente es incorrecto.", "warning")
             es_valido = False
 
-        # Validar número de publicación
-        try:
-            numero_publicacion = safe_numero_publicacion(form.numero_publicacion.data)
-        except (IndexError, ValueError):
-            flash("El número de publicación es incorrecto.", "warning")
-            es_valido = False
-
         # Inicializar la liberia GCS con el directorio base, la fecha, las extensiones y los meses como palabras
         gcstorage = GoogleCloudStorage(
-            base_directory=autoridad.directorio_edictos,
+            base_directory=autoridad.directorio_glosas,
             upload_date=fecha,
             allowed_extensions=["pdf"],
             month_in_word=True,
-            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_EDICTOS"],
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_GLOSAS"],
         )
 
         # Validar archivo
@@ -372,24 +347,20 @@ def new():
             flash("Tipo de archivo desconocido.", "warning")
             es_valido = False
 
-        # No es válido, entonces se vuelve a mostrar el formulario
-        if es_valido is False:
-            return render_template("edictos/new.jinja2", form=form)
-
         # Insertar registro
-        edicto = Edicto(
+        glosa = Glosa(
             autoridad=autoridad,
             fecha=fecha,
+            tipo_juicio=tipo_juicio,
             descripcion=descripcion,
             expediente=expediente,
-            numero_publicacion=numero_publicacion,
         )
-        edicto.save()
+        glosa.save()
 
         # Subir a Google Cloud Storage
         es_exitoso = True
         try:
-            gcstorage.set_filename(hashed_id=edicto.encode_id(), description=descripcion)
+            gcstorage.set_filename(hashed_id=glosa.encode_id(), description=descripcion)
             gcstorage.upload(archivo.stream.read())
         except (MyFilenameError, MyNotAllowedExtensionError, MyUnknownExtensionError):
             flash("Error fatal al subir el archivo a GCS.", "warning")
@@ -403,22 +374,22 @@ def new():
 
         # Si se sube con éxito, actualizar el registro con la URL del archivo y mostrar el detalle
         if es_exitoso:
-            edicto.archivo = gcstorage.filename  # Conservar el nombre original
-            edicto.url = gcstorage.url
-            edicto.save()
+            glosa.archivo = gcstorage.filename  # Conservar el nombre original
+            glosa.url = gcstorage.url
+            glosa.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
-                descripcion=safe_message(f"Nuevo Edicto de {autoridad.clave} sobre {edicto.descripcion}"),
-                url=url_for("edictos.detail", edicto_id=edicto.id),
+                descripcion=safe_message(f"Nueva Glosa de {autoridad.clave} sobre {glosa.descripcion}"),
+                url=url_for("glosas.detail", glosa_id=glosa.id),
             )
             bitacora.save()
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
 
         # Como no se subio con exito, se cambia el estatus a "B"
-        edicto.estatus = "B"
-        edicto.save()
+        glosa.estatus = "B"
+        glosa.save()
 
     # Valores por defecto
     form.distrito.data = autoridad.distrito.nombre
@@ -426,19 +397,19 @@ def new():
     form.fecha.data = hoy
 
     # Entregar el formulario
-    return render_template("edictos/new.jinja2", form=form)
+    return render_template("glosas/new.jinja2", form=form)
 
 
-@edictos.route("/edictos/nuevo/<int:autoridad_id>", methods=["GET", "POST"])
+@glosas.route("/glosas/nuevo_con_autoridad_id/<int:autoridad_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def new_with_autoridad_id(autoridad_id):
-    """Subir Edicto para una autoridad como administrador"""
+    """Subir Glosa para una autoridad como administrador"""
 
     # Validar autoridad
     autoridad = Autoridad.query.get_or_404(autoridad_id)
     if autoridad is None:
         flash("El juzgado/autoridad no existe.", "warning")
-        return redirect(url_for("edictos.list_active"))
+        return redirect(url_for("listas_de_acuerdos.list_active"))
     if autoridad.estatus != "A":
         flash("El juzgado/autoridad no es activa.", "warning")
         return redirect(url_for("autoridades.detail", autoridad_id=autoridad.id))
@@ -448,8 +419,8 @@ def new_with_autoridad_id(autoridad_id):
     if not autoridad.es_jurisdiccional:
         flash("El juzgado/autoridad no es jurisdiccional.", "warning")
         return redirect(url_for("autoridades.detail", autoridad_id=autoridad.id))
-    if autoridad.directorio_edictos is None or autoridad.directorio_edictos == "":
-        flash("El juzgado/autoridad no tiene directorio para edictos.", "warning")
+    if autoridad.directorio_glosas is None or autoridad.directorio_glosas == "":
+        flash("El juzgado/autoridad no tiene directorio para glosas.", "warning")
         return redirect(url_for("autoridades.detail", autoridad_id=autoridad.id))
 
     # Para validar las fechas
@@ -458,7 +429,7 @@ def new_with_autoridad_id(autoridad_id):
     limite_dt = hoy_dt + timedelta(days=-LIMITE_ADMINISTRADORES_DIAS)
 
     # Si viene el formulario
-    form = EdictoNewForm(CombinedMultiDict((request.files, request.form)))
+    form = GlosaNewForm(CombinedMultiDict((request.files, request.form)))
     if form.validate_on_submit():
         es_valido = True
 
@@ -469,6 +440,9 @@ def new_with_autoridad_id(autoridad_id):
             form.fecha.data = hoy
             es_valido = False
 
+        # Tomar tipo de juicio
+        tipo_juicio = form.tipo_juicio.data
+
         # Validar descripción
         descripcion = safe_string(form.descripcion.data, save_enie=True)
         if descripcion == "":
@@ -482,20 +456,13 @@ def new_with_autoridad_id(autoridad_id):
             flash("El expediente es incorrecto.", "warning")
             es_valido = False
 
-        # Validar número de publicación
-        try:
-            numero_publicacion = safe_numero_publicacion(form.numero_publicacion.data)
-        except (IndexError, ValueError):
-            flash("El número de publicación es incorrecto.", "warning")
-            es_valido = False
-
         # Inicializar la liberia GCS con el directorio base, la fecha, las extensiones y los meses como palabras
         gcstorage = GoogleCloudStorage(
             base_directory=autoridad.directorio_glosas,
             upload_date=fecha,
             allowed_extensions=["pdf"],
             month_in_word=True,
-            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_EDICTOS"],
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_GLOSAS"],
         )
 
         # Validar archivo
@@ -511,22 +478,22 @@ def new_with_autoridad_id(autoridad_id):
 
         # No es válido, entonces se vuelve a mostrar el formulario
         if es_valido is False:
-            return render_template("edictos/new_for_autoridad.jinja2", form=form, autoridad=autoridad)
+            return render_template("glosas/new_for_autoridad.jinja2", form=form, autoridad=autoridad)
 
         # Insertar registro
-        edicto = Edicto(
+        glosa = Glosa(
             autoridad=autoridad,
             fecha=fecha,
+            tipo_juicio=tipo_juicio,
             descripcion=descripcion,
-            expediente=expediente,
-            numero_publicacion=numero_publicacion,
+            expediente=form.expediente.data,
         )
-        edicto.save()
+        glosa.save()
 
         # Subir a Google Cloud Storage
         es_exitoso = True
         try:
-            gcstorage.set_filename(hashed_id=edicto.encode_id(), description=descripcion)
+            gcstorage.set_filename(hashed_id=glosa.encode_id(), description=descripcion)
             gcstorage.upload(archivo.stream.read())
         except (MyFilenameError, MyNotAllowedExtensionError, MyUnknownExtensionError):
             flash("Error fatal al subir el archivo a GCS.", "warning")
@@ -540,22 +507,22 @@ def new_with_autoridad_id(autoridad_id):
 
         # Si se sube con éxito, actualizar el registro con la URL del archivo y mostrar el detalle
         if es_exitoso:
-            edicto.archivo = gcstorage.filename  # Conservar el nombre original
-            edicto.url = gcstorage.url
-            edicto.save()
+            glosa.archivo = gcstorage.filename  # Conservar el nombre original
+            glosa.url = gcstorage.url
+            glosa.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
-                descripcion=safe_message(f"Nuevo Edicto de {autoridad.clave} sobre {edicto.descripcion}"),
-                url=url_for("edictos.detail", edicto_id=edicto.id),
+                descripcion=safe_message(f"Nueva Glosa de {autoridad.clave} sobre {glosa.descripcion}"),
+                url=url_for("glosas.detail", glosa_id=glosa.id),
             )
             bitacora.save()
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
 
         # Como no se subio con exito, se cambia el estatus a "B"
-        edicto.estatus = "B"
-        edicto.save()
+        glosa.estatus = "B"
+        glosa.save()
 
     # Valores por defecto
     form.distrito.data = autoridad.distrito.nombre
@@ -563,27 +530,27 @@ def new_with_autoridad_id(autoridad_id):
     form.fecha.data = hoy
 
     # Entregar el formulario
-    return render_template("edictos/new_for_autoridad.jinja2", form=form, autoridad=autoridad)
+    return render_template("glosas/new_for_autoridad.jinja2", form=form)
 
 
-@edictos.route("/edictos/editar/<int:edicto_id>", methods=["GET", "POST"])
+@glosas.route("/glosas/editar/<int:glosa_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.MODIFICAR)
-def edit(edicto_id):
-    """Editar Edicto"""
+def edit(glosa_id):
+    """Editar Glosa"""
 
     # Consultar
-    edicto = Edicto.query.get_or_404(edicto_id)
+    glosa = Glosa.query.get_or_404(glosa_id)
 
     # Si NO es administrador
     if not (current_user.can_admin(MODULO)):
         # Validar que le pertenezca
-        if current_user.autoridad_id != edicto.autoridad_id:
+        if current_user.autoridad_id != glosa.autoridad_id:
             flash("No puede editar registros ajenos.", "warning")
-            return redirect(url_for("edictos.list_active"))
+            return redirect(url_for("glosas.list_active"))
         # Si fue creado hace menos de un día
-        if edicto.creado < datetime.now(tz=local_tz) - timedelta(days=1):
+        if glosa.creado < datetime.now(tz=local_tz) - timedelta(days=1):
             flash("Ya no puede editar porque fue creado hace más de 24 horas.", "warning")
-            return redirect(url_for("edictos.detail", edicto_id=edicto.id))
+            return redirect(url_for("glosas.detail", glosa_id=glosa.id))
 
     # Definir la fecha límite
     hoy = date.today()
@@ -591,7 +558,7 @@ def edit(edicto_id):
     limite_dt = hoy_dt + timedelta(days=-LIMITE_DIAS)
 
     # Si viene el formulario
-    form = EdictoEditForm()
+    form = GlosaEditForm()
     if form.validate_on_submit():
         es_valido = True
 
@@ -602,9 +569,12 @@ def edit(edicto_id):
             form.fecha.data = hoy
             es_valido = False
 
+        # Tomar tipo de juicio
+        tipo_juicio = form.tipo_juicio.data
+
         # Validar descripción
         descripcion = safe_string(form.descripcion.data, save_enie=True)
-        if edicto.descripcion == "":
+        if descripcion == "":
             flash("La descripción es incorrecta.", "warning")
             es_valido = False
 
@@ -615,60 +585,53 @@ def edit(edicto_id):
             flash("El expediente es incorrecto.", "warning")
             es_valido = False
 
-        # Validar número de publicación
-        try:
-            numero_publicacion = safe_numero_publicacion(form.numero_publicacion.data)
-        except (IndexError, ValueError):
-            flash("El número de publicación es incorrecto.", "warning")
-            es_valido = False
-
         # Si es válido, entonces se guarda
         if es_valido:
-            edicto.fecha = fecha
-            edicto.descripcion = descripcion
-            edicto.expediente = expediente
-            edicto.numero_publicacion = numero_publicacion
-            edicto.save()
+            glosa.fecha = fecha
+            glosa.tipo_juicio = tipo_juicio
+            glosa.descripcion = descripcion
+            glosa.expediente = expediente
+            glosa.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
-                descripcion=safe_message(f"Editado el Edicto de {edicto.autoridad.clave} sobre {edicto.descripcion}"),
-                url=url_for("edictos.detail", edicto_id=edicto.id),
+                descripcion=safe_message(f"Editada la Glosa de {glosa.autoridad.clave} sobre {glosa.descripcion}"),
+                url=url_for("glosas.detail", glosa_id=glosa.id),
             )
             bitacora.save()
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
 
     # Definir valores en el formulario
-    form.fecha.data = edicto.fecha
-    form.descripcion.data = edicto.descripcion
-    form.expediente.data = edicto.expediente
-    form.numero_publicacion.data = edicto.numero_publicacion
+    form.fecha.data = glosa.fecha
+    form.tipo_juicio.data = glosa.tipo_juicio
+    form.descripcion.data = glosa.descripcion
+    form.expediente.data = glosa.expediente
 
     # Entregar el formulario
-    return render_template("edictos/edit.jinja2", form=form, edicto=edicto)
+    return render_template("glosas/edit.jinja2", form=form, glosa=glosa)
 
 
-@edictos.route("/edictos/eliminar/<int:edicto_id>")
+@glosas.route("/glosas/eliminar/<int:glosa_id>")
 @permission_required(MODULO, Permiso.CREAR)
-def delete(edicto_id):
-    """Eliminar Edicto"""
+def delete(glosa_id):
+    """Eliminar Glosa"""
 
     # Consultar
-    edicto = Edicto.query.get_or_404(edicto_id)
-    detalle_url = url_for("edictos.detail", edicto_id=edicto.id)
+    glosa = Glosa.query.get_or_404(glosa_id)
+    detalle_url = url_for("glosas.detail", glosa_id=glosa.id)
 
     # Validar que se pueda eliminar
-    if edicto.estatus == "B":
-        flash("No puede eliminar este Edicto porque ya está eliminado.", "success")
+    if glosa.estatus == "B":
+        flash("No puede eliminar esta Glosa porque ya está eliminada.", "success")
         return redirect(detalle_url)
 
     # Definir la descripción para la bitácora
-    descripcion = safe_message(f"Eliminado Edicto {edicto.id} por {current_user.email}")
+    descripcion = safe_message(f"Eliminada Glosa {glosa.id} por {current_user.email}")
 
     # Si es administrador
     if current_user.can_admin(MODULO):
-        edicto.delete()
+        glosa.delete()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
@@ -680,8 +643,8 @@ def delete(edicto_id):
         return redirect(bitacora.url)
 
     # Si le pertenece y fue creado hace menos de un día
-    if current_user.autoridad_id == edicto.autoridad_id and edicto.creado >= datetime.now(tz=local_tz) - timedelta(days=1):
-        edicto.delete()
+    if current_user.autoridad_id == glosa.autoridad_id and glosa.creado >= datetime.now(tz=local_tz) - timedelta(days=1):
+        glosa.delete()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
@@ -697,26 +660,26 @@ def delete(edicto_id):
     return redirect(detalle_url)
 
 
-@edictos.route("/edictos/recuperar/<int:edicto_id>")
+@glosas.route("/glosas/recuperar/<int:glosa_id>")
 @permission_required(MODULO, Permiso.CREAR)
-def recover(edicto_id):
-    """Recuperar Edicto"""
+def recover(glosa_id):
+    """Recuperar Glosa"""
 
     # Consultar
-    edicto = Edicto.query.get_or_404(edicto_id)
-    detalle_url = url_for("edictos.detail", edicto_id=edicto.id)
+    glosa = Glosa.query.get_or_404(glosa_id)
+    detalle_url = url_for("glosas.detail", glosa_id=glosa.id)
 
     # Validar que se pueda recuperar
-    if edicto.estatus == "A":
-        flash("No puede eliminar este Edicto porque ya está activo.", "success")
+    if glosa.estatus == "A":
+        flash("No puede eliminar esta Glosa porque ya está activa.", "success")
         return redirect(detalle_url)
 
     # Definir la descripción para la bitácora
-    descripcion = safe_message(f"Recuperado Edicto {edicto.id} por {current_user.email}")
+    descripcion = safe_message(f"Recuperada Glosa {glosa.id} por {current_user.email}")
 
     # Si es administrador
     if current_user.can_admin(MODULO):
-        edicto.recover()
+        glosa.recover()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
@@ -728,8 +691,8 @@ def recover(edicto_id):
         return redirect(bitacora.url)
 
     # Si le pertenece y fue creado hace menos de un día
-    if current_user.autoridad_id == edicto.autoridad_id and edicto.creado >= datetime.now(tz=local_tz) - timedelta(days=1):
-        edicto.recover()
+    if current_user.autoridad_id == glosa.autoridad_id and glosa.creado >= datetime.now(tz=local_tz) - timedelta(days=1):
+        glosa.recover()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
@@ -745,40 +708,18 @@ def recover(edicto_id):
     return redirect(detalle_url)
 
 
-@edictos.route("/edictos/ver_archivo_pdf/<int:edicto_id>")
-def view_file_pdf(edicto_id):
-    """Ver archivo PDF de Edicto para insertarlo en un iframe en el detalle"""
+@glosas.route("/glosas/ver_archivo_pdf/<int:glosa_id>")
+def view_file_pdf(glosa_id):
+    """Ver archivo PDF de Glosa para insertarlo en un iframe en el detalle"""
 
     # Consultar
-    edicto = Edicto.query.get_or_404(edicto_id)
+    glosa = Glosa.query.get_or_404(glosa_id)
 
     # Obtener el contenido del archivo
     try:
         archivo = get_file_from_gcs(
-            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_EDICTOS"],
-            blob_name=get_blob_name_from_url(edicto.url),
-        )
-    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
-        raise NotFound("No se encontró el archivo.") from error
-
-    # Entregar el archivo
-    response = make_response(archivo)
-    response.headers["Content-Type"] = "application/pdf"
-    return response
-
-
-@edictos.route("/edictos/descargar_archivo_pdf/<int:edicto_id>")
-def download_file_pdf(edicto_id):
-    """Descargar archivo PDF de Edicto"""
-
-    # Consultar
-    edicto = Edicto.query.get_or_404(edicto_id)
-
-    # Obtener el contenido del archivo
-    try:
-        archivo = get_file_from_gcs(
-            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_EDICTOS"],
-            blob_name=get_blob_name_from_url(edicto.url),
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_GLOSAS"],
+            blob_name=get_blob_name_from_url(glosa.url),
         )
     except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
         raise NotFound("No se encontró el archivo.")
@@ -786,5 +727,27 @@ def download_file_pdf(edicto_id):
     # Entregar el archivo
     response = make_response(archivo)
     response.headers["Content-Type"] = "application/pdf"
-    response.headers["Content-Disposition"] = f"attachment; filename={edicto.archivo}"
+    return response
+
+
+@glosas.route("/glosas/descargar_archivo_pdf/<int:glosa_id>")
+def download_file_pdf(glosa_id):
+    """Descargar archivo PDF de Glosa"""
+
+    # Consultar
+    glosa = Glosa.query.get_or_404(glosa_id)
+
+    # Obtener el contenido del archivo
+    try:
+        archivo = get_file_from_gcs(
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_GLOSAS"],
+            blob_name=get_blob_name_from_url(glosa.url),
+        )
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        raise NotFound("No se encontró el archivo.")
+
+    # Entregar el archivo
+    response = make_response(archivo)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = f"attachment; filename={glosa.archivo}"
     return response

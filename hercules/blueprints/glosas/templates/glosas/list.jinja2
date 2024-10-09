@@ -1,5 +1,4 @@
 {% extends 'layouts/app.jinja2' %}
-{% import 'macros/form_inline.jinja2' as f with context %}
 {% import 'macros/list.jinja2' as list %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
@@ -9,25 +8,21 @@
     {% call topbar.page_buttons(titulo) %}
         {# Si hay filtro por autoridad #}
         {% if autoridad %}
-            {{ topbar.button_previous('Todas las V.P. de S.', url_for('edictos.list_active')) }}
-        {% endif %}
-        {# Ir a Tipos de Juicios #}
-        {% if current_user.can_view('MATERIAS TIPOS JUICIOS') %}
-            {{ topbar.button('Tipos de Juicios', url_for('materias_tipos_juicios.list_active'), 'mdi:label') }}
+            {{ topbar.button_previous('Todos las Glosas', url_for('glosas.list_active')) }}
         {% endif %}
         {# Mostrar el botón para subir si tiene permiso y es su autoridad #}
-        {% if current_user.can_insert('SENTENCIAS') %}
-            {{ topbar.button_upload('Subir V.P. de S.', url_for('sentencias.new')) }}
+        {% if current_user.can_insert('GLOSAS') %}
+            {{ topbar.button_upload('Subir Glosa', url_for('glosas.new')) }}
         {% endif %}
     {% endcall %}
 {% endblock %}
 
 {% block content %}
     {% call list.card() %}
-        <!-- Filtros Sentencias -->
+        <!-- Filtros Glosas -->
         <div class="row">
             <div class="col">
-                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosSentencias.buscar(); return false;">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDTGlosas.buscar(); return false;">
                     <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad clave" style="text-transform: uppercase;">
@@ -48,8 +43,8 @@
                     </div>
                     <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroSentencia" type="text" class="form-control" aria-label="Sentencia" style="text-transform: uppercase;">
-                            <label for="filtroSentencia">Sentencia</label>
+                            <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
+                            <label for="filtroDescripcion">Descripción</label>
                         </div>
                     </div>
                     <div class="col-2">
@@ -59,21 +54,21 @@
                         </div>
                     </div>
                     <div class="col-2 text-end">
-                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosSentencias.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
-                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosSentencias.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDTGlosas.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDTGlosas.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
                 </form>
             </div>
         </div>
-        <!-- DataTable Sentencias -->
-        <table id="sentencias_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+        <!-- DataTable Glosas -->
+        <table id="glosas_datatable" class="table {% if estatus == 'B' %}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
                     <th>Fecha</th>
                     <th>Autoridad</th>
-                    <th>Sentencia</th>
+                    <th>Descripción</th>
                     <th>Expediente</th>
-                    <th>P. Género</th>
+                    <th>Tipo de Juicio</th>
                     <th>Creado</th>
                 </tr>
             </thead>
@@ -85,20 +80,20 @@
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
-        // DataTable Sentencias
-        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
-        let configDTSentencias = constructorDataTable.config();
-        configDTSentencias['ajax']['url'] = '/sentencias/datatable_json';
-        configDTSentencias['ajax']['data'] = {{ filtros }};
-        configDTSentencias['columns'] = [
-            { data: "fecha" },
-            { data: "autoridad_clave" },
-            { data: "detalle" },
-            { data: "expediente" },
-            { data: "es_perspectiva_genero" },
-            { data: "creado" }
+        // DataTable Glosa
+        const constructorDataTable = new ConfigDataTable('{{ csrf_token() }}');
+        let configDTGlosas = constructorDataTable.config();
+        configDTGlosas['ajax']['url'] = '/glosas/datatable_json';
+        configDTGlosas['ajax']['data'] = {{ filtros }};
+        configDTGlosas['columns'] = [
+            { data: 'fecha' },
+            { data: 'autoridad_clave' },
+            { data: 'detalle' },
+            { data: 'expediente' },
+            { data: 'tipo_juicio' },
+            { data: 'creado' }
         ];
-        configDTSentencias['columnDefs'] = [
+        configDTGlosas['columnDefs'] = [
             {
                 targets: 0, // fecha
                 type: "date",
@@ -109,18 +104,22 @@
             {
                 targets: 2, // detalle
                 data: null,
-                render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.sentencia + '</a>';
-                }
+                render: function (data, type, row, meta) {
+                    let interior = data.descripcion;
+                    if (data.descripcion.length > 48) {
+                        interior = '<span title="' + data.descripcion + '">' + data.descripcion.substring(0, 48) + '...</span>';
+                    }
+                    return '<a href="' + data.url + '">' + interior + '</a>';
+                },
             }
         ];
-        // Filtros Sentencias
-        const filtrosSentencias = new FiltrosDataTable('#sentencias_datatable', configDTSentencias);
-        filtrosSentencias.agregarInput('filtroAutoridadClave', 'autoridad_clave');
-        filtrosSentencias.agregarInput('filtroFechaDesde', 'fecha_desde');
-        filtrosSentencias.agregarInput('filtroFechaHasta', 'fecha_hasta');
-        filtrosSentencias.agregarInput('filtroSentencia', 'sentencia');
-        filtrosSentencias.agregarInput('filtroExpediente', 'expediente');
-        filtrosSentencias.precargar();
+        // Filtros Glosa
+        const filtrosDTGlosas = new FiltrosDataTable('#glosas_datatable', configDTGlosas);
+        filtrosDTGlosas.agregarInput('filtroAutoridadClave', 'autoridad_clave');
+        filtrosDTGlosas.agregarInput('filtroFechaDesde', 'fecha_desde');
+        filtrosDTGlosas.agregarInput('filtroFechaHasta', 'fecha_hasta');
+        filtrosDTGlosas.agregarInput('filtroDescripcion', 'descripcion');
+        filtrosDTGlosas.agregarInput('filtroExpediente', 'expediente');
+        filtrosDTGlosas.precargar();
     </script>
 {% endblock %}

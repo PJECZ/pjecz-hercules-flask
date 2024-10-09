@@ -8,25 +8,25 @@
     {% call topbar.page_buttons(titulo) %}
         {# Si viene la autoridad #}
         {% if autoridad %}
-            {{ topbar.button_previous('Todos los Edictos', url_for('edictos.list_active')) }}
+            {{ topbar.button_previous('Todos las Glosas', url_for('glosas.list_active')) }}
             {# Entonces pasar la autoridad como parametro #}
-            {{ topbar.button_upload('Subir Edicto para ' + autoridad.clave, url_for('edictos.new_with_autoridad_id', autoridad_id=autoridad.id)) }}
-            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('edictos.list_inactive') + '?autoridad_clave=' + autoridad.clave) }}{% endif %}
-            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('edictos.list_active') + '?autoridad_clave=' + autoridad.clave) }}{% endif %}
+            {{ topbar.button_upload('Subir Glosa para ' + autoridad.clave, url_for('glosas.new_with_autoridad_id', autoridad_id=autoridad.id)) }}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('glosas.list_inactive') + '?autoridad_clave=' + autoridad.clave) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('glosas.list_active') + '?autoridad_clave=' + autoridad.clave) }}{% endif %}
         {% else %}
             {# De lo contrario no se tiene #}
-            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('edictos.list_inactive')) }}{% endif %}
-            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('edictos.list_active')) }}{% endif %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('glosas.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('glosas.list_active')) }}{% endif %}
         {% endif %}
     {% endcall %}
 {% endblock %}
 
 {% block content %}
     {% call list.card() %}
-        <!-- Filtros Edictos -->
+        <!-- Filtros Glosas -->
         <div class="row">
             <div class="col">
-                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDTEdictos.buscar(); return false;">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDTGlosas.buscar(); return false;">
                     <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad clave" style="text-transform: uppercase;">
@@ -58,14 +58,14 @@
                         </div>
                     </div>
                     <div class="col-2 text-end">
-                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDTEdictos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
-                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDTEdictos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDTGlosas.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDTGlosas.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
                 </form>
             </div>
         </div>
-        <!-- DataTable Edictos -->
-        <table id="edictos_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+        <!-- DataTable Glosas -->
+        <table id="glosas_datatable" class="table {% if estatus == 'B' %}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -74,7 +74,7 @@
                     <th>Fecha</th>
                     <th>Descripción</th>
                     <th>Expediente</th>
-                    <th>No. Pub.</th>
+                    <th>Tipo de Juicio</th>
                 </tr>
             </thead>
         </table>
@@ -85,21 +85,21 @@
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
-        // DataTable Edictos
-        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
-        let configDTEdictos = constructorDataTable.config();
-        configDTEdictos['ajax']['url'] = '/edictos/admin_datatable_json';
-        configDTEdictos['ajax']['data'] = {{ filtros }};
-        configDTEdictos['columns'] = [
-            { data: "detalle" },
-            { data: "creado" },
-            { data: "autoridad" },
-            { data: "fecha" },
-            { data: "descripcion" },
-            { data: "expediente" },
-            { data: "numero_publicacion" },
+        // DataTable Glosas
+        const constructorDataTable = new ConfigDataTable('{{ csrf_token() }}');
+        let configDTGlosas = constructorDataTable.config();
+        configDTGlosas['ajax']['url'] = '/glosas/admin_datatable_json';
+        configDTGlosas['ajax']['data'] = {{ filtros }};
+        configDTGlosas['columns'] = [
+            {data: 'detalle'},
+            {data: 'creado'},
+            {data: 'autoridad_clave'},
+            {data: 'fecha'},
+            {data: 'descripcion'},
+            {data: 'expediente'},
+            {data: 'tipo_juicio'}
         ];
-        configDTEdictos['columnDefs'] = [
+        configDTGlosas['columnDefs'] = [
             {
                 targets: 0, // detalle
                 data: null,
@@ -118,13 +118,13 @@
                 }
             }
         ];
-        // Filtros Edictos
-        const filtrosDTEdictos = new FiltrosDataTable('#edictos_datatable', configDTEdictos);
-        filtrosDTEdictos.agregarInput('filtroAutoridadClave', 'autoridad_clave');
-        filtrosDTEdictos.agregarInput('filtroFechaDesde', 'fecha_desde');
-        filtrosDTEdictos.agregarInput('filtroFechaHasta', 'fecha_hasta');
-        filtrosDTEdictos.agregarInput('filtroDescripcion', 'descripcion');
-        filtrosDTEdictos.agregarInput('filtroExpediente', 'expediente');
-        filtrosDTEdictos.precargar();
+        // Filtros Glosas
+        const filtrosDTGlosas = new FiltrosDataTable('#glosas_datatable', configDTGlosas);
+        filtrosDTGlosas.agregarInput('filtroAutoridadClave', 'autoridad_clave');
+        filtrosDTGlosas.agregarInput('filtroFechaDesde', 'fecha_desde');
+        filtrosDTGlosas.agregarInput('filtroFechaHasta', 'fecha_hasta');
+        filtrosDTGlosas.agregarInput('filtroDescripcion', 'descripcion');
+        filtrosDTGlosas.agregarInput('filtroExpediente', 'expediente');
+        filtrosDTGlosas.precargar();
     </script>
 {% endblock %}

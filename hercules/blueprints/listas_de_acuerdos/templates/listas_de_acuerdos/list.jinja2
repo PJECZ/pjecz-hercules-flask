@@ -6,44 +6,54 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {# Mostrar el boton para subir si tiene permiso y es su autoridad #}
-        {% if autoridad and current_user.autoridad_id == autoridad.id and current_user.can_insert('LISTAS DE ACUERDOS') %}
-            {{ topbar.button_new('Subir Lista de Acuerdos', url_for('listas_de_acuerdos.new')) }}
+        {# Si hay filtro por autoridad #}
+        {% if autoridad %}
+            {{ topbar.button_previous('Todas las L. de A.', url_for('edictos.list_active')) }}
+        {% endif %}
+        {# Mostrar el botón para subir si tiene permiso y es su autoridad #}
+        {% if current_user.can_insert('LISTAS DE ACUERDOS') %}
+            {{ topbar.button_upload('Subir L. de A.', url_for('listas_de_acuerdos.new')) }}
         {% endif %}
     {% endcall %}
 {% endblock %}
 
 {% block content %}
     {% call list.card() %}
-        <!-- Filtros ListaDeAcuerdo -->
+        <!-- Filtros Listas De Acuerdos -->
         <div class="row">
             <div class="col">
-                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosListaDeAcuerdo.buscar(); return false;">
-                    <div class="col-3">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDTListasDeAcuerdos.buscar(); return false;">
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad clave" style="text-transform: uppercase;">
+                            <label for="filtroAutoridadClave">Autoridad clave</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroFechaDesde" type="date" class="form-control" aria-label="Fecha Desde">
                             <label for="filtroFechaDesde">Fecha Desde</label>
                         </div>
                     </div>
-                    <div class="col-3">
+                    <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroFechaHasta" type="date" class="form-control" aria-label="Fecha Hasta">
                             <label for="filtroFechaHasta">Fecha Hasta</label>
                         </div>
                     </div>
                     <div class="col-6 text-end">
-                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosListaDeAcuerdo.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
-                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosListaDeAcuerdo.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span>
-                        </button>
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDTListasDeAcuerdos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDTListasDeAcuerdos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
                 </form>
             </div>
         </div>
-        <!-- DataTable ListaDeAcuerdo -->
+        <!-- DataTable Listas De Acuerdos -->
         <table id="listas_de_acuerdos_datatable" class="table {% if estatus == 'B' %}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
                     <th>Fecha</th>
+                    <th>Autoridad</th>
                     <th>Descripción</th>
                     <th>Creado</th>
                 </tr>
@@ -56,26 +66,27 @@
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
-        // DataTable Municipios
+        // DataTable Listas De Acuerdos
         const constructorDataTable = new ConfigDataTable('{{ csrf_token() }}');
-        let configDataTable = constructorDataTable.config();
-        configDataTable['ajax']['url'] = '/listas_de_acuerdos/datatable_json';
-        configDataTable['ajax']['data'] = {{ filtros }};
-        configDataTable['columns'] = [
-            {data: 'detalle'},
-            {data: 'descripcion'},
-            {data: 'creado'},
+        let configDTListasDeAcuerdos = constructorDataTable.config();
+        configDTListasDeAcuerdos['ajax']['url'] = '/listas_de_acuerdos/datatable_json';
+        configDTListasDeAcuerdos['ajax']['data'] = {{ filtros }};
+        configDTListasDeAcuerdos['columns'] = [
+            { data: 'detalle'} ,
+            { data: 'autoridad_clave'} ,
+            { data: 'descripcion'} ,
+            { data: 'creado' }
         ];
-        configDataTable['columnDefs'] = [
+        configDTListasDeAcuerdos['columnDefs'] = [
             {
-                targets: 0, // fecha
+                targets: 0, // detalle
                 data: null,
                 render: function (data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.fecha + '</a>';
+                    return '<a href="' + data.url + '">' + moment(data.fecha).format("DD MMM YYYY") + '</a>';
                 },
             },
             {
-                targets: 2, // creado
+                targets: 3, // creado
                 data: null,
                 render: function(data, type, row, meta) {
                     let bandera = 'flag-checkered';
@@ -89,10 +100,11 @@
                 }
             }
         ];
-        // Filtros ListaDeAcuerdo
-        const filtrosListaDeAcuerdo = new FiltrosDataTable('#listas_de_acuerdos_datatable', configDataTable);
-        filtrosListaDeAcuerdo.agregarInput('filtroFechaDesde', 'fecha_desde');
-        filtrosListaDeAcuerdo.agregarInput('filtroFechaHasta', 'fecha_hasta');
-        filtrosListaDeAcuerdo.precargar();
+        // Filtros Listas De Acuerdos
+        const filtrosDTListasDeAcuerdos = new FiltrosDataTable('#listas_de_acuerdos_datatable', configDTListasDeAcuerdos);
+        filtrosDTListasDeAcuerdos.agregarInput('filtroAutoridadClave', 'autoridad_clave');
+        filtrosDTListasDeAcuerdos.agregarInput('filtroFechaDesde', 'fecha_desde');
+        filtrosDTListasDeAcuerdos.agregarInput('filtroFechaHasta', 'fecha_hasta');
+        filtrosDTListasDeAcuerdos.precargar();
     </script>
 {% endblock %}

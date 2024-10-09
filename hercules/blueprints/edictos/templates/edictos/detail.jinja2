@@ -3,23 +3,32 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Edicto {{ edicto.autoridad.clave }}{% endblock %}
+{% if edicto.descripcion | length > 24 %}
+    {% set title = 'Edicto ' + edicto.descripcion[:24] + '...' + ' del ' + edicto.autoridad.clave %}
+{% else %}
+    {% set title = 'Edicto ' + edicto.descripcion + ' del ' + edicto.autoridad.clave %}
+{% endif %}
+
+{% block title %}{{ title }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Edicto') %}
+    {% call topbar.page_buttons(title) %}
+        {# Ir al listado activos #}
+        {{ topbar.button_previous('Edictos', url_for('edictos.list_active')) }}
+        {# Los administradores pueden subir a la autoridad que tienen a la vista #}
         {% if current_user.can_admin('EDICTOS') %}
-            {{ topbar.button_previous('Edictos de ' + edicto.autoridad.clave, url_for('edictos.list_autoridad_edictos', autoridad_id=edicto.autoridad_id)) }}
-        {% else %}
-            {{ topbar.button_previous('Edictos', url_for('edictos.list_active')) }}
-        {% endif %}
-        {% if current_user.can_admin('EDICTOS') %}
-            {{ topbar.button_upload('Nuevo Edicto', url_for('edictos.new_for_autoridad', autoridad_id=edicto.autoridad_id)) }}
+            {{ topbar.button_previous('Edictos del ' + edicto.autoridad.clave, url_for('edictos.list_active') + '?autoridad_clave=' + edicto.autoridad.clave) }}
+            {{ topbar.button_upload('Subir Edicto para ' + edicto.autoridad.clave, url_for('edictos.new_with_autoridad_id', autoridad_id=edicto.autoridad_id)) }}
         {% elif current_user.can_insert('EDICTOS') and current_user.autoridad_id == edicto.autoridad_id %}
-            {{ topbar.button_upload('Nuevo Edicto', url_for('edictos.new')) }}
+            {{ topbar.button_upload('Subir Edicto', url_for('edictos.new')) }}
+        {% else %}
+            {{ topbar.button_previous('Edictos del ' + edicto.autoridad.clave, url_for('edictos.list_active') + '?autoridad_clave=' + edicto.autoridad.clave) }}
         {% endif %}
-        {% if current_user.can_edit('EDICTOS') %}
+        {# Los usuarios que pueden editar si les pertenece #}
+        {% if current_user.can_admin('EDICTOS') or (current_user.can_edit('EDICTOS') and current_user.autoridad_id == edicto.autoridad_id) %}
             {{ topbar.button_edit('Editar', url_for('edictos.edit', edicto_id=edicto.id)) }}
         {% endif %}
+        {# Los usuarios con permiso para insertar pueden eliminar y recuperar #}
         {% if current_user.can_insert('EDICTOS') %}
             {% if edicto.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('edictos.delete', edicto_id=edicto.id)) }}{% endif %}
             {% if edicto.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('edictos.recover', edicto_id=edicto.id)) }}{% endif %}
@@ -29,18 +38,33 @@
 
 {% block content %}
     {% call detail.card(estatus=edicto.estatus) %}
-       {{ detail.label_value_big('Descripción', edicto.descripcion) }}
-        {{ detail.label_value('Distrito', edicto.autoridad.distrito.nombre) }}
-        {{ detail.label_value('Autoridad', edicto.autoridad.descripcion) }}
-        {{ detail.label_value('Fecha', moment(edicto.fecha, local=True).format("DD MMM YYYY")) }}
-        {{ detail.label_value('Expediente', edicto.expediente) }}
-        {{ detail.label_value('No. publicación', edicto.numero_publicacion) }}
-        {{ detail.label_value_new_tab('Enlace público para descargar PDF', edicto.descargar_url, edicto.descargar_url) }}
-        {% if current_user.can_admin('EDICTOS') %}
-            {{ detail.label_value_new_tab('Descargar como administrador PDF', edicto.archivo, url_for('edictos.download', url=edicto.url)) }}
-        {% endif %}
-        {{ detail.label_value_new_tab('Acuse', 'De clic aqui', url_for('edictos.checkout', id_hashed=edicto.encode_id())) }}
-        {{ detail.label_value('Creado', moment(edicto.creado).format('llll')) }}
+        <div class="row">
+            <div class="col-md-6">
+                {{ detail.label_value('Distrito', edicto.autoridad.distrito.nombre) }}
+                {% if current_user.can_view("AUTORIDADES") %}
+                    {{ detail.label_value('Autoridad', edicto.autoridad.descripcion, url_for('autoridades.detail', autoridad_id=edicto.autoridad_id)) }}
+                {% else %}
+                    {{ detail.label_value('Autoridad', edicto.autoridad.descripcion) }}
+                {% endif %}
+                {{ detail.label_value('Descripción', edicto.descripcion) }}
+            </div>
+            <div class="col-md-6">
+                {{ detail.label_value('Fecha', moment(edicto.fecha, local=True).format("DD MMM YYYY")) }}
+                {{ detail.label_value('Expediente', edicto.expediente) }}
+                {{ detail.label_value('No. publicación', edicto.numero_publicacion) }}
+                {{ detail.label_value('Creado', moment(edicto.creado).format('llll')) }}
+            </div>
+        </div>
+        <div class="row">
+            {% if current_user.can_insert('EDICTOS') %}
+            <div class="col">
+                {{ detail.button_md(label='Acuse', url=url_for('edictos.checkout', id_hashed=edicto.encode_id()), icon='mdi:printer', color_class='btn-outline-secondary') }}
+            </div>
+            {% endif %}
+            <div class="col">
+                {{ detail.button_md(label='Descargar PDF', url=url_for('edictos.download_file_pdf', edicto_id=edicto.id), icon='mdi:download') }}
+            </div>
+        </div>
     {% endcall %}
     {% call detail.card() %}
         <object data="{{ url_for('edictos.view_file_pdf', edicto_id=edicto.id) }}" type="application/pdf" width="100%" height="600px">
@@ -52,7 +76,7 @@
 {% block custom_javascript %}
     {# Los usuarios que pueden insertar registros tienen permiso para eliminar y recuperar #}
     {% set descrito = 'el edicto del ' + edicto.fecha.strftime("%Y-%m-%d") + ' de ' + edicto.autoridad.clave %}
-    {% if current_user.can_admin('EDICTOS') %}
+    {% if current_user.can_insert('EDICTOS') %}
         {% if edicto.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + descrito + '?') }}{% endif %}
         {% if edicto.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + descrito + '?') }}{% endif %}
     {% endif %}

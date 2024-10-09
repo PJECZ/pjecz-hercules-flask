@@ -24,6 +24,7 @@ from hercules.blueprints.estados.views import estados
 from hercules.blueprints.fin_vales.views import fin_vales
 from hercules.blueprints.funcionarios.views import funcionarios
 from hercules.blueprints.funcionarios_oficinas.views import funcionarios_oficinas
+from hercules.blueprints.glosas.views import glosas
 from hercules.blueprints.identidades_generos.views import identidades_generos
 from hercules.blueprints.inv_categorias.views import inv_categorias
 from hercules.blueprints.inv_componentes.views import inv_componentes
@@ -94,6 +95,7 @@ def create_app():
     app.register_blueprint(fin_vales)
     app.register_blueprint(funcionarios)
     app.register_blueprint(funcionarios_oficinas)
+    app.register_blueprint(glosas)
     app.register_blueprint(identidades_generos)
     app.register_blueprint(inv_categorias)
     app.register_blueprint(inv_componentes)
