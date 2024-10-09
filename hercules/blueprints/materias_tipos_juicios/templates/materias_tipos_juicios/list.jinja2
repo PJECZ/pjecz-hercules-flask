@@ -9,6 +9,9 @@
         {% if current_user.can_view('MATERIAS') %}
             {{ topbar.button('Materias', url_for('materias.list_active'), 'mdi:tag') }}
         {% endif %}
+        {% if current_user.can_view('SENTENCIAS') %}
+            {{ topbar.button('V.P. de Sentencias', url_for('sentencias.list_active'), 'mdi:gavel') }}
+        {% endif %}
         {% if current_user.can_admin('MATERIAS TIPOS JUICIOS') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('materias_tipos_juicios.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('materias_tipos_juicios.list_active')) }}{% endif %}

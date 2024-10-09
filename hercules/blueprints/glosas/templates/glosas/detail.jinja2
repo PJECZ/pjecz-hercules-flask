@@ -18,7 +18,7 @@
         {# Los administradores pueden subir a la autoridad que tienen a la vista #}
         {% if current_user.can_admin('GLOSAS') %}
             {{ topbar.button_previous('Glosas del ' + glosa.autoridad.clave, url_for('glosas.list_active') + '?autoridad_clave=' + glosa.autoridad.clave) }}
-            {{ topbar.button_new('Subir Glosa para ' + glosa.autoridad.clave, url_for('glosas.new_with_autoridad_id', autoridad_id=glosa.autoridad_id)) }}
+            {{ topbar.button_upload('Subir Glosa para ' + glosa.autoridad.clave, url_for('glosas.new_with_autoridad_id', autoridad_id=glosa.autoridad_id)) }}
         {% elif current_user.can_insert('GLOSAS') and current_user.autoridad_id == glosa.autoridad_id %}
             {{ topbar.button_upload('Subir Glosa', url_for('glosas.new')) }}
         {% else %}
@@ -38,13 +38,23 @@
 
 {% block content %}
     {% call detail.card(estatus=glosa.estatus) %}
-        {{ detail.label_value('Descripción', glosa.descripcion) }}
-        {{ detail.label_value('Distrito', glosa.autoridad.distrito.nombre) }}
-        {{ detail.label_value('Autoridad', glosa.autoridad.descripcion) }}
-        {{ detail.label_value('Fecha', moment(glosa.fecha, local=True).format("DD MMM YYYY")) }}
-        {{ detail.label_value('Tipo de juicio', glosa.tipo_juicio) }}
-        {{ detail.label_value('Expediente', glosa.expediente) }}
-        {{ detail.label_value('Creado', moment(glosa.creado).format('llll')) }}
+        <div class="row">
+            <div class="col-md-6">
+                {{ detail.label_value('Distrito', glosa.autoridad.distrito.nombre) }}
+                {% if current_user.can_view("AUTORIDADES") %}
+                    {{ detail.label_value('Autoridad', glosa.autoridad.descripcion, url_for('autoridades.detail', autoridad_id=glosa.autoridad_id)) }}
+                {% else %}
+                    {{ detail.label_value('Autoridad', glosa.autoridad.descripcion) }}
+                {% endif %}
+                {{ detail.label_value('Descripción', glosa.descripcion) }}
+            </div>
+            <div class="col-md-6">
+                {{ detail.label_value('Fecha', moment(glosa.fecha, local=True).format("DD MMM YYYY")) }}
+                {{ detail.label_value('Tipo de juicio', glosa.tipo_juicio) }}
+                {{ detail.label_value('Expediente', glosa.expediente) }}
+                {{ detail.label_value('Creado', moment(glosa.creado).format('llll')) }}
+            </div>
+        </div>
         <div class="row">
             <div class="col">
                 {{ detail.button_md(label='Descargar', url=url_for('glosas.download_file_pdf', glosa_id=glosa.id), icon='mdi:download') }}

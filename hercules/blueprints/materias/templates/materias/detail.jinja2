@@ -25,13 +25,44 @@
     {% endcall %}
     {% if current_user.can_view('AUTORIDADES') %}
         {% call detail.card(title='Autoridades con esta materia') %}
+            <!-- Filtros Autoridades -->
+            <div class="row">
+                <div class="col">
+                    <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosAutoridades.buscar(); return false;">
+                        <div class="col-2">
+                            <div class="form-floating">
+                                <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Clave" style="text-transform: uppercase;">
+                                <label for="filtroAutoridadClave">Clave</label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-floating">
+                                <input id="filtroAutoridadDescripcion" type="text" class="form-control" aria-label="Descripcion" style="text-transform: uppercase;">
+                                <label for="filtroAutoridadDescripcion">Descripción</label>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="form-floating">
+                                <input id="filtroAutoridadDistritoNombre" type="text" class="form-control" aria-label="Distrito" style="text-transform: uppercase;">
+                                <label for="filtroAutoridadDistritoNombre">Distrito</label>
+                            </div>
+                        </div>
+                        <div class="col-3 text-end">
+                            <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosAutoridades.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                            <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosAutoridades.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- Datatable Autoridades -->
             <table id="autoridades_datatable" class="table display nowrap" style="width:100%">
                 <thead>
                     <tr>
-                        <th>Claves</th>
-                        <th>Descripciones cortas</th>
-                        <th>Órganos Jurisdiccionales</th>
-                        <th>Distritos</th>
+                        <th>Clave</th>
+                        <th>Descripción corta</th>
+                        <th>Distrito</th>
+                        <th>Municipio</th>
+                        <th>Extinto</th>
                     </tr>
                 </thead>
             </table>
@@ -48,16 +79,17 @@
     <script src="/static/js/datatables-filtros.js"></script>
     {% if current_user.can_view('AUTORIDADES') %}
         <script>
-            // DataTable Autoridades
+            // DataTable autoridades
             const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
             let configDataTable = constructorDataTable.config();
             configDataTable['ajax']['url'] = '/autoridades/datatable_json';
-            configDataTable['ajax']['data'] = { 'estatus': "A", 'materia_id': {{ materia.id}} };
+            configDataTable['ajax']['data'] = { "estatus": "A", "materia_id": {{ materia.id }} };
             configDataTable['columns'] = [
                 { data: "detalle" },
                 { data: "descripcion_corta" },
-                { data: "organo_jurisdiccional" },
-                { data: "distrito" }
+                { data: "distrito" },
+                { data: "municipio" },
+                { data: "es_extinto" }
             ];
             configDataTable['columnDefs'] = [
                 {
@@ -68,18 +100,33 @@
                     }
                 },
                 {
-                    targets: 3, // distrito
+                    targets: 2, // distrito
                     data: null,
                     render: function(data, type, row, meta) {
-                        if (data.url == '') {
-                            return data.nombre_corto;
-                        }
                         return '<a href="' + data.url + '">' + data.nombre_corto + '</a>';
+                    }
+                },
+                {
+                    targets: 3, // municipio
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        if (data.nombre.length > 32) {
+                            nombre = data.nombre.substr(0, 32) + '…';
+                        } else {
+                            nombre = data.nombre;
+                        }
+                        if (data.url != '') {
+                            return '<a href="' + data.url + '">' + nombre + '</a>';
+                        }
+                        return nombre;
                     }
                 }
             ];
-            // Filtros Autoridades
+            // Filtros autoridades
             const filtrosAutoridades = new FiltrosDataTable('#autoridades_datatable', configDataTable);
+            filtrosAutoridades.agregarInput('filtroAutoridadClave', 'clave');
+            filtrosAutoridades.agregarInput('filtroAutoridadDescripcion', 'descripcion');
+            filtrosAutoridades.agregarInput('filtroAutoridadDistritoNombre', 'distrito_nombre');
             filtrosAutoridades.precargar();
         </script>
     {% endif %}

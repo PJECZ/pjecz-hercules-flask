@@ -9,11 +9,15 @@
     {% call topbar.page_buttons(titulo) %}
         {# Si hay filtro por autoridad #}
         {% if autoridad %}
-            {{ topbar.button_previous('Todas las V.P. de Sentencias', url_for('edictos.list_active')) }}
+            {{ topbar.button_previous('Todas las V.P. de S.', url_for('edictos.list_active')) }}
+        {% endif %}
+        {# Ir a Tipos de Juicios #}
+        {% if current_user.can_view('MATERIAS TIPOS JUICIOS') %}
+            {{ topbar.button('Tipos de Juicios', url_for('materias_tipos_juicios.list_active'), 'mdi:label') }}
         {% endif %}
         {# Mostrar el botón para subir si tiene permiso y es su autoridad #}
         {% if current_user.can_insert('SENTENCIAS') %}
-            {{ topbar.button_upload('Subir V.P. de Sentencia', url_for('sentencias.new')) }}
+            {{ topbar.button_upload('Subir V.P. de S.', url_for('sentencias.new')) }}
         {% endif %}
     {% endcall %}
 {% endblock %}
@@ -69,8 +73,6 @@
                     <th>Autoridad</th>
                     <th>Sentencia</th>
                     <th>Expediente</th>
-                    <th>Materia</th>
-                    <th>Tipo de Juicio</th>
                     <th>P. Género</th>
                     <th>Creado</th>
                 </tr>
@@ -93,8 +95,6 @@
             { data: "autoridad_clave" },
             { data: "detalle" },
             { data: "expediente" },
-            { data: "materia_nombre" },
-            { data: "materia_tipo_juicio_descripcion" },
             { data: "es_perspectiva_genero" },
             { data: "creado" }
         ];
@@ -111,16 +111,6 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.sentencia + '</a>';
-                }
-            },
-            {
-                targets: 5, // materia_tipo_juicio_descripcion
-                data: null,
-                render: function(data, type, row, meta) {
-                    if (data.length > 24) {
-                        return '<span title="' + data + '">' + data.substring(0, 24) + '…</span>';
-                    }
-                    return data;
                 }
             }
         ];

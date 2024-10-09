@@ -51,7 +51,7 @@ def checkout(id_hashed):
     """Acuse"""
     edicto = Edicto.query.get_or_404(Edicto.decode_id(id_hashed))
     dia, mes, anio = dia_mes_ano(edicto.creado)
-    return render_template("edictos/print.jinja2", edicto=edicto, dia=dia, mes=mes.upper(), anio=anio)
+    return render_template("edictos/checkout.jinja2", edicto=edicto, dia=dia, mes=mes.upper(), anio=anio)
 
 
 @edictos.before_request
@@ -464,7 +464,7 @@ def new_with_autoridad_id(autoridad_id):
 
         # Validar fecha
         fecha = form.fecha.data
-        if not limite_dt <= datetime.datetime(year=fecha.year, month=fecha.month, day=fecha.day) <= hoy_dt:
+        if not limite_dt <= datetime(year=fecha.year, month=fecha.month, day=fecha.day) <= hoy_dt:
             flash(f"La fecha no debe ser del futuro ni anterior a {LIMITE_ADMINISTRADORES_DIAS} días.", "warning")
             form.fecha.data = hoy
             es_valido = False
@@ -495,7 +495,7 @@ def new_with_autoridad_id(autoridad_id):
             upload_date=fecha,
             allowed_extensions=["pdf"],
             month_in_word=True,
-            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_GLOSAS"],
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_EDICTOS"],
         )
 
         # Validar archivo
@@ -571,13 +571,21 @@ def new_with_autoridad_id(autoridad_id):
 def edit(edicto_id):
     """Editar Edicto"""
 
-    # Validar edicto
+    # Consultar
     edicto = Edicto.query.get_or_404(edicto_id)
-    if not (current_user.can_admin(MODULO) or current_user.autoridad_id == edicto.autoridad_id):
-        flash("No tiene permiso para editar este edicto.", "warning")
-        return redirect(url_for("edictos.list_active"))
 
-    # Definir la fecha límite para el juzgado
+    # Si NO es administrador
+    if not (current_user.can_admin(MODULO)):
+        # Validar que le pertenezca
+        if current_user.autoridad_id != edicto.autoridad_id:
+            flash("No puede editar registros ajenos.", "warning")
+            return redirect(url_for("edictos.list_active"))
+        # Si fue creado hace menos de un día
+        if edicto.creado < datetime.now(tz=local_tz) - timedelta(days=1):
+            flash("Ya no puede editar porque fue creado hace más de 24 horas.", "warning")
+            return redirect(url_for("edictos.detail", edicto_id=edicto.id))
+
+    # Definir la fecha límite
     hoy = date.today()
     hoy_dt = datetime(year=hoy.year, month=hoy.month, day=hoy.day)
     limite_dt = hoy_dt + timedelta(days=-LIMITE_DIAS)
@@ -595,27 +603,31 @@ def edit(edicto_id):
             es_valido = False
 
         # Validar descripción
-        edicto.descripcion = safe_string(form.descripcion.data, save_enie=True)
+        descripcion = safe_string(form.descripcion.data, save_enie=True)
         if edicto.descripcion == "":
             flash("La descripción es incorrecta.", "warning")
             es_valido = False
 
         # Validar expediente
         try:
-            edicto.expediente = safe_expediente(form.expediente.data)
+            expediente = safe_expediente(form.expediente.data)
         except (IndexError, ValueError):
             flash("El expediente es incorrecto.", "warning")
             es_valido = False
 
         # Validar número de publicación
         try:
-            edicto.numero_publicacion = safe_numero_publicacion(form.numero_publicacion.data)
+            numero_publicacion = safe_numero_publicacion(form.numero_publicacion.data)
         except (IndexError, ValueError):
             flash("El número de publicación es incorrecto.", "warning")
             es_valido = False
 
         # Si es válido, entonces se guarda
         if es_valido:
+            edicto.fecha = fecha
+            edicto.descripcion = descripcion
+            edicto.expediente = expediente
+            edicto.numero_publicacion = numero_publicacion
             edicto.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -641,67 +653,96 @@ def edit(edicto_id):
 @permission_required(MODULO, Permiso.CREAR)
 def delete(edicto_id):
     """Eliminar Edicto"""
+
+    # Consultar
     edicto = Edicto.query.get_or_404(edicto_id)
+    detalle_url = url_for("edictos.detail", edicto_id=edicto.id)
+
+    # Validar que se pueda eliminar
     if edicto.estatus == "B":
         flash("No puede eliminar este Edicto porque ya está eliminado.", "success")
-        return redirect(url_for("edictos.detail", edicto_id=edicto.id))
+        return redirect(detalle_url)
+
+    # Definir la descripción para la bitácora
+    descripcion = safe_message(f"Eliminado Edicto {edicto.id} por {current_user.email}")
+
+    # Si es administrador
     if current_user.can_admin(MODULO):
         edicto.delete()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Edicto {edicto.id} por administrador"),
-            url=url_for("edictos.detail", edicto_id=edicto.id),
+            descripcion=descripcion,
+            url=detalle_url,
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    if current_user.autoridad_id == edicto.autoridad_id and edicto.creado >= datetime.today() - timedelta(days=1):
+
+    # Si le pertenece y fue creado hace menos de un día
+    if current_user.autoridad_id == edicto.autoridad_id and edicto.creado >= datetime.now(tz=local_tz) - timedelta(days=1):
         edicto.delete()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Edicto {edicto.id} por autoridad"),
-            url=url_for("edictos.detail", edicto_id=edicto.id),
+            descripcion=descripcion,
+            url=detalle_url,
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    flash("No puede eliminar este Edicto porque fue creado hace más de un día.", "warning")
-    return redirect(url_for("edictos.detail", edicto_id=edicto.id))
+
+    # No se puede eliminar
+    flash("No se puede eliminar porque fue creado hace más de 24 horas o porque no le pertenece.", "warning")
+    return redirect(detalle_url)
 
 
 @edictos.route("/edictos/recuperar/<int:edicto_id>")
 @permission_required(MODULO, Permiso.CREAR)
 def recover(edicto_id):
     """Recuperar Edicto"""
+
+    # Consultar
     edicto = Edicto.query.get_or_404(edicto_id)
+    detalle_url = url_for("edictos.detail", edicto_id=edicto.id)
+
+    # Validar que se pueda recuperar
     if edicto.estatus == "A":
         flash("No puede eliminar este Edicto porque ya está activo.", "success")
-        return redirect(url_for("edictos.detail", edicto_id=edicto.id))
+        return redirect(detalle_url)
+
+    # Definir la descripción para la bitácora
+    descripcion = safe_message(f"Recuperado Edicto {edicto.id} por {current_user.email}")
+
+    # Si es administrador
     if current_user.can_admin(MODULO):
         edicto.recover()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Edicto {edicto.id} por administrador"),
-            url=url_for("edictos.detail", edicto_id=edicto.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-    if current_user.autoridad_id == edicto.autoridad_id and edicto.creado >= datetime.today() - timedelta(days=1):
-        edicto.recover()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Recuperado Edicto {edicto.id} por autoridad"),
-            url=url_for("edictos.detail", edicto_id=edicto.id),
+            descripcion=descripcion,
+            url=detalle_url,
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    flash("No puede recuperar este Edicto porque fue creado hace más de un día.", "warning")
-    return redirect(url_for("edictos.detail", edicto_id=edicto.id))
+
+    # Si le pertenece y fue creado hace menos de un día
+    if current_user.autoridad_id == edicto.autoridad_id and edicto.creado >= datetime.now(tz=local_tz) - timedelta(days=1):
+        edicto.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=descripcion,
+            url=detalle_url,
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+
+    # No se puede recuperar
+    flash("No se puede recuperar porque fue creado hace más de 24 horas o porque no le pertenece.", "warning")
+    return redirect(detalle_url)
 
 
 @edictos.route("/edictos/ver_archivo_pdf/<int:edicto_id>")

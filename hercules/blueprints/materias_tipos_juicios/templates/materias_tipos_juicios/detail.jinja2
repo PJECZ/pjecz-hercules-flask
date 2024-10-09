@@ -20,7 +20,7 @@
 
 {% block content %}
     {% call detail.card(estatus=materia_tipo_juicio.estatus) %}
-        {{ detail.label_value_big('Descripción', materia_tipo_juicio.descripcion) }}
+        {{ detail.label_value('Descripción', materia_tipo_juicio.descripcion) }}
         {% if current_user.can_view('MATERIAS') %}
             {{ detail.label_value('Materia', materia_tipo_juicio.materia.nombre, url_for('materias.detail', materia_id=materia_tipo_juicio.materia_id)) }}
         {% else %}
@@ -35,20 +35,20 @@
                     <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosSentencias.buscar(); return false;">
                         <div class="col-2">
                             <div class="form-floating">
-                                <input id="filtroFechaDesde" type="date" class="form-control" aria-label="Fecha Desde" style="text-transform: uppercase;">
+                                <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad clave" style="text-transform: uppercase;">
+                                <label for="filtroAutoridadClave">Autoridad clave</label>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <div class="form-floating">
+                                <input id="filtroFechaDesde" type="date" class="form-control" aria-label="Fecha Desde">
                                 <label for="filtroFechaDesde">Fecha Desde</label>
                             </div>
                         </div>
                         <div class="col-2">
                             <div class="form-floating">
-                                <input id="filtroFechaHasta" type="date" class="form-control" aria-label="Fecha Hasta" style="text-transform: uppercase;">
+                                <input id="filtroFechaHasta" type="date" class="form-control" aria-label="Fecha Hasta">
                                 <label for="filtroFechaHasta">Fecha Hasta</label>
-                            </div>
-                        </div>
-                        <div class="col-2">
-                            <div class="form-floating">
-                                <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad Clave" style="text-transform: uppercase;">
-                                <label for="filtroAutoridadClave">Autoridad Clave</label>
                             </div>
                         </div>
                         <div class="col-2">
@@ -79,7 +79,7 @@
                         <th>Sentencia</th>
                         <th>Expediente</th>
                         <th>P. Género</th>
-                        <th>Descargar</th>
+                        <th>Creado</th>
                     </tr>
                 </thead>
             </table>
@@ -103,33 +103,33 @@
             configDTSentencias['ajax']['data'] = { 'estatus': "A", 'materia_tipo_juicio_id': {{ materia_tipo_juicio.id}} };
             configDTSentencias['columns'] = [
                 { data: "fecha" },
-                { data: "autoridad" },
+                { data: "autoridad_clave" },
                 { data: "detalle" },
                 { data: "expediente" },
                 { data: "es_perspectiva_genero" },
-                { data: "archivo" }
+                { data: "creado" }
             ];
             configDTSentencias['columnDefs'] = [
+                {
+                    targets: 0, // fecha
+                    type: "date",
+                    render: function (data, type, row) {
+                        return moment(data).format("DD MMM YYYY");
+                    }
+                },
                 {
                     targets: 2, // detalle
                     data: null,
                     render: function(data, type, row, meta) {
                         return '<a href="' + data.url + '">' + data.sentencia + '</a>';
                     }
-                },
-                {
-                    targets: 5, // archivo
-                    data: null,
-                    render: function(data, type, row, meta) {
-                        return '<a href="' + data.descargar_url + '" target="_blank"><span class="iconify" data-icon="mdi:download"></span> PDF</a>';
-                    }
                 }
             ];
             // Filtros Sentencias
             const filtrosSentencias = new FiltrosDataTable('#sentencias_datatable', configDTSentencias);
+            filtrosSentencias.agregarInput('filtroAutoridadClave', 'autoridad_clave');
             filtrosSentencias.agregarInput('filtroFechaDesde', 'fecha_desde');
             filtrosSentencias.agregarInput('filtroFechaHasta', 'fecha_hasta');
-            filtrosSentencias.agregarInput('filtroAutoridadClave', 'autoridad_clave');
             filtrosSentencias.agregarInput('filtroSentencia', 'sentencia');
             filtrosSentencias.agregarInput('filtroExpediente', 'expediente');
             filtrosSentencias.precargar();

@@ -538,13 +538,21 @@ def new_with_autoridad_id(autoridad_id):
 def edit(glosa_id):
     """Editar Glosa"""
 
-    # Validar glosa
+    # Consultar
     glosa = Glosa.query.get_or_404(glosa_id)
-    if not (current_user.can_admin(MODULO) or current_user.autoridad_id == glosa.autoridad_id):
-        flash("No tiene permiso para editar este edicto.", "warning")
-        return redirect(url_for("edictos.list_active"))
 
-    # Definir la fecha límite para el juzgado
+    # Si NO es administrador
+    if not (current_user.can_admin(MODULO)):
+        # Validar que le pertenezca
+        if current_user.autoridad_id != glosa.autoridad_id:
+            flash("No puede editar registros ajenos.", "warning")
+            return redirect(url_for("glosas.list_active"))
+        # Si fue creado hace menos de un día
+        if glosa.creado < datetime.now(tz=local_tz) - timedelta(days=1):
+            flash("Ya no puede editar porque fue creado hace más de 24 horas.", "warning")
+            return redirect(url_for("glosas.detail", glosa_id=glosa.id))
+
+    # Definir la fecha límite
     hoy = date.today()
     hoy_dt = datetime(year=hoy.year, month=hoy.month, day=hoy.day)
     limite_dt = hoy_dt + timedelta(days=-LIMITE_DIAS)
@@ -579,6 +587,10 @@ def edit(glosa_id):
 
         # Si es válido, entonces se guarda
         if es_valido:
+            glosa.fecha = fecha
+            glosa.tipo_juicio = tipo_juicio
+            glosa.descripcion = descripcion
+            glosa.expediente = expediente
             glosa.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -604,67 +616,96 @@ def edit(glosa_id):
 @permission_required(MODULO, Permiso.CREAR)
 def delete(glosa_id):
     """Eliminar Glosa"""
+
+    # Consultar
     glosa = Glosa.query.get_or_404(glosa_id)
+    detalle_url = url_for("glosas.detail", glosa_id=glosa.id)
+
+    # Validar que se pueda eliminar
     if glosa.estatus == "B":
         flash("No puede eliminar esta Glosa porque ya está eliminada.", "success")
-        return redirect(url_for("glosas.detail", glosa_id=glosa.id))
+        return redirect(detalle_url)
+
+    # Definir la descripción para la bitácora
+    descripcion = safe_message(f"Eliminada Glosa {glosa.id} por {current_user.email}")
+
+    # Si es administrador
     if current_user.can_admin(MODULO):
         glosa.delete()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminada Glosa {glosa.id} por administrador"),
-            url=url_for("glosas.detail", glosa_id=glosa.id),
+            descripcion=descripcion,
+            url=detalle_url,
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    if current_user.autoridad_id == glosa.autoridad_id and glosa.creado >= datetime.today() - timedelta(days=1):
+
+    # Si le pertenece y fue creado hace menos de un día
+    if current_user.autoridad_id == glosa.autoridad_id and glosa.creado >= datetime.now(tz=local_tz) - timedelta(days=1):
         glosa.delete()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminada Glosa {glosa.id} por autoridad"),
-            url=url_for("glosas.detail", glosa_id=glosa.id),
+            descripcion=descripcion,
+            url=detalle_url,
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    flash("No puede eliminar este Edicto porque fue creado hace más de un día.", "warning")
-    return redirect(url_for("glosas.detail", glosa_id=glosa.id))
+
+    # No se puede eliminar
+    flash("No se puede eliminar porque fue creado hace más de 24 horas o porque no le pertenece.", "warning")
+    return redirect(detalle_url)
 
 
 @glosas.route("/glosas/recuperar/<int:glosa_id>")
 @permission_required(MODULO, Permiso.CREAR)
 def recover(glosa_id):
     """Recuperar Glosa"""
+
+    # Consultar
     glosa = Glosa.query.get_or_404(glosa_id)
+    detalle_url = url_for("glosas.detail", glosa_id=glosa.id)
+
+    # Validar que se pueda recuperar
     if glosa.estatus == "A":
         flash("No puede eliminar esta Glosa porque ya está activa.", "success")
-        return redirect(url_for("glosas.detail", glosa_id=glosa.id))
+        return redirect(detalle_url)
+
+    # Definir la descripción para la bitácora
+    descripcion = safe_message(f"Recuperada Glosa {glosa.id} por {current_user.email}")
+
+    # Si es administrador
     if current_user.can_admin(MODULO):
         glosa.recover()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperada Glosa {glosa.id} por administrador"),
-            url=url_for("glosas.detail", glosa_id=glosa.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-    if current_user.autoridad_id == glosa.autoridad_id and glosa.creado >= datetime.today() - timedelta(days=1):
-        glosa.recover()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Recuperada Glosa {glosa.id} por autoridad"),
-            url=url_for("edictos.detail", glosa_id=glosa.id),
+            descripcion=descripcion,
+            url=detalle_url,
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    flash("No puede recuperar esta Glosa porque fue creada hace más de un día.", "warning")
-    return redirect(url_for("glosas.detail", glosa_id=glosa.id))
+
+    # Si le pertenece y fue creado hace menos de un día
+    if current_user.autoridad_id == glosa.autoridad_id and glosa.creado >= datetime.now(tz=local_tz) - timedelta(days=1):
+        glosa.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=descripcion,
+            url=detalle_url,
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+
+    # No se puede recuperar
+    flash("No se puede recuperar porque fue creado hace más de 24 horas o porque no le pertenece.", "warning")
+    return redirect(detalle_url)
 
 
 @glosas.route("/glosas/ver_archivo_pdf/<int:glosa_id>")

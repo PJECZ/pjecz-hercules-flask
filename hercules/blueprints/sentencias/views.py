@@ -5,12 +5,10 @@ Sentencias, vistas
 import json
 import re
 from datetime import date, datetime, timedelta
-from urllib.parse import quote
 
 from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from pytz import timezone
-from sqlalchemy.sql.functions import count
 from werkzeug.datastructures import CombinedMultiDict
 from werkzeug.exceptions import NotFound
 
@@ -25,7 +23,6 @@ from hercules.blueprints.sentencias.models import Sentencia
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.exceptions import (
-    MyAnyError,
     MyBucketNotFoundError,
     MyFilenameError,
     MyFileNotFoundError,
@@ -282,7 +279,7 @@ def list_active():
             autoridad = Autoridad.query.filter_by(clave=autoridad_clave).first()
         if autoridad is not None:
             filtros = {"estatus": "A", "autoridad_id": autoridad.id}
-            titulo = f"V.P. de Sentencias de {autoridad.descripcion_corta}"
+            titulo = f"V.P. de Sentencias de {autoridad.clave}"
     except (TypeError, ValueError):
         pass
 
@@ -295,7 +292,7 @@ def list_active():
     if titulo is None and (current_user.can_insert(MODULO) or current_user.can_edit(MODULO)):
         autoridad = None  # Para no mostrar el botón 'Todos los...'
         filtros = {"estatus": "A", "autoridad_id": current_user.autoridad.id}
-        titulo = f"Versión Pública de Sentencias de {current_user.autoridad.descripcion_corta}"
+        titulo = f"V.P. de Sentencias de {current_user.autoridad.descripcion_corta}"
 
     # De lo contrario, es observador
     if titulo is None:
@@ -669,16 +666,24 @@ def new_with_autoridad_id(autoridad_id):
 def edit(sentencia_id):
     """Editar Sentencia"""
 
-    # Para validar las fechas
+    # Consultar
+    sentencia = Sentencia.query.get_or_404(sentencia_id)
+
+    # Si NO es administrador
+    if not (current_user.can_admin(MODULO)):
+        # Validar que le pertenezca
+        if current_user.autoridad_id != sentencia.autoridad_id:
+            flash("No puede editar registros ajenos.", "warning")
+            return redirect(url_for("sentencias.list_active"))
+        # Si fue creado hace menos de un día
+        if sentencia.creado < datetime.now(tz=local_tz) - timedelta(days=1):
+            flash("Ya no puede editar porque fue creado hace más de 24 horas.", "warning")
+            return redirect(url_for("sentencias.detail", sentencia_id=sentencia.id))
+
+    # Definir la fecha límite
     hoy = date.today()
     hoy_dt = datetime(year=hoy.year, month=hoy.month, day=hoy.day)
     limite_dt = hoy_dt + timedelta(days=-LIMITE_DIAS)
-
-    # Validar sentencia
-    sentencia = Sentencia.query.get_or_404(sentencia_id)
-    if not (current_user.can_admin(MODULO) or current_user.autoridad_id == sentencia.autoridad_id):
-        flash("No tiene permiso para editar esta sentencia.", "warning")
-        return redirect(url_for("sentencias.list_active"))
 
     # Si viene el formulario
     form = SentenciaEditForm()
@@ -692,45 +697,48 @@ def edit(sentencia_id):
             form.fecha.data = hoy
             es_valido = False
 
-        # Validar sentencia
+        # Validar sentencia_numero
         try:
-            sentencia = safe_sentencia(form.sentencia.data)
+            sentencia_numero = safe_sentencia(form.sentencia.data)
         except (IndexError, ValueError):
             flash("La sentencia es incorrecta.", "warning")
             es_valido = False
 
         # Validar sentencia_fecha
         sentencia_fecha = form.sentencia_fecha.data
-        if (
-            not limite_dt
-            <= datetime(
-                year=sentencia.sentencia_fecha.year, month=sentencia.sentencia_fecha.month, day=sentencia.sentencia_fecha.day
-            )
-            <= hoy_dt
-        ):
+        if not limite_dt <= datetime(year=sentencia_fecha.year, month=sentencia_fecha.month, day=sentencia_fecha.day) <= hoy_dt:
             flash(f"La fecha de la sentencia no debe ser del futuro ni anterior a {LIMITE_DIAS} días.", "warning")
             es_valido = False
 
         # Validar expediente
         try:
-            sentencia.expediente = safe_expediente(form.expediente.data)
-            sentencia.expediente_anio = extract_expediente_anio(sentencia.expediente)
-            sentencia.expediente_num = extract_expediente_num(sentencia.expediente)
+            expediente = safe_expediente(form.expediente.data)
+            expediente_anio = extract_expediente_anio(expediente)
+            expediente_num = extract_expediente_num(expediente)
         except (IndexError, ValueError):
             flash("El expediente es incorrecto.", "warning")
             es_valido = False
 
         # Tomar perspectiva de género
-        sentencia.es_perspectiva_genero = form.es_perspectiva_genero.data
+        es_perspectiva_genero = form.es_perspectiva_genero.data
 
         # Tomar tipo de juicio
-        sentencia.materia_tipo_juicio = MateriaTipoJuicio.query.get(form.materia_tipo_juicio.data)
+        materia_tipo_juicio = MateriaTipoJuicio.query.get(form.materia_tipo_juicio.data)
 
-        # Tomar descripcion
-        sentencia.descripcion = safe_string(form.descripcion.data, max_len=1000)
+        # Tomar descripción
+        descripcion = safe_string(form.descripcion.data, max_len=1000)
 
         # Si es válido, entonces se guarda
         if es_valido:
+            sentencia.sentencia = sentencia_numero
+            sentencia.fecha = fecha
+            sentencia.sentencia_fecha = sentencia_fecha
+            sentencia.expediente = expediente
+            sentencia.expediente_anio = expediente_anio
+            sentencia.expediente_num = expediente_num
+            sentencia.materia_tipo_juicio_id = materia_tipo_juicio.id
+            sentencia.descripcion = descripcion
+            sentencia.es_perspectiva_genero = es_perspectiva_genero
             sentencia.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -745,10 +753,10 @@ def edit(sentencia_id):
             return redirect(bitacora.url)
 
     # Definir valores en el formulario
-    form.sentencia.data = sentencia.sentencia
+    form.sentencia.data = sentencia.sentencia  # sentencia_numero
+    form.fecha.data = sentencia.fecha
     form.sentencia_fecha.data = sentencia.sentencia_fecha
     form.expediente.data = sentencia.expediente
-    form.fecha.data = sentencia.fecha
     form.descripcion.data = sentencia.descripcion
     form.es_perspectiva_genero.data = sentencia.es_perspectiva_genero
 
@@ -768,67 +776,100 @@ def edit(sentencia_id):
 @permission_required(MODULO, Permiso.CREAR)
 def delete(sentencia_id):
     """Eliminar Sentencia"""
+
+    # Consultar
     sentencia = Sentencia.query.get_or_404(sentencia_id)
+    detalle_url = url_for("sentencias.detail", sentencia_id=sentencia.id)
+
+    # Validar que se pueda eliminar
     if sentencia.estatus == "B":
         flash("No puede eliminar esta Sentencia porque ya está eliminada.", "success")
-        return redirect(url_for("sentencias.detail", sentencia_id=sentencia.id))
+        return redirect(detalle_url)
+
+    # Definir la descripción para la bitácora
+    descripcion = safe_message(f"Eliminada Sentencia {sentencia.id}")
+
+    # Si es administrador
     if current_user.can_admin(MODULO):
         sentencia.delete()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminada Sentencia {sentencia.id} por administrador"),
-            url=url_for("sentencias.detail", sentencia_id=sentencia.id),
+            descripcion=descripcion,
+            url=detalle_url,
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    if current_user.autoridad_id == sentencia.autoridad_id and sentencia.creado >= datetime.today() - timedelta(days=1):
+
+    # Si le pertenece y fue creado hace menos de un día
+    if current_user.autoridad_id == sentencia.autoridad_id and sentencia.creado >= datetime.now(tz=local_tz) - timedelta(
+        days=1
+    ):
         sentencia.delete()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminada Sentencia {sentencia.id} por autoridad"),
-            url=url_for("sentencias.detail", sentencia_id=sentencia.id),
+            descripcion=descripcion,
+            url=detalle_url,
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    flash("No puede eliminar esta Sentencia porque fue creada hace más de un día.", "warning")
-    return redirect(url_for("sentencias.detail", sentencia_id=sentencia.id))
+
+    # No se puede eliminar
+    flash("No se puede eliminar porque fue creado hace más de 24 horas o porque no le pertenece.", "warning")
+    return redirect(detalle_url)
 
 
 @sentencias.route("/sentencias/recuperar/<int:sentencia_id>")
 @permission_required(MODULO, Permiso.CREAR)
 def recover(sentencia_id):
     """Recuperar Sentencia"""
+
+    # Consultar
     sentencia = Sentencia.query.get_or_404(sentencia_id)
+    detalle_url = url_for("sentencias.detail", sentencia_id=sentencia.id)
+
+    # Validar que se pueda recuperar
     if sentencia.estatus == "A":
         flash("No puede eliminar esta Sentencia porque ya está activa.", "success")
-        return redirect(url_for("sentencias.detail", sentencia_id=sentencia.id))
+        return redirect(detalle_url)
+
+    # Definir la descripción para la bitácora
+    descripcion = safe_message(f"Recuperada Sentencia {sentencia.id}")
+
+    # Si es administrador
     if current_user.can_admin(MODULO):
         sentencia.recover()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperada Sentencia {sentencia.id} por administrador"),
-            url=url_for("sentencias.detail", sentencia_id=sentencia.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-    if current_user.autoridad_id == sentencia.autoridad_id and sentencia.creado >= datetime.today() - timedelta(days=1):
-        sentencia.recover()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Recuperada Sentencia {sentencia.id} por autoridad"),
-            url=url_for("edictos.detail", glosa_id=sentencia.id),
+            descripcion=descripcion,
+            url=detalle_url,
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    flash("No puede recuperar esta Sentencia porque fue creada hace más de un día.", "warning")
-    return redirect(url_for("sentencias.detail", sentencia_id=sentencia.id))
+
+    # Si le pertenece y fue creado hace menos de un día
+    if current_user.autoridad_id == sentencia.autoridad_id and sentencia.creado >= datetime.now(tz=local_tz) - timedelta(
+        days=1
+    ):
+        sentencia.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=descripcion,
+            url=detalle_url,
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+
+    # No se puede recuperar
+    flash("No se puede recuperar porque fue creado hace más de 24 horas o porque no le pertenece.", "warning")
+    return redirect(detalle_url)
 
 
 @sentencias.route("/sentencias/reporte", methods=["GET", "POST"])

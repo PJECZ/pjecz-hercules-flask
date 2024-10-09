@@ -14,7 +14,7 @@
         {# Los administradores pueden subir a la autoridad que tienen a la vista #}
         {% if current_user.can_admin('LISTAS DE ACUERDOS') %}
             {{ topbar.button_previous('Listas de Acuerdos del ' + lista_de_acuerdo.autoridad.clave, url_for('listas_de_acuerdos.list_active') + '?autoridad_clave=' + lista_de_acuerdo.autoridad.clave) }}
-            {{ topbar.button_new('Subir Lista de Acuerdos para ' + lista_de_acuerdo.autoridad.clave, url_for('listas_de_acuerdos.new_with_autoridad_id', autoridad_id=lista_de_acuerdo.autoridad_id)) }}
+            {{ topbar.button_upload('Subir Lista de Acuerdos para ' + lista_de_acuerdo.autoridad.clave, url_for('listas_de_acuerdos.new_with_autoridad_id', autoridad_id=lista_de_acuerdo.autoridad_id)) }}
         {% elif current_user.can_insert('LISTAS DE ACUERDOS') and current_user.autoridad_id == lista_de_acuerdo.autoridad_id %}
             {{ topbar.button_upload('Subir Lista de Acuerdos', url_for('listas_de_acuerdos.new')) }}
         {% else %}
@@ -30,10 +30,14 @@
 
 {% block content %}
     {% call detail.card(estatus=lista_de_acuerdo.estatus) %}
-        {{ detail.label_value('Descripción', lista_de_acuerdo.descripcion) }}
         {# detail.label_value('Fecha', lista_de_acuerdo.fecha) #}
         {{ detail.label_value('Distrito', lista_de_acuerdo.autoridad.distrito.nombre_corto) }}
-        {{ detail.label_value('Autoridad', lista_de_acuerdo.autoridad.descripcion_corta) }}
+        {% if current_user.can_view("AUTORIDADES") %}
+            {{ detail.label_value('Autoridad', lista_de_acuerdo.autoridad.descripcion, url_for('autoridades.detail', autoridad_id=lista_de_acuerdo.autoridad_id)) }}
+        {% else %}
+            {{ detail.label_value('Autoridad', lista_de_acuerdo.autoridad.descripcion) }}
+        {% endif %}
+        {{ detail.label_value('Descripción', lista_de_acuerdo.descripcion) }}
         {{ detail.label_value('Creado', moment(lista_de_acuerdo.creado, local=True).format('llll')) }}
         <div class="row">
             <div class="col">

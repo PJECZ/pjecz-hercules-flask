@@ -2,32 +2,32 @@
 Financieros Vales, tareas en el fondo
 """
 
-from datetime import datetime
 import json
 import logging
 import os
+from datetime import datetime
 
-from dotenv import load_dotenv
-import sendgrid
-from sendgrid.helpers.mail import Email, To, Content, Mail
 import pytz
 import requests
+import sendgrid
+from dotenv import load_dotenv
+from sendgrid.helpers.mail import Content, Email, Mail, To
 
+from hercules.app import create_app
+from hercules.blueprints.fin_vales.models import FinVale
+from hercules.blueprints.usuarios.models import Usuario
+from hercules.extensions import database
 from lib.exceptions import (
     MyAnyError,
     MyConnectionError,
     MyMissingConfigurationError,
     MyNotValidParamError,
-    MyStatusCodeError,
     MyRequestError,
     MyResponseError,
+    MyStatusCodeError,
 )
 from lib.safe_string import safe_string
 from lib.tasks import set_task_error, set_task_progress
-from hercules.app import create_app
-from hercules.blueprints.fin_vales.models import FinVale
-from hercules.blueprints.usuarios.models import Usuario
-from hercules.extensions import database
 
 # Zona horaria
 TIMEZONE = "America/Mexico_City"
@@ -505,7 +505,7 @@ def autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
         )
         response.raise_for_status()
     except requests.exceptions.ConnectionError as error:
-        mensaje = "Error de conexion al autorizar el vale. " + safe_string(str(error))
+        mensaje = "Error de conexión al autorizar el vale. " + safe_string(str(error))
         fin_vale.solicito_efirma_error = mensaje
         fin_vale.save()
         bitacora.error(mensaje)
@@ -581,18 +581,18 @@ def autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
     # Definir el remitente del mensaje de correo electronico
     remitente_email = Email(os.environ.get("SENDGRID_FROM_EMAIL", "plataforma.web@pjecz.gob.mx"))
 
-    # Definir el destinatario del mensaje de correo electronico
+    # Definir el destinatario del mensaje de correo electrónico
     destinatario_email = To(fin_vale.usuario.email)
 
-    # Definir el asunto del mensaje de correo electronico
+    # Definir el asunto del mensaje de correo electrónico
     asunto = f"Vale de Gasolina {fin_vale_id} Autorizado"
 
-    # Definir el contenido del mensaje de correo electronico
+    # Definir el contenido del mensaje de correo electrónico
     host = os.environ.get("HOST", "http://127.0.0.1:5000")
     detalle_url = f"{host}/fin_vales/{fin_vale.id}"
     imprimir_url = f"{host}/fin_vales/imprimir/{fin_vale.id}"
     contenidos = []
-    contenidos.append("<h2>Plataforma Hércules - Vales de Gasolina</h2>")
+    contenidos.append("<h2>Vale de Gasolina</h2>")
     contenidos.append(f"<p>La <a href='{detalle_url}'>autorización del vale {fin_vale.id}</a> ya fue firmada.</p>")
     contenidos.append(f"<p><strong>Recomendamos siempre ahorrar papel e impresiones.</strong>")
     contenidos.append(f"Solo de ser necesario <a href='{imprimir_url}'>imprima esta página con la solicitud.</a></p>")
@@ -612,7 +612,7 @@ def autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
             bitacora.warning(mensaje)
 
     # Entregar
-    mensaje = f"Se firmo electronicamente el vale {fin_vale_id} y ahora esta AUTORIZADO"
+    mensaje = f"Se firmo electrónicamente el vale {fin_vale_id} y ahora esta AUTORIZADO"
     return mensaje
 
 

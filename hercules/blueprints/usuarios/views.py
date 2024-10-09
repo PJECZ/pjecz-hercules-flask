@@ -100,7 +100,7 @@ def login():
         "usuarios/login.jinja2",
         form=form,
         firebase_settings=firebase_settings,
-        title="Plataforma Hércules",
+        title="Plataforma Web",
     )
 
 

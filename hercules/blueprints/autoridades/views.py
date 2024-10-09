@@ -43,6 +43,8 @@ def datatable_json():
         consulta = consulta.filter(Autoridad.estatus == "A")
     if "distrito_id" in request.form:
         consulta = consulta.filter(Autoridad.distrito_id == request.form["distrito_id"])
+    if "materia_id" in request.form:
+        consulta = consulta.filter(Autoridad.materia_id == request.form["materia_id"])
     if "municipio_id" in request.form:
         consulta = consulta.filter(Autoridad.municipio_id == request.form["municipio_id"])
     if "clave" in request.form:
