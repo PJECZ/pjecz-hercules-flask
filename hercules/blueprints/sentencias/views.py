@@ -11,6 +11,7 @@ from flask_login import current_user, login_required
 from pytz import timezone
 from werkzeug.datastructures import CombinedMultiDict
 from werkzeug.exceptions import NotFound
+from wtforms.validators import length
 
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.bitacoras.models import Bitacora
@@ -154,6 +155,7 @@ def datatable_json():
                 "expediente": sentencia.expediente,
                 "materia_nombre": sentencia.materia_tipo_juicio.materia.nombre,
                 "materia_tipo_juicio_descripcion": sentencia.materia_tipo_juicio.descripcion,
+                "descripcion": sentencia.descripcion if len(sentencia.descripcion) < 12 else sentencia.descripcion[:12] + "…",
                 "es_perspectiva_genero": "Sí" if sentencia.es_perspectiva_genero else "",
                 "creado": sentencia.creado.astimezone(local_tz).strftime("%Y-%m-%d %H:%M"),
             }
@@ -247,6 +249,7 @@ def admin_datatable_json():
                 "expediente": sentencia.expediente,
                 "materia_nombre": sentencia.materia_tipo_juicio.materia.nombre,
                 "materia_tipo_juicio_descripcion": sentencia.materia_tipo_juicio.descripcion,
+                "descripcion": sentencia.descripcion if len(sentencia.descripcion) < 12 else sentencia.descripcion[:12] + "…",
                 "es_perspectiva_genero": "Sí" if sentencia.es_perspectiva_genero else "",
             }
         )
