@@ -32,7 +32,7 @@ class ArcJuzgadoExtinto(database.Model, UniversalMixin):
     descripcion: Mapped[str] = mapped_column(String(256))
 
     # Hijos
-    # arc_documentos = db.relationship("ArcDocumento", back_populates="arc_juzgado_origen", lazy="noload")
+    arc_documentos: Mapped[List["ArcDocumento"]] = relationship(back_populates="arc_juzgado_origen")
 
     @property
     def nombre(self):
