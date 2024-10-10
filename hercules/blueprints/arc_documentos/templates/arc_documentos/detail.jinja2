@@ -378,8 +378,8 @@
         ];
         
         // Creación del Objeto manejador TODO:
-        /*const datatable_remesas = new FiltrosDataTable('#arc_remesas_datatable', configDataTable_remesas);
-        datatable_remesas.precargar();*/
+        const datatable_remesas = new FiltrosDataTable('#arc_remesas_datatable', configDataTable_remesas);
+        datatable_remesas.precargar();
     </script>
     {# Modales Eliminar y Recuperar #}
     {% if current_user.can_admin("ARC ARCHIVOS") %}
