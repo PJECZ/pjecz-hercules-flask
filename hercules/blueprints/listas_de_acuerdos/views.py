@@ -808,3 +808,10 @@ def download_file_pdf(lista_de_acuerdo_id):
     response.headers["Content-Type"] = "application/pdf"
     response.headers["Content-Disposition"] = f"attachment; filename={lista_de_acuerdo.archivo}"
     return response
+
+
+@listas_de_acuerdos.route("/listas_de_acuerdos/tablero")
+@permission_required(MODULO, Permiso.VER)
+def dashboard():
+    """Tablero de Listas de Acuerdos"""
+    return render_template("listas_de_acuerdos/dashboard.jinja2")

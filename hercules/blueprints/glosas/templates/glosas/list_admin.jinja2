@@ -18,6 +18,7 @@
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('glosas.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('glosas.list_active')) }}{% endif %}
         {% endif %}
+        {{ topbar.button_dashboard('Tablero', url_for('glosas.dashboard')) }}
     {% endcall %}
 {% endblock %}
 

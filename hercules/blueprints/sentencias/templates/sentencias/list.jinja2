@@ -19,6 +19,7 @@
         {% if current_user.can_insert('SENTENCIAS') %}
             {{ topbar.button_upload('Subir V.P. de S.', url_for('sentencias.new')) }}
         {% endif %}
+        {{ topbar.button_dashboard('Tablero', url_for('sentencias.dashboard')) }}
     {% endcall %}
 {% endblock %}
 

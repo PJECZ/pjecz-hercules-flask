@@ -976,3 +976,10 @@ def download_file_pdf(sentencia_id):
     response.headers["Content-Type"] = "application/pdf"
     response.headers["Content-Disposition"] = f"attachment; filename={sentencia.archivo}"
     return response
+
+
+@sentencias.route("/sentencias/tablero")
+@permission_required(MODULO, Permiso.VER)
+def dashboard():
+    """Tablero de Sentencias"""
+    return render_template("sentencias/dashboard.jinja2")

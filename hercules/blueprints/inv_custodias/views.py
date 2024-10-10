@@ -158,42 +158,6 @@ def detail(inv_custodia_id):
     return render_template("inv_custodias/detail.jinja2", inv_custodia=inv_custodia)
 
 
-@inv_custodias.route("/inv_custodias/tablero")
-@permission_required(MODULO, Permiso.MODIFICAR)
-def dashboard():
-    """Tablero de InvCustodia"""
-    # Cantidades de custodias por edificio
-    inv_custodias_cantidades_por_edificio = (
-        database.session.query(Domicilio.id, Domicilio.edificio, func.count(InvCustodia.id))
-        .select_from(InvCustodia)
-        .join(Usuario)
-        .join(Oficina)
-        .join(Domicilio)
-        .where(InvCustodia.estatus == "A")
-        .group_by(Domicilio.id, Domicilio.edificio)
-        .order_by(Domicilio.edificio)
-        .all()
-    )
-    # Entregar
-    return render_template(
-        "inv_custodias/dashboard.jinja2",
-        inv_custodias_cantidades_por_edificio=inv_custodias_cantidades_por_edificio,
-    )
-
-
-@inv_custodias.route("/inv_custodias/exportar_reporte_xlsx/<int:domicilio_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
-def exportar_reporte_xlsx(domicilio_id):
-    """Lanzar tarea en el fondo para exportar"""
-    tarea = current_user.launch_task(
-        comando="inv_custodias.tasks.lanzar_exportar_reporte_xlsx",
-        mensaje="Exportando el reporte de custodias a un archivo XLSX...",
-        domicilio_id=domicilio_id,
-    )
-    flash("Se ha lanzado esta tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
-    return redirect(url_for("tareas.detail", tarea_id=tarea.id))
-
-
 @inv_custodias.route("/inv_custodias/move_1_choose_custodia/<int:origen_inv_custodia_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def move_1_choose_custodia(origen_inv_custodia_id):
@@ -396,3 +360,39 @@ def recover(inv_custodia_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(url_for("inv_custodias.detail", inv_custodia_id=inv_custodia.id))
+
+
+@inv_custodias.route("/inv_custodias/tablero")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def dashboard():
+    """Tablero de InvCustodia"""
+    # Cantidades de custodias por edificio
+    inv_custodias_cantidades_por_edificio = (
+        database.session.query(Domicilio.id, Domicilio.edificio, func.count(InvCustodia.id))
+        .select_from(InvCustodia)
+        .join(Usuario)
+        .join(Oficina)
+        .join(Domicilio)
+        .where(InvCustodia.estatus == "A")
+        .group_by(Domicilio.id, Domicilio.edificio)
+        .order_by(Domicilio.edificio)
+        .all()
+    )
+    # Entregar
+    return render_template(
+        "inv_custodias/dashboard.jinja2",
+        inv_custodias_cantidades_por_edificio=inv_custodias_cantidades_por_edificio,
+    )
+
+
+@inv_custodias.route("/inv_custodias/exportar_reporte_xlsx/<int:domicilio_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def exportar_reporte_xlsx(domicilio_id):
+    """Lanzar tarea en el fondo para exportar"""
+    tarea = current_user.launch_task(
+        comando="inv_custodias.tasks.lanzar_exportar_reporte_xlsx",
+        mensaje="Exportando el reporte de custodias a un archivo XLSX...",
+        domicilio_id=domicilio_id,
+    )
+    flash("Se ha lanzado esta tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
+    return redirect(url_for("tareas.detail", tarea_id=tarea.id))

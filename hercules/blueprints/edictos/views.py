@@ -788,3 +788,10 @@ def download_file_pdf(edicto_id):
     response.headers["Content-Type"] = "application/pdf"
     response.headers["Content-Disposition"] = f"attachment; filename={edicto.archivo}"
     return response
+
+
+@edictos.route("/edictos/tablero")
+@permission_required(MODULO, Permiso.VER)
+def dashboard():
+    """Tablero de Edictos"""
+    return render_template("edictos/dashboard.jinja2")

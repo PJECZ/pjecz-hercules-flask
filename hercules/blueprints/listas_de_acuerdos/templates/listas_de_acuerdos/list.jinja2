@@ -8,12 +8,13 @@
     {% call topbar.page_buttons(titulo) %}
         {# Si hay filtro por autoridad #}
         {% if autoridad %}
-            {{ topbar.button_previous('Todas las L. de A.', url_for('edictos.list_active')) }}
+            {{ topbar.button_previous('Todas las L. de A.', url_for('listas_de_acuerdos.list_active')) }}
         {% endif %}
         {# Mostrar el botón para subir si tiene permiso y es su autoridad #}
         {% if current_user.can_insert('LISTAS DE ACUERDOS') %}
             {{ topbar.button_upload('Subir L. de A.', url_for('listas_de_acuerdos.new')) }}
         {% endif %}
+        {{ topbar.button_dashboard('Tablero', url_for('listas_de_acuerdos.dashboard')) }}
     {% endcall %}
 {% endblock %}
 

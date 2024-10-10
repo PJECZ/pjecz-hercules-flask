@@ -751,3 +751,10 @@ def download_file_pdf(glosa_id):
     response.headers["Content-Type"] = "application/pdf"
     response.headers["Content-Disposition"] = f"attachment; filename={glosa.archivo}"
     return response
+
+
+@glosas.route("/glosas/tablero")
+@permission_required(MODULO, Permiso.VER)
+def dashboard():
+    """Tablero de Glosas"""
+    return render_template("glosas/dashboard.jinja2")
