@@ -23,9 +23,12 @@
         {% endif %}
         {% if req_requisicion.estado == "AUTORIZADO"  and req_requisicion.estatus == 'A' %}
             {{ topbar.button_review('Revisar', url_for('req_requisiciones.step_4_review', req_requisicion_id=req_requisicion.id)) }}
-            {{ topbar.button_delete('Cancelar Autorizado', url_for('req_requisiciones.cancel_2_request', req_requisicion_id=req_requisicion.id)) }}
+            {{ topbar.button('Cancelar Autorizado', url_for('req_requisiciones.cancel_3_authorize', req_requisicion_id=req_requisicion.id)) }}
         {% endif %}
-        {% if current_user.can_edit('REQ REQUISICIONES') %}
+        {% if req_requisicion.estado == "REVISADO"  and req_requisicion.estatus == 'A' %}
+            {{ topbar.button('Cancelar Revisado', url_for('req_requisiciones.cancel_4_review', req_requisicion_id=req_requisicion.id)) }}
+        {% endif %}
+        {% if current_user.can_edit('REQ REQUISICIONES') and req_requisicion.estado == "CREADO" %}
             {% if req_requisicion.estatus == 'A' %}
                 {{ topbar.button_delete('Eliminar', url_for('req_requisiciones.delete', req_requisicion_id=req_requisicion.id)) }}
             {% endif %}
@@ -38,6 +41,10 @@
 
 
 {% block content %}
+    {% call detail.card(title='Estado actual', estatus=req_requisicion.estatus) %}
+        {{ detail.label_value('Estado', req_requisicion.estado) }}
+    {% endcall %}
+
     {% if req_requisicion.estado in ['CREADO', 'SOLICITADO', 'CANCELADO POR SOLICITANTE', 'AUTORIZADO', 'CANCELADO POR AUTORIZANTE', 'REVISADO', 'CANCELADO POR REVISANTE'] %}
         {% call detail.card(title='Usuario', estatus=req_requisicion.estatus) %}
             {{ detail.label_value('Nombre', usuario.nombres) }}
@@ -45,7 +52,7 @@
             {{ detail.label_value('e-mail', usuario.email) }}
             {{ detail.label_value('Oficina', usuario.oficina.clave + ': ' + usuario.oficina.descripcion) }}
             {{ detail.label_value('Tiempo', moment(req_requisicion.creado).format('llll')) }}
-            {{ detail.label_value('Link de firma electronica' ,req_requisicion.solicito_efirma_url )}}
+            {{ detail.label_value('Link de firma electronica' ,req_requisicion.solicito_efirma_url,req_requisicion.solicito_efirma_url )}}
         {% endcall %}
     {% endif %}
 
@@ -56,7 +63,7 @@
             {{ detail.label_value('e-mail', req_requisicion.solicito_email) }}
             {{ detail.label_value('Tiempo', moment(req_requisicion.solicito_efirma_tiempo).format('llll')) }}
             {{ detail.label_value('Mensaje', req_requisicion.solicito_efirma_mensaje) }}
-            {{ detail.label_value('Link de firma electronica' ,req_requisicion.solicito_efirma_url )}}
+            {{ detail.label_value('Link de firma electronica' ,req_requisicion.solicito_efirma_url,req_requisicion.solicito_efirma_url )}}
         {% endcall %}
     {% endif %}
 
@@ -67,7 +74,7 @@
             {{ detail.label_value('e-mail', req_requisicion.autorizo_email) }}
             {{ detail.label_value('Tiempo', moment(req_requisicion.autorizo_efirma_tiempo).format('llll')) }}
             {{ detail.label_value('Mensaje', req_requisicion.autorizo_efirma_mensaje) }}
-            {{ detail.label_value('Link de firma electronica' ,req_requisicion.autorizo_efirma_url )}}
+            {{ detail.label_value('Link de firma electronica' ,req_requisicion.autorizo_efirma_url,req_requisicion.autorizo_efirma_url )}}
         {% endcall %}
     {% endif %}
 
@@ -78,7 +85,7 @@
             {{ detail.label_value('e-mail', req_requisicion.reviso_email) }}
             {{ detail.label_value('Tiempo', moment(req_requisicion.reviso_efirma_tiempo).format('llll')) }}
             {{ detail.label_value('Mensaje', req_requisicion.reviso_efirma_mensaje) }}
-            {{ detail.label_value('Link de firma electronica' ,req_requisicion.reviso_efirma_url )}}
+            {{ detail.label_value('Link de firma electronica' ,req_requisicion.reviso_efirma_url ,req_requisicion.reviso_efirma_url)}}
         {% endcall %}
     {% endif %}
 

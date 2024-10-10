@@ -15,7 +15,7 @@ from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from hercules.blueprints.req_requisiciones.models import ReqRequisicion
-from hercules.blueprints.req_requisiciones.forms import ReqRequisicionCancel2RequestForm, ReqRequisicionNewForm, ReqRequisicionStep2RequestForm, ReqRequisicionStep3AuthorizeForm, ReqRequisicionStep4ReviewForm
+from hercules.blueprints.req_requisiciones.forms import ReqRequisicionCancel2RequestForm, ReqRequisicionNewForm, ReqRequisicionStep2RequestForm, ReqRequisicionStep3AuthorizeForm, ReqRequisicionStep4ReviewForm, ReqRequisicionCancel3AuthorizeForm, ReqRequisicionCancel4ReviewForm
 from hercules.blueprints.req_requisiciones.forms import ArticulosForm
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.req_catalogos.models import ReqCatalogo
@@ -239,13 +239,14 @@ def step_2_request(req_requisicion_id):
     form = ReqRequisicionStep2RequestForm()
     if form.validate_on_submit():
         # Crear la tarea en el fondo
-        current_app.task_queue.enqueue(
-            "hercules.blueprints.req_requisiciones.tasks.solicitar",
+        tarea = current_user.launch_task(
+            comando = "req_requisiciones.tasks.solicitar",
+            mensaje = "Elaborando solicitud en motor de firma electronica",
             req_requisicion_id=req_requisicion.id,
             usuario_id=current_user.id,
             contrasena=form.contrasena.data,
         )
-        flash("Tarea en el fondo lanzada para comunicarse con el motor de firma electrónica", "success")
+        flash(f"{tarea.mensaje} Esta página se va a recargar en 10 segundos...", "info")
         return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
     # Mostrar formulario
     form.solicito_nombre.data = current_user.nombre
@@ -284,20 +285,68 @@ def cancel_2_request(req_requisicion_id):
     # Si viene el formulario
     form = ReqRequisicionCancel2RequestForm()
     if form.validate_on_submit():
-        # Crear la tarea en el fondo
-        current_app.task_queue.enqueue(
-            "hercules.blueprints.req_requisiciones.tasks.cancelar_solicitar",
+         # Crear la tarea en el fondo
+        tarea = current_user.launch_task(
+            comando = "req_requisiciones.tasks.cancelar_solicitar",
+            mensaje = "Elaborando solicitud en motor de firma electronica",
             req_requisicion_id=req_requisicion.id,
             contrasena=form.contrasena.data,
             motivo=form.motivo.data,
         )
-        flash("Tarea en el fondo lanzada para comunicarse con el motor de firma electrónica", "success")
+        flash(f"{tarea.mensaje} Esta página se va a recargar en 10 segundos...", "info")
         return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
     # Mostrar formulario
     form.solicito_nombre.data = current_user.nombre
     form.solicito_puesto.data = current_user.puesto
     form.solicito_email.data = current_user.email
     return render_template("req_requisiciones/cancel_2_request.jinja2", form=form, req_requisicion=req_requisicion)
+
+
+@req_requisiciones.route("/req_requisiciones/<int:req_requisicion_id>/cancelar_autorizado", methods=["GET","POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def cancel_3_authorize(req_requisicion_id):
+    """Formulario Requisicion (cancel 3 authorize) Cancelar autorizado"""
+    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
+    puede_cancelarlo = True
+    # Validar que sea activo
+    if req_requisicion.estatus != "A":
+        flash("La requisición esta cancelada", "warning")
+        puede_cancelarlo = False
+    # Validar el estado
+    if req_requisicion.estado != "AUTORIZADO":
+        flash("La requisición no esta en estado autorizado", "warning")
+        puede_cancelarlo = False
+    # Validar el usuario
+    if current_user.efirma_registro_id is None:
+        flash("Usted no tiene registro en la firma electronica", "warning")
+        puede_cancelarlo = False
+    if ROL_AUTORIZANTES not in current_user.get_roles():
+        flash("Usted no tiene el rol para cancelar un una requisición autorizada", "warning")
+        puede_cancelarlo = False
+    if req_requisicion.solicito_email != current_user.email:
+        flash("Usted no es el autorizante de esta requisición", "warning")
+        puede_cancelarlo = False
+    # Si no puede cancelarlo, redireccionar a la pagina de detalle
+    if not puede_cancelarlo:
+        return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+    # Si viene el formulario
+    form = ReqRequisicionCancel3AuthorizeForm()
+    if form.validate_on_submit():
+         # Crear la tarea en el fondo
+        tarea = current_user.launch_task(
+            comando = "req_requisiciones.tasks.cancelar_autorizar",
+            mensaje = "Elaborando solicitud en motor de firma electronica",
+            req_requisicion_id=req_requisicion.id,
+            contrasena=form.contrasena.data,
+            motivo=form.motivo.data,
+        )
+        flash(f"{tarea.mensaje} Esta página se va a recargar en 10 segundos...", "info")
+        return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+    # Mostrar formulario
+    form.autorizo_nombre.data = current_user.nombre
+    form.autorizo_puesto.data = current_user.puesto
+    form.autorizo_email.data = current_user.email
+    return render_template("req_requisiciones/cancel_3_authorize.jinja2", form=form, req_requisicion=req_requisicion)
 
 
 @req_requisiciones.route("/req_requisiciones/<int:req_requisicion_id>/autorizar", methods=["GET", "POST"])
@@ -328,13 +377,14 @@ def step_3_authorize(req_requisicion_id):
     form = ReqRequisicionStep3AuthorizeForm()
     if form.validate_on_submit():
         # Crear la tarea en el fondo
-        current_app.task_queue.enqueue(
-            "hercules.blueprints.req_requisiciones.tasks.autorizar",
+        tarea = current_user.launch_task(
+            comando = "req_requisiciones.tasks.autorizar",
+            mensaje = "Elaborando solicitud en motor de firma electronica",
             req_requisicion_id=req_requisicion.id,
             usuario_id=current_user.id,
             contrasena=form.contrasena.data,
         )
-        flash("Tarea en el fondo lanzada para comunicarse con el motor de firma electrónica", "success")
+        flash(f"{tarea.mensaje} Esta página se va a recargar en 10 segundos...", "info")
         return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
     # Mostrar formulario
     form.autorizo_nombre.data = current_user.nombre
@@ -371,19 +421,67 @@ def step_4_review(req_requisicion_id):
     form = ReqRequisicionStep4ReviewForm()
     if form.validate_on_submit():
         # Crear la tarea en el fondo
-        current_app.task_queue.enqueue(
-            "hercules.blueprints.req_requisiciones.tasks.revisar",
+        tarea = current_user.launch_task(
+            comando = "req_requisiciones.tasks.revisar",
+            mensaje = "Elaborando solicitud en motor de firma electronica",
             req_requisicion_id=req_requisicion.id,
             usuario_id=current_user.id,
             contrasena=form.contrasena.data,
         )
-        flash("Tarea en el fondo lanzada para comunicarse con el motor de firma electrónica", "success")
+        flash(f"{tarea.mensaje} Esta página se va a recargar en 10 segundos...", "info")
         return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
     # Mostrar formulario
     form.reviso_nombre.data = current_user.nombre
     form.reviso_puesto.data = current_user.puesto
     form.reviso_email.data = current_user.email
     return render_template("req_requisiciones/step_4_review.jinja2", form=form, req_requisicion=req_requisicion)
+
+
+@req_requisiciones.route("/req_requisiciones/<int:req_requisicion_id>/cancelar_revisado", methods=["GET","POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def cancel_4_review(req_requisicion_id):
+    """Formulario Requisicion (cancel 4 review) Cancelar revisado"""
+    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
+    puede_cancelarlo = True
+    # Validar que sea activo
+    if req_requisicion.estatus != "A":
+        flash("La requisición esta cancelada", "warning")
+        puede_cancelarlo = False
+    # Validar el estado
+    if req_requisicion.estado != "REVISADO":
+        flash("La requisición no esta en estado revisado", "warning")
+        puede_cancelarlo = False
+    # Validar el usuario
+    if current_user.efirma_registro_id is None:
+        flash("Usted no tiene registro en la firma electronica", "warning")
+        puede_cancelarlo = False
+    if ROL_REVISANTES not in current_user.get_roles():
+        flash("Usted no tiene el rol para cancelar un una requisición revisada", "warning")
+        puede_cancelarlo = False
+    if req_requisicion.reviso_email != current_user.email:
+        flash("Usted no es el revisante de esta requisición", "warning")
+        puede_cancelarlo = False
+    # Si no puede cancelarlo, redireccionar a la pagina de detalle
+    if not puede_cancelarlo:
+        return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+    # Si viene el formulario
+    form = ReqRequisicionCancel4ReviewForm()
+    if form.validate_on_submit():
+         # Crear la tarea en el fondo
+        tarea = current_user.launch_task(
+            comando = "req_requisiciones.tasks.cancelar_revisar",
+            mensaje = "Elaborando solicitud en motor de firma electronica",
+            req_requisicion_id=req_requisicion.id,
+            contrasena=form.contrasena.data,
+            motivo=form.motivo.data,
+        )
+        flash(f"{tarea.mensaje} Esta página se va a recargar en 10 segundos...", "info")
+        return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+    # Mostrar formulario
+    form.reviso_nombre.data = current_user.nombre
+    form.reviso_puesto.data = current_user.puesto
+    form.reviso_email.data = current_user.email
+    return render_template("req_requisiciones/cancel_4_review.jinja2", form=form, req_requisicion=req_requisicion)
 
 
 @req_requisiciones.route("/req_requisiciones/<int:req_requisicion_id>/imprimir")

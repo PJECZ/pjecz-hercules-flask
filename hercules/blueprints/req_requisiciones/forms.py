@@ -82,7 +82,15 @@ class ReqRequisicionStep3AuthorizeForm(FlaskForm):
     contrasena = PasswordField("Contraseña de su firma electrónica", validators=[DataRequired(), Length(6, 64)])
     autorizar = SubmitField("Autorizar")
 
+class ReqRequisicionCancel3AuthorizeForm(FlaskForm):
+    """Formulario Requisicion (step 3 ahutorize) Autorizar"""
 
+    autorizo_nombre = StringField("Usted es")  # Read only
+    autorizo_puesto = StringField("Su puesto")  # Read only
+    autorizo_email = StringField("Su e-mail")  # Read only
+    motivo = StringField("Motivo", validators=[DataRequired(), Length(max=256)])
+    contrasena = PasswordField("Contraseña de su firma electrónica", validators=[DataRequired(), Length(6, 64)])
+    cancelar = SubmitField("Cancelar Autorizado")
 class ReqRequisicionStep4ReviewForm(FlaskForm):
     """Formulario Requisicion (step 4 review) Revisar"""
 
@@ -91,3 +99,14 @@ class ReqRequisicionStep4ReviewForm(FlaskForm):
     reviso_email = StringField("Su e-mail")  # Read only
     contrasena = PasswordField("Contraseña de su firma electrónica", validators=[DataRequired(), Length(6, 64)])
     revisar = SubmitField("Revisar")
+
+
+class ReqRequisicionCancel4ReviewForm(FlaskForm):
+    """Formulario Requisicion (step 4 review) Revisar"""
+
+    reviso_nombre = StringField("Usted es")  # Read only
+    reviso_puesto = StringField("Su puesto")  # Read only
+    reviso_email = StringField("Su e-mail")  # Read only
+    motivo = StringField("Motivo", validators=[DataRequired(), Length(max=256)])
+    contrasena = PasswordField("Contraseña de su firma electrónica", validators=[DataRequired(), Length(6, 64)])
+    cancelar = SubmitField("Cancelar Revisado")
