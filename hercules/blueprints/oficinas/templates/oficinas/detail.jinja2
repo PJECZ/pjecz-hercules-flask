@@ -43,7 +43,7 @@
             <!-- Filtros usuarios -->
             <div class="row">
                 <div class="col">
-                    <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosUsuarios.buscar(); return false;">
+                    <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDTUsuarios.buscar(); return false;">
                         <div class="col-3">
                             <div class="form-floating">
                                 <input id="filtroEMail" type="text" class="form-control" aria-label="email">
@@ -63,8 +63,8 @@
                             </div>
                         </div>
                         <div class="col-3 text-end">
-                            <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosUsuarios.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
-                            <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosUsuarios.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                            <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDTUsuarios.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                            <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDTUsuarios.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                         </div>
                     </form>
                 </div>
@@ -96,17 +96,17 @@
         <script>
             // DataTable usuarios
             const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
-            let configDataTable = constructorDataTable.config();
-            configDataTable['ajax']['url'] = '/usuarios/datatable_json';
-            configDataTable['ajax']['data'] = { 'estatus': "A", 'oficina_id': {{ oficina.id }} };
-            configDataTable['columns'] = [
+            let configDTUsuarios = constructorDataTable.config();
+            configDTUsuarios['ajax']['url'] = '/usuarios/datatable_json';
+            configDTUsuarios['ajax']['data'] = { 'estatus': "A", 'oficina_id': {{ oficina.id }} };
+            configDTUsuarios['columns'] = [
                 { data: "detalle" },
                 { data: "nombre" },
                 { data: "curp" },
                 { data: "puesto" },
                 { data: "autoridad" }
             ];
-            configDataTable['columnDefs'] = [
+            configDTUsuarios['columnDefs'] = [
                 {
                     targets: 0, // detalle
                     data: null,
@@ -143,11 +143,11 @@
                 }
             ];
             // Filtros usuarios
-            const filtrosUsuarios = new FiltrosDataTable('#usuarios_datatable', configDataTable);
-            filtrosUsuarios.agregarInput('filtroEMail', 'email');
-            filtrosUsuarios.agregarInput('filtroNombres', 'nombres');
-            filtrosUsuarios.agregarInput('filtroApellidoPaterno', 'apellido_paterno');
-            filtrosUsuarios.precargar();
+            const filtrosDTUsuarios = new FiltrosDataTable('#usuarios_datatable', configDTUsuarios);
+            filtrosDTUsuarios.agregarInput('filtroEMail', 'email');
+            filtrosDTUsuarios.agregarInput('filtroNombres', 'nombres');
+            filtrosDTUsuarios.agregarInput('filtroApellidoPaterno', 'apellido_paterno');
+            filtrosDTUsuarios.precargar();
         </script>
     {% endif %}
     {{ detail.moment_js(moment) }}

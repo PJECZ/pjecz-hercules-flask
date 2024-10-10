@@ -42,17 +42,17 @@
     <script>
         // DataTable Usuarios-Roles
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
-        let configDataTable = constructorDataTable.config();
-        configDataTable['ajax']['url'] = '/usuarios_roles/datatable_json';
-        configDataTable['ajax']['data'] = {}; // Por defecto no se filtra nada
-        configDataTable['columns'] = [
+        let configDTUsuariosRoles = constructorDataTable.config();
+        configDTUsuariosRoles['ajax']['url'] = '/usuarios_roles/datatable_json';
+        configDTUsuariosRoles['ajax']['data'] = {}; // Por defecto no se filtra nada
+        configDTUsuariosRoles['columns'] = [
             { data: "detalle" },
             { data: "usuario" },
             { data: "usuario_nombre" },
             { data: "rol" },
             { data: "estatus" }
         ];
-        configDataTable['columnDefs'] = [
+        configDTUsuariosRoles['columnDefs'] = [
             {
                 targets: 0, // detalle
                 data: null,
@@ -89,7 +89,7 @@
             }
         ];
         // Filtros Usuarios-Roles
-        const filtrosObjetos = new FiltrosDataTable('#usuarios_roles_datatable', configDataTable);
+        const filtrosObjetos = new FiltrosDataTable('#usuarios_roles_datatable', configDTUsuariosRoles);
         filtrosObjetos.precargar();
     </script>
 {% endblock %}
