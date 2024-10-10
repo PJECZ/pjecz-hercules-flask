@@ -24,7 +24,7 @@
             <!-- Filtros Permisos -->
             <div class="row">
                 <div class="col">
-                    <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosPermisos.buscar(); return false;">
+                    <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDTPermisos.buscar(); return false;">
                         <div class="col-3">
                             <div class="form-floating">
                                 <input id="filtroPermisoNombre" type="text" class="form-control" aria-label="Nombre" style="text-transform: uppercase;">
@@ -48,8 +48,8 @@
                             <label for="filtroPermisoNivel">Nivel</label>
                         </div>
                         <div class="col-3 text-end">
-                            <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosPermisos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
-                            <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosPermisos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                            <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDTPermisos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                            <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDTPermisos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                         </div>
                     </form>
                 </div>
@@ -107,6 +107,7 @@
                         <th>ID</th>
                         <th>Correo electrónico</th>
                         <th>Nombre completo</th>
+                        <th>Puesto</th>
                         <th>Estatus</th>
                     </tr>
                 </thead>
@@ -160,11 +161,11 @@
                 }
             ];
             // Filtros permisos
-            const filtrosPermisos = new FiltrosDataTable('#permisos_datatable', configDTPermisos);
-            filtrosPermisos.agregarInput('filtroPermisoNombre', 'nombre');
-            filtrosPermisos.agregarInput('filtroPermisoModuloNombre', 'modulo_nombre');
-            filtrosPermisos.agregarInput('filtroPermisoNivel', 'nivel');
-            filtrosPermisos.precargar();
+            const filtrosDTPermisos = new FiltrosDataTable('#permisos_datatable', configDTPermisos);
+            filtrosDTPermisos.agregarInput('filtroPermisoNombre', 'nombre');
+            filtrosDTPermisos.agregarInput('filtroPermisoModuloNombre', 'modulo_nombre');
+            filtrosDTPermisos.agregarInput('filtroPermisoNivel', 'nivel');
+            filtrosDTPermisos.precargar();
         </script>
     {% endif %}
     {% if current_user.can_view('USUARIOS ROLES') %}
@@ -177,6 +178,7 @@
                 { data: "detalle" },
                 { data: "usuario" },
                 { data: "usuario_nombre" },
+                { data: "usuario_puesto" },
                 { data: "toggle_estatus" }
             ];
             configDTUsuariosRoles['columnDefs'] = [
@@ -199,14 +201,14 @@
                     }
                 },
                 {
-                    targets: 2, // usuario_nombre
+                    targets: [2, 3], // usuario_nombre, usuario_puesto
                     data: null,
                     render: function(data, type, row, meta) {
                         return (data.length > 32 ? data.substring(0, 32) + '…' : data);
                     }
                 },
                 {
-                    targets: 3, // toggle_estatus
+                    targets: 4, // toggle_estatus
                     data: null,
                     render: function(data, type, row, meta) {
                         if (data.url === '') return data.estatus;
