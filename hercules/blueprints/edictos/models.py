@@ -34,6 +34,7 @@ class Edicto(database.Model, UniversalMixin):
     url: Mapped[str] = mapped_column(String(512), default="", server_default="")
     acuse_num: Mapped[int] = mapped_column(default=0)
     edicto_id_original: Mapped[int] = mapped_column(default=0)
+    es_declaracion_de_ausencia: Mapped[bool] = mapped_column(default=False)
 
     # Hijos
     edictos_acuses: Mapped[List["EdictoAcuse"]] = relationship(back_populates="edicto")

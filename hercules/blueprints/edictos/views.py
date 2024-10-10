@@ -42,6 +42,7 @@ local_tz = timezone(TIMEZONE)
 MODULO = "EDICTOS"
 LIMITE_DIAS = 365  # Un anio
 LIMITE_ADMINISTRADORES_DIAS = 3650  # Administradores pueden manipular diez anios
+MATERIAS_HABILITAR_DECLARACION_AUSENCIA = ["CIVIL", "FAMILIAR", "FAMILIAR ORAL"]
 
 edictos = Blueprint("edictos", __name__, template_folder="templates")
 
@@ -132,6 +133,7 @@ def datatable_json():
                 },
                 "expediente": edicto.expediente,
                 "numero_publicacion": edicto.numero_publicacion,
+                "es_declaracion_de_ausencia": "Sí" if edicto.es_declaracion_de_ausencia else "",
                 "creado": edicto.creado.astimezone(local_tz).strftime("%Y-%m-%d %H:%M"),
             }
         )
@@ -200,19 +202,20 @@ def admin_datatable_json():
 
     # Elaborar datos para DataTable
     data = []
-    for resultado in registros:
+    for edicto in registros:
         data.append(
             {
                 "detalle": {
-                    "id": resultado.id,
-                    "url": url_for("edictos.detail", edicto_id=resultado.id),
+                    "id": edicto.id,
+                    "url": url_for("edictos.detail", edicto_id=edicto.id),
                 },
-                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
-                "autoridad": resultado.autoridad.clave,
-                "fecha": resultado.fecha.strftime("%Y-%m-%d"),
-                "descripcion": resultado.descripcion,
-                "expediente": resultado.expediente,
-                "numero_publicacion": resultado.numero_publicacion,
+                "creado": edicto.creado.strftime("%Y-%m-%d %H:%M"),
+                "autoridad": edicto.autoridad.clave,
+                "fecha": edicto.fecha.strftime("%Y-%m-%d"),
+                "descripcion": edicto.descripcion,
+                "expediente": edicto.expediente,
+                "es_declaracion_de_ausencia": "Sí" if edicto.es_declaracion_de_ausencia else "",
+                "numero_publicacion": edicto.numero_publicacion,
             }
         )
 
@@ -352,6 +355,9 @@ def new():
             flash("El número de publicación es incorrecto.", "warning")
             es_valido = False
 
+        # Tomar es_declaracion_de_ausencia
+        es_declaracion_de_ausencia = form.es_declaracion_de_ausencia.data
+
         # Inicializar la liberia GCS con el directorio base, la fecha, las extensiones y los meses como palabras
         gcstorage = GoogleCloudStorage(
             base_directory=autoridad.directorio_edictos,
@@ -383,6 +389,7 @@ def new():
             descripcion=descripcion,
             expediente=expediente,
             numero_publicacion=numero_publicacion,
+            es_declaracion_de_ausencia=es_declaracion_de_ausencia,
         )
         edicto.save()
 
@@ -425,8 +432,17 @@ def new():
     form.autoridad.data = autoridad.descripcion
     form.fecha.data = hoy
 
+    # Si la materia es CIVIL, FAMILIAR o FAMILIAR ORAL, entonces se habilita el boleano es_declaracion_de_ausencia
+    habilitar_es_declaracion_de_ausencia = False
+    if autoridad.materia.nombre in MATERIAS_HABILITAR_DECLARACION_AUSENCIA:
+        habilitar_es_declaracion_de_ausencia = True
+
     # Entregar el formulario
-    return render_template("edictos/new.jinja2", form=form)
+    return render_template(
+        "edictos/new.jinja2",
+        form=form,
+        habilitar_es_declaracion_de_ausencia=habilitar_es_declaracion_de_ausencia,
+    )
 
 
 @edictos.route("/edictos/nuevo/<int:autoridad_id>", methods=["GET", "POST"])
@@ -489,6 +505,9 @@ def new_with_autoridad_id(autoridad_id):
             flash("El número de publicación es incorrecto.", "warning")
             es_valido = False
 
+        # Tomar es_declaracion_de_ausencia
+        es_declaracion_de_ausencia = form.es_declaracion_de_ausencia.data
+
         # Inicializar la liberia GCS con el directorio base, la fecha, las extensiones y los meses como palabras
         gcstorage = GoogleCloudStorage(
             base_directory=autoridad.directorio_glosas,
@@ -520,6 +539,7 @@ def new_with_autoridad_id(autoridad_id):
             descripcion=descripcion,
             expediente=expediente,
             numero_publicacion=numero_publicacion,
+            es_declaracion_de_ausencia=es_declaracion_de_ausencia,
         )
         edicto.save()
 
@@ -562,8 +582,18 @@ def new_with_autoridad_id(autoridad_id):
     form.autoridad.data = autoridad.descripcion
     form.fecha.data = hoy
 
+    # Si la materia es CIVIL, FAMILIAR o FAMILIAR ORAL, entonces se habilita el boleano es_declaracion_de_ausencia
+    habilitar_es_declaracion_de_ausencia = False
+    if autoridad.materia.nombre in MATERIAS_HABILITAR_DECLARACION_AUSENCIA:
+        habilitar_es_declaracion_de_ausencia = True
+
     # Entregar el formulario
-    return render_template("edictos/new_for_autoridad.jinja2", form=form, autoridad=autoridad)
+    return render_template(
+        "edictos/new_for_autoridad.jinja2",
+        form=form,
+        autoridad=autoridad,
+        habilitar_es_declaracion_de_ausencia=habilitar_es_declaracion_de_ausencia,
+    )
 
 
 @edictos.route("/edictos/editar/<int:edicto_id>", methods=["GET", "POST"])
@@ -622,12 +652,16 @@ def edit(edicto_id):
             flash("El número de publicación es incorrecto.", "warning")
             es_valido = False
 
+        # Tomar es_declaracion_de_ausencia
+        es_declaracion_de_ausencia = form.es_declaracion_de_ausencia.data
+
         # Si es válido, entonces se guarda
         if es_valido:
             edicto.fecha = fecha
             edicto.descripcion = descripcion
             edicto.expediente = expediente
             edicto.numero_publicacion = numero_publicacion
+            edicto.es_declaracion_de_ausencia = es_declaracion_de_ausencia
             edicto.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -644,9 +678,20 @@ def edit(edicto_id):
     form.descripcion.data = edicto.descripcion
     form.expediente.data = edicto.expediente
     form.numero_publicacion.data = edicto.numero_publicacion
+    form.es_declaracion_de_ausencia.data = edicto.es_declaracion_de_ausencia
+
+    # Si la materia es CIVIL, FAMILIAR o FAMILIAR ORAL, entonces se habilita el boleano es_declaracion_de_ausencia
+    habilitar_es_declaracion_de_ausencia = False
+    if edicto.autoridad.materia.nombre in MATERIAS_HABILITAR_DECLARACION_AUSENCIA:
+        habilitar_es_declaracion_de_ausencia = True
 
     # Entregar el formulario
-    return render_template("edictos/edit.jinja2", form=form, edicto=edicto)
+    return render_template(
+        "edictos/edit.jinja2",
+        form=form,
+        edicto=edicto,
+        habilitar_es_declaracion_de_ausencia=habilitar_es_declaracion_de_ausencia,
+    )
 
 
 @edictos.route("/edictos/eliminar/<int:edicto_id>")
