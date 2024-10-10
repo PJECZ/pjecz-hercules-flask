@@ -31,11 +31,12 @@
 
 {% block custom_javascript %}
     <!-- Importación de la configuración para DataTables -->
-    <script src="/static/js/datatables_config.js"></script>
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
     {# Instancias Data Table #}
     <script>
         const dataTable_funcs_instancias = new ConfigDataTable( "{{ csrf_token() }}" );
-        let configDataTable_instancias = dataTable_funcs_instancias.config;
+        let configDataTable_instancias = dataTable_funcs_instancias.config();
         configDataTable_instancias['ajax']['url'] = '/arc_archivos/datatable_json_remesas_por_instancias';
         configDataTable_instancias['ajax']['data'] = {{ filtros_por_instancias }};
         configDataTable_instancias['columns'] = [

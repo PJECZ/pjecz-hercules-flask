@@ -31,11 +31,12 @@
 
 {% block custom_javascript %}
     <!-- Importación de la configuración para DataTables -->
-    <script src="/static/js/datatables_config.js"></script>
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
     {# Estados Data Table #}
     <script>
         const dataTable_funcs_estados = new ConfigDataTable( "{{ csrf_token() }}" );
-        let configDataTable_estados = dataTable_funcs_estados.config;
+        let configDataTable_estados = dataTable_funcs_estados.config();
         configDataTable_estados['ajax']['url'] = '/arc_archivos/datatable_json_remesas_por_estados';
         configDataTable_estados['ajax']['data'] = {{ filtros_por_estados }};
         configDataTable_estados['columns'] = [

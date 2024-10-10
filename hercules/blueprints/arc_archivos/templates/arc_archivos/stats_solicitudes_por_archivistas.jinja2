@@ -31,11 +31,12 @@
 
 {% block custom_javascript %}
     <!-- Importación de la configuración para DataTables -->
-    <script src="/static/js/datatables_config.js"></script>
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
     {# archivistas Data Table #}
     <script>
         const dataTable_funcs_archivistas = new ConfigDataTable( "{{ csrf_token() }}" );
-        let configDataTable_archivistas = dataTable_funcs_archivistas.config;
+        let configDataTable_archivistas = dataTable_funcs_archivistas.config();
         configDataTable_archivistas['ajax']['url'] = '/arc_archivos/datatable_json_solicitudes_por_archivistas';
         configDataTable_archivistas['ajax']['data'] = {{ filtros_por_archivistas }};
         configDataTable_archivistas['columns'] = [

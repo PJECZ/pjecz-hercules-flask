@@ -31,11 +31,12 @@
 
 {% block custom_javascript %}
     <!-- Importación de la configuración para DataTables -->
-    <script src="/static/js/datatables_config.js"></script>
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
     {# Distritos Data Table #}
     <script>
         const dataTable_funcs_distritos = new ConfigDataTable( "{{ csrf_token() }}" );
-        let configDataTable_distritos = dataTable_funcs_distritos.config;
+        let configDataTable_distritos = dataTable_funcs_distritos.config();
         configDataTable_distritos['ajax']['url'] = '/arc_archivos/datatable_json_solicitudes_por_distrito';
         configDataTable_distritos['ajax']['data'] = {{ filtros_por_distritos }};
         configDataTable_distritos['columns'] = [

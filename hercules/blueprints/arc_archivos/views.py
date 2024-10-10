@@ -7,6 +7,8 @@ from datetime import date
 from flask import Blueprint, flash, redirect, render_template, request, url_for, current_app
 from flask_login import current_user, login_required
 from sqlalchemy.sql.functions import count
+from hercules.extensions import database
+from sqlalchemy import func
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_string, safe_message
@@ -519,12 +521,7 @@ def datatable_json_solicitudes_por_distrito():
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # SQLAlchemy database session
-    database = current_app.extensions["sqlalchemy"].db.session
-    # Dos columnas en la consulta
-    consulta = database.query(
-        Distrito.nombre_corto.label("distritos"),
-        count("*").label("solicitudes"),
-    )
+    consulta = database.session.query((Distrito.nombre_corto).label("distritos"), func.count(Distrito.id).label("solicitudes"))
     # Consultar
     consulta = consulta.select_from(Autoridad).join(ArcSolicitud).join(Distrito)
     consulta = (
@@ -565,12 +562,7 @@ def datatable_json_remesas_por_distrito():
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # SQLAlchemy database session
-    database = current_app.extensions["sqlalchemy"].db.session
-    # Dos columnas en la consulta
-    consulta = database.query(
-        Distrito.nombre_corto.label("distritos"),
-        count("*").label("remesas"),
-    )
+    consulta = database.session.query((Distrito.nombre_corto).label("distritos"), func.count(Distrito.id).label("remesas"))
     # Consultar
     consulta = consulta.select_from(Autoridad).join(ArcRemesa).join(Distrito)
     consulta = (
@@ -611,12 +603,7 @@ def datatable_json_solicitudes_por_instancias():
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # SQLAlchemy database session
-    database = current_app.extensions["sqlalchemy"].db.session
-    # Dos columnas en la consulta
-    consulta = database.query(
-        Autoridad.clave.label("juzgados"),
-        count("*").label("solicitudes"),
-    )
+    consulta = database.session.query((Autoridad.clave).label("juzgados"), func.count(Autoridad.id).label("solicitudes"))
     # Consultar
     consulta = consulta.select_from(Autoridad).join(ArcSolicitud)
     consulta = consulta.filter(Autoridad.es_archivo_solicitante == True).filter(Autoridad.estatus == "A")
@@ -648,12 +635,13 @@ def datatable_json_remesas_por_instancias():
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # SQLAlchemy database session
-    database = current_app.extensions["sqlalchemy"].db.session
+    # database = current_app.extensions["sqlalchemy"].db.session
     # Dos columnas en la consulta
-    consulta = database.query(
-        Autoridad.clave.label("juzgados"),
-        count("*").label("remesas"),
-    )
+    # consulta = database.query(
+    #     Autoridad.clave.label("juzgados"),
+    #     count("*").label("remesas"),
+    # )
+    consulta = database.session.query((Autoridad.clave.label("juzgados")), func.count(Autoridad.id).label("remesas"))
     # Consultar
     consulta = consulta.select_from(Autoridad).join(ArcRemesa)
     consulta = consulta.filter(Autoridad.es_archivo_solicitante == True).filter(Autoridad.estatus == "A")
@@ -690,12 +678,7 @@ def datatable_json_solicitudes_por_archivistas():
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # SQLAlchemy database session
-    database = current_app.extensions["sqlalchemy"].db.session
-    # Dos columnas en la consulta
-    consulta = database.query(
-        Usuario.email.label("archivistas"),
-        count("*").label("solicitudes"),
-    )
+    consulta = database.session.query((Usuario.email).label("archivistas"), func.count(Usuario.id).label("solicitudes"))
     # Consultar
     consulta = consulta.select_from(Usuario).join(ArcSolicitud, Usuario.id == ArcSolicitud.usuario_asignado_id)
     consulta = consulta.filter(Usuario.estatus == "A")
@@ -727,12 +710,7 @@ def datatable_json_solicitudes_por_estados():
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # SQLAlchemy database session
-    database = current_app.extensions["sqlalchemy"].db.session
-    # Dos columnas en la consulta
-    consulta = database.query(
-        ArcSolicitud.estado.label("estados"),
-        count("*").label("solicitudes"),
-    )
+    consulta = database.session.query((ArcSolicitud.estado).label("estados"), func.count(ArcSolicitud.id).label("solicitudes"))
     # Consultar
     consulta = consulta.select_from(ArcSolicitud)
     if "fecha_desde" in request.form:
@@ -763,12 +741,7 @@ def datatable_json_remesas_por_archivistas():
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # SQLAlchemy database session
-    database = current_app.extensions["sqlalchemy"].db.session
-    # Dos columnas en la consulta
-    consulta = database.query(
-        Usuario.email.label("archivistas"),
-        count("*").label("remesas"),
-    )
+    consulta = database.session.query((Usuario.email).label("archivistas"), func.count(Usuario.id).label("remesas"))
     # Consultar
     consulta = consulta.select_from(Usuario).join(ArcRemesa, Usuario.id == ArcRemesa.usuario_asignado_id)
     consulta = consulta.filter(Usuario.estatus == "A")
@@ -805,12 +778,7 @@ def datatable_json_remesas_por_estados():
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # SQLAlchemy database session
-    database = current_app.extensions["sqlalchemy"].db.session
-    # Dos columnas en la consulta
-    consulta = database.query(
-        ArcRemesa.estado.label("estados"),
-        count("*").label("remesas"),
-    )
+    consulta = database.session.query((ArcRemesa.estado).label("estados"), func.count(ArcRemesa.id).label("remesas"))
     # Consultar
     consulta = consulta.select_from(ArcRemesa)
     if "fecha_desde" in request.form:
