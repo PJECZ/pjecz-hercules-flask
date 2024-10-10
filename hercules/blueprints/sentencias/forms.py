@@ -22,7 +22,7 @@ class SentenciaNewForm(FlaskForm):
     materia = SelectField("Materia", choices=None, validate_choice=False)  # Las opciones se agregan con JS
     materia_tipo_juicio = SelectField("Tipo de Juicio", choices=None, validate_choice=False)  # Las opciones se agregan con JS
     descripcion = TextAreaField(
-        "Descripción (hasta mil caracteres)", validators=[Optional(), Length(max=1024)], render_kw={"rows": 6}
+        "Resumen (hasta mil caracteres)", validators=[DataRequired(), Length(max=1024)], render_kw={"rows": 6}
     )
     es_perspectiva_genero = BooleanField("Es Perspectiva de Género", validators=[Optional()])
     archivo = FileField("Archivo PDF", validators=[FileRequired()])
@@ -39,7 +39,7 @@ class SentenciaEditForm(FlaskForm):
     materia = SelectField("Materia", choices=None, validate_choice=False)  # Las opciones se agregan con JS
     materia_tipo_juicio = SelectField("Tipo de Juicio", choices=None, validate_choice=False)  # Las opciones se agregan con JS
     descripcion = TextAreaField(
-        "Descripción (hasta mil caracteres)", validators=[Optional(), Length(max=1024)], render_kw={"rows": 6}
+        "Resumen (hasta mil caracteres)", validators=[DataRequired(), Length(max=1024)], render_kw={"rows": 6}
     )
     es_perspectiva_genero = BooleanField("Es Perspectiva de Género", validators=[Optional()])
     guardar = SubmitField("Guardar")

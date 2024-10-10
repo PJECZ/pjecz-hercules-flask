@@ -16,6 +16,9 @@
             {% call f.form_group(form.descripcion) %}{% endcall %}
             {% call f.form_group(form.expediente) %}{% endcall %}
             {% call f.form_group(form.numero_publicacion) %}{% endcall %}
+            {% if habilitar_es_declaracion_de_ausencia == True %}
+                {% call f.form_group(form.es_declaracion_de_ausencia) %}{% endcall %}
+            {% endif %}
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}
     {% endcall %}

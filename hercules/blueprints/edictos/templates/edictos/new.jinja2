@@ -22,6 +22,9 @@
             {% call f.drop_zone_wrapper() %}
                 {% call f.form_group(form.archivo, class='dropzone') %}{% endcall %}
             {% endcall %}
+            {% if habilitar_es_declaracion_de_ausencia == True %}
+                {% call f.form_group(form.es_declaracion_de_ausencia) %}{% endcall %}
+            {% endif %}
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}
     {% endcall %}
