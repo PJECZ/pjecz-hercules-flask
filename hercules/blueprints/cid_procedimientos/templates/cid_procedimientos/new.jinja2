@@ -242,14 +242,21 @@
                     setTimeout('$("#form-alert1-reg").hide()', 5000);
                     $("#registro_codigo").focus();
                 }else{
+                    // Convertir a mayúsculas antes de agregar a la tabla
+                    var codigo = $("#registro_codigo").val().toUpperCase();
+                    var nombre = $("#registro_nombre").val().toUpperCase();
+                    var responsable = $("#registro_responsable").val().toUpperCase();
+                    var retencion = $("#registro_retencion").val().toUpperCase();
+
                     tabla.row.add(
                         [
-                            $("#registro_codigo").val(),
-                            $("#registro_nombre").val(),
-                            $("#registro_responsable").val(),
-                            $("#registro_retencion").val()
+                            codigo,
+                            nombre,
+                            responsable,
+                            retencion
                         ]
-                    ).draw( false );
+                    ).draw(false);
+
 
                     $("#registro_codigo").val("");
                     $("#registro_nombre").val("");
@@ -285,9 +292,9 @@
             $("#e_updt_btn").click( function() {
 
                 let newArr = [
-                    $("#e_registro_codigo").val(),
-                    $("#e_registro_nombre").val(),
-                    $("#e_registro_responsable").val(),
+                    $("#e_registro_codigo").val().toUpperCase(),
+                    $("#e_registro_nombre").val().toUpperCase(),
+                    $("#e_registro_responsable").val().toUpperCase(),
                     $("#e_registro_retencion").val()
                 ];
 
@@ -305,14 +312,20 @@
                     setTimeout('$("#form-alert1-camb").hide()', 5000);
                     $("#control_revision").focus();
                 }else{
+                    // Convertir a mayúsculas antes de agregar a la tabla
+                    let revision = $("#control_revision").val();
+                    let cambio = $("#control_cambio").val().toUpperCase();
+                    let solicitud = $("#control_solicitud").val();
+                    let fecha = $("#control_fecha").val();
+
                     tabla_control.row.add(
                         [
-                            $("#control_revision").val(),
-                            $("#control_cambio").val(),
-                            $("#control_solicitud").val(),
-                            $("#control_fecha").val()
+                            revision,
+                            cambio,
+                            solicitud,
+                            fecha
                         ]
-                    ).draw( false );
+                    ).draw(false);
 
                     $("#control_revision").val("");
                     $("#control_cambio").val("");
@@ -349,7 +362,7 @@
 
                 let newArr = [
                     $("#e_control_revision").val(),
-                    $("#e_control_cambio").val(),
+                    $("#e_control_cambio").val().toUpperCase(),
                     $("#e_control_solicitud").val(),
                     $("#e_control_fecha").val()
                 ];

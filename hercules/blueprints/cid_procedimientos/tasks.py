@@ -21,14 +21,20 @@ from delta import html
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader
 from openpyxl import Workbook
-from plataforma_web.app import create_app
-from plataforma_web.blueprints.cid_formatos.models import CIDFormato
-from plataforma_web.blueprints.cid_procedimientos.models import CIDProcedimiento
 from sendgrid.helpers.mail import Content, Email, Mail, To
 
-from lib.exceptions import MyAnyError, MyEmptyError
+from hercules.app import create_app
+from hercules.blueprints.cid_procedimientos.models import CIDProcedimiento
+from lib.exceptions import (
+    MyAnyError,
+    MyEmptyError,
+    MyFilenameError,
+    MyMissingConfigurationError,
+    MyNotAllowedExtensionError,
+    MyUnknownExtensionError,
+)
 from lib.safe_string import safe_string
-from lib.storage import GoogleCloudStorage, NoneFilenameError, NotAllowedExtesionError, NotConfiguredError, UnknownExtesionError
+from lib.storage import GoogleCloudStorage
 from lib.tasks import set_task_error, set_task_progress
 
 load_dotenv()  # Take environment variables from .env
@@ -49,7 +55,7 @@ CLOUD_STORAGE_DEPOSITO = os.getenv("CLOUD_STORAGE_DEPOSITO", "")
 DEPOSITO_DIR = "cid_procedimientos"
 GCS_BASE_DIRECTORY = "cid_procedimientos/listas_maestras"
 LOCAL_BASE_DIRECTORY = "exports/cid_procedimientos/listas_maestras"
-TEMPLATES_DIR = "plataforma_web/blueprints/cid_procedimientos/templates/cid_procedimientos"
+TEMPLATES_DIR = "hercules/blueprints/cid_procedimientos/templates/cid_procedimientos"
 TIMEZONE = "America/Mexico_City"
 
 
@@ -167,8 +173,8 @@ def crear_pdf(cid_procedimiento_id: int, usuario_id: int = None, accept_reject_u
 
     # Definir las rutas de los archivos temporales
     random_hex = "%030x" % random.randrange(16**30)
-    path_header = Path("/tmp/pjecz_plataforma_web-" + random_hex + "-header.html")
-    path_footer = Path("/tmp/pjecz_plataforma_web-" + random_hex + "-footer.html")
+    path_header = Path("/tmp/pjecz_hercules-" + random_hex + "-header.html")
+    path_footer = Path("/tmp/pjecz_hercules-" + random_hex + "-footer.html")
 
     # Guardar archivo temporal con el header
     archivo = open(path_header, "w", encoding="utf8")
@@ -208,10 +214,10 @@ def crear_pdf(cid_procedimiento_id: int, usuario_id: int = None, accept_reject_u
             cid_procedimiento.url = storage.url
             cid_procedimiento.save()
             bitacora.info("Se ha subido %s a Google Cloud Storage.", cid_procedimiento.archivo)
-        except NotConfiguredError:
+        except MyMissingConfigurationError:
             mensaje = set_task_error("No fue posible subir el archivo PDF a Google Storage porque falta la configuración.")
             bitacora.warning(mensaje)
-        except (NotAllowedExtesionError, UnknownExtesionError, NoneFilenameError) as error:
+        except (MyNotAllowedExtensionError, MyUnknownExtensionError, MyFilenameError) as error:
             mensaje = set_task_error("No fue posible subir el archivo PDF a Google Storage por un error de tipo de archivo.")
             bitacora.warning(mensaje, str(error))
         except Exception as error:
@@ -436,10 +442,10 @@ def exportar_xlsx() -> Tuple[str, str, str]:
                 )
                 public_url = storage.upload(archivo.read())
                 bitacora.info("Se subió el archivo %s a GCS", nombre_archivo_xlsx)
-            except NotConfiguredError:
+            except MyMissingConfigurationError:
                 mensaje = set_task_error("No fue posible subir el archivo a Google Storage porque falta la configuración.")
                 bitacora.warning(mensaje)
-            except (NotAllowedExtesionError, UnknownExtesionError, NoneFilenameError) as error:
+            except (MyNotAllowedExtensionError, MyUnknownExtensionError, MyFilenameError) as error:
                 mensaje = set_task_error("No fue posible subir el archivo a Google Storage por un error de tipo de archivo.")
                 bitacora.warning(mensaje, str(error))
             except Exception as error:

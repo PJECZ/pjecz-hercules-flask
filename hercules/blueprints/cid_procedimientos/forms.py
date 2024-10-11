@@ -86,18 +86,6 @@ class CIDProcedimientoEditForm(FlaskForm):
     aprobo_puesto = StringField("Puesto", validators=[Optional(), Length(max=256)])
     aprobo_email = SelectField(label="Correo electrónico", coerce=str, validators=[Optional()], validate_choice=False)
     autorizaciones = JSONField("Autorizaciones", validators=[Optional()])
-
-    def validate(self, extra_validators=None):
-        rv = super().validate(extra_validators)
-        if not rv:
-            return False
-
-        # Asegurar que la revisión siempre tenga un valor por defecto
-        if self.revision.data is None:
-            self.revision.data = 1
-
-        return True
-
     # Guardar
     guardar = SubmitField("Guardar")
 
@@ -127,19 +115,12 @@ class CIDProcedimientoCambiarAreaForm(FlaskForm):
     cid_area = SelectField("Área", coerce=int, validators=[DataRequired()])
     guardar = SubmitField("Guardar")
 
-
-class CIDProcedimientoSearchForm(FlaskForm):
-    """Formulario Search CIDProcedimientos"""
-
-    id = IntegerField("ID", validators=[Optional()])
-    titulo_procedimiento = StringField("Título Procedimiento", validators=[Optional()])
-    codigo = StringField("Código", validators=[Optional()])
-    elaboro_nombre = StringField("Elaboró", validators=[Optional()])
-    reviso_nombre = StringField("Revisó", validators=[Optional()])
-    aprobo_nombre = StringField("Autorizó", validators=[Optional()])
-    fecha_desde = DateField("Fecha desde", validators=[Optional()])
-    fecha_hasta = DateField("Fecha hasta", validators=[Optional()])
-    buscar = SubmitField("Buscar")
+    def __init__(self, *args, **kwargs):
+        """Inicializar y cargar opciones de inv_categoria"""
+        super().__init__(*args, **kwargs)
+        self.cid_area.choices = [
+            (ca.id, ca.nombre) for ca in CIDArea.query.filter_by(estatus="A").order_by(CIDArea.nombre).all()
+        ]
 
 
 class CIDProcedimientosNewReview(FlaskForm):
@@ -157,9 +138,3 @@ class CIDProcedimientosNewReview(FlaskForm):
     aprobo_puesto = StringField("Puesto", validators=[Optional(), Length(max=256)])
     aprobo_email = SelectField(label="Correo electrónico", coerce=str, validators=[Optional()], validate_choice=False)
     guardar = SubmitField("Iniciar nueva revisión")
-
-
-def __init__(self, *args, **kwargs):
-    """Inicializar y cargar opciones de inv_categoria"""
-    super().__init__(*args, **kwargs)
-    self.cid_area.choices = [(c.id, c.nombre) for c in CIDArea.query.filter_by(estatus="A").order_by(CIDArea.nombre).all()]

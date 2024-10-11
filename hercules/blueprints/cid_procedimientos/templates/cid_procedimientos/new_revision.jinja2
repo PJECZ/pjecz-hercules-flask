@@ -62,16 +62,7 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <div class="me-md-4">
-                        {% call f.form_group(form.guardar) %}{% endcall %}
-                    </div>
-                    <div>
-                        <a href="{{url_for('cid_procedimientos.list_active')}}" class="btn btn-danger">Cancelar</a>
-                    </div>
-                </div>
-            </div>
+            {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}
     {% endcall %}
 {% endblock %}
@@ -104,7 +95,7 @@
                 minimumInputLength: 4,
                 allowClear: true,
                 ajax: {
-                    url: '/cid_procedimientos/usuarios_json',
+                    url: '/usuarios/select_json',
                     headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
                     dataType: 'json',
                     delay: 250,

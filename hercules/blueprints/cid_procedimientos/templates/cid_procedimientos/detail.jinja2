@@ -1,32 +1,33 @@
 {% extends 'layouts/app.jinja2' %}
-{% import 'macros/accordion.jinja2' as accordion %}
 {% import 'macros/detail.jinja2' as detail %}
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
+{% import 'macros/accordion.jinja2' as accordion %}
 
 {% block title %}Procedimiento {{ cid_procedimiento.codigo }}{% endblock %}
 
 {% block custom_head %}
     <style>
-        .bg-yellow {
-            color: rgb(6, 6, 6);
-            background-color: #f3ebb3;
-        }
-        .bg-blue {
-            color: rgb(42, 42, 42);
-            background-color: #7ebdf7;
-        }
-        .bg-green {
-            color: rgb(37, 37, 37);
-            background-color: #64cb90;
-        }
+    .bg-yellow {
+        color: rgb(6, 6, 6);
+        background-color: #f3ebb3;
+    }
+    .bg-blue {
+        color: rgb(42, 42, 42);
+        background-color: #7ebdf7;
+    }
+    .bg-green {
+        color: rgb(37, 37, 37);
+        background-color: #64cb90;
+    }
     </style>
 {% endblock %}
 
 {% block topbar_actions %}
     {% call topbar.page_buttons('Procedimiento ' + cid_procedimiento.codigo) %}
-        {{ topbar.button_previous('Procedimientos', url_for('cid_procedimientos.list_active')) }}
-        {% if show_buttom_new_revision and cid_procedimiento.seguimiento == "AUTORIZADO" %}
+        {{ topbar.button_previous('Procedimientos ', url_for('cid_procedimientos.list_active')) }}
+        <!-- Muestra el botón de NUEVA REVISION solo si esta dentro de los roles seleccionados y tambien si el procedimientos esta AUTORIZADO -->
+        {% if show_buttom_new_revision %}
             {{topbar.button('Nueva revisión', url_for('cid_procedimientos.copiar_procedimiento_con_revision', cid_procedimiento_id=cid_procedimiento.id),'mdi:content-copy')}}
         {% endif %}
         {% if current_user.can_edit('CID PROCEDIMIENTOS') %}
@@ -34,13 +35,13 @@
                 {{ topbar.button_edit('Editar', url_for('cid_procedimientos.edit', cid_procedimiento_id=cid_procedimiento.id)) }}
                 {% if current_user.id == cid_procedimiento.usuario_id %}
                     {{ topbar.button_make('Firmar', url_for('cid_procedimientos.sign_for_maker', cid_procedimiento_id=cid_procedimiento.id)) }}
+                    {% if current_user.can_insert('CID FORMATOS') %}
+                        {{ topbar.button_new('Agregar formato', url_for('cid_formatos.new', cid_procedimiento_id=cid_procedimiento.id)) }}
+                    {% endif %}
                 {% endif %}
             {% endif %}
         {% endif %}
-        {% if current_user.can_insert('CID FORMATOS') %}
-            {{ topbar.button_new('Agregar formato', url_for('cid_formatos.new', cid_procedimiento_id=cid_procedimiento.id)) }}
-        {% endif %}
-        {% if current_user.can_admin('CID PROCEDIMEINTOS') %}
+        {% if current_user.can_admin('CID PROCEDIMIENTOS') %}
             {% if cid_procedimiento.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('cid_procedimientos.delete', cid_procedimiento_id=cid_procedimiento.id)) }}{% endif %}
             {% if cid_procedimiento.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('cid_procedimientos.recover', cid_procedimiento_id=cid_procedimiento.id)) }}{% endif %}
         {% endif %}
@@ -133,7 +134,7 @@
                     {% endif %}
                 </div>
             </div>
-            {# {{ detail.label_value('Usuario', cid_procedimiento.usuario.nombre) }} #}
+            {{ detail.label_value('Usuario', cid_procedimiento.usuario.nombre) }}
             {{ detail.label_value('Firma guardada', cid_procedimiento.firma) }}
             {{ detail.label_value('Firma al vuelo', firma_al_vuelo) }}
             {{ detail.label_value_new_tab('Archivo PDF', cid_procedimiento.archivo, cid_procedimiento.url) }}
@@ -229,9 +230,10 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    {% if current_user.can_admin('CID PROCEDIMEINTOS') %}
-        {% if cid_procedimiento.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + cid_procedimiento.codigo + '?') }}{% endif %}
-        {% if cid_procedimiento.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + cid_procedimiento.codigo + '?') }}{% endif %}
+    {% if current_user.can_edit('CID PROCEDIMIENTOS') %}
+        {% if cid_procedimiento.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + cid_procedimiento.titulo_procedimiento + '?') }}{% endif %}
+        {% if cid_procedimiento.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + cid_procedimiento.titulo_procedimiento + '?') }}{% endif %}
+        {{ modals.custom_javascript_make('Firmar', '¿Está seguro de que quiere firmarlo? Ya no podrá cambiarlo después.') }}
     {% endif %}
     <!-- Detalle Registros -->
     <script>
@@ -251,7 +253,7 @@
             });
         });
     </script>
-    <!-- Detalle Control de cambios -->
+     <!-- Detalle Control de cambios -->
     <script>
         let datos_cambio = {{ control_cambios }};
         $(document).ready(function(){

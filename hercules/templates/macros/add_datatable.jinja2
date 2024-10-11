@@ -25,7 +25,7 @@
 {%- macro input_form(num_col, tipo, name, label, attr="") -%}
     <div class="mb-3 col-md-{{num_col}} ">
         <div class="form-floating">
-            <input type="{{tipo}}" class="form-control" name="{{name}}" id="{{name}}" placeholder="{{label}}" {{attr}}>
+            <input type="{{tipo}}" class="form-control" name="{{name}}" id="{{name}}" placeholder="{{label}}" {{attr}} style="text-transform:uppercase">
             <label for="{{name}}">{{label}}</label>
         </div>
         {{ caller() }}
