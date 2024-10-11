@@ -7,14 +7,14 @@ import json
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_clave, safe_message, safe_string
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.distritos.forms import DistritoForm
 from hercules.blueprints.distritos.models import Distrito
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
+from lib.datatables import get_datatable_parameters, output_datatable_json
+from lib.safe_string import safe_clave, safe_message, safe_string
 
 MODULO = "DISTRITOS"
 
@@ -71,24 +71,6 @@ def datatable_json():
         )
     # Entregar JSON
     return output_datatable_json(draw, total, data)
-
-
-@distritos.route("/distritos/select_json", methods=["GET", "POST"])
-def select_json():
-    """Select JSON para Distritos"""
-    # Consultar
-    consulta = Distrito.query.filter_by(estatus="A").order_by(Distrito.nombre)
-    # Elaborar datos para Select
-    data = []
-    for resultado in consulta.all():
-        data.append(
-            {
-                "id": resultado.id,
-                "nombre": resultado.nombre,
-            }
-        )
-    # Entregar JSON
-    return json.dumps(data)
 
 
 @distritos.route("/distritos")
@@ -244,3 +226,21 @@ def recover(distrito_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(url_for("distritos.detail", distrito_id=distrito.id))
+
+
+@distritos.route("/distritos/select_json", methods=["GET", "POST"])
+def query_distritos_json():
+    """Proporcionar el JSON de distritos para elegir con un Select"""
+    # Consultar
+    consulta = Distrito.query.filter_by(estatus="A").order_by(Distrito.nombre)
+    # Elaborar datos para Select
+    data = []
+    for resultado in consulta.all():
+        data.append(
+            {
+                "id": resultado.id,
+                "nombre": resultado.nombre,
+            }
+        )
+    # Entregar JSON
+    return json.dumps(data)

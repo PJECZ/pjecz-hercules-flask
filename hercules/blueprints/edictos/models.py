@@ -32,10 +32,11 @@ class Edicto(database.Model, UniversalMixin):
     numero_publicacion: Mapped[str] = mapped_column(String(16))
     archivo: Mapped[str] = mapped_column(String(256), default="", server_default="")
     url: Mapped[str] = mapped_column(String(512), default="", server_default="")
-    # Columnas nuevas
     acuse_num: Mapped[int] = mapped_column(default=0)
     edicto_id_original: Mapped[int] = mapped_column(default=0)
+    es_declaracion_de_ausencia: Mapped[bool] = mapped_column(default=False)
 
+    # Hijos
     edictos_acuses: Mapped[List["EdictoAcuse"]] = relationship(back_populates="edicto")
 
     @property

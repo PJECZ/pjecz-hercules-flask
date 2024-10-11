@@ -167,53 +167,6 @@ def detail(inv_equipo_id):
     return render_template("inv_equipos/detail.jinja2", inv_equipo=inv_equipo)
 
 
-@inv_equipos.route("/inv_equipos/tablero")
-@permission_required(MODULO, Permiso.MODIFICAR)
-def dashboard():
-    """Tablero de InvEquipo"""
-    # Cantidades de equipos por tipo
-    inv_equipos_cantidades_por_tipo = (
-        database.session.query(InvEquipo.tipo, func.count(InvEquipo.id))
-        .where(InvEquipo.estatus == "A")
-        .group_by(InvEquipo.tipo)
-        .order_by(InvEquipo.tipo)
-        .all()
-    )
-    # Cantidades de equipos por tipo y año de fabricación
-    inv_equipos_cantidades_por_tipo_y_fabricacion_anio = (
-        database.session.query(InvEquipo.fecha_fabricacion_anio, InvEquipo.tipo, func.count(InvEquipo.id))
-        .where(InvEquipo.fecha_fabricacion_anio.isnot(None))
-        .where(InvEquipo.estatus == "A")
-        .group_by(InvEquipo.fecha_fabricacion_anio, InvEquipo.tipo)
-        .all()
-    )
-    # Estructurar para hacer una tabla con Jinja2 con los años en renglones y los tipos en columnas
-    inv_equipos_matriz_tipos_anios = {}
-    for fabricacion_anio, tipo, cantidad in inv_equipos_cantidades_por_tipo_y_fabricacion_anio:
-        if fabricacion_anio not in inv_equipos_matriz_tipos_anios:
-            inv_equipos_matriz_tipos_anios[fabricacion_anio] = {}
-        inv_equipos_matriz_tipos_anios[fabricacion_anio][tipo] = cantidad
-    # Entregar
-    return render_template(
-        "inv_equipos/dashboard.jinja2",
-        inv_equipos_cantidades_por_tipo=inv_equipos_cantidades_por_tipo,
-        inv_equipos_matriz_tipos_anios=inv_equipos_matriz_tipos_anios,
-    )
-
-
-@inv_equipos.route("/inv_equipos/exportar_reporte_xlsx/<string:tipo>")
-@permission_required(MODULO, Permiso.MODIFICAR)
-def exportar_reporte_xlsx(tipo):
-    """Lanzar tarea en el fondo para exportar"""
-    tarea = current_user.launch_task(
-        comando="inv_equipos.tasks.lanzar_exportar_reporte_xlsx",
-        mensaje="Exportando el reporte de equipos a un archivo XLSX...",
-        tipo=tipo,
-    )
-    flash("Se ha lanzado esta tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
-    return redirect(url_for("tareas.detail", tarea_id=tarea.id))
-
-
 @inv_equipos.route("/inv_equipos/nuevo/<int:inv_custodia_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_inv_custodia_id(inv_custodia_id):
@@ -348,3 +301,50 @@ def recover(inv_equipo_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(url_for("inv_equipos.detail", inv_equipo_id=inv_equipo.id))
+
+
+@inv_equipos.route("/inv_equipos/tablero")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def dashboard():
+    """Tablero de InvEquipo"""
+    # Cantidades de equipos por tipo
+    inv_equipos_cantidades_por_tipo = (
+        database.session.query(InvEquipo.tipo, func.count(InvEquipo.id))
+        .where(InvEquipo.estatus == "A")
+        .group_by(InvEquipo.tipo)
+        .order_by(InvEquipo.tipo)
+        .all()
+    )
+    # Cantidades de equipos por tipo y año de fabricación
+    inv_equipos_cantidades_por_tipo_y_fabricacion_anio = (
+        database.session.query(InvEquipo.fecha_fabricacion_anio, InvEquipo.tipo, func.count(InvEquipo.id))
+        .where(InvEquipo.fecha_fabricacion_anio.isnot(None))
+        .where(InvEquipo.estatus == "A")
+        .group_by(InvEquipo.fecha_fabricacion_anio, InvEquipo.tipo)
+        .all()
+    )
+    # Estructurar para hacer una tabla con Jinja2 con los años en renglones y los tipos en columnas
+    inv_equipos_matriz_tipos_anios = {}
+    for fabricacion_anio, tipo, cantidad in inv_equipos_cantidades_por_tipo_y_fabricacion_anio:
+        if fabricacion_anio not in inv_equipos_matriz_tipos_anios:
+            inv_equipos_matriz_tipos_anios[fabricacion_anio] = {}
+        inv_equipos_matriz_tipos_anios[fabricacion_anio][tipo] = cantidad
+    # Entregar
+    return render_template(
+        "inv_equipos/dashboard.jinja2",
+        inv_equipos_cantidades_por_tipo=inv_equipos_cantidades_por_tipo,
+        inv_equipos_matriz_tipos_anios=inv_equipos_matriz_tipos_anios,
+    )
+
+
+@inv_equipos.route("/inv_equipos/exportar_reporte_xlsx/<string:tipo>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def exportar_reporte_xlsx(tipo):
+    """Lanzar tarea en el fondo para exportar"""
+    tarea = current_user.launch_task(
+        comando="inv_equipos.tasks.lanzar_exportar_reporte_xlsx",
+        mensaje="Exportando el reporte de equipos a un archivo XLSX...",
+        tipo=tipo,
+    )
+    flash("Se ha lanzado esta tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
+    return redirect(url_for("tareas.detail", tarea_id=tarea.id))

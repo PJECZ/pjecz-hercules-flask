@@ -8,7 +8,16 @@ from redis import Redis
 
 from config.settings import Settings
 from hercules.blueprints.abogados.views import abogados
+from hercules.blueprints.arc_archivos.views import arc_archivos
+from hercules.blueprints.arc_documentos.views import arc_documentos
+from hercules.blueprints.arc_documentos_bitacoras.views import arc_documentos_bitacoras
+from hercules.blueprints.arc_documentos_tipos.views import arc_documentos_tipos
 from hercules.blueprints.arc_juzgados_extintos.views import arc_juzgados_extintos
+from hercules.blueprints.arc_remesas.views import arc_remesas
+from hercules.blueprints.arc_remesas_bitacoras.views import arc_remesas_bitacoras
+from hercules.blueprints.arc_remesas_documentos.views import arc_remesas_documentos
+from hercules.blueprints.arc_solicitudes.views import arc_solicitudes
+from hercules.blueprints.arc_solicitudes_bitacoras.views import arc_solicitudes_bitacoras
 from hercules.blueprints.audiencias.views import audiencias
 from hercules.blueprints.autoridades.views import autoridades
 from hercules.blueprints.autoridades_funcionarios.views import autoridades_funcionarios
@@ -27,6 +36,7 @@ from hercules.blueprints.estados.views import estados
 from hercules.blueprints.fin_vales.views import fin_vales
 from hercules.blueprints.funcionarios.views import funcionarios
 from hercules.blueprints.funcionarios_oficinas.views import funcionarios_oficinas
+from hercules.blueprints.glosas.views import glosas
 from hercules.blueprints.identidades_generos.views import identidades_generos
 from hercules.blueprints.inv_categorias.views import inv_categorias
 from hercules.blueprints.inv_componentes.views import inv_componentes
@@ -81,7 +91,16 @@ def create_app():
 
     # Registrar blueprints
     app.register_blueprint(abogados)
+    app.register_blueprint(arc_archivos)
+    app.register_blueprint(arc_documentos)
+    app.register_blueprint(arc_documentos_bitacoras)
+    app.register_blueprint(arc_documentos_tipos)
     app.register_blueprint(arc_juzgados_extintos)
+    app.register_blueprint(arc_remesas)
+    app.register_blueprint(arc_remesas_bitacoras)
+    app.register_blueprint(arc_remesas_documentos)
+    app.register_blueprint(arc_solicitudes)
+    app.register_blueprint(arc_solicitudes_bitacoras)
     app.register_blueprint(audiencias)
     app.register_blueprint(autoridades)
     app.register_blueprint(autoridades_funcionarios)
@@ -100,6 +119,7 @@ def create_app():
     app.register_blueprint(fin_vales)
     app.register_blueprint(funcionarios)
     app.register_blueprint(funcionarios_oficinas)
+    app.register_blueprint(glosas)
     app.register_blueprint(identidades_generos)
     app.register_blueprint(inv_categorias)
     app.register_blueprint(inv_componentes)

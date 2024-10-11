@@ -89,11 +89,9 @@ def datatable_json():
 @bitacoras.route("/bitacoras")
 def list_active():
     """Listado de Bitácoras activas"""
-
-    # Definir filtros por defecto
+    # Valores por defecto
     filtros = {"estatus": "A"}
     titulo = "Bitácoras"
-
     # Si viene usuario_id en la URL, agregar a los filtros
     try:
         usuario_id = int(request.args.get("usuario_id"))
@@ -102,7 +100,6 @@ def list_active():
         titulo = f"Bitácoras de {usuario.nombre}"
     except (TypeError, ValueError):
         pass
-
     # Entregar
     return render_template(
         "bitacoras/list.jinja2",

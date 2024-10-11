@@ -100,7 +100,7 @@ def login():
         "usuarios/login.jinja2",
         form=form,
         firebase_settings=firebase_settings,
-        title="Plataforma Hércules",
+        title="Plataforma Web",
     )
 
 
@@ -375,6 +375,8 @@ def new():
             apellido_materno=safe_string(form.apellido_materno.data, save_enie=True),
             curp=safe_string(form.curp.data),
             puesto=safe_string(form.puesto.data),
+            workspace=form.workspace.data,
+            efirma_registro_id=form.efirma_registro_id.data,
             api_key="",
             api_key_expiracion=datetime(year=2000, month=1, day=1, hour=0, minute=0, second=0),
             contrasena=generar_contrasena(),
@@ -398,6 +400,8 @@ def new():
     oficina_por_defecto = Oficina.query.filter_by(clave="ND").first()
     if oficina_por_defecto is None:
         oficina_por_defecto = None
+    # Valores por defecto
+    form.workspace.data = "COAHUILA"
     # Entregar
     return render_template(
         "usuarios/new.jinja2",
@@ -425,14 +429,16 @@ def edit(usuario_id):
                 flash("La e-mail ya está en uso. Debe de ser único.", "warning")
         # Si es valido actualizar
         if es_valido:
-            usuario.autoridad_id = form.autoridad.data  # Es Select2
-            usuario.oficina_id = form.oficina.data  # Es Select2
+            usuario.autoridad_id = form.autoridad.data  # Combo select distrito-autoridad
+            usuario.oficina_id = form.oficina.data  # Select2
             usuario.email = email
             usuario.nombres = safe_string(form.nombres.data, save_enie=True)
             usuario.apellido_paterno = safe_string(form.apellido_paterno.data, save_enie=True)
             usuario.apellido_materno = safe_string(form.apellido_materno.data, save_enie=True)
             usuario.curp = safe_string(form.curp.data)
             usuario.puesto = safe_string(form.puesto.data)
+            usuario.workspace = form.workspace.data
+            usuario.efirma_registro_id = form.efirma_registro_id.data
             usuario.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -443,12 +449,16 @@ def edit(usuario_id):
             bitacora.save()
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
+    # No es necesario pasar autoridad_id porque se va a tomar de usuario con JS
+    # Tampoco es necesario pasar oficina_id porque se va a tomar de usuario con JS
     form.email.data = usuario.email
     form.nombres.data = usuario.nombres
     form.apellido_paterno.data = usuario.apellido_paterno
     form.apellido_materno.data = usuario.apellido_materno
     form.curp.data = usuario.curp
     form.puesto.data = usuario.puesto
+    form.workspace.data = usuario.workspace
+    form.efirma_registro_id.data = usuario.efirma_registro_id
     return render_template("usuarios/edit.jinja2", form=form, usuario=usuario)
 
 

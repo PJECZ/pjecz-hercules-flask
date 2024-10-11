@@ -25,7 +25,7 @@
     {% call detail.card(estatus=usuario.estatus) %}
         <div class="row">
             <div class="col-md-6">
-                {{ detail.label_value_big('e-mail', usuario.email) }}
+                {# detail.label_value_big('e-mail', usuario.email) #}
                 {{ detail.label_value('Nombre', usuario.nombre) }}
                 {{ detail.label_value('CURP', usuario.curp) }}
                 {% if current_user.can_view("DISTRITOS") %}
@@ -44,6 +44,8 @@
                     {{ detail.label_value('Oficina', usuario.oficina.clave + ' - ' + usuario.oficina.descripcion_corta) }}
                 {% endif %}
                 {{ detail.label_value('Puesto', usuario.puesto) }}
+                {{ detail.label_value('Workspace', usuario.workspace) }}
+                {{ detail.label_value('ID eFirma', usuario.efirma_registro_id) }}
                 {# detail.label_value('Creado', moment(usuario.creado).format('llll')) #}
             </div>
             <div class="col-md-3">
@@ -69,29 +71,6 @@
     {% endcall %}
     {% if current_user.can_view('USUARIOS ROLES') %}
         {% call detail.card('Roles') %}
-            <!-- Filtros UsuariosRoles -->
-            <div class="row">
-                <div class="col">
-                    <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDTUsuariosRoles.buscar(); return false;">
-                        <div class="col-2">
-                            <div class="form-floating">
-                                <input id="filtroUsuarioRolId" type="text" class="form-control" aria-label="ID">
-                                <label for="filtroUsuarioRolId">ID</label>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="form-floating">
-                                <input id="filtroUsuarioRolRolNombre" type="text" class="form-control" aria-label="Rol" style="text-transform: uppercase;">
-                                <label for="filtroUsuarioRolRolNombre">Rol</label>
-                            </div>
-                        </div>
-                        <div class="col-6 text-end">
-                            <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDTUsuariosRoles.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
-                            <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDTUsuariosRoles.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
-                        </div>
-                    </form>
-                </div>
-            </div>
             <!-- DataTable UsuariosRoles -->
             <table id="usuarios_roles_datatable" class="table display nowrap" style="width:100%">
                 <thead>
@@ -179,7 +158,6 @@
             };
             // Filtros UsuariosRoles
             const filtrosDTUsuariosRoles = new FiltrosDataTable('#usuarios_roles_datatable', configDTUsuariosRoles);
-            filtrosDTUsuariosRoles.agregarInput('filtroUsuarioRolRolNombre', 'rol_nombre');
             filtrosDTUsuariosRoles.precargar();
             // Preparar headers para POST
             const myHeaders = new Headers();
