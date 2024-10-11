@@ -7,7 +7,7 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        <div class="d-flex flex-row justify-content-between"></div>
+        <div class="d-flex flex-row justify-content-between">
             <div class="btn-group">
                 <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
                     Acciones Formatos
@@ -25,12 +25,12 @@
                 </div>
             </div>
             {% if current_user.can_admin('CID FORMATOS') %}
-                {# {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('cid_formatos.list_inactive')) }}{% endif %}
-                {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('cid_formatos.list_active')) }}{% endif %}
-            {% endif %} #}
-            {# {% if show_lista_maestra %}
+                {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('cid_formatos.list_all_inactive')) }}{% endif %}
+                {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('cid_formatos.list_all_active')) }}{% endif %}
+            {% endif %}
+            {% if show_lista_maestra %}
                 {{ modals.button_modal('Exportar Lista Maestra a XLSX', url_for('cid_formatos.exportar_xlsx'), 'ExportXLSX', 'mdi:download', "¿Quiere exportar la Lista Maestra un archivo XLSX?") }}
-            {% endif %} #}
+            {% endif %}
         </div>
     {% endcall %}
 {% endblock %}

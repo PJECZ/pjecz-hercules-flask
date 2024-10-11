@@ -10,7 +10,7 @@
         <div class="d-flex flex-row justify-content-between">
             <div class="btn-group">
                 <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                    Acciones Formatos
+                    Acciones formatos
                 </button>
                 <div class="dropdown-menu">
                     {% if show_button_my_autorized %}
@@ -24,13 +24,13 @@
                     {% endif %}
                 </div>
             </div>
-            {# {% if current_user.can_admin('CID FORMATOS') %}
-                {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('cid_formatos.list_inactive')) }}{% endif %}
-                {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('cid_formatos.list_active')) }}{% endif %}
-            {% endif %} #}
-            {# {% if show_lista_maestra %}
+            {% if current_user.can_admin('CID FORMATOS') %}
+                {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('cid_formatos.list_all_inactive')) }}{% endif %}
+                {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('cid_formatos.list_all_active')) }}{% endif %}
+            {% endif %}
+            {% if show_lista_maestra %}
                 {{ modals.button_modal('Exportar Lista Maestra a XLSX', url_for('cid_formatos.exportar_xlsx'), 'ExportXLSX', 'mdi:download', "¿Quiere exportar la Lista Maestra un archivo XLSX?") }}
-            {% endif %} #}
+            {% endif %}
         </div>
     {% endcall %}
 {% endblock %}
@@ -82,7 +82,7 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    {# {{ modals.custom_javascript('Exportar a XLSX', '', 'ExportXLSX') }} #}
+    {{ modals.custom_javascript('Exportar a XLSX', '', 'ExportXLSX') }}
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
