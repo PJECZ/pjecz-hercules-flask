@@ -1,0 +1,578 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+{% import 'macros/quill.jinja2' as quill %}
+{% import 'macros/add_datatable.jinja2' as add_data %}
+
+{% block title %}Editar Procedimiento{% endblock %}
+
+{% block custom_head %}
+    {{ quill.head() }}
+    <!-- Select2 bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <!-- font awesom-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Botón Atrás a la izquierda, botón Siguiente a la derecha -->
+    <style>
+        #atras { float: left; box-sizing: border-box; }
+        #siguiente { float: right; box-sizing: border-box; }
+        .tActive{ background-color: #1EA6FE; }
+        #registro_dataTable1 > tbody > tr:hover{ cursor:pointer; }
+        #obj_pop{ z-index:1000 !important; float:left; position:relative; margin-left:120px; margin-top:-60px;}
+        #alcance_pop{ z-index:1000 !important; float:left; position:relative; margin-left:120px; margin-top:-60px;}
+        #docu_pop{ z-index:1000 !important; float:left; position:relative; margin-left:380px; margin-top:-60px;}
+        #def_pop{ z-index:1000 !important; float:left; position:relative; margin-left:180px; margin-top:-60px;}
+        #respo_pop{ z-index:1000 !important; float:left; position:relative; margin-left:260px; margin-top:-60px;}
+        #desar_pop{ z-index:1000 !important; float:left; position:relative; margin-left:150px; margin-top:-60px;}
+        #regis_pop{ z-index:1000 !important; float:left; position:relative; margin-left:135px; margin-top:-60px;}
+        #control_pop{ z-index:1000 !important; float:left; position:absolute; margin-left:270px; margin-top:-60px}
+    </style>
+{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Editar Procedimiento') }}
+{% endblock %}
+
+{% block content %}
+{{ add_data.modal_edit() }}
+{{ add_data.modal_edit_cambio() }}
+    {% call f.card() %}
+        <div><form></form></div>
+        <div class="multisteps-form">
+            <!-- Steps Progress Bar -->
+            <div class="row">
+                <div class="col-lg-12 ml-auto mr-auto mb-4">
+                    <div class="multisteps-form__progress">
+                        <button class="multisteps-form__progress-btn js-active" type="button" title="Encabezado" style="font-size:12px" disabled>Encabezado</button>
+                        <button class="multisteps-form__progress-btn" type="button" title="Objetivo" style="font-size:12px" disabled>Objetivo</button>
+                        <button class="multisteps-form__progress-btn" type="button" title="Alcance" style="font-size:12px" disabled>Alcance</button>
+                        <button class="multisteps-form__progress-btn" type="button" title="Documentos" style="font-size:12px" disabled>Documentos</button>
+                        <button class="multisteps-form__progress-btn" type="button" title="Definiciones" style="font-size:12px" disabled>Definiciones</button>
+                        <button class="multisteps-form__progress-btn" type="button" title="Responsabilidades" style="font-size:12px" disabled>Responsabilidades</button>
+                        <button class="multisteps-form__progress-btn" type="button" title="Desarrollo" style="font-size:12px" disabled>Desarrollo</button>
+                        <button class="multisteps-form__progress-btn" type="button" title="Registros" style="font-size:12px" disabled>Registros</button>
+                        <button class="multisteps-form__progress-btn" type="button" title="Control de Cambios" style="font-size:12px" disabled>Control de Cambios</button>
+                        <button class="multisteps-form__progress-btn" type="button" title="Autorizaciones" style="font-size:12px" style="font-size:12px" disabled>Autorizaciones</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Steps Form Panels -->
+            <div class="row">
+                <div class="col-lg-12 m-auto">
+                    {% set form_kwargs = {'cid_procedimiento_id': cid_procedimiento.id} %}
+                    {% call f.form_tag('cid_procedimientos.edit', fid='cid_procedimiento_form', css_class='multisteps-form__form', **form_kwargs) %}
+                        <!-- Encabezado -->
+                        {% call quill.step_first('Encabezado', next_onclick='javascript:guardar_encabezado()') %}
+                            {% call f.form_group(form.titulo_procedimiento) %}{% endcall %}
+                            {% call f.form_group(form.codigo) %}{% endcall %}
+                            {% call f.form_group(form.revision) %}{% endcall %}
+                            {% call f.form_group(form.fecha) %}{% endcall %}
+                        {% endcall %}
+                        <!-- Step Objetivo -->
+                        {% call quill.step('Objetivo', back_onclick='javascript:guardar_objetivo()', next_onclick='javascript:guardar_objetivo()', save_onclick='javascript:guardar_objetivo()') %}
+                            <div id="obj_pop"><a tabindex="0" class="popover-objetivo" data-bs-toggle="popover"><i class="fas fa-info-circle"></i></a></div>
+                            {{ quill.div(div_id='objetivo_quill') }}
+                            <div style="display: none;">{% call f.form_group(form.objetivo, readonly=true) %}{% endcall %}</div>
+                        {% endcall %}
+                        <!-- Step Alcance -->
+                        {% call quill.step('Alcance', back_onclick='javascript:guardar_alcance()', next_onclick='javascript:guardar_alcance()', save_onclick='javascript:guardar_alcance()') %}
+                            <div id="alcance_pop"><a tabindex="0" class="popover-alcance" data-bs-toggle="popover"><i class="fas fa-info-circle"></i></a></div>
+                            {{ quill.div(div_id='alcance_quill') }}
+                            <div style="display: none;">{% call f.form_group(form.alcance, readonly=true) %}{% endcall %}</div>
+                        {% endcall %}
+                        <!-- Step Documentos -->
+                        {% call quill.step('Documentos de Referencia', back_onclick='javascript:guardar_documentos()', next_onclick='javascript:guardar_documentos()', save_onclick='javascript:guardar_documentos()') %}
+                            <div id="docu_pop"><a tabindex="0" class="popover-documento" data-bs-toggle="popover"><i class="fas fa-info-circle"></i></a></div>
+                            {{ quill.div(div_id='documentos_quill') }}
+                            <div style="display: none;">{% call f.form_group(form.documentos, readonly=true) %}{% endcall %}</div>
+                        {% endcall %}
+                        <!-- Step Definiciones -->
+                        {% call quill.step('Definiciones', back_onclick='javascript:guardar_definiciones()', next_onclick='javascript:guardar_definiciones()', save_onclick='javascript:guardar_definiciones()') %}
+                            <div id="def_pop"><a tabindex="0" class="popover-definiciones" data-bs-toggle="popover"><i class="fas fa-info-circle"></i></a></div>
+                            {{ quill.div(div_id='definiciones_quill') }}
+                            <div style="display: none;">{% call f.form_group(form.definiciones, readonly=true) %}{% endcall %}</div>
+                        {% endcall %}
+                        <!-- Responsabilidades -->
+                        {% call quill.step('Responsabilidades', back_onclick='javascript:guardar_responsabilidades()', next_onclick='javascript:guardar_responsabilidades()', save_onclick='javascript:guardar_responsabilidades()') %}
+                            <div id="respo_pop"><a tabindex="0" class="popover-respon" data-bs-toggle="popover"><i class="fas fa-info-circle"></i></a></div>
+                            {{ quill.div(div_id='responsabilidades_quill') }}
+                            <div style="display: none;">{% call f.form_group(form.responsabilidades, readonly=true) %}{% endcall %}</div>
+                        {% endcall %}
+                        <!-- Desarrollo -->
+                        {% call quill.step('Desarrollo', back_onclick='javascript:guardar_desarrollo()', next_onclick='javascript:guardar_desarrollo()', save_onclick='javascript:guardar_desarrollo()') %}
+                            <div id="desar_pop"><a tabindex="0" class="popover-desarrollo" data-bs-toggle="popover"><i class="fas fa-info-circle"></i></a></div>
+                            {{ quill.div(div_id='desarrollo_quill') }}
+                            <div style="display: none;">{% call f.form_group(form.desarrollo, readonly=true) %}{% endcall %}</div>
+                        {% endcall %}
+                        <!-- Registros -->
+                        {% call quill.step('Registros', back_onclick='javascript:guardar_registros()', next_onclick='javascript:guardar_registros()', save_onclick='javascript:guardar_registros()') %}
+                            <div id="regis_pop"><a tabindex="0" class="popover-registro" data-bs-toggle="popover"><i class="fas fa-info-circle"></i></a></div>
+                            {% call add_data.div_container('form-alert1-reg') %}
+                                {% call add_data.form_create() %}
+                                        {% call add_data.input_form('2','text','registro_codigo','Código') %}{% endcall %}
+                                        {% call add_data.input_form('3','text','registro_nombre','Nombre registro') %}{% endcall %}
+                                        {% call add_data.input_form('3','text','registro_responsable','Responsable') %}{% endcall %}
+                                        {% call add_data.input_form('2','number','registro_retencion','Años Retención','min="1"') %}{% endcall %}
+                                        {{add_data.boton('btn_add_reg','Agregar Registro') }}
+                                        <div class="row">
+                                            <table id="registro_dataTable1" class="table table-striped table-hover" width="100%">
+                                                <thead>
+                                                    <th>Código</th>
+                                                    <th>Nombre registro</th>
+                                                    <th>Responsable</th>
+                                                    <th>Años de retención</th>
+                                                </thead>
+                                                <tbody>
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="row">
+                                            {{ add_data.btn_datatable('Borrar Datos', 'btn_del_reg', 'danger', '') }}
+                                            {{ add_data.btn_datatable('Editar', 'btn_edit_reg', 'info', 'data-bs-toggle="modal" data-bs-target="#edit_reg_modal"') }}
+                                        </div>
+                                {% endcall %}
+                            {% endcall %}
+                            <div style="display: none;">{% call f.form_group(form.registros, readonly=true) %}{% endcall %}</div>
+                        {% endcall %}
+                        <!-- Control de cambios -->
+                        {% call quill.step('Control de Cambios', back_onclick='javascript:guardar_control_cambios()', next_onclick='javascript:guardar_control_cambios()', save_onclick='javascript:guardar_control_cambios()') %}
+                            <div id="control_pop"><a tabindex="0" class="popover-control" data-bs-toggle="popover"><i class="fas fa-info-circle"></i></a></div>
+                             {% call add_data.div_container('form-alert1-camb') %}
+                                {% call add_data.form_create() %}
+                                        {% call add_data.input_form('2','text','control_revision','No. Revision') %}{% endcall %}
+                                        {% call add_data.input_form('3','text','control_cambio','Cambios y/o Actualizaciónes') %}{% endcall %}
+                                        {% call add_data.input_form('3','text','control_solicitud','Solicitud de Cambio No.') %}{% endcall %}
+                                        {% call add_data.input_form('2','date','control_fecha','Fecha') %}{% endcall %}
+                                        {{ add_data.boton('btn_add_cam','Agregar Cambio') }}
+                                        <div class="row">
+                                            <table id="cambio_dataTable1" class="table table-striped table-hover" width="100%">
+                                                <thead>
+                                                    <th>No. Revisión</th>
+                                                    <th>Cambios y/o Actualizaciónes</th>
+                                                    <th>Solicitud de cambio No.</th>
+                                                    <th>Fecha</th>
+                                                </thead>
+                                                <tbody>
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="row">
+                                            {{ add_data.btn_datatable('Borrar Datos', 'btn_del_cam', 'danger', '') }}
+                                            {{ add_data.btn_datatable('Editar', 'btn_edit_cam', 'info', 'data-bs-toggle="modal" data-bs-target="#edit_cambio_modal"') }}
+                                        </div>
+                                {% endcall %}
+                            {% endcall %}
+                            <div style="display: none;">{% call f.form_group(form.control_cambios, readonly=true) %}{% endcall %}</div>
+                        {% endcall %}
+                         {% call quill.step_last('Autorizaciones', back_onclick='javascript:guardar_autorizaciones()')%}
+                            <h4>Elaboró</h4>
+                            <div class="row">
+                                <div class="col">
+                                    {% call f.form_group(form.elaboro_nombre) %}{% endcall %}
+                                </div>
+                                <div class="col">
+                                    {% call f.form_group(form.elaboro_puesto) %}{% endcall %}
+                                </div>
+                                <div class="col">
+                                    {% call f.form_group(form.elaboro_email) %}{% endcall %}
+                                </div>
+                                </div>
+                                <h4>Revisó</h4>
+                                <div class="row">
+                                    <div class="col">
+                                        {% call f.form_group(form.reviso_nombre) %}{% endcall %}
+                                    </div>
+                                    <div class="col">
+                                        {% call f.form_group(form.reviso_puesto) %}{% endcall %}
+                                    </div>
+                                    <div class="col">
+                                        {% call f.form_group(form.reviso_email) %}{% endcall %}
+                                    </div>
+                                </div>
+                                <h4>Autorizó</h4>
+                                <div class="row">
+                                    <div class="col">
+                                        {% call f.form_group(form.aprobo_nombre) %}{% endcall %}
+                                    </div>
+                                    <div class="col">
+                                        {% call f.form_group(form.aprobo_puesto) %}{% endcall %}
+                                    </div>
+                                    <div class="col">
+                                        {% call f.form_group(form.aprobo_email) %}{% endcall %}
+                                    </div>
+                            </div>
+                            <div style="display: none;">{% call f.form_group(form.autorizaciones, readonly=true) %}{% endcall %}</div>
+                        {% endcall %}
+                    {% endcall %}
+                </div>
+            </div>
+        </div>
+    {% endcall %}
+{% endblock %}
+
+{# se manda llamar el json de la ayuda  #}
+{% block content_help %}
+    {{ help_quill }}
+{% endblock %}
+
+{% block custom_javascript %}
+    <!-- Nueva revision -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const revisionField = document.getElementById('revision');
+            const codigoField = document.getElementById('codigo');
+            const revisionValue = {{ form.revision.data }}; // nos aseguramos de que sea un número
+            console.log("Valor de revision:", revisionValue)
+
+            // Verifica que el campo no se oculte cuando revision es igual a 1
+            if (revisionValue > 1) {
+                revisionField.disabled = true; // Deshabilitar 'revision'
+                codigoField.disabled = true;  // Deshabilitar 'codigo'
+            }
+
+            form.addEventListener('submit', function() {
+                revisionField.disabled = false; // Habilitar campo antes de enviar
+                codigoField.disabled = false; // Habilitar campo antes de enviar
+            });
+            // Verifica los valores antes de enviar
+            console.log("Valor enviado de revision:", revisionField.value);
+            console.log("Valor enviado de codigo:", codigoField.value);
+
+            // Asegúrate de que los campos esten visibles
+            revisionField.style.display = 'block';
+            codigoField.style.display = 'block';
+        });
+    </script>
+    <!-- Quill -->
+    {{ quill.library() }}
+    {{ quill.editor(instance='objetivoQuill', div_id='objetivo_quill') }}
+    {{ quill.editor(instance='alcanceQuill', div_id='alcance_quill') }}
+    {{ quill.editor(instance='documentosQuill', div_id='documentos_quill') }}
+    {{ quill.editor(instance='definicionesQuill', div_id='definiciones_quill') }}
+    {{ quill.editor(instance='responsabilidadesQuill', div_id='responsabilidades_quill') }}
+    {{ quill.editor(instance='desarrolloQuill', div_id='desarrollo_quill') }}
+    <script type="text/javascript" src="{{ url_for('static', filename='js/cid_procedimientos.js') }}"></script>
+
+    <!-- El formulario llena los inputs, sigue sacarles los contenidos para llenar los quill -->
+    <script>
+        $(document).ready(function(){
+            llenar_objetivo({{ objetivo_json }});
+            llenar_alcance({{ alcance_json }});
+            llenar_documentos({{ documentos_json }});
+            llenar_definiciones({{ definiciones_json }});
+            llenar_responsabilidades({{ responsabilidades_json }});
+            llenar_desarrollo({{ desarrollo_json }});
+        });
+    </script>
+    <!-- llenar dataTables registros -->
+    <script>
+        $(document).ready(function() {
+            let datos = JSON.parse('{{ registros_json }}');
+            var Arrayfinal = [];
+            Object.keys(datos).forEach(item =>{
+                var tempArr = new Array();
+                datos[item].forEach(a => {
+                    tempArr.push(a);
+                });
+                Arrayfinal.push(tempArr);
+            });
+            var tabla = $("#registro_dataTable1").DataTable({
+                data:Arrayfinal
+            });
+
+            let len = tabla.rows().data();
+            if(len.length === 0){
+                $("#registros").val("{}");
+            }else{
+                $("#registros").val(JSON.stringify(tabla.data()).split(',"context":')[0] + "}");
+            }
+
+            $("#btn_add_reg").click(function(){
+                if($("#registro_codigo").val() === "" || $("#registro_nombre").val() === "" || $("#registro_responsable").val() === "" || $("#registro_retencion").val() === ""){
+                    $("#form-alert1-reg").show();
+                    setTimeout('$("#form-alert1-reg").hide()', 5000);
+                    $("#registro_codigo").focus();
+                }else{
+                    // Convertir a mayúsculas antes de agregar a la tabla
+                    var codigo = $("#registro_codigo").val().toUpperCase();
+                    var nombre = $("#registro_nombre").val().toUpperCase();
+                    var responsable = $("#registro_responsable").val().toUpperCase();
+                    var retencion = $("#registro_retencion").val();
+
+                    tabla.row.add(
+                        [
+                            codigo,
+                            nombre,
+                            responsable,
+                            retencion
+                        ]
+                    ).draw(false);
+
+                    $("#registro_codigo").val("");
+                    $("#registro_nombre").val("");
+                    $("#registro_responsable").val("");
+                    $("#registro_retencion").val("");
+
+                    $("#registro_codigo").focus();
+                }
+            });
+
+            $('#registro_dataTable1 tbody').on( 'click', 'tr', function () {
+                if ( $(this).hasClass('tActive') ) {
+                    $(this).removeClass('tActive');
+                }
+                else {
+                    tabla.$('tr.tActive').removeClass('tActive');
+                    $(this).addClass('tActive');
+                }
+            } );
+
+            $('#btn_del_reg').click( function () {
+                tabla.row('.tActive').remove().draw(false);
+            } );
+
+            $('#btn_edit_reg').click( function() {
+                let datos = tabla.row('.tActive').data();
+                $("#e_registro_codigo").val(datos[0]);
+                $("#e_registro_nombre").val(datos[1]);
+                $("#e_registro_responsable").val(datos[2]);
+                $("#e_registro_retencion").val(datos[3]);
+            });
+
+            $("#e_updt_btn").click( function() {
+
+                let newArr = [
+                    $("#e_registro_codigo").val().toUpperCase(),
+                    $("#e_registro_nombre").val().toUpperCase(),
+                    $("#e_registro_responsable").val().toUpperCase(),
+                    $("#e_registro_retencion").val()
+                ];
+
+                tabla.row('.tActive').data(newArr);
+            });
+        });
+    </script>
+     <!-- llenar dataTables Control de Cambios -->
+    <script>
+        $(document).ready(function(){
+            let datos_cambio = JSON.parse('{{ control_cambios_json }}');
+            var Arrayfinal = [];
+            Object.keys(datos_cambio).forEach(item =>{
+                var tempArr = new Array();
+                datos_cambio[item].forEach(a => {
+                    tempArr.push(a);
+                });
+                Arrayfinal.push(tempArr);
+            });
+
+            $("#cambio_dataTable1").DataTable({
+                data:Arrayfinal
+            });
+
+            let tabla_control = $('#cambio_dataTable1').DataTable();
+
+            let len = tabla_control.rows().data();
+            if(len.length === 0){
+                $("#control_cambios").val("{}");
+            }else{
+                $("#control_cambios").val(JSON.stringify(tabla_control.data()).split(',"context":')[0] + "}");
+            }
+
+            $("#btn_add_cam").click(function(){
+                if($("#control_revision").val() === "" || $("#control_cambio").val() === "" || $("#control_solicitud").val() === "" || $("#control_fecha").val() === ""){
+                    $("#form-alert1-camb").show();
+                    setTimeout('$("#form-alert1-camb").hide()', 5000);
+                    $("#control_revision").focus();
+                }else{
+                   // Convertir a mayúsculas antes de agregar a la tabla
+                    let revision = $("#control_revision").val();
+                    let cambio = $("#control_cambio").val().toUpperCase();
+                    let solicitud = $("#control_solicitud").val();
+                    let fecha = $("#control_fecha").val();
+
+                    tabla_control.row.add(
+                        [
+                            revision,
+                            cambio,
+                            solicitud,
+                            fecha
+                        ]
+                    ).draw(false);
+
+                    $("#control_revision").val("");
+                    $("#control_cambio").val("");
+                    $("#control_solicitud").val("");
+                    $("#control_fecha").val("");
+
+                    $("#control_revision").focus();
+                }
+            });
+
+            $('#cambio_dataTable1 tbody').on( 'click', 'tr', function () {
+                if ( $(this).hasClass('tActive') ) {
+                    $(this).removeClass('tActive');
+                }
+                else {
+                    tabla_control.$('tr.tActive').removeClass('tActive');
+                    $(this).addClass('tActive');
+                }
+            } );
+
+            $('#btn_del_cam').click( function () {
+                tabla_control.row('.tActive').remove().draw(false);
+            } );
+
+            $('#btn_edit_cam').click( function() {
+                let datos_c = tabla_control.row('.tActive').data();
+                $("#e_control_revision").val(datos_c[0]);
+                $("#e_control_cambio").val(datos_c[1]);
+                $("#e_control_solicitud").val(datos_c[2]);
+                $("#e_control_fecha").val(datos_c[3]);
+            });
+
+            $("#e_updt_control_btn").click( function() {
+
+                let newArr = [
+                    $("#e_control_revision").val(),
+                    $("#e_control_cambio").val().touppercase(),
+                    $("#e_control_solicitud").val(),
+                    $("#e_control_fecha").val()
+                ];
+
+                tabla_control.row('.tActive').data(newArr);
+            });
+        });
+    </script>
+    <!-- Select2 bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+         $(document).ready(function(){
+            // Agregar clases a los select
+            $('#elaboro_email').addClass('js-example-data-ajax js-states form-control');
+            $('#reviso_email').addClass('js-reviso-autorizo-data-ajax js-states form-control');
+            $('#aprobo_email').addClass('js-reviso-autorizo-data-ajax js-states form-control');
+
+            // Poner como activo el valor actual
+            $('#elaboro_email option').each(function() {
+                if($(this).text() == '{{cid_procedimiento.elaboro_email}}') {
+                    $("#elaboro_email").val( $(this).val() );
+                }
+                if($(this).text() == '{{cid_procedimiento.reviso_email}}') {
+                    $("#reviso_email").val( $(this).val() );
+                }
+                if($(this).text() == '{{cid_procedimiento.aprobo_email}}') {
+                    $("#aprobo_email").val( $(this).val() );
+                }
+            });
+
+            // Ajax para los select
+            $(".js-example-data-ajax").select2({
+                // --- Carga de emails por Ajax --- //
+
+                placeholder: "correo",
+                minimumInputLength: 4,
+                allowClear: true,
+                ajax: {
+                    url: '/usuarios/select_json',
+                    headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+                    dataType: 'json',
+                    delay: 250,
+                    type: "POST",
+                    data: function (params) {
+                        return { 'searchString': params.term }
+                    },
+
+                }
+            });
+
+            //Ajax para que al escribir desde 4 caracteres se filtren las opciones en los selects
+            $(".js-reviso-autorizo-data-ajax").select2({
+                //--- Carga de emails por Ajax --- //
+                placeholder:"Correo electrónico quien revisa ó autoriza",
+                allowClear:true,
+                minimumInputLength:4,
+                ajax:{
+                    url:'/cid_procedimientos/revisores_autorizadores_json',
+                    headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}"},
+                    dataType: 'json',
+                    delay: 250,
+                    type: "POST",
+                    data: function (params) {
+                        return { 'searchString': params.term };
+                    }
+                }
+            });
+
+            // Usa Ajax para traer hasta 10 emails, se debe agregar el valor actual
+            let data = {
+                id: '{{cid_procedimiento.elaboro_email}}',
+                text: '{{cid_procedimiento.elaboro_email}}'
+            };
+            let newOption = new Option(data.text, data.id, false, false);
+            $('#elaboro_email').append(newOption).trigger('change');
+
+            let data_reviso = {
+                id: '{{cid_procedimiento.reviso_email}}',
+                text: '{{cid_procedimiento.reviso_email}}'
+            };
+            let newOptionReviso = new Option(data_reviso.text, data_reviso.id, false, false);
+            $('#reviso_email').append(newOptionReviso).trigger('change');
+
+            let data_aprobo = {
+                id: '{{cid_procedimiento.aprobo_email}}',
+                text: '{{cid_procedimiento.aprobo_email}}'
+            };
+            let newOptionAprobo = new Option(data_aprobo.text, data_aprobo.id, false, false);
+            $('#aprobo_email').append(newOptionAprobo).trigger('change');
+
+        });
+    </script>
+    <!-- En este script se crean los popovers con la información de cada paso en el procedimiento -->
+    <script>
+        $(document).ready(function(){
+            var popover = new bootstrap.Popover(document.querySelector('.popover-objetivo'), {
+                trigger: 'hover',
+                title: 'Objetivo',
+                content: 'Resultado / propósito esperado de las acciones descritas en el documento.'
+            });
+            var popover = new bootstrap.Popover(document.querySelector('.popover-alcance'), {
+                trigger: 'hover',
+                title: 'Alcance',
+                content: 'El alcance puede incluir la totalidad de la organización, procesos, subprocesos, funciones específicas e identificadas de la organización, secciones específicas e identificadas de la organización.'
+            });
+            var popover = new bootstrap.Popover(document.querySelector('.popover-documento'), {
+                trigger: 'hover',
+                title: 'Documentos de Referencia',
+                content: 'Documentos que tienen alguna relación con el contenido del documento y que deben tomarse en consideración al ejecutar las acciones descritas.'
+            });
+            var popover = new bootstrap.Popover(document.querySelector('.popover-definiciones'), {
+                trigger: 'hover',
+                title: 'Definiciones',
+                content: 'Palabras o términos que son utilizados como parte del “lenguaje técnico” o interpretaciones apegadas a lo establecido a la norma de referencia.'
+            });
+            var popover = new bootstrap.Popover(document.querySelector('.popover-respon'), {
+                trigger: 'hover',
+                title: 'Responsabilidades',
+                content: 'Obligación de la que una persona debe responder. Se describen las responsabilidades a cumplir conforme las acciones descritas en el documento.'
+            });
+            var popover = new bootstrap.Popover(document.querySelector('.popover-desarrollo'), {
+                trigger: 'hover',
+                title: 'Desarrollo',
+                content: 'Pasos secuenciales y lógicos que se siguen para lograr el resultado/propósito (objetivo) del documento. Se recomienda identificar en este apartado los riesgos, los formatos, las variables críticas, los indicadores de medición y los requisitos legales relacionados con las acciones descritas.'
+            });
+            var popover = new bootstrap.Popover(document.querySelector('.popover-registro'), {
+                trigger: 'hover',
+                title: 'Registros',
+                content: 'Evidencias tangibles que demuestran que las acciones descritas en el documento se ejecutaron congruentemente con lo documentado.'
+            });
+            var popover = new bootstrap.Popover(document.querySelector('.popover-control'), {
+                trigger: 'hover',
+                title: 'Control de cambios',
+                content: 'Identificación de las modificaciones que ha sufrido el documento a lo largo de su período de implementación.'
+            });
+        });
+    </script>
+{% endblock %}

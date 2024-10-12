@@ -68,6 +68,7 @@ class Usuario(database.Model, UserMixin, UniversalMixin):
     arc_solicitudes_bitacoras: Mapped[List["ArcSolicitudBitacora"]] = relationship(back_populates="usuario")
     arc_remesas_bitacoras: Mapped[List["ArcRemesaBitacora"]] = relationship(back_populates="usuario")
     bitacoras: Mapped[List["Bitacora"]] = relationship("Bitacora", back_populates="usuario")
+    cid_procedimientos: Mapped[List["CIDProcedimiento"]] = relationship(back_populates="usuario")
     entradas_salidas: Mapped[List["EntradaSalida"]] = relationship("EntradaSalida", back_populates="usuario")
     fin_vales: Mapped[List["FinVale"]] = relationship("FinVale", back_populates="usuario")
     inv_custodias: Mapped[List["InvCustodia"]] = relationship("InvCustodia", back_populates="usuario")
@@ -175,6 +176,13 @@ class Usuario(database.Model, UserMixin, UniversalMixin):
     def get_tasks_in_progress(self):
         """Obtener tareas"""
         return Tarea.query.filter_by(usuario=self, ha_terminado=False).all()
+
+    def tiene_rol(self, rol):
+        """Verifica si el usuario tiene el rol especificado"""
+        roles_activos = [
+            usuario_rol.rol.nombre for usuario_rol in self.usuarios_roles if usuario_rol.estatus == "A"
+        ]  # Solo roles activos
+        return rol in roles_activos
 
     def __repr__(self):
         """Representación"""

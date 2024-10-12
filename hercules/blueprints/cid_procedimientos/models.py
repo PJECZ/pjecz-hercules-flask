@@ -8,7 +8,6 @@ from typing import List
 
 from sqlalchemy import JSON, Date, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql.functions import now
 
 from hercules.extensions import database
 from lib.universal_mixin import UniversalMixin
@@ -41,6 +40,10 @@ class CIDProcedimiento(database.Model, UniversalMixin):
     # Clave foránea
     autoridad_id: Mapped[int] = mapped_column(ForeignKey("autoridades.id"))
     autoridad: Mapped["Autoridad"] = relationship(back_populates="cid_procedimientos")
+    cid_area_id: Mapped[int] = mapped_column(ForeignKey("cid_areas.id"))
+    cid_area: Mapped["CIDArea"] = relationship(back_populates="cid_procedimientos")
+    usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"))
+    usuario: Mapped["Usuario"] = relationship(back_populates="cid_procedimientos")
 
     # Columnas
     titulo_procedimiento: Mapped[str] = mapped_column(String(256))
@@ -85,6 +88,8 @@ class CIDProcedimiento(database.Model, UniversalMixin):
     # Al elaborar el archivo PDF y subirlo a Google Storage
     archivo: Mapped[str] = mapped_column(String(256), default="")
     url: Mapped[str] = mapped_column(String(512), default="")
+
+    cid_formatos: Mapped[List["CIDFormato"]] = relationship(back_populates="procedimiento")
 
     def elaborar_firma(self):
         """Generate a hash representing the current sample state"""

@@ -1,0 +1,27 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Subir Area{% endblock %}
+
+{% block custom_head %}
+    {{ f.drop_zone_css() }}
+{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Nuevo Area') }}
+{% endblock %}
+
+{% block content %}
+    {% call f.card() %}
+        {% call f.form_tag_multipart('cid_areas.new', fid='cid_area_form') %}
+            {% call f.form_group(form.clave) %}{% endcall %}
+            {% call f.form_group(form.nombre) %}{% endcall %}
+            {% call f.form_group(form.guardar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {{ f.drop_zone_js() }}
+{% endblock %}

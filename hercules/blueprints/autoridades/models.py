@@ -91,6 +91,7 @@ class Autoridad(database.Model, UniversalMixin):
     arc_solicitudes: Mapped[List["ArcSolicitud"]] = relationship(back_populates="autoridad")
     audiencias: Mapped[List["Audiencia"]] = relationship(back_populates="autoridad")
     autoridades_funcionarios: Mapped[List["AutoridadFuncionario"]] = relationship(back_populates="autoridad")
+    cid_areas_autoridades: Mapped[List["CIDAreaAutoridad"]] = relationship(back_populates="autoridad")
     cid_procedimientos: Mapped[List["CIDProcedimiento"]] = relationship(back_populates="autoridad")
     edictos: Mapped[List["Edicto"]] = relationship(back_populates="autoridad")
     glosas: Mapped[List["Glosa"]] = relationship(back_populates="autoridad")

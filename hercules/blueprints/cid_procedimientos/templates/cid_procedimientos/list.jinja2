@@ -26,36 +26,35 @@
     {% call topbar.page_buttons(titulo) %}
         <div class="d-flex flex-row justify-content-between">
             <div class="btn-group">
-                <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                    Acciones Autorizadas
+                <button class="btn btn-secondary dropdown-toggle" data-toggle="dropdown">
+                    Acciones Procedimientos
                 </button>
                 <div class="dropdown-menu">
                     {% if show_button_my_autorized %}
-                        <a class="dropdown-item" href="{{ url_for('cid_procedimientos.list_active') }}">Autorizados de mis áreas</a>
+                        <a class="dropdown-item" href="{{ url_for('cid_procedimientos.list_active') }}"><span class="iconify" data-icon="mdi:file-check-outline"></span> Autorizados de mis áreas</a>
                     {% endif %}
                     {% if show_button_list_all_autorized %}
-                        <a class="dropdown-item" href="{{ url_for('cid_procedimientos.list_authorized') }}">Todos los autorizados</a>
+                        <a class="dropdown-item" href="{{ url_for('cid_procedimientos.list_authorized') }}"><span class="iconify" data-icon="mdi:file-document-multiple-outline"></span> Todos los autorizados</a>
+                    {% endif %}
+                    {% if show_button_list_all %}
+                        <a class="dropdown-item" href="{{url_for('cid_procedimientos.list_all_active')}}"><span class="iconify" data-icon="mdi:archive-check"></span> Todos los procedimientos</a>
+                    {% endif %}
+                    {% if show_button_list_owned %}
+                        <a class="dropdown-item" href="{{ url_for('cid_procedimientos.list_owned') }}"><span class="iconify" data-icon="mdi:table-heart"></span> Propios</a>
                     {% endif %}
                 </div>
             </div>
-            {% if show_button_list_all %}
-                <a class="btn btn-sm btn-outline-info" href="{{url_for('cid_procedimientos.list_all_active')}}"><span class="iconify" data-icon="mdi:archive-check"></span> Todos los procedimientos</a>
-            {% endif %}
-            {% if show_button_list_owned %}
-                {# {{ topbar.button('Propios', url_for('cid_procedimientos.list_owned'), 'mdi:table-heart') }} #}
-                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('cid_procedimientos.list_owned') }}"><span class="iconify" data-icon="mdi:table-heart"></span>Propios</a>
-            {% endif %}
             {% if current_user.can_admin('CID PROCEDIMIENTOS') %}
                 {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('cid_procedimientos.list_all_inactive')) }}{% endif %}
                 {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('cid_procedimientos.list_all_active')) }}{% endif %}
             {% endif %}
-            {# {% if show_lista_maestra %}
+            {% if current_user.can_insert('CID PROCEDIMIENTOS') %}
+                {{ topbar.button_new('Nuevo Procedimiento', url_for('cid_procedimientos.new')) }}
+            {% endif %}
+            {% if show_lista_maestra %}
                 {{ modals.button_modal('Exportar Lista Maestra a XLSX', url_for('cid_procedimientos.exportar_xlsx'), 'ExportXLSX', 'mdi:download', "¿Quiere exportar la Lista Maestra un archivo XLSX?") }}
-            {% endif %} #}
+            {% endif %}
         </div>
-        {# {% if current_user.can_insert('CID PROCEDIMIENTOS') %}
-            {{ topbar.button_new('Nuevo Procedimiento', url_for('cid_procedimientos.new')) }}
-        {% endif %} #}
     {% endcall %}
 {% endblock %}
 
@@ -71,7 +70,7 @@
                             <label for="filtroCodigo">Código</label>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-6">
                         <div class="form-floating">
                             <input id="filtroTituloProcedimiento" type="text" class="form-control" aria-label="Procedimiento" style="text-transform: uppercase;">
                             <label for="filtroTituloProcedimiento">Procedimiento</label>
@@ -169,5 +168,11 @@
         filtrosCidProcedimientos.agregarInput('filtroCodigo', 'codigo');
         filtrosCidProcedimientos.agregarInput('filtroTituloProcedimiento', 'titulo_procedimiento');
         filtrosCidProcedimientos.precargar();
+    </script>
+    <script>
+        var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
+        var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+            return new bootstrap.Dropdown(dropdownToggleEl)
+        })
     </script>
 {% endblock %}
