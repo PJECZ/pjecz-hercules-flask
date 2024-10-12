@@ -26,7 +26,12 @@
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('sentencias.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('sentencias.list_active')) }}{% endif %}
         {% endif %}
-        {{ topbar.button_dashboard('Tablero', url_for('sentencias.dashboard')) }}
+        {# Si viene la autoridad #}
+        {% if autoridad %}
+            {{ topbar.button_dashboard('Tablero', url_for('sentencias.dashboard') + '?autoridad_clave=' + autoridad.clave) }}
+        {% else %}
+            {{ topbar.button_dashboard('Tablero', url_for('sentencias.dashboard')) }}
+        {% endif %}
     {% endcall %}
 {% endblock %}
 

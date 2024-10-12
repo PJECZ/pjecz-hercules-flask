@@ -9,9 +9,9 @@ from datetime import date, datetime, timedelta
 from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from pytz import timezone
+from sqlalchemy import Date, func
 from werkzeug.datastructures import CombinedMultiDict
 from werkzeug.exceptions import NotFound
-from wtforms.validators import length
 
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.bitacoras.models import Bitacora
@@ -22,6 +22,7 @@ from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.sentencias.forms import SentenciaEditForm, SentenciaNewForm, SentenciaReportForm
 from hercules.blueprints.sentencias.models import Sentencia
 from hercules.blueprints.usuarios.decorators import permission_required
+from hercules.extensions import database
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.exceptions import (
     MyBucketNotFoundError,
@@ -51,6 +52,7 @@ local_tz = timezone(TIMEZONE)
 
 # Constantes de este módulo
 MODULO = "SENTENCIAS"
+DASHBOARD_CANTIDAD_DIAS = 15
 LIMITE_DIAS = 365  # Un anio
 LIMITE_ADMINISTRADORES_DIAS = 7300  # Administradores pueden manipular veinte anios
 ROL_REPORTES_TODOS = ["ADMINISTRADOR", "ESTADISTICA", "VISITADURIA JUDICIAL"]  # Roles que deben estar en la BD
@@ -978,8 +980,145 @@ def download_file_pdf(sentencia_id):
     return response
 
 
+@sentencias.route("/sentencias/tablero_cantidades_por_dia_json")
+@permission_required(MODULO, Permiso.VER)
+def dashboard_amounts_per_day_json():
+    """Calcular las cantidades de Sentencias por día"""
+
+    # Si viene autoridad_id o autoridad_clave en la URL, validar
+    autoridad = None
+    try:
+        if "autoridad_id" in request.args:
+            autoridad = Autoridad.query.get(int(request.args.get("autoridad_id")))
+        elif "autoridad_clave" in request.args:
+            autoridad = Autoridad.query.filter_by(clave=safe_clave(request.args.get("autoridad_clave"))).first()
+    except (TypeError, ValueError):
+        autoridad = None
+
+    # Si viene la cantidad_dias en la URL, validar
+    cantidad_dias = DASHBOARD_CANTIDAD_DIAS  # Por defecto
+    try:
+        if "cantidad_dias" in request.args:
+            cantidad_dias = int(request.args.get("cantidad_dias"))
+    except (TypeError, ValueError):
+        cantidad_dias = DASHBOARD_CANTIDAD_DIAS
+
+    # Consultar
+    if autoridad is None:
+        consulta = (
+            database.session.query(
+                func.cast(Sentencia.creado, Date).label("creado"),
+                func.count(Sentencia.id).label("cantidad"),
+            )
+            .select_from(Sentencia)
+            .where(Sentencia.estatus == "A")
+            .where(Sentencia.creado >= datetime.now() + timedelta(days=-cantidad_dias))
+            .group_by(func.cast(Sentencia.creado, Date))
+            .order_by(func.cast(Sentencia.creado, Date).desc())
+            .limit(cantidad_dias)
+            .all()
+        )
+    else:
+        consulta = (
+            database.session.query(
+                func.cast(Sentencia.creado, Date).label("creado"),
+                func.count(Sentencia.id).label("cantidad"),
+            )
+            .select_from(Sentencia)
+            .join(Autoridad)
+            .where(Autoridad.id == autoridad.id)
+            .where(Sentencia.estatus == "A")
+            .where(Sentencia.creado >= datetime.now() + timedelta(days=-cantidad_dias))
+            .group_by(func.cast(Sentencia.creado, Date))
+            .order_by(func.cast(Sentencia.creado, Date).desc())
+            .limit(cantidad_dias)
+            .all()
+        )
+
+    # Bucle por cada día para agregar los que faltan con cantidad cero
+    consulta_completo = []
+    puntero = datetime.now() + timedelta(days=-cantidad_dias)
+    while puntero < datetime.now() + timedelta(days=-1):
+        dia = puntero.date()
+        if len(consulta) > 0 and consulta[-1].creado == dia:
+            item = consulta.pop()
+            consulta_completo.append({"creado": item.creado, "cantidad": item.cantidad})
+        else:
+            consulta_completo.append({"creado": dia, "cantidad": 0})
+        puntero += timedelta(days=1)
+
+    # Entregar JSON
+    return {
+        "labels": [item["creado"].strftime("%Y-%m-%d") for item in consulta_completo],
+        "data": [item["cantidad"] for item in consulta_completo],
+    }
+
+
+@sentencias.route("/sentencias/tablero_cantidades_por_autoridad_json")
+@permission_required(MODULO, Permiso.VER)
+def dashboard_amounts_per_autoridad_json():
+    """Calcular las cantidades de Sentencias creadas por Autoridad"""
+
+    # Consultar
+    sentencias = (
+        database.session.query(
+            Autoridad.clave.label("autoridad_clave"),
+            func.count(Sentencia.id).label("cantidad"),
+        )
+        .select_from(Sentencia)
+        .join(Autoridad)
+        .where(Sentencia.estatus == "A")
+        .where(Sentencia.creado >= datetime.now() + timedelta(days=-DASHBOARD_CANTIDAD_DIAS))
+        .group_by(Autoridad.clave)
+        .order_by(Autoridad.clave)
+        .all()
+    )
+
+    # Entregar JSON
+    return {
+        "labels": [sentencia.autoridad_clave for sentencia in sentencias],
+        "data": [sentencia.cantidad for sentencia in sentencias],
+    }
+
+
 @sentencias.route("/sentencias/tablero")
 @permission_required(MODULO, Permiso.VER)
 def dashboard():
     """Tablero de Sentencias"""
-    return render_template("sentencias/dashboard.jinja2")
+
+    # Por defecto
+    autoridad = None
+    titulo = "Tablero de V.P. de Sentencias"
+
+    # Si la autoridad del usuario es jurisdiccional o es notaria, se impone
+    if current_user.autoridad.es_jurisdiccional or current_user.autoridad.es_notaria:
+        autoridad = current_user.autoridad
+        titulo = f"Tablero de V.P. de Sentencias de {autoridad.clave}"
+
+    # Si NO se impone y viene autoridad_id o autoridad_clave en la URL
+    if autoridad is None:
+        try:
+            if "autoridad_id" in request.args:
+                autoridad = Autoridad.query.get(int(request.args.get("autoridad_id")))
+            elif "autoridad_clave" in request.args:
+                autoridad = Autoridad.query.filter_by(clave=safe_clave(request.args.get("autoridad_clave"))).first()
+            if autoridad:
+                titulo = f"Tablero de V.P. de Sentencias de {autoridad.clave}"
+        except (TypeError, ValueError):
+            pass
+
+    # Si viene la cantidad_dias en la URL, validar
+    cantidad_dias = DASHBOARD_CANTIDAD_DIAS  # Por defecto
+    try:
+        if "cantidad_dias" in request.args:
+            cantidad_dias = int(request.args.get("cantidad_dias"))
+    except (TypeError, ValueError):
+        cantidad_dias = DASHBOARD_CANTIDAD_DIAS
+
+    # Entregar la plantilla con la autoridad
+    return render_template(
+        "sentencias/dashboard.jinja2",
+        autoridad=autoridad,
+        cantidad_dias=cantidad_dias,
+        titulo=titulo,
+    )
