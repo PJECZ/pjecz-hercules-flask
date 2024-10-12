@@ -20,7 +20,7 @@
                         <a class="dropdown-item" href="{{ url_for('cid_formatos.list_authorized') }}"><span class="iconify" data-icon="mdi:table-star"></span> Todos los autorizados</a>
                     {% endif %}
                     {% if show_button_list_owned %}
-                        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('cid_formatos.list_owned') }}"><span class="iconify" data-icon="mdi:table-heart"></span>Propios</a>
+                        <a class="dropdown-item" href="{{ url_for('cid_formatos.list_owned') }}"><span class="iconify" data-icon="mdi:table-heart"></span>Propios</a>
                     {% endif %}
                 </div>
             </div>
@@ -141,5 +141,11 @@
         filtrosCidFormatos.agregarInput('filtroCodigo', 'codigo');
         filtrosCidFormatos.agregarInput('filtroDescripcion', 'descripcion');
         filtrosCidFormatos.precargar();
+    </script>
+    <script>
+        var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
+        var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+            return new bootstrap.Dropdown(dropdownToggleEl)
+        })
     </script>
 {% endblock %}
