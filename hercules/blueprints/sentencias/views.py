@@ -1049,8 +1049,8 @@ def dashboard_amounts_per_day_json():
 
     # Entregar JSON
     return {
-        "labels": [sentencia["creado"].strftime("%Y-%m-%d") for sentencia in consulta_completo],
-        "data": [sentencia["cantidad"] for sentencia in consulta_completo],
+        "labels": [item["creado"].strftime("%Y-%m-%d") for item in consulta_completo],
+        "data": [item["cantidad"] for item in consulta_completo],
     }
 
 
@@ -1086,18 +1086,26 @@ def dashboard_amounts_per_autoridad_json():
 def dashboard():
     """Tablero de Sentencias"""
 
-    # Si viene autoridad_id o autoridad_clave en la URL, validar
+    # Por defecto
     autoridad = None
     titulo = "Tablero de V.P. de Sentencias"
-    try:
-        if "autoridad_id" in request.args:
-            autoridad = Autoridad.query.get(int(request.args.get("autoridad_id")))
-        elif "autoridad_clave" in request.args:
-            autoridad = Autoridad.query.filter_by(clave=safe_clave(request.args.get("autoridad_clave"))).first()
-        if autoridad:
-            titulo = f"Tablero de V.P. de Sentencias de {autoridad.clave}"
-    except (TypeError, ValueError):
-        pass
+
+    # Si la autoridad del usuario es jurisdiccional o es notaria, se impone
+    if current_user.autoridad.es_jurisdiccional or current_user.autoridad.es_notaria:
+        autoridad = current_user.autoridad
+        titulo = f"Tablero de V.P. de Sentencias de {autoridad.clave}"
+
+    # Si NO se impone y viene autoridad_id o autoridad_clave en la URL
+    if autoridad is None:
+        try:
+            if "autoridad_id" in request.args:
+                autoridad = Autoridad.query.get(int(request.args.get("autoridad_id")))
+            elif "autoridad_clave" in request.args:
+                autoridad = Autoridad.query.filter_by(clave=safe_clave(request.args.get("autoridad_clave"))).first()
+            if autoridad:
+                titulo = f"Tablero de V.P. de Sentencias de {autoridad.clave}"
+        except (TypeError, ValueError):
+            pass
 
     # Si viene la cantidad_dias en la URL, validar
     cantidad_dias = DASHBOARD_CANTIDAD_DIAS  # Por defecto

@@ -58,8 +58,18 @@
             </div>
             <div class="col-md-3">
                 {% call detail.card(title='Edictos') %}
-                    <div style="height: 150px">
-                        {{ detail.button_md(label='Edictos', url=url_for('edictos.list_active')+'?autoridad_clave='+autoridad.clave, icon='mdi:file-check', color_class='btn-outline-secondary') }}
+                    <div style="height: 250px">
+                        <div class="my-4">
+                            <canvas id="canvasEdictos"></canvas>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                {{ detail.button_md(label='Listado', url=url_for('edictos.list_active')+'?autoridad_clave='+autoridad.clave, icon='mdi:file-check', color_class='btn-outline-secondary') }}
+                            </div>
+                            <div class="col">
+                                {{ detail.button_md(label='Tablero', url=url_for('edictos.dashboard')+'?autoridad_clave='+autoridad.clave, icon='mdi:file-check', color_class='btn-outline-secondary') }}
+                            </div>
+                        </div>
                     </div>
                 {% endcall %}
             </div>
@@ -72,9 +82,18 @@
             </div>
             <div class="col-md-3">
                 {% call detail.card(title='V.P. de Sentencias') %}
-                    <div style="height: 150px">
-                        {{ detail.button_md(label='Listado', url=url_for('sentencias.list_active')+'?autoridad_clave='+autoridad.clave, icon='mdi:gavel', color_class='btn-outline-secondary') }}
-                        {{ detail.button_md(label='Tablero', url=url_for('sentencias.dashboard')+'?autoridad_clave='+autoridad.clave, icon='mdi:view-dashboard', color_class='btn-outline-secondary') }}
+                    <div style="height: 250px">
+                        <div class="my-4">
+                            <canvas id="canvasSentencias"></canvas>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                {{ detail.button_md(label='Listado', url=url_for('sentencias.list_active')+'?autoridad_clave='+autoridad.clave, icon='mdi:gavel', color_class='btn-outline-secondary') }}
+                            </div>
+                            <div class="col">
+                                {{ detail.button_md(label='Tablero', url=url_for('sentencias.dashboard')+'?autoridad_clave='+autoridad.clave, icon='mdi:gavel', color_class='btn-outline-secondary') }}
+                            </div>
+                        </div>
                     </div>
                 {% endcall %}
             </div>
@@ -82,7 +101,7 @@
     {% endif %}
     {% if current_user.can_view('USUARIOS') %}
         {% call detail.card('Usuarios') %}
-            <!-- Filtros usuarios -->
+            <!-- Filtros Usuarios -->
             <div class="row">
                 <div class="col">
                     <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDTUsuarios.buscar(); return false;">
@@ -111,7 +130,7 @@
                     </form>
                 </div>
             </div>
-            <!-- Datatable usuarios -->
+            <!-- Datatable Usuarios -->
             <table id="usuarios_datatable" class="table display nowrap" style="width:100%">
                 <thead>
                     <tr>
@@ -128,10 +147,12 @@
 {% endblock %}
 
 {% block custom_javascript %}
+    <!-- Eliminar y recuperar -->
     {% if current_user.can_edit('AUTORIDADES') %}
         {% if autoridad.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + autoridad.clave + '?') }}{% endif %}
         {% if autoridad.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + autoridad.clave + '?') }}{% endif %}
     {% endif %}
+    <!-- DataTable -->
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     {% if current_user.can_view('USUARIOS') %}
@@ -192,4 +213,87 @@
             filtrosDTUsuarios.precargar();
         </script>
     {% endif %}
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.2/dist/chart.umd.js" integrity="sha384-eI7PSr3L1XLISH8JdDII5YN/njoSsxfbrkCTnJrzXt+ENP5MOVBxD+l6sEG4zoLp" crossorigin="anonymous"></script>
+    <script>
+        // Cuando se haya cargado la página
+        $(document).ready(function() {
+            // Obtener los canvas
+            const ctxEdictos = document.getElementById('canvasEdictos')
+            const ctxSentencias = document.getElementById('canvasSentencias')
+            // Preparar los parámetros
+            const getParams = new URLSearchParams({
+                autoridad_clave: '{{ autoridad.clave }}',
+                cantidad_dias: 5,
+            })
+            // Graficar Edictos
+            fetch(`/edictos/tablero_cantidades_por_dia_json?${getParams}`)
+                .then(response => response.json())
+                .then(data => {
+                    const configChart = {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: 'Edictos',
+                                data: data.data,
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            animation: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    }
+                    const chart = new Chart(ctxEdictos, configChart)
+                })
+                .catch(error => console.error('Error:', error));
+            // Graficar Sentencias
+            fetch(`/sentencias/tablero_cantidades_por_dia_json?${getParams}`)
+                .then(response => response.json())
+                .then(data => {
+                    const configChart = {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: 'V.P. de Sentencias',
+                                data: data.data,
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            animation: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    }
+                    const chart = new Chart(ctxSentencias, configChart)
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    </script>
 {% endblock %}

@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta
 from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from pytz import timezone
+from sqlalchemy import Date, func
 from werkzeug.datastructures import CombinedMultiDict
 from werkzeug.exceptions import NotFound
 
@@ -19,6 +20,7 @@ from hercules.blueprints.edictos.models import Edicto
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
+from hercules.extensions import database
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.exceptions import (
     MyBucketNotFoundError,
@@ -40,6 +42,7 @@ local_tz = timezone(TIMEZONE)
 
 # Constantes de este módulo
 MODULO = "EDICTOS"
+DASHBOARD_CANTIDAD_DIAS = 15
 LIMITE_DIAS = 365  # Un anio
 LIMITE_ADMINISTRADORES_DIAS = 3650  # Administradores pueden manipular diez anios
 MATERIAS_HABILITAR_DECLARACION_AUSENCIA = ["CIVIL", "FAMILIAR", "FAMILIAR ORAL"]
@@ -835,8 +838,118 @@ def download_file_pdf(edicto_id):
     return response
 
 
+@edictos.route("/edictos/tablero_cantidades_por_dia_json")
+@permission_required(MODULO, Permiso.VER)
+def dashboard_amounts_per_day_json():
+    """Calcular las cantidades de Edictos por día"""
+
+    # Si viene autoridad_id o autoridad_clave en la URL, validar
+    autoridad = None
+    try:
+        if "autoridad_id" in request.args:
+            autoridad = Autoridad.query.get(int(request.args.get("autoridad_id")))
+        elif "autoridad_clave" in request.args:
+            autoridad = Autoridad.query.filter_by(clave=safe_clave(request.args.get("autoridad_clave"))).first()
+    except (TypeError, ValueError):
+        autoridad = None
+
+    # Si viene la cantidad_dias en la URL, validar
+    cantidad_dias = DASHBOARD_CANTIDAD_DIAS  # Por defecto
+    try:
+        if "cantidad_dias" in request.args:
+            cantidad_dias = int(request.args.get("cantidad_dias"))
+    except (TypeError, ValueError):
+        cantidad_dias = DASHBOARD_CANTIDAD_DIAS
+
+    # Consultar
+    if autoridad is None:
+        consulta = (
+            database.session.query(
+                func.cast(Edicto.creado, Date).label("creado"),
+                func.count(Edicto.id).label("cantidad"),
+            )
+            .select_from(Edicto)
+            .where(Edicto.estatus == "A")
+            .where(Edicto.creado >= datetime.now() + timedelta(days=-cantidad_dias))
+            .group_by(func.cast(Edicto.creado, Date))
+            .order_by(func.cast(Edicto.creado, Date).desc())
+            .limit(cantidad_dias)
+            .all()
+        )
+    else:
+        consulta = (
+            database.session.query(
+                func.cast(Edicto.creado, Date).label("creado"),
+                func.count(Edicto.id).label("cantidad"),
+            )
+            .select_from(Edicto)
+            .join(Autoridad)
+            .where(Autoridad.id == autoridad.id)
+            .where(Edicto.estatus == "A")
+            .where(Edicto.creado >= datetime.now() + timedelta(days=-cantidad_dias))
+            .group_by(func.cast(Edicto.creado, Date))
+            .order_by(func.cast(Edicto.creado, Date).desc())
+            .limit(cantidad_dias)
+            .all()
+        )
+
+    # Bucle por cada día para agregar los que faltan con cantidad cero
+    consulta_completo = []
+    puntero = datetime.now() + timedelta(days=-cantidad_dias)
+    while puntero < datetime.now() + timedelta(days=-1):
+        dia = puntero.date()
+        if len(consulta) > 0 and consulta[-1].creado == dia:
+            item = consulta.pop()
+            consulta_completo.append({"creado": item.creado, "cantidad": item.cantidad})
+        else:
+            consulta_completo.append({"creado": dia, "cantidad": 0})
+        puntero += timedelta(days=1)
+
+    # Entregar JSON
+    return {
+        "labels": [item["creado"].strftime("%Y-%m-%d") for item in consulta_completo],
+        "data": [item["cantidad"] for item in consulta_completo],
+    }
+
+
 @edictos.route("/edictos/tablero")
 @permission_required(MODULO, Permiso.VER)
 def dashboard():
     """Tablero de Edictos"""
-    return render_template("edictos/dashboard.jinja2")
+
+    # Por defecto
+    autoridad = None
+    titulo = "Tablero de Edictos"
+
+    # Si la autoridad del usuario es jurisdiccional o es notaria, se impone
+    if current_user.autoridad.es_jurisdiccional or current_user.autoridad.es_notaria:
+        autoridad = current_user.autoridad
+        titulo = f"Tablero de Edictos de {autoridad.clave}"
+
+    # Si NO se impone y viene autoridad_id o autoridad_clave en la URL, validar
+    if autoridad is None:
+        try:
+            if "autoridad_id" in request.args:
+                autoridad = Autoridad.query.get(int(request.args.get("autoridad_id")))
+            elif "autoridad_clave" in request.args:
+                autoridad = Autoridad.query.filter_by(clave=safe_clave(request.args.get("autoridad_clave"))).first()
+            if autoridad:
+                titulo = f"Tablero de Edictos de {autoridad.clave}"
+        except (TypeError, ValueError):
+            pass
+
+    # Si viene la cantidad_dias en la URL, validar
+    cantidad_dias = DASHBOARD_CANTIDAD_DIAS  # Por defecto
+    try:
+        if "cantidad_dias" in request.args:
+            cantidad_dias = int(request.args.get("cantidad_dias"))
+    except (TypeError, ValueError):
+        cantidad_dias = DASHBOARD_CANTIDAD_DIAS
+
+    # Entregar la plantilla con la autoridad
+    return render_template(
+        "edictos/dashboard.jinja2",
+        autoridad=autoridad,
+        cantidad_dias=cantidad_dias,
+        titulo=titulo,
+    )
