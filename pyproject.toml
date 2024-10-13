@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "pjecz-hercules-flask"
 version = "2.1.1"
-description = "Hercules es un sistema web hecho con Flask para actualizar Plataforma Web."
+description = "Hercules es la segunda version de la Plataforma Web hecha con Flask."
 authors = ["Guillermo Valdes <guillermo@movimientolibre.com>"]
 license = "AGPL3"
 readme = "README.md"

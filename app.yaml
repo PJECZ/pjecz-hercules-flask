@@ -1,6 +1,6 @@
 runtime: python311
-instance_class: F1
-service: hercules
+instance_class: F2
+service: plataforma-web
 entrypoint: gunicorn -w 2 appserver:gunicorn_app
 env_variables:
   PROJECT_ID: justicia-digital-gob-mx
