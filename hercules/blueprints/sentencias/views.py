@@ -937,7 +937,7 @@ def report():
 
 @sentencias.route("/sentencias/ver_archivo_pdf/<int:sentencia_id>")
 def view_file_pdf(sentencia_id):
-    """Ver archivo PDF de Edicto para insertarlo en un iframe en el detalle"""
+    """Ver archivo PDF de una Sentencia para insertarlo en un iframe en el detalle"""
 
     # Consultar
     sentencia = Sentencia.query.get_or_404(sentencia_id)
@@ -945,7 +945,7 @@ def view_file_pdf(sentencia_id):
     # Obtener el contenido del archivo
     try:
         archivo = get_file_from_gcs(
-            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_EDICTOS"],
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_SENTENCIAS"],
             blob_name=get_blob_name_from_url(sentencia.url),
         )
     except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
@@ -959,7 +959,7 @@ def view_file_pdf(sentencia_id):
 
 @sentencias.route("/sentencias/descargar_archivo_pdf/<int:sentencia_id>")
 def download_file_pdf(sentencia_id):
-    """Descargar archivo PDF de Edicto"""
+    """Descargar archivo PDF de una Sentencia"""
 
     # Consultar
     sentencia = Sentencia.query.get_or_404(sentencia_id)
@@ -967,7 +967,7 @@ def download_file_pdf(sentencia_id):
     # Obtener el contenido del archivo
     try:
         archivo = get_file_from_gcs(
-            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_EDICTOS"],
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_SENTENCIAS"],
             blob_name=get_blob_name_from_url(sentencia.url),
         )
     except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
