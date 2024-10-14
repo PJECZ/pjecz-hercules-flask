@@ -2,7 +2,7 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Editar Ubicación de Expediente{% endblock %}
+{% block title %}Editar Ubicación de Expediente {{ ubicacion_expediente.expediente }} del {{ ubicacion_expediente.autoridad.clave }}{% endblock %}
 
 {% block topbar_actions %}
     {{ topbar.page('Editar ' + ubicacion_expediente.expediente + ' del ' + ubicacion_expediente.autoridad.clave) }}

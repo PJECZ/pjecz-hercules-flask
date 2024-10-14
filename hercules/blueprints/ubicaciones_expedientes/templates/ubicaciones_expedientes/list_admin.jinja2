@@ -6,12 +6,9 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {% if current_user.can_admin('UBICACIONES EXPEDIENTES') %}
+        {% if current_user.can_edit('UBICACIONES EXPEDIENTES') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('ubicaciones_expedientes.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('ubicaciones_expedientes.list_active')) }}{% endif %}
-        {% endif %}
-        {% if current_user.can_insert('UBICACIONES EXPEDIENTES') %}
-            {# {{ topbar.button_new('Nuevo Singular', url_for('ubicaciones_expedientes.new')) }} #}
         {% endif %}
     {% endcall %}
 {% endblock %}
@@ -24,8 +21,8 @@
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosUbicacionExpediente.buscar(); return false;">
                     <div class="col-3">
                         <div class="form-floating">
-                            <input id="filtroAutoridad" type="text" class="form-control" aria-label="Autoridad" style="text-transform: uppercase;">
-                            <label for="filtroAutoridad">Autoridad</label>
+                            <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad Clave" style="text-transform: uppercase;">
+                            <label for="filtroAutoridadClave">Autoridad Clave</label>
                         </div>
                     </div>
                     <div class="col-3">
@@ -112,7 +109,7 @@
         ];
         // Filtros ubicaciones de expedientes
         const filtrosUbicacionExpediente = new FiltrosDataTable('#ubicaciones_expedientes_datatable', configDataTable);
-        filtrosUbicacionExpediente.agregarInput('filtroAutoridad', 'autoridad');
+        filtrosUbicacionExpediente.agregarInput('filtroAutoridadClave', 'autoridad_clave');
         filtrosUbicacionExpediente.agregarInput('filtroExpediente', 'expediente');
         filtrosUbicacionExpediente.agregarInput('filtroUbicacion', 'ubicacion');
         filtrosUbicacionExpediente.precargar();

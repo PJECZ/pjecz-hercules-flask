@@ -39,4 +39,4 @@ class UbicacionExpediente(database.Model, UniversalMixin):
 
     def __repr__(self):
         """Representación"""
-        return f"<UbicacionExpediente {self.expediente}>"
+        return f"<UbicacionExpediente {self.id}>"

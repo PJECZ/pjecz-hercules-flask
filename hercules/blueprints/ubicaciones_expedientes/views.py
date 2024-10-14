@@ -45,21 +45,21 @@ def datatable_json():
         autoridad = Autoridad.query.get(request.form["autoridad_id"])
         if autoridad:
             consulta = consulta.filter(UbicacionExpediente.autoridad == autoridad)
+    elif "autoridad_clave" in request.form:
+        consulta = consulta.join(Autoridad)
+        consulta = consulta.filter(Autoridad.clave.contains(safe_clave(request.form["autoridad_clave"])))
     if "expediente" in request.form:
         try:
             expediente = safe_expediente(request.form["expediente"])
             consulta = consulta.filter(UbicacionExpediente.expediente == expediente)
         except (IndexError, ValueError):
-            consulta = consulta.filter(UbicacionExpediente.expediente.contains(request.form["expediente"]))
+            pass
     if "ubicacion" in request.form:
         ubicacion = safe_string(request.form["ubicacion"])
         if ubicacion != "":
             consulta = consulta.filter(UbicacionExpediente.ubicacion == ubicacion)
-    if "autoridad" in request.form:
-        consulta = consulta.join(Autoridad)
-        consulta = consulta.filter(Autoridad.clave.contains(safe_clave(request.form["autoridad"])))
     # Ordenar y paginar
-    registros = consulta.order_by(UbicacionExpediente.creado.desc()).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(UbicacionExpediente.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -103,7 +103,7 @@ def list_active():
 
 
 @ubicaciones_expedientes.route("/ubicaciones_expedientes/inactivos")
-@permission_required(MODULO, Permiso.ADMINISTRAR)
+@permission_required(MODULO, Permiso.MODIFICAR)
 def list_inactive():
     """Listado de Ubicaciones de Expedientes inactivos"""
     # Si es administrador ve todo
@@ -178,7 +178,6 @@ def new():
     return render_template("ubicaciones_expedientes/new.jinja2", form=form)
 
 
-# TODO: EDIT
 @ubicaciones_expedientes.route("/ubicaciones_expedientes/edicion/<int:ubicacion_expediente_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.MODIFICAR)
 def edit(ubicacion_expediente_id):
