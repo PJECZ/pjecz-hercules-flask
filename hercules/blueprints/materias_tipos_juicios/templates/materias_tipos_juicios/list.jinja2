@@ -30,8 +30,8 @@
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosMateriasTiposJuicios.buscar(); return false;">
                     <div class="col-4">
                         <div class="form-floating">
-                            <input id="filtroMateria" type="text" class="form-control" aria-label="Materia" style="text-transform: uppercase;">
-                            <label for="filtroMateria">Materia</label>
+                            <input id="filtroMateriaNombre" type="text" class="form-control" aria-label="Materia" style="text-transform: uppercase;">
+                            <label for="filtroMateriaNombre">Materia</label>
                         </div>
                     </div>
                     <div class="col-6">
@@ -51,8 +51,8 @@
         <table id="materias_tipos_juicios_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>Materia</th>
                     <th>Tipo de Juicio</th>
+                    <th>Materia</th>
                 </tr>
             </thead>
         </table>
@@ -69,28 +69,21 @@
         configDataTable['ajax']['url'] = '/materias_tipos_juicios/datatable_json';
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
-            { data: 'materia' },
-            { data: 'detalle' }
+            { data: 'detalle' },
+            { data: 'materia_nombre' }
         ];
         configDataTable['columnDefs'] = [
             {
-                targets: 0, // materia
-                data: null,
-                render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.nombre + '</a>';
-                }
-            },
-            {
-                targets: 1, // detalle
+                targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.descripcion + '</a>';
                 }
-            },
+            }
         ];
         // Filtros Tipos de Juicios
         const filtrosMateriasTiposJuicios = new FiltrosDataTable('#materias_tipos_juicios_datatable', configDataTable);
-        filtrosMateriasTiposJuicios.agregarInput('filtroMateria', 'materia_nombre');
+        filtrosMateriasTiposJuicios.agregarInput('filtroMateriaNombre', 'materia_nombre');
         filtrosMateriasTiposJuicios.agregarInput('filtroDescripcion', 'descripcion');
         filtrosMateriasTiposJuicios.precargar();
     </script>
