@@ -927,7 +927,7 @@ def dashboard():
         autoridad = current_user.autoridad
         titulo = f"Tablero de Edictos de {autoridad.clave}"
 
-    # Si NO se impone y viene autoridad_id o autoridad_clave en la URL, validar
+    # Si aun no hay autoridad y viene autoridad_id o autoridad_clave en la URL
     if autoridad is None:
         try:
             if "autoridad_id" in request.args:
@@ -947,7 +947,7 @@ def dashboard():
     except (TypeError, ValueError):
         cantidad_dias = DASHBOARD_CANTIDAD_DIAS
 
-    # Entregar la plantilla con la autoridad
+    # Entregar
     return render_template(
         "edictos/dashboard.jinja2",
         autoridad=autoridad,
