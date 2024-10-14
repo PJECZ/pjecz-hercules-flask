@@ -38,12 +38,12 @@ def datatable_json():
     consulta = MateriaTipoJuicio.query
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
-        consulta = consulta.filter_by(estatus=request.form["estatus"])
+        consulta = consulta.filter(MateriaTipoJuicio.estatus == request.form["estatus"])
     else:
-        consulta = consulta.filter_by(estatus="A")
+        consulta = consulta.filter(MateriaTipoJuicio.estatus == "A")
     if "materia_id" in request.form:
-        consulta = consulta.filter_by(materia_id=request.form["materia_id"])
-    if "materia_nombre" in request.form:
+        consulta = consulta.filter(MateriaTipoJuicio.materia_id == request.form["materia_id"])
+    elif "materia_nombre" in request.form:
         materia_nombre = safe_string(request.form["materia_nombre"], save_enie=True)
         if materia_nombre != "":
             consulta = consulta.join(Materia).filter(Materia.nombre.contains(materia_nombre))
@@ -52,7 +52,7 @@ def datatable_json():
         if descripcion != "":
             consulta = consulta.filter(MateriaTipoJuicio.descripcion.contains(descripcion))
     # Ordenar y paginar
-    registros = consulta.order_by(MateriaTipoJuicio.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(MateriaTipoJuicio.descripcion).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -63,10 +63,7 @@ def datatable_json():
                     "descripcion": resultado.descripcion,
                     "url": url_for("materias_tipos_juicios.detail", materia_tipo_juicio_id=resultado.id),
                 },
-                "materia": {
-                    "nombre": resultado.materia.nombre,
-                    "url": url_for("materias.detail", materia_id=resultado.materia_id),
-                },
+                "materia_nombre": resultado.materia.nombre,
             }
         )
     # Entregar JSON

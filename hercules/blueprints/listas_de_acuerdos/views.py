@@ -99,7 +99,7 @@ def datatable_json():
         consulta = consulta.filter(ListaDeAcuerdo.fecha <= fecha_hasta)
 
     # Ordenar y paginar
-    registros = consulta.order_by(ListaDeAcuerdo.fecha.desc()).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ListaDeAcuerdo.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
 
     # Elaborar datos para DataTable
@@ -176,7 +176,7 @@ def admin_datatable_json():
         consulta = consulta.filter(ListaDeAcuerdo.fecha <= fecha_hasta)
 
     # Ordenar y paginar
-    registros = consulta.order_by(ListaDeAcuerdo.fecha.desc()).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ListaDeAcuerdo.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
 
     # Elaborar datos para DataTable
@@ -224,17 +224,17 @@ def list_active():
     """Listado de Listas De Acuerdos activas"""
 
     # Definir valores por defecto
-    plantilla = "listas_de_acuerdos/list.jinja2"
     filtros = None
     titulo = None
-    autoridad = None
-    materia_tipo_juicio = None
+    mostrar_filtro_autoridad_clave = True
 
     # Si es administrador
+    plantilla = "listas_de_acuerdos/list.jinja2"
     if current_user.can_admin(MODULO):
         plantilla = "listas_de_acuerdos/list_admin.jinja2"
 
     # Si viene autoridad_id o autoridad_clave en la URL, agregar a los filtros
+    autoridad = None
     try:
         if "autoridad_id" in request.args:
             autoridad_id = int(request.args.get("autoridad_id"))
@@ -245,17 +245,7 @@ def list_active():
         if autoridad is not None:
             filtros = {"estatus": "A", "autoridad_id": autoridad.id}
             titulo = f"Listas de Acuerdos de {autoridad.descripcion_corta}"
-    except (TypeError, ValueError):
-        pass
-
-    # Si viene materia_tipo_juicio_id en la URL, agregar a los filtros
-    try:
-        if "materia_tipo_juicio_id" in request.args:
-            materia_tipo_juicio_id = int(request.args.get("materia_tipo_juicio_id"))
-            materia_tipo_juicio = MateriaTipoJuicio.query.get(materia_tipo_juicio_id)
-        if materia_tipo_juicio is not None:
-            filtros = {"estatus": "A", "materia_tipo_juicio_id": materia_tipo_juicio.id}
-            titulo = f"Listas de Acuerdos de {materia_tipo_juicio.descripcion}"
+            mostrar_filtro_autoridad_clave = False
     except (TypeError, ValueError):
         pass
 
@@ -266,13 +256,12 @@ def list_active():
 
     # Si puede editar o crear, solo ve lo de su autoridad
     if titulo is None and (current_user.can_insert(MODULO) or current_user.can_edit(MODULO)):
-        autoridad = None  # Para no mostrar el botón 'Todos los...'
         filtros = {"estatus": "A", "autoridad_id": current_user.autoridad.id}
         titulo = f"Listas de Acuerdos de {current_user.autoridad.descripcion_corta}"
+        mostrar_filtro_autoridad_clave = False
 
     # De lo contrario, es observador
     if titulo is None:
-        autoridad = None
         filtros = {"estatus": "A"}
         titulo = "Listas de Acuerdos"
 
@@ -281,9 +270,8 @@ def list_active():
         plantilla,
         filtros=json.dumps(filtros),
         titulo=titulo,
+        mostrar_filtro_autoridad_clave=mostrar_filtro_autoridad_clave,
         estatus="A",
-        autoridad=autoridad,
-        materia_tipo_juicio=materia_tipo_juicio,
     )
 
 
@@ -392,11 +380,12 @@ def new():
                 con_materia=con_materia,
             )
 
-        # Definir descripcion
+        # Definir descripción
         descripcion = "LISTA DE ACUERDOS"
         if con_materia:
-            materia = form.materia.data
-            if materia.id != 1:  # NO DEFINIDO
+            materia_id = form.materia.data  # Es un SelectField
+            materia = Materia.query.get(materia_id)
+            if materia.nombre != "NO DEFINIDO":
                 descripcion = f"LISTA DE ACUERDOS {materia.nombre}"
 
         # Si existe una lista de acuerdos de la misma fecha, dar de baja la antigua
@@ -563,8 +552,9 @@ def new_with_autoridad_id(autoridad_id):
         # Definir descripción
         descripcion = "LISTA DE ACUERDOS"
         if con_materia:
-            materia = form.materia.data
-            if materia.id != 1:  # NO DEFINIDO
+            materia_id = form.materia.data  # Es un SelectField
+            materia = Materia.query.get(materia_id)
+            if materia.nombre != "NO DEFINIDO":
                 descripcion = f"LISTA DE ACUERDOS {materia.nombre}"
 
         # Si existe una lista de acuerdos de la misma fecha, dar de baja la antigua

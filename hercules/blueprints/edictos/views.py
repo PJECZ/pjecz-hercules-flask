@@ -231,16 +231,17 @@ def list_active():
     """Listado de Edictos activos"""
 
     # Definir valores por defecto
-    plantilla = "edictos/list.jinja2"
     filtros = None
     titulo = None
-    autoridad = None
+    mostrar_filtro_autoridad_clave = True
 
     # Si es administrador
+    plantilla = "edictos/list.jinja2"
     if current_user.can_admin(MODULO):
         plantilla = "edictos/list_admin.jinja2"
 
     # Si viene autoridad_id o autoridad_clave en la URL, agregar a los filtros
+    autoridad = None
     try:
         if "autoridad_id" in request.args:
             autoridad_id = int(request.args.get("autoridad_id"))
@@ -251,6 +252,7 @@ def list_active():
         if autoridad is not None:
             filtros = {"estatus": "A", "autoridad_id": autoridad.id}
             titulo = f"Edictos de {autoridad.descripcion_corta}"
+            mostrar_filtro_autoridad_clave = False
     except (TypeError, ValueError):
         pass
 
@@ -261,13 +263,12 @@ def list_active():
 
     # Si puede editar o crear, solo ve lo de su autoridad
     if titulo is None and (current_user.can_insert(MODULO) or current_user.can_edit(MODULO)):
-        autoridad = None  # Para no mostrar el botón 'Todos los...'
         filtros = {"estatus": "A", "autoridad_id": current_user.autoridad.id}
         titulo = f"Edictos de {current_user.autoridad.descripcion_corta}"
+        mostrar_filtro_autoridad_clave = False
 
     # De lo contrario, es observador
     if titulo is None:
-        autoridad = None
         filtros = {"estatus": "A"}
         titulo = "Edictos"
 
@@ -276,8 +277,8 @@ def list_active():
         plantilla,
         filtros=json.dumps(filtros),
         titulo=titulo,
+        mostrar_filtro_autoridad_clave=mostrar_filtro_autoridad_clave,
         estatus="A",
-        autoridad=autoridad,
     )
 
 
