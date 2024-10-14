@@ -265,16 +265,17 @@ def list_active():
     """Listado de Sentencias activos"""
 
     # Definir valores por defecto
-    plantilla = "sentencias/list.jinja2"
     filtros = None
     titulo = None
-    autoridad = None
+    mostrar_filtro_autoridad_clave = True
 
-    # Si es administrador
+    # Si es administrador, usa list_admin.jinja2
+    plantilla = "sentencias/list.jinja2"
     if current_user.can_admin(MODULO):
         plantilla = "sentencias/list_admin.jinja2"
 
     # Si viene autoridad_id o autoridad_clave en la URL, agregar a los filtros
+    autoridad = None
     try:
         if "autoridad_id" in request.args:
             autoridad_id = int(request.args.get("autoridad_id"))
@@ -285,6 +286,19 @@ def list_active():
         if autoridad is not None:
             filtros = {"estatus": "A", "autoridad_id": autoridad.id}
             titulo = f"V.P. de Sentencias de {autoridad.clave}"
+            mostrar_filtro_autoridad_clave = False
+    except (TypeError, ValueError):
+        pass
+
+    # Si viene materia_tipo_juicio_id en la URL, agregar a los filtros
+    materia_tipo_juicio = None
+    try:
+        if "materia_tipo_juicio_id" in request.args:
+            materia_tipo_juicio_id = int(request.args.get("materia_tipo_juicio_id"))
+            materia_tipo_juicio = MateriaTipoJuicio.query.get(materia_tipo_juicio_id)
+        if materia_tipo_juicio is not None:
+            filtros = {"estatus": "A", "materia_tipo_juicio_id": materia_tipo_juicio.id}
+            titulo = f"Listas de Acuerdos de {materia_tipo_juicio.descripcion}"
     except (TypeError, ValueError):
         pass
 
@@ -295,13 +309,12 @@ def list_active():
 
     # Si puede editar o crear, solo ve lo de su autoridad
     if titulo is None and (current_user.can_insert(MODULO) or current_user.can_edit(MODULO)):
-        autoridad = None  # Para no mostrar el botón 'Todos los...'
         filtros = {"estatus": "A", "autoridad_id": current_user.autoridad.id}
         titulo = f"V.P. de Sentencias de {current_user.autoridad.descripcion_corta}"
+        mostrar_filtro_autoridad_clave = False
 
     # De lo contrario, es observador
     if titulo is None:
-        autoridad = None
         filtros = {"estatus": "A"}
         titulo = "Versión Pública de Sentencias"
 
@@ -310,8 +323,8 @@ def list_active():
         plantilla,
         filtros=json.dumps(filtros),
         titulo=titulo,
+        mostrar_filtro_autoridad_clave=mostrar_filtro_autoridad_clave,
         estatus="A",
-        autoridad=autoridad,
     )
 
 
