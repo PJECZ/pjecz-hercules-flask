@@ -11,7 +11,7 @@
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('ubicaciones_expedientes.list_active')) }}{% endif %}
         {% endif %}
         {% if current_user.can_insert('UBICACIONES EXPEDIENTES') %}
-            {# {{ topbar.button_new('Nuevo Singular', url_for('ubicaciones_expedientes.new')) }} #}
+            {{ topbar.button_new('Nueva Ubicación de Expediente', url_for('ubicaciones_expedientes.new')) }}
         {% endif %}
     {% endcall %}
 {% endblock %}

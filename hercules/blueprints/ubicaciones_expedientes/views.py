@@ -179,6 +179,36 @@ def new():
 
 
 # TODO: EDIT
+@ubicaciones_expedientes.route("/ubicaciones_expedientes/edicion/<int:ubicacion_expediente_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def edit(ubicacion_expediente_id):
+    """Editar Ubicacion de Expediente"""
+    ubicacion_expediente = UbicacionExpediente.query.get_or_404(ubicacion_expediente_id)
+    form = UbicacionExpedienteEditForm()
+    if form.validate_on_submit():
+        # Validar expediente
+        try:
+            expediente = safe_expediente(form.expediente.data)
+        except (IndexError, ValueError):
+            flash("El expediente es incorrecto.", "warning")
+            return render_template("ubicaciones_expedientes/new.jinja2", form=form)
+        # Guardar cambios
+        ubicacion_expediente.expediente = expediente
+        ubicacion_expediente.ubicacion = form.ubicacion.data
+        ubicacion_expediente.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Editado Ubicacion de Expediente {ubicacion_expediente.expediente}"),
+            url=url_for("ubicaciones_expedientes.detail", ubicacion_expediente_id=ubicacion_expediente.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    # Prellenado del formulario
+    form.expediente.data = ubicacion_expediente.expediente
+    form.ubicacion.data = ubicacion_expediente.ubicacion
+    return render_template("ubicaciones_expedientes/edit.jinja2", form=form, ubicacion_expediente=ubicacion_expediente)
 
 
 @ubicaciones_expedientes.route("/ubicaciones_expedientes/eliminar/<int:ubicacion_expediente_id>")

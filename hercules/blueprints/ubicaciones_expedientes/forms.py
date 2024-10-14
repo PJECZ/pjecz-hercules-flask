@@ -24,5 +24,5 @@ class UbicacionExpedienteEditForm(FlaskForm):
     """Formulario para editar Ubicación de Expediente"""
 
     expediente = StringField("Expediente", validators=[DataRequired(), Length(max=16), Regexp(EXPEDIENTE_REGEXP)])
-    ubicacion = RadioField("Ubicación", validators=[DataRequired()], choices=UbicacionExpediente.UBICACIONES)
+    ubicacion = RadioField("Ubicación", validators=[DataRequired()], choices=UbicacionExpediente.UBICACIONES.items())
     guardar = SubmitField("Guardar")
