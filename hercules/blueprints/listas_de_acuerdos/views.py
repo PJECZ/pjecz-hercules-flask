@@ -99,7 +99,7 @@ def datatable_json():
         consulta = consulta.filter(ListaDeAcuerdo.fecha <= fecha_hasta)
 
     # Ordenar y paginar
-    registros = consulta.order_by(ListaDeAcuerdo.fecha.desc()).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ListaDeAcuerdo.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
 
     # Elaborar datos para DataTable
@@ -176,7 +176,7 @@ def admin_datatable_json():
         consulta = consulta.filter(ListaDeAcuerdo.fecha <= fecha_hasta)
 
     # Ordenar y paginar
-    registros = consulta.order_by(ListaDeAcuerdo.fecha.desc()).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ListaDeAcuerdo.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
 
     # Elaborar datos para DataTable
@@ -392,11 +392,12 @@ def new():
                 con_materia=con_materia,
             )
 
-        # Definir descripcion
+        # Definir descripción
         descripcion = "LISTA DE ACUERDOS"
         if con_materia:
-            materia = form.materia.data
-            if materia.id != 1:  # NO DEFINIDO
+            materia_id = form.materia.data  # Es un SelectField
+            materia = Materia.query.get(materia_id)
+            if materia.nombre != "NO DEFINIDO":
                 descripcion = f"LISTA DE ACUERDOS {materia.nombre}"
 
         # Si existe una lista de acuerdos de la misma fecha, dar de baja la antigua
@@ -563,8 +564,9 @@ def new_with_autoridad_id(autoridad_id):
         # Definir descripción
         descripcion = "LISTA DE ACUERDOS"
         if con_materia:
-            materia = form.materia.data
-            if materia.id != 1:  # NO DEFINIDO
+            materia_id = form.materia.data  # Es un SelectField
+            materia = Materia.query.get(materia_id)
+            if materia.nombre != "NO DEFINIDO":
                 descripcion = f"LISTA DE ACUERDOS {materia.nombre}"
 
         # Si existe una lista de acuerdos de la misma fecha, dar de baja la antigua
