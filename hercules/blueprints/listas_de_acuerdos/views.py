@@ -34,6 +34,7 @@ from lib.exceptions import (
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
 from lib.safe_string import safe_clave, safe_message, safe_string
 from lib.storage import GoogleCloudStorage
+from lib.time_to_text import dia_mes_ano
 
 # Zona horaria
 TIMEZONE = "America/Mexico_City"
@@ -54,6 +55,20 @@ ORGANOS_JURISDICCIONALES_QUE_PUEDEN_ELEGIR_MATERIA = (
 )
 
 listas_de_acuerdos = Blueprint("listas_de_acuerdos", __name__, template_folder="templates")
+
+
+@listas_de_acuerdos.route("/listas_de_acuerdos/acuses/<id_hashed>")
+def checkout(id_hashed):
+    """Acuse"""
+    lista_de_acuerdo = ListaDeAcuerdo.query.get_or_404(ListaDeAcuerdo.decode_id(id_hashed))
+    dia, mes, anio = dia_mes_ano(lista_de_acuerdo.creado)
+    return render_template(
+        "listas_de_acuerdos/checkout.jinja2",
+        lista_de_acuerdo=lista_de_acuerdo,
+        dia=dia,
+        mes=mes.upper(),
+        anio=anio,
+    )
 
 
 @listas_de_acuerdos.before_request

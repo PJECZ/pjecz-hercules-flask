@@ -106,6 +106,13 @@
                     }
                     return data.tiempo + ' <span style="color: ' + color +  ';" class="iconify" data-icon="mdi:' + bandera + '"></span>';
                 }
+            },
+            {
+                targets: 3, // fecha
+                data: null,
+                render: function (data, type, row, meta) {
+                    return moment(data).format('DD MMM YYYY');
+                },
             }
         ];
         // Filtros Listas De Acuerdos

@@ -110,6 +110,13 @@
                 }
             },
             {
+                targets: 3, // fecha
+                type: "date",
+                render: function (data, type, row) {
+                    return moment(data).format("DD MMM YYYY");
+                }
+            },
+            {
                 targets: 4, // descripcion
                 data: null,
                 render: function (data, type, row, meta) {
