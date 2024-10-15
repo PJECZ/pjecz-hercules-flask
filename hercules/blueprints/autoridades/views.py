@@ -330,3 +330,32 @@ def query_autoridades_json(distrito_id):
         )
     # Entregar JSON
     return json.dumps(data)
+
+
+@autoridades.route("/autoridades/select_json", methods=["GET", "POST"])
+def select_autoridades_json():
+    """Proporcionar el JSON de autoridades para elegir con un Select"""
+    # Consultar
+    consulta = Autoridad.query.filter(Autoridad.estatus == "A")
+    if "es_archivo_solicitante" in request.form:
+        consulta = consulta.filter_by(es_archivo_solicitante=request.form["es_archivo_solicitante"] == "true")
+    if "es_extinto" in request.form:
+        consulta = consulta.filter_by(es_extinto=request.form["es_extinto"] == "true")
+    if "es_jurisdiccional" in request.form:
+        consulta = consulta.filter_by(es_jurisdiccional=request.form["es_jurisdiccional"] == "true")
+        # Solo Juzgados de Primera Instancia
+        consulta = consulta.filter(
+            Autoridad.organo_jurisdiccional.between("JUZGADO DE PRIMERA INSTANCIA", "JUZGADO DE PRIMERA INSTANCIA ORAL")
+        )
+    if "clave" in request.form:
+        texto = safe_string(request.form["clave"]).upper()
+        consulta = consulta.filter(Autoridad.clave.contains(texto))
+    results = []
+    for autoridad in consulta.order_by(Autoridad.id).limit(15).all():
+        results.append(
+            {
+                "id": autoridad.id,
+                "text": autoridad.clave + "  : " + autoridad.descripcion_corta,
+            }
+        )
+    return {"results": results, "pagination": {"more": False}}
