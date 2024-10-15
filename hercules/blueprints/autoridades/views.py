@@ -343,13 +343,10 @@ def select_autoridades_json():
         consulta = consulta.filter_by(es_extinto=request.form["es_extinto"] == "true")
     if "es_jurisdiccional" in request.form:
         consulta = consulta.filter_by(es_jurisdiccional=request.form["es_jurisdiccional"] == "true")
-        # Solo Juzgados de Primera Instancia
-        consulta = consulta.filter(
-            Autoridad.organo_jurisdiccional.between("JUZGADO DE PRIMERA INSTANCIA", "JUZGADO DE PRIMERA INSTANCIA ORAL")
-        )
     if "clave" in request.form:
-        texto = safe_string(request.form["clave"]).upper()
-        consulta = consulta.filter(Autoridad.clave.contains(texto))
+        clave = safe_clave(request.form["clave"])
+        if clave != "":
+            consulta = consulta.filter(Autoridad.clave.contains(clave))
     results = []
     for autoridad in consulta.order_by(Autoridad.id).limit(15).all():
         results.append(
