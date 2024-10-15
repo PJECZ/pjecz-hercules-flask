@@ -249,6 +249,7 @@ def list_active():
     # Entregar
     return render_template(
         plantilla,
+        autoridad=autoridad,
         filtros=json.dumps(filtros),
         titulo=titulo,
         mostrar_filtro_autoridad_clave=mostrar_filtro_autoridad_clave,
