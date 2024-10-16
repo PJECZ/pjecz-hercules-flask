@@ -117,7 +117,7 @@ def datatable_json():
                 },
                 "expediente": glosa.expediente,
                 "tipo_juicio": glosa.tipo_juicio,
-                "creado": glosa.creado.astimezone(local_tz).strftime("%Y-%m-%d %H:%M"),
+                "creado": glosa.creado.strftime("%Y-%m-%d %H:%M:%S"),
             }
         )
 
@@ -187,7 +187,7 @@ def admin_datatable_json():
                     "id": glosa.id,
                     "url": url_for("glosas.detail", glosa_id=glosa.id),
                 },
-                "creado": creado_local.strftime("%Y-%m-%d %H:%M"),
+                "creado": glosa.creado.strftime("%Y-%m-%d %H:%M:%S"),
                 "autoridad_clave": glosa.autoridad.clave,
                 "fecha": glosa.fecha.strftime("%Y-%m-%d"),
                 "descripcion": glosa.descripcion,

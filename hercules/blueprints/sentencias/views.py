@@ -159,7 +159,7 @@ def datatable_json():
                 "materia_tipo_juicio_descripcion": sentencia.materia_tipo_juicio.descripcion,
                 "descripcion": sentencia.descripcion if len(sentencia.descripcion) < 48 else sentencia.descripcion[:48] + "…",
                 "es_perspectiva_genero": "Sí" if sentencia.es_perspectiva_genero else "",
-                "creado": sentencia.creado.astimezone(local_tz).strftime("%Y-%m-%d %H:%M"),
+                "creado": sentencia.strftime("%Y-%m-%d %H:%M:%S"),
             }
         )
 
@@ -244,7 +244,7 @@ def admin_datatable_json():
                     "id": sentencia.id,
                     "url": url_for("sentencias.detail", sentencia_id=sentencia.id),
                 },
-                "creado": sentencia.creado.astimezone(local_tz).strftime("%Y-%m-%d %H:%M"),
+                "creado": sentencia.creado.strftime("%Y-%m-%d %H:%M:%S"),
                 "autoridad": sentencia.autoridad.clave,
                 "fecha": sentencia.fecha.strftime("%Y-%m-%d"),
                 "sentencia": sentencia.sentencia,
