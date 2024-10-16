@@ -123,7 +123,6 @@
     {% if not funcionario and current_user.can_edit('SOPORTES TICKETS') %}
         {{ modals.custom_javascript('Cancelar Ticket', '¿Deseas cancelar este ticket?', 'cancelar') }}
     {% endif %}
-    {{ detail.moment_js(moment) }}
     <script>
         if ("{{ ticket.estatus }}" == "A") {
             switch ("{{ ticket.estado }}")    {

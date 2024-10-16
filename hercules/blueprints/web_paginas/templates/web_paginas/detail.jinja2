@@ -33,7 +33,6 @@
         {{ detail.label_value('Cuándo publicar', web_pagina.tiempo_publicar) }}
         {{ detail.label_value('Cuándo archivar', web_pagina.tiempo_archivar) }}
         {{ detail.label_value('Estado', web_pagina.estado) }}
-        {# detail.label_value('Creado', moment(web_pagina.creado).format('llll')) #}
     {% endcall %}
     {% call detail.card('Contenido') %}
         {{ web_pagina.contenido }}
@@ -115,5 +114,4 @@
             filtrosWebArchivos.precargar();
         </script>
     {% endif %}
-    {{ detail.moment_js(moment) }}
 {% endblock %}

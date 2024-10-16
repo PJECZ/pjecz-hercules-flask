@@ -40,5 +40,4 @@
         {% if redam.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + redam.nombre + '?') }}{% endif %}
         {% if redam.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + redam.nombre + '?') }}{% endif %}
     {% endif %}
-    {{ detail.moment_js(moment) }}
 {% endblock %}

@@ -53,7 +53,7 @@
                 {{ detail.label_value('Expediente', edicto.expediente) }}
                 {{ detail.label_value('No. publicación', edicto.numero_publicacion) }}
                 {{ detail.label_value_boolean('Es Declaración de Ausencia', edicto.es_declaracion_de_ausencia) }}
-                {{ detail.label_value('Creado', moment(edicto.creado).format('llll')) }}
+                {{ detail.label_value('Creado', moment(edicto.creado, local=True).format('llll')) }}
             </div>
         </div>
         <div class="row">
@@ -79,5 +79,4 @@
         {% if edicto.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + descrito + '?') }}{% endif %}
         {% if edicto.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + descrito + '?') }}{% endif %}
     {% endif %}
-    {{ detail.moment_js(moment) }}
 {% endblock %}
