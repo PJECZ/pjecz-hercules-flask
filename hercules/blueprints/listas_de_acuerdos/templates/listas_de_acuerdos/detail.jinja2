@@ -62,5 +62,4 @@
         {% if lista_de_acuerdo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar ' + descrito + '?') }}{% endif %}
         {% if lista_de_acuerdo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar ' + descrito + '?') }}{% endif %}
     {% endif %}
-    {{ detail.moment_js(moment) }}
 {% endblock %}

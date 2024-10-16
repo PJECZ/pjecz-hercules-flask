@@ -91,7 +91,14 @@
                 data: null,
                 render: function (data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.id + '</a>';
-                },
+                }
+            },
+            {
+                targets: 1, // creado
+                data: null,
+                render: function (data, type, row, meta) {
+                    return moment(data).format('YYYY-MM-DD HH:mm');
+                }
             },
             {
                 targets: 1, // creado
@@ -111,8 +118,8 @@
                 targets: 3, // fecha
                 data: null,
                 render: function (data, type, row, meta) {
-                    return moment(data).format('DD MMM YYYY');
-                },
+                    return moment(data).format('YYYY-MM-DD');
+                }
             }
         ];
         // Filtros Listas De Acuerdos
