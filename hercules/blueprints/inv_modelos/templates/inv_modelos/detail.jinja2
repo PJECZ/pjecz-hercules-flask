@@ -26,7 +26,7 @@
             {{ detail.label_value('Marca', inv_modelo.inv_marca.nombre) }}
         {% endif %}
         {# detail.label_value('Descripción', inv_modelo.descripcion) #}
-        {# detail.label_value('Creado', moment(inv_modelo.creado, local=True).format('llll')) #}
+        {# detail.label_value('Creado', moment(inv_modelo.creado).format('llll')) #}
     {% endcall %}
     {% if current_user.can_view('INV EQUIPOS') %}
         {% call detail.card('Equipos') %}

@@ -49,7 +49,7 @@
                 {{ detail.label_value('Descripción', edicto.descripcion) }}
             </div>
             <div class="col-md-6">
-                {{ detail.label_value('Fecha', moment(edicto.fecha, local=True).format("DD MMM YYYY")) }}
+                {{ detail.label_value('Fecha', moment(edicto.fecha).format("DD MMM YYYY")) }}
                 {{ detail.label_value('Expediente', edicto.expediente) }}
                 {{ detail.label_value('No. publicación', edicto.numero_publicacion) }}
                 {{ detail.label_value_boolean('Es Declaración de Ausencia', edicto.es_declaracion_de_ausencia) }}

@@ -21,7 +21,7 @@
 {% block content %}
     {# call detail.card(estatus=inv_categoria.estatus) #}
         {# detail.label_value('Categoría', inv_categoria.nombre) #}
-        {# detail.label_value('Creado', moment(inv_categoria.creado, local=True).format('llll')) #}
+        {# detail.label_value('Creado', moment(inv_categoria.creado).format('llll')) #}
     {# endcall #}
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>

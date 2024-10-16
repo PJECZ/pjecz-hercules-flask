@@ -25,7 +25,7 @@
         {{ detail.label_value('Clave', web_archivo.clave) }}
         {{ detail.label_value('Archivo', web_archivo.archivo) }}
         {{ detail.label_value('URL', web_archivo.url, web_archivo.url) }}
-        {# detail.label_value('Creado', moment(web_archivo.creado, local=True).format('llll')) #}
+        {# detail.label_value('Creado', moment(web_archivo.creado).format('llll')) #}
     {% endcall %}
 {% endblock %}
 
