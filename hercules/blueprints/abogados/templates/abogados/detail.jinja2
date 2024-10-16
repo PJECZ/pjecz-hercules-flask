@@ -22,7 +22,7 @@
         {{ detail.label_value('Fecha', moment(abogado.fecha).format("DD MMM YYYY")) }}
         {{ detail.label_value('Número', abogado.numero) }}
         {{ detail.label_value('Libro', abogado.libro) }}
-        {{ detail.label_value('Creado', moment(abogado.creado, local=True).format('llll')) }}
+        {{ detail.label_value('Creado', moment(abogado.creado, local=False).format('llll')) }}
     {% endcall %}
 {% endblock %}
 
