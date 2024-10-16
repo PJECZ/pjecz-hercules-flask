@@ -110,7 +110,7 @@ def datatable_json():
                     "id": resultado.id,
                     "url": url_for("fin_vales.detail", fin_vale_id=resultado.id),
                 },
-                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
+                "creado": resultado.creado.strftime("%Y-%m-%dT%H:%M:%S"),
                 "usuario": {
                     "email": resultado.usuario.email,
                     "nombre": resultado.usuario.nombre,
