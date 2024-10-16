@@ -113,7 +113,7 @@
                 targets: 1, // creado
                 data: null,
                 render: function (data, type, row, meta) {
-                    return moment(data).format('YYYY-MM-DD HH:mm');
+                    return moment.utc(data).local().format('YYYY-MM-DD HH:mm');
                 }
             },
             {

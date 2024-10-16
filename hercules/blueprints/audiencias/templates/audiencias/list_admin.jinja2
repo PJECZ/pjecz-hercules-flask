@@ -109,7 +109,7 @@
                 targets: 1,  // creado
                 type: "date",
                 render: function (data, type, row) {
-                    return moment(data).format('YYYY-MM-DD HH:mm');
+                    return moment.utc(data).local().format('YYYY-MM-DD HH:mm');
                 }
             }
         ];
