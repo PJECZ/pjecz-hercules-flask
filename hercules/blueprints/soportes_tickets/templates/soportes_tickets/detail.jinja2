@@ -108,7 +108,7 @@
             </thead>
         </table>
         </div>
-        {% if ticket.estado == 'SIN ATENDER' %}
+        {% if ticket.estado == 'SIN ATENDER' or ticket.estado == "TRABAJANDO" %}
             <a class="btn btn-primary" href="{{url_for('soportes_adjuntos.new', soporte_ticket_id=ticket.id)}}">Adjuntar Archivo</a>
         {% endif %}
     {% endcall %}
