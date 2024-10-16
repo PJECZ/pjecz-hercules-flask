@@ -96,13 +96,6 @@
             {
                 targets: 1, // creado
                 data: null,
-                render: function (data, type, row, meta) {
-                    return moment(data).format('YYYY-MM-DD HH:mm');
-                }
-            },
-            {
-                targets: 1, // creado
-                data: null,
                 render: function(data, type, row, meta) {
                     let bandera = 'flag-checkered';
                     let color = 'green';
@@ -111,7 +104,7 @@
                     } else if (data.semaforo > 1) {
                         bandera = 'flag'; color = 'red';
                     }
-                    return data.tiempo + ' <span style="color: ' + color +  ';" class="iconify" data-icon="mdi:' + bandera + '"></span>';
+                    return moment(data.tiempo).format('YYYY-MM-DD HH:mm') + ' <span style="color: ' + color +  ';" class="iconify" data-icon="mdi:' + bandera + '"></span>';
                 }
             },
             {

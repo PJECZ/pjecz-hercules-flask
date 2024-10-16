@@ -223,7 +223,7 @@ def admin_datatable_json():
                     "url": url_for("listas_de_acuerdos.detail", lista_de_acuerdo_id=lista_de_acuerdo.id),
                 },
                 "creado": {
-                    "tiempo": creado_local.strftime("%Y-%m-%d %H:%M"),
+                    "tiempo": lista_de_acuerdo.creado.strftime("%Y-%m-%d %H:%M:%S"),
                     "semaforo": semaforo,
                 },
                 "autoridad_clave": lista_de_acuerdo.autoridad.clave,

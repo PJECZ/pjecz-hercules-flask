@@ -137,7 +137,7 @@ def datatable_json():
                 "expediente": edicto.expediente,
                 "numero_publicacion": edicto.numero_publicacion,
                 "es_declaracion_de_ausencia": "Sí" if edicto.es_declaracion_de_ausencia else "",
-                "creado": edicto.creado.astimezone(local_tz).strftime("%Y-%m-%d %H:%M"),
+                "creado": edicto.creado.strftime("%Y-%m-%d %H:%M:%S"),
             }
         )
 
@@ -212,7 +212,7 @@ def admin_datatable_json():
                     "id": edicto.id,
                     "url": url_for("edictos.detail", edicto_id=edicto.id),
                 },
-                "creado": edicto.creado.strftime("%Y-%m-%d %H:%M"),
+                "creado": edicto.creado.strftime("%Y-%m-%d %H:%M:%S"),
                 "autoridad": edicto.autoridad.clave,
                 "fecha": edicto.fecha.strftime("%Y-%m-%d 00:00:00"),
                 "descripcion": edicto.descripcion,
