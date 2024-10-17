@@ -5,7 +5,7 @@ Archivo - Documentos, vistas
 import json
 import os
 import requests
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for, current_app
 from flask_login import current_user, login_required
 from datetime import date
 from dotenv import load_dotenv
@@ -526,12 +526,11 @@ def search():
     # Proceso de búsqueda
     if "num_expediente" in request.form:
         num_expediente = request.form["num_expediente"]
-        load_dotenv()  # Take environment variables from .env
-        EXPEDIENTE_VIRTUAL_API_URL = os.environ.get("EXPEDIENTE_VIRTUAL_API_URL", "")
+        EXPEDIENTE_VIRTUAL_API_URL = current_app.config["EXPEDIENTE_VIRTUAL_API_URL"]
         if EXPEDIENTE_VIRTUAL_API_URL == "":
             flash("No se declaro la variable de entorno EXPEDIENTE_VIRTUAL_API_URL", "warning")
             return redirect(url_for("arc_documentos.new"))
-        EXPEDIENTE_VIRTUAL_API_KEY = os.environ.get("EXPEDIENTE_VIRTUAL_API_KEY", "")
+        EXPEDIENTE_VIRTUAL_API_KEY = current_app.config["EXPEDIENTE_VIRTUAL_API_KEY"]
         if EXPEDIENTE_VIRTUAL_API_KEY == "":
             flash("No se declaro la variable de entorno EXPEDIENTE_VIRTUAL_API_KEY", "warning")
             return redirect(url_for("arc_documentos.new"))
@@ -609,11 +608,11 @@ def search():
                 # Si no fue encontrado en PAIJ ahora buscar en SIBED
                 if not encontrado_paij:
                     # Si no encontró nada en Expediente Virtual ahora buscar en SIBED
-                    PEGASO_API_URL = os.environ.get("PEGASO_API_URL", "")
+                    PEGASO_API_URL = current_app.config["PEGASO_API_URL"]
                     if PEGASO_API_URL == "":
                         flash("No se declaro la variable de entorno PEGASO_API_URL", "warning")
                         return redirect(url_for("arc_documentos.new"))
-                    PEGASO_API_KEY = os.environ.get("PEGASO_API_KEY", "")
+                    PEGASO_API_KEY = current_app.config["PEGASO_API_KEY"]
                     if PEGASO_API_KEY == "":
                         flash("No se declaro la variable de entorno PEGASO_API_KEY", "warning")
                         return redirect(url_for("arc_documentos.new"))
