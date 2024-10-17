@@ -11,9 +11,9 @@
         {% if current_user.can_view('CENTROS TRABAJOS') %}
             {{ topbar.button('Centros de Trabajo', url_for('centros_trabajos.list_active'), 'mdi:home-group') }}
         {% endif %}
-        {# {% if current_user.can_edit('FUNCIONARIOS') %}
+        {% if current_user.can_edit('FUNCIONARIOS') %}
             {{ topbar.button_edit('Editar', url_for('funcionarios.edit', funcionario_id=funcionario.id)) }}
-        {% endif %}#}
+        {% endif %}
         {% if current_user.can_admin('FUNCIONARIOS') %}
             {% if funcionario.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('funcionarios.delete', funcionario_id=funcionario.id)) }}{% endif %}
             {% if funcionario.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('funcionarios.recover', funcionario_id=funcionario.id)) }}{% endif %}
@@ -127,13 +127,13 @@
                     </tr>
                 </thead>
             </table>
-            {# {% if current_user.can_insert('FUNCIONARIOS OFICINAS') %}
+            {% if current_user.can_insert('FUNCIONARIOS OFICINAS') %}
                 <a href="{{ url_for('funcionarios_oficinas.new_with_funcionario', funcionario_id=funcionario.id) }}" class="btn btn-primary">Agregar</a>
-            {% endif %} #}
-            {# {% if current_user.can_edit('FUNCIONARIOS OFICINAS') %}
+            {% endif %}
+            {% if current_user.can_edit('FUNCIONARIOS OFICINAS') %}
                 <a href="{{ url_for('funcionarios.clean', funcionario_id=funcionario.id) }}" class="btn btn-primary">Limpiar</a>
                 <a href="{{ url_for('funcionarios.insert_offices', funcionario_id=funcionario.id) }}" class="btn btn-primary">Asignar domicilio</a>
-            {% endif %} #}
+            {% endif %}
         {% endcall %}
     {% endif %}
 {% endblock %}
