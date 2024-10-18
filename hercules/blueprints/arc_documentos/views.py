@@ -605,68 +605,6 @@ def search():
                         flash("Registro NO encontrado en PAIJ", "warning")
                 else:
                     flash("Respuesta no esperada por parte del API de DataWareHouse", "danger")
-                # Si no fue encontrado en PAIJ ahora buscar en SIBED
-                # if not encontrado_paij:
-                #     # Si no encontró nada en Expediente Virtual ahora buscar en SIBED
-                #     PEGASO_API_URL = current_app.config["PEGASO_API_URL"]
-                #     if PEGASO_API_URL == "":
-                #         flash("No se declaro la variable de entorno PEGASO_API_URL", "warning")
-                #         return redirect(url_for("arc_documentos.new"))
-                #     PEGASO_API_KEY = current_app.config["PEGASO_API_KEY"]
-                #     if PEGASO_API_KEY == "":
-                #         flash("No se declaro la variable de entorno PEGASO_API_KEY", "warning")
-                #         return redirect(url_for("arc_documentos.new"))
-                #     headers = {"Accept": "application/json", "X-Api-Key": PEGASO_API_KEY}
-                #     url_api = f"{PEGASO_API_URL}?juzgado_id={autoridad_id}&num_expediente={num_expediente}"
-                #     # Hace el llamado a la API
-                #     respuesta_api = {}
-                #     try:
-                #         response = requests.request("GET", url=url_api, headers=headers, timeout=32)
-                #         respuesta_api = json.loads(response.text)
-                #     except requests.exceptions.RequestException as err:
-                #         flash(f"Error en API {err}", "danger")
-                #         respuesta_api["success"] = None
-                #         respuesta_api["response"] = "ERROR DE API"
-                #         respuesta_api["Description"] = "No hubo comunicación con la API"
-
-                #     if "success" in respuesta_api:
-                #         if respuesta_api["success"]:
-                #             flash("Registro encontrado en SIBED", "success")
-                #             form.expediente.data = num_expediente
-                #             form.anio.data = extract_expediente_anio(num_expediente)
-                #             form.juicio.data = respuesta_api["juicio"]
-                #             form.actor.data = respuesta_api["actor"]
-                #             form.demandado.data = respuesta_api["demandado"]
-                #             form.tipo.data = respuesta_api["tipo"]
-                #             if respuesta_api["juzgado_origen_id"] is None:
-                #                 form.juzgado_origen.data = ""
-                #             else:
-                #                 form.juzgado_origen.data = respuesta_api["juzgado_origen_id"]
-                #             if respuesta_api["fojas"] is None:
-                #                 form.fojas.data = ""
-                #             else:
-                #                 form.fojas.data = respuesta_api["fojas"]
-                #             if respuesta_api["observaciones"] is None:
-                #                 form.notas.data = ""
-                #             else:
-                #                 form.notas.data = respuesta_api["observaciones"]
-                #             if (
-                #                 ROL_JEFE_REMESA in current_user_roles
-                #                 or current_user.can_admin(MODULO)
-                #                 or ROL_JEFE_REMESA_ADMINISTRADOR in current_user_roles
-                #             ):
-                #                 form.juzgado_id.data = autoridad_id
-                #                 mostrar_secciones["juzgado_nombre"] = autoridad.nombre
-                #         else:
-                #             flash("Registro NO encontrado en SIBED", "warning")
-                #             if (
-                #                 ROL_JEFE_REMESA in current_user_roles
-                #                 or current_user.can_admin(MODULO)
-                #                 or ROL_JEFE_REMESA_ADMINISTRADOR in current_user_roles
-                #             ):
-                #                 mostrar_secciones["juzgado_nombre"] = autoridad.nombre
-                #     else:
-                #         flash("Respuesta no esperada del API por parte de PEGASO", "danger")
             else:
                 flash("Este juzgado no tiene acceso al Buscador. Asigne un valor datawarehouse_id", "warning")
         else:
