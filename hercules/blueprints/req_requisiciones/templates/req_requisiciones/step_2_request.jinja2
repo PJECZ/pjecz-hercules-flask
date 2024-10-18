@@ -1,0 +1,36 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Solicitar Requisición{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Solicitar Requisición ' + req_requisicion.glosa | string) }}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(title='Creado') %}
+        {{ detail.label_value('Nombre', req_requisicion.usuario.nombre) }}
+        {{ detail.label_value('Puesto', req_requisicion.usuario.puesto) }}
+        {{ detail.label_value('e-mail', req_requisicion.usuario.email) }}
+        {{ detail.label_value('Fecha de captura', moment(req_requisicion.creado).format('llll')) }}
+        {{ detail.label_value('Glosa', req_requisicion.glosa) }}
+
+    {% endcall %}
+    {% call f.card(title='Solicitar') %}
+        {% set form_kwargs = {'req_requisicion_id': req_requisicion.id} %}
+        {% call f.form_tag('req_requisiciones.step_2_request', fid='step_2_request_form', **form_kwargs) %}
+            {% call f.form_group(form.solicito_nombre, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.solicito_puesto, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.solicito_email, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.contrasena) %}{% endcall %}
+            {% call f.form_group(form.solicitar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}
+
+
+{% block custom_javascript %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}
