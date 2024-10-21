@@ -29,9 +29,20 @@ from lib.exceptions import (
 from lib.safe_string import safe_string
 from lib.tasks import set_task_error, set_task_progress
 
-# Zona horaria
+# Constantes
+JINJA2_TEMPLATES_DIR = "hercules/blueprints/fin_vales/templates/fin_vales"
+ROL_SOLICITANTES = "FINANCIEROS SOLICITANTES"  # Rol que debe de estar en la BD
+ROL_AUTORIZANTES = "FINANCIEROS AUTORIZANTES"  # Rol que debe de estar en la BD
+TIMEOUT = 24  # Segundos de espera para la respuesta del motor de firma
 TIMEZONE = "America/Mexico_City"
-local_tz = pytz.timezone(TIMEZONE)
+
+# Bitácora logs/fin_vales.log
+bitacora = logging.getLogger(__name__)
+bitacora.setLevel(logging.INFO)
+formato = logging.Formatter("%(asctime)s:%(levelname)s:%(message)s")
+empunadura = logging.FileHandler("logs/fin_vales.log")
+empunadura.setFormatter(formato)
+bitacora.addHandler(empunadura)
 
 # Cargar las variables de entorno
 load_dotenv()
@@ -40,20 +51,11 @@ FIN_VALES_EFIRMA_CAN_FIRMA_CADENA_URL = os.getenv("FIN_VALES_EFIRMA_CAN_FIRMA_CA
 FIN_VALES_EFIRMA_QR_URL = os.getenv("FIN_VALES_EFIRMA_QR_URL", "")
 FIN_VALES_EFIRMA_APP_ID = os.getenv("FIN_VALES_EFIRMA_APP_ID", "")
 FIN_VALES_EFIRMA_APP_PASS = os.getenv("FIN_VALES_EFIRMA_APP_PASS", "")
+HOST = os.getenv("HOST", "http://localhost:5000")
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "")
+SENDGRID_FROM_EMAIL = os.getenv("SENDGRID_FROM_EMAIL", "plataforma.web@pjecz.gob.mx")
 
-# Roles que deben estar en la base de datos
-ROL_SOLICITANTES = "FINANCIEROS SOLICITANTES"
-ROL_AUTORIZANTES = "FINANCIEROS AUTORIZANTES"
-
-TIMEOUT = 24  # Segundos de espera para la respuesta del motor de firma
-
-bitacora = logging.getLogger(__name__)
-bitacora.setLevel(logging.INFO)
-formato = logging.Formatter("%(asctime)s:%(levelname)s:%(message)s")
-empunadura = logging.FileHandler("logs/fin_vales.log")
-empunadura.setFormatter(formato)
-bitacora.addHandler(empunadura)
-
+# Cargar la aplicación para tener acceso a la base de datos
 app = create_app()
 app.app_context().push()
 database.app = app
@@ -62,7 +64,7 @@ database.app = app
 def solicitar(fin_vale_id: int, usuario_id: int, contrasena: str):
     """Firmar electronicamente el vale por quien solicita"""
 
-    # Validar configuracion
+    # Validar las variables de entorno
     if FIN_VALES_EFIRMA_SER_FIRMA_CADENA_URL == "":
         mensaje = "Falta configurar FIN_VALES_EFIRMA_SER_FIRMA_CADENA_URL"
         bitacora.error(mensaje)
@@ -216,19 +218,18 @@ def solicitar(fin_vale_id: int, usuario_id: int, contrasena: str):
     fin_vale.estado = "SOLICITADO"
     fin_vale.save()
 
-    # Definir el remitente del mensaje de correo electronico
-    remitente_email = Email(os.environ.get("SENDGRID_FROM_EMAIL", "plataforma.web@pjecz.gob.mx"))
+    # Definir el remitente del mensaje
+    remitente_email = Email(SENDGRID_FROM_EMAIL)
 
-    # Definir el destinatario del mensaje de correo electronico
+    # Definir el destinatario del mensaje
     destinatario_email = To(fin_vale.usuario.email)
 
-    # Definir el asunto del mensaje de correo electronico
+    # Definir el asunto del mensaje
     asunto = f"Vale de Gasolina {fin_vale_id} Solicitado"
 
-    # Definir el contenido del mensaje de correo electronico
-    host = os.environ.get("HOST", "http://127.0.0.1:5000")
-    detalle_url = f"{host}/fin_vales/{fin_vale.id}"
-    imprimir_url = f"{host}/fin_vales/imprimir/{fin_vale.id}"
+    # Definir el contenido del mensaje
+    detalle_url = f"{HOST}/fin_vales/{fin_vale.id}"
+    imprimir_url = f"{HOST}/fin_vales/imprimir/{fin_vale.id}"
     contenidos = []
     contenidos.append("<h2>Plataforma Hércules - Vales de Gasolina</h2>")
     contenidos.append(f"<p>La <a href='{detalle_url}'>solicitud del vale {fin_vale.id}</a> ya fue firmada.</p>")
@@ -238,11 +239,10 @@ def solicitar(fin_vale_id: int, usuario_id: int, contrasena: str):
     contenidos.append(f"<p>Nota: Este mensaje fue creado por un programa. <strong>Favor de NO responder.</strong></p>")
     contenido = Content("text/html", "\n".join(contenidos))
 
-    # Enviar el mensaje de correo electronico
-    api_key = os.environ.get("SENDGRID_API_KEY", "")
-    if api_key != "":
+    # Enviar el mensaje
+    if SENDGRID_API_KEY != "":
         try:
-            send_grid = sendgrid.SendGridAPIClient(api_key=api_key)
+            send_grid = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
             mail = Mail(remitente_email, destinatario_email, asunto, contenido)
             send_grid.client.mail.send.post(request_body=mail.get())
         except Exception as error:
@@ -250,33 +250,33 @@ def solicitar(fin_vale_id: int, usuario_id: int, contrasena: str):
             bitacora.warning(mensaje)
 
     # Entregar
-    mensaje = f"Se firmo electronicamente el vale {fin_vale_id} y ahora esta SOLICITADO"
+    mensaje = f"Se firmo electrónicamente el vale {fin_vale_id} y ahora esta SOLICITADO"
     return mensaje
 
 
 def lanzar_solicitar(fin_vale_id: int, usuario_id: int, contrasena: str):
-    """Lanzar tarea para firmar electronicamente el vale por quien solicita"""
+    """Lanzar tarea para firmar electrónicamente el vale por quien solicita"""
 
     # Iniciar la tarea en el fondo
-    set_task_progress(0, "Inicia la tarea para firmar electronicamente el vale por quien solicita")
+    set_task_progress(0, "Inicia la tarea para firmar electrónicamente el vale por quien solicita")
 
     # Ejecutar
     try:
-        mensaje = solicitar(fin_vale_id, usuario_id, contrasena)
+        mensaje_termino = solicitar(fin_vale_id, usuario_id, contrasena)
     except MyAnyError as error:
         mensaje_error = str(error)
         set_task_error(mensaje_error)
         return mensaje_error
 
-    # Terminar la tarea en el fondo y entregar el mensaje de termino
-    set_task_progress(progress=100, message=mensaje)
-    return mensaje
+    # Terminar la tarea en el fondo y entregar el mensaje de término
+    set_task_progress(progress=100, message=mensaje_termino)
+    return mensaje_termino
 
 
 def cancelar_solicitar(fin_vale_id: int, contrasena: str, motivo: str):
     """Cancelar la firma electronica de un vale por quien solicita"""
 
-    # Validar configuracion
+    # Validar las variables de entorno
     if FIN_VALES_EFIRMA_CAN_FIRMA_CADENA_URL is None:
         mensaje = "Falta configurar FIN_VALES_EFIRMA_CAN_FIRMA_CADENA_URL"
         bitacora.error(mensaje)
@@ -343,7 +343,7 @@ def cancelar_solicitar(fin_vale_id: int, contrasena: str, motivo: str):
         )
         response.raise_for_status()
     except requests.exceptions.ConnectionError as error:
-        mensaje = "Error de conexion al cancelar el vale. " + safe_string(str(error))
+        mensaje = "Error de conexión al cancelar el vale. " + safe_string(str(error))
         fin_vale.solicito_efirma_error = mensaje
         fin_vale.save()
         bitacora.error(mensaje)
@@ -400,10 +400,10 @@ def cancelar_solicitar(fin_vale_id: int, contrasena: str, motivo: str):
 
 
 def lanzar_cancelar_solicitar(fin_vale_id: int, contrasena: str, motivo: str):
-    """Lanzar tarea para cancelar la firma electronica de un vale por quien solicita"""
+    """Lanzar tarea para cancelar la firma electrónica de un vale por quien solicita"""
 
     # Iniciar la tarea en el fondo
-    set_task_progress(0, "Inicia la tarea para cancelar la firma electronica de un vale por quien solicita")
+    set_task_progress(0, "Inicia la tarea para cancelar la firma electrónica de un vale por quien solicita")
 
     # Ejecutar
     try:
@@ -419,9 +419,9 @@ def lanzar_cancelar_solicitar(fin_vale_id: int, contrasena: str, motivo: str):
 
 
 def autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
-    """Firmar electronicamente el vale por quien autoriza"""
+    """Firmar electrónicamente el vale por quien autoriza"""
 
-    # Validar configuracion
+    # Validar las variables de entorno
     if FIN_VALES_EFIRMA_SER_FIRMA_CADENA_URL == "":
         mensaje = "Falta configurar FIN_VALES_EFIRMA_SER_FIRMA_CADENA_URL"
         bitacora.error(mensaje)
@@ -579,7 +579,7 @@ def autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
     fin_vale.save()
 
     # Definir el remitente del mensaje de correo electronico
-    remitente_email = Email(os.environ.get("SENDGRID_FROM_EMAIL", "plataforma.web@pjecz.gob.mx"))
+    remitente_email = Email(SENDGRID_FROM_EMAIL)
 
     # Definir el destinatario del mensaje de correo electrónico
     destinatario_email = To(fin_vale.usuario.email)
@@ -588,9 +588,9 @@ def autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
     asunto = f"Vale de Gasolina {fin_vale_id} Autorizado"
 
     # Definir el contenido del mensaje de correo electrónico
-    host = os.environ.get("HOST", "http://127.0.0.1:5000")
-    detalle_url = f"{host}/fin_vales/{fin_vale.id}"
-    imprimir_url = f"{host}/fin_vales/imprimir/{fin_vale.id}"
+    # host = os.environ.get("HOST", "http://127.0.0.1:5000")
+    detalle_url = f"{HOST}/fin_vales/{fin_vale.id}"
+    imprimir_url = f"{HOST}/fin_vales/imprimir/{fin_vale.id}"
     contenidos = []
     contenidos.append("<h2>Vale de Gasolina</h2>")
     contenidos.append(f"<p>La <a href='{detalle_url}'>autorización del vale {fin_vale.id}</a> ya fue firmada.</p>")
@@ -601,10 +601,10 @@ def autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
     contenido = Content("text/html", "\n".join(contenidos))
 
     # Enviar el mensaje de correo electronico
-    api_key = os.environ.get("SENDGRID_API_KEY", "")
-    if api_key != "":
+    # api_key = os.environ.get("SENDGRID_API_KEY", "")
+    if SENDGRID_API_KEY != "":
         try:
-            send_grid = sendgrid.SendGridAPIClient(api_key=api_key)
+            send_grid = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
             mail = Mail(remitente_email, destinatario_email, asunto, contenido)
             send_grid.client.mail.send.post(request_body=mail.get())
         except Exception as error:
@@ -617,10 +617,10 @@ def autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
 
 
 def lanzar_autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
-    """Lanzar tarea para firmar electronicamente el vale por quien autoriza"""
+    """Lanzar tarea para firmar electrónicamente el vale por quien autoriza"""
 
     # Iniciar la tarea en el fondo
-    set_task_progress(0, "Inicia la tarea para firmar electronicamente el vale por quien autoriza")
+    set_task_progress(0, "Inicia la tarea para firmar electrónicamente el vale por quien autoriza")
 
     # Ejecutar
     try:
@@ -636,9 +636,9 @@ def lanzar_autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
 
 
 def cancelar_autorizar(fin_vale_id: int, contrasena: str, motivo: str):
-    """Cancelar la firma electronica de un vale por quien autoriza"""
+    """Cancelar la firma electrónica de un vale por quien autoriza"""
 
-    # Validar configuracion
+    # Validar las variables de entorno
     if FIN_VALES_EFIRMA_CAN_FIRMA_CADENA_URL is None:
         mensaje = "Falta configurar FIN_VALES_EFIRMA_CAN_FIRMA_CADENA_URL"
         bitacora.error(mensaje)
@@ -671,7 +671,7 @@ def cancelar_autorizar(fin_vale_id: int, contrasena: str, motivo: str):
         bitacora.error(mensaje)
         raise MyNotValidParamError(mensaje)
 
-    # Consultar al usuario que lo autorizo
+    # Consultar al usuario que lo autorizó
     autorizo = Usuario.query.filter_by(email=fin_vale.autorizo_email).first()
     if autorizo is None:
         mensaje = f"No se encontró el usuario {fin_vale.autorizo_email} que autorizo"
@@ -695,7 +695,7 @@ def cancelar_autorizar(fin_vale_id: int, contrasena: str, motivo: str):
         "folios": fin_vale.autorizo_efirma_folio,
     }
 
-    # Enviar la cancelacion al motor de firma
+    # Enviar la cancelación al motor de firma
     try:
         response = requests.post(
             FIN_VALES_EFIRMA_CAN_FIRMA_CADENA_URL,
@@ -705,7 +705,7 @@ def cancelar_autorizar(fin_vale_id: int, contrasena: str, motivo: str):
         )
         response.raise_for_status()
     except requests.exceptions.ConnectionError as error:
-        mensaje = "Error de conexion al cancelar el vale. " + safe_string(str(error))
+        mensaje = "Error de conexión al cancelar el vale. " + safe_string(str(error))
         fin_vale.solicito_efirma_error = mensaje
         fin_vale.save()
         bitacora.error(mensaje)
@@ -762,10 +762,10 @@ def cancelar_autorizar(fin_vale_id: int, contrasena: str, motivo: str):
 
 
 def lanzar_cancelar_autorizar(fin_vale_id: int, contrasena: str, motivo: str):
-    """Lanzar tarea para cancelar la firma electronica de un vale por quien autoriza"""
+    """Lanzar tarea para cancelar la firma electrónica de un vale por quien autoriza"""
 
     # Iniciar la tarea en el fondo
-    set_task_progress(0, "Inicia la tarea para cancelar la firma electronica de un vale por quien autoriza")
+    set_task_progress(0, "Inicia la tarea para cancelar la firma electrónica de un vale por quien autoriza")
 
     # Ejecutar
     try:
