@@ -333,7 +333,7 @@ def cancelar_solicitar(fin_vale_id: int, contrasena: str, motivo: str):
         "folios": fin_vale.solicito_efirma_folio,
     }
 
-    # Enviar la cancelacion al motor de firma
+    # Enviar la cancelación al motor de firma
     try:
         response = requests.post(
             FIN_VALES_EFIRMA_CAN_FIRMA_CADENA_URL,
@@ -578,17 +578,16 @@ def autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
     fin_vale.estado = "AUTORIZADO"
     fin_vale.save()
 
-    # Definir el remitente del mensaje de correo electronico
+    # Definir el remitente del mensaje
     remitente_email = Email(SENDGRID_FROM_EMAIL)
 
-    # Definir el destinatario del mensaje de correo electrónico
+    # Definir el destinatario del mensaje
     destinatario_email = To(fin_vale.usuario.email)
 
-    # Definir el asunto del mensaje de correo electrónico
+    # Definir el asunto del mensaje
     asunto = f"Vale de Gasolina {fin_vale_id} Autorizado"
 
-    # Definir el contenido del mensaje de correo electrónico
-    # host = os.environ.get("HOST", "http://127.0.0.1:5000")
+    # Definir el contenido del mensaje
     detalle_url = f"{HOST}/fin_vales/{fin_vale.id}"
     imprimir_url = f"{HOST}/fin_vales/imprimir/{fin_vale.id}"
     contenidos = []
@@ -600,8 +599,7 @@ def autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
     contenidos.append(f"<p>Nota: Este mensaje fue creado por un programa. <strong>Favor de NO responder.</strong></p>")
     contenido = Content("text/html", "\n".join(contenidos))
 
-    # Enviar el mensaje de correo electronico
-    # api_key = os.environ.get("SENDGRID_API_KEY", "")
+    # Enviar el mensaje
     if SENDGRID_API_KEY != "":
         try:
             send_grid = sendgrid.SendGridAPIClient(api_key=SENDGRID_API_KEY)
