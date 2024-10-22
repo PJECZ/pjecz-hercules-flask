@@ -34,7 +34,7 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    <!-- Select2 bootstrap -->
+    <!-- Select2 -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         // Funcion para convertir el monto a texto
@@ -55,7 +55,7 @@
             $('#justificacion').val('Solicito un vale de gasolina de ' + convertir_monto_a_texto()
                 + ' para {{ current_user.nombre }} con el objetivo de ir a DESTINO.');
         }
-        // Cuando este listo el DOM
+        // Cuando esté listo el DOM, Select2 para elegir quien usará, quien solicita y quien autoriza el vale
         $(document).ready(function(){
             // Agregar clases a los select
             $('#usuario_email').addClass('js-usuario-data-ajax js-states form-control');

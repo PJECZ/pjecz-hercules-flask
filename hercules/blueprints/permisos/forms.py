@@ -22,7 +22,7 @@ class PermisoEditForm(FlaskForm):
 
     modulo = StringField("Módulo")  # Solo lectura
     rol = StringField("Rol")  # Solo lectura
-    nivel = RadioField("Nivel", validators=[DataRequired()], choices=NIVELES, coerce=int)
+    nivel = RadioField("Nivel", coerce=int, choices=NIVELES, validators=[DataRequired()])
     guardar = SubmitField("Guardar")
 
 
@@ -31,11 +31,11 @@ class PermisoNewWithModuloForm(FlaskForm):
 
     modulo = StringField("Módulo")  # Solo lectura
     rol = SelectField("Rol", coerce=int, validators=[DataRequired()])
-    nivel = RadioField("Nivel", validators=[DataRequired()], choices=NIVELES, coerce=int)
+    nivel = RadioField("Nivel", coerce=int, choices=NIVELES, validators=[DataRequired()])
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones para rol"""
+        """Inicializar y cargar opciones en rol"""
         super().__init__(*args, **kwargs)
         self.rol.choices = [(r.id, r.nombre) for r in Rol.query.filter_by(estatus="A").order_by(Rol.nombre).all()]
 
@@ -49,6 +49,6 @@ class PermisoNewWithRolForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones para modulo"""
+        """Inicializar y cargar opciones en modulo"""
         super().__init__(*args, **kwargs)
         self.modulo.choices = [(m.id, m.nombre) for m in Modulo.query.filter_by(estatus="A").order_by(Modulo.nombre).all()]

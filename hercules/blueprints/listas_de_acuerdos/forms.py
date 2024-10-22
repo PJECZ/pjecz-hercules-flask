@@ -31,6 +31,6 @@ class ListaDeAcuerdoMateriaNewForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de materia"""
+        """Inicializar y cargar opciones en materia"""
         super().__init__(*args, **kwargs)
         self.materia.choices = [(m.id, m.nombre) for m in Materia.query.filter_by(estatus="A").order_by(Materia.nombre).all()]

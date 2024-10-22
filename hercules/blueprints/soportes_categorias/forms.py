@@ -3,7 +3,7 @@ Soportes Categorías, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, SelectField
+from wtforms import SelectField, StringField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length, Optional
 
 from hercules.blueprints.roles.models import Rol
@@ -20,6 +20,6 @@ class SoporteCategoriaForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones en roles"""
+        """Inicializar y cargar opciones en rol"""
         super().__init__(*args, **kwargs)
-        self.rol.choices = [(d.id, d.nombre) for d in Rol.query.filter_by(estatus="A").order_by(Rol.nombre).all()]
+        self.rol.choices = [(r.id, r.nombre) for r in Rol.query.filter_by(estatus="A").order_by(Rol.nombre).all()]

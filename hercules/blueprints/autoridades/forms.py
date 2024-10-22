@@ -7,12 +7,12 @@ from flask_wtf import FlaskForm
 from wtforms import BooleanField, IntegerField, SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length, NumberRange, Optional, Regexp
 
-from lib.safe_string import CLAVE_REGEXP
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.distritos.models import Distrito
 from hercules.blueprints.estados.models import Estado
 from hercules.blueprints.materias.models import Materia
 from hercules.blueprints.municipios.models import Municipio
+from lib.safe_string import CLAVE_REGEXP
 
 
 class AutoridadNewForm(FlaskForm):
@@ -41,7 +41,7 @@ class AutoridadNewForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones para distrito, materia y municipio"""
+        """Inicializar y cargar opciones en distrito, materia y municipio"""
         super().__init__(*args, **kwargs)
         self.distrito.choices = [
             (d.id, d.nombre_corto) for d in Distrito.query.filter_by(estatus="A").order_by(Distrito.nombre_corto).all()
@@ -87,7 +87,7 @@ class AutoridadEditForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones para distrito, materia y municipio"""
+        """Inicializar y cargar opciones en distrito, materia y municipio"""
         super().__init__(*args, **kwargs)
         self.distrito.choices = [
             (d.id, d.nombre_corto) for d in Distrito.query.filter_by(estatus="A").order_by(Distrito.nombre_corto).all()

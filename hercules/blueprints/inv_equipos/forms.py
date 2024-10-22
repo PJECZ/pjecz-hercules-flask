@@ -15,7 +15,7 @@ class InvEquipoNewForm(FlaskForm):
     """Formulario nuevo InvEquipo"""
 
     # Es obligatorio seleccionar un inv_modelo
-    inv_modelo = SelectField("Marca - Modelo", coerce=int, validators=[DataRequired()])
+    inv_modelo = SelectField("Marca - Modelo", coerce=int, validators=[DataRequired()])  # Select2
     descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=512)])
     tipo = SelectField("Tipo de equipo", choices=InvEquipo.TIPOS.items(), validators=[DataRequired()])
     fecha_fabricacion_anio = IntegerField("Año de fabricación", validators=[Optional()])
@@ -31,7 +31,7 @@ class InvEquipoNewForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de inv_red"""
+        """Inicializar y cargar opciones en inv_red"""
         super().__init__(*args, **kwargs)
         self.inv_red.choices = [
             (r.id, f"{r.nombre} ({r.tipo})") for r in InvRed.query.filter_by(estatus="A").order_by(InvRed.nombre).all()
@@ -42,7 +42,7 @@ class InvEquipoEditForm(FlaskForm):
     """Formulario editar InvEquipo"""
 
     # Es opcional cambiar el inv_modelo
-    inv_modelo = SelectField("Cambiar la marca y modelo", coerce=int, validators=[Optional()], validate_choice=False)
+    inv_modelo = SelectField("Marca y modelo", coerce=int, validators=[Optional()], validate_choice=False)  # Select2
     descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=512)])
     tipo = SelectField("Tipo de equipo", choices=InvEquipo.TIPOS.items(), validators=[DataRequired()])
     fecha_fabricacion_anio = IntegerField("Año de fabricación", validators=[Optional()])
@@ -58,7 +58,7 @@ class InvEquipoEditForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de inv_red"""
+        """Inicializar y cargar opciones en inv_red"""
         super().__init__(*args, **kwargs)
         self.inv_red.choices = [
             (r.id, f"{r.nombre} ({r.tipo})") for r in InvRed.query.filter_by(estatus="A").order_by(InvRed.nombre).all()

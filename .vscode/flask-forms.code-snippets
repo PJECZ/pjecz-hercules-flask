@@ -72,7 +72,7 @@
       "\tguardar = SubmitField('Guardar')",
       "",
       "\tdef __init__(self, *args, **kwargs):",
-      "\t\t\"\"\"Inicializar y cargar opciones para ${5:rel_singular}\"\"\"",
+      "\t\t\"\"\"Inicializar y cargar opciones en ${5:rel_singular}\"\"\"",
       "\t\tsuper().__init__(*args, **kwargs)",
       "\t\tself.${5:rel_singular}.choices = [",
       "\t\t\t(d.id, d.clave + \" - \" + d.nombre_corto)",

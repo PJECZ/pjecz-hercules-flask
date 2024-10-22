@@ -3,7 +3,7 @@ Archivo - Juzgados Extintos, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField
+from wtforms import SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length, Optional
 
 from hercules.blueprints.distritos.models import Distrito
@@ -19,7 +19,7 @@ class ArcJuzgadoExtintoForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de distritos"""
+        """Inicializar y cargar opciones en distrito"""
         super().__init__(*args, **kwargs)
         self.distrito.choices = [
             (d.id, d.clave + " - " + d.nombre_corto)
