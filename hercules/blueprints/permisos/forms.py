@@ -22,7 +22,7 @@ class PermisoEditForm(FlaskForm):
 
     modulo = StringField("Módulo")  # Solo lectura
     rol = StringField("Rol")  # Solo lectura
-    nivel = RadioField("Nivel", validators=[DataRequired()], choices=NIVELES, coerce=int)
+    nivel = RadioField("Nivel", coerce=int, choices=NIVELES, validators=[DataRequired()])
     guardar = SubmitField("Guardar")
 
 

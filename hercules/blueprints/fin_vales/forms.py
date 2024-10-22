@@ -9,21 +9,17 @@ from wtforms.validators import DataRequired, Length, Optional
 from hercules.blueprints.fin_vales.models import FinVale
 
 MONTOS = [
-    ("100.0", "$100.00"),
     ("200.0", "$200.00"),
+    ("500.0", "$500.00"),
 ]
 
 
 class FinValeEditForm(FlaskForm):
     """Formulario para editar un vale"""
 
-    usuario_email = SelectField("Cambiar al usuario con e-mail", coerce=str, validators=[Optional()], validate_choice=False)
-    solicito_email = SelectField(
-        "Cambiar al solicitante con e-mail", coerce=str, validators=[Optional()], validate_choice=False
-    )
-    autorizo_email = SelectField(
-        "Cambiar al autorizante con e-mail", coerce=str, validators=[Optional()], validate_choice=False
-    )
+    usuario_email = SelectField("Quien lo usará", coerce=str, validators=[Optional()], validate_choice=False)  # Select2
+    solicito_email = SelectField("Quien lo solicitará", coerce=str, validators=[Optional()], validate_choice=False)  # Select2
+    autorizo_email = SelectField("Quien lo autorizará", coerce=str, validators=[Optional()], validate_choice=False)  # Select2
     justificacion = TextAreaField("Justificación", validators=[DataRequired(), Length(max=1024)], render_kw={"rows": 4})
     monto = SelectField("Monto", choices=MONTOS, validators=[DataRequired()])
     actualizar = SubmitField("Actualizar")
@@ -32,9 +28,9 @@ class FinValeEditForm(FlaskForm):
 class FinValeStep1CreateForm(FlaskForm):
     """Formulario paso 1 crear FinVale"""
 
-    usuario_email = StringField("E-mail del usuario")  # Read only
-    solicito_email = StringField("E-mail del solicitante")  # Read only
-    autorizo_email = StringField("E-mail del autorizante")  # Read only
+    usuario_email = StringField("Quien lo usará")  # Read only
+    solicito_email = StringField("Quien lo solicitará")  # Read only
+    autorizo_email = StringField("Quien lo autorizará")  # Read only
     justificacion = TextAreaField("Justificación", validators=[DataRequired(), Length(max=1024)], render_kw={"rows": 4})
     monto = SelectField("Monto", choices=MONTOS, validators=[DataRequired()])
     guardar = SubmitField("Guardar")
