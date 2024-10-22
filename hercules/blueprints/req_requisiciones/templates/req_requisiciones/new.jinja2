@@ -1,0 +1,223 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_edit('REQ REQUISICIONES') %}
+            {{ topbar.button_list_inactive('Inactivas', url_for('req_requisiciones.list_inactive')) }}
+            {{ topbar.button_list_active('Activas', url_for('req_requisiciones.list_active')) }}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call f.form_tag('req_requisiciones.new', fid='new_form') %}
+       
+        {% call list.card() %}                 
+            <div class="container-fluid">
+                <div class="row d-flex justify-content-end">
+                    <div class="col-md-2">
+                        {% call f.form_group(form.fecha, readonly=true) %}{% endcall %}
+                    </div>
+                    <div class="col-md-2">
+                        {% call f.form_group(form.gasto) %}{% endcall %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-7">
+                        {% call f.form_group(form.area) %}{% endcall %}
+                    </div>
+                    <div class="col-md-5">
+                        {% call f.form_group(form.glosa) %}{% endcall %} 
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        {% call f.form_group(form.programa) %}{% endcall %}
+                    </div>
+                    <div class="col-md-6">
+                        {% call f.form_group(form.fuente) %}{% endcall %} 
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-9">
+                        {% call f.form_group(form.areaFinal) %}{% endcall %} 
+                    </div>
+                    <div class="col-md-3">
+                        {% call f.form_group(form.fechaRequerida) %}{% endcall %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        {% call f.form_group(form.observaciones) %}{% endcall %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        {% call f.form_group(form.justificacion) %}{% endcall %}
+                    </div>
+                </div>
+
+            </div>
+    
+        {% endcall %}
+
+        {% call list.card() %}
+                <div class="row">
+                    <div class="col-md-2">
+                        {% call f.form_group(form.codigoTmp) %}{% endcall %}
+                    </div>
+                    <div class="col-md-3">
+                        {% call f.form_group(form.descripcionTmp, readonly=true) %}{% endcall %}
+                    </div>
+                    <div class="col-md-1">
+                        {% call f.form_group(form.unidadTmp, readonly=true) %}{% endcall %}
+                    </div>
+                    <div class="col-md-1">
+                        {% call f.form_group(form.claveTmp) %}{% endcall %} 
+                    </div>
+                    <div class="col-md-1">
+                        {% call f.form_group(form.cantidadTmp) %}{% endcall %}
+                    </div>
+                    <div class="col-md-3">
+                        {% call f.form_group(form.detalleTmp) %}{% endcall %}
+                    </div>
+                    <div class="col-md-1 my-auto">
+                        <button type="button" class="btn btn-primary  " onclick="agregar()" >+</button>
+                    </div>
+                </div>
+
+        {% endcall %}
+
+        {% call list.card() %}
+            <div class="row">
+                <div class="col-md-12" id="divArticulos">
+
+                    <div class="row" style="border-bottom:1px solid #666">
+                        <div class="col-md-2"><label>No. código</label></div>
+                        <div class="col-md-3"><label>Descripción</label></div>
+                        <div class="col-md-1"><label>U. medida</label></div>
+                        <div class="col-md-1"><label>Clave</label></div>
+                        <div class="col-md-1"><label>Cantidad</label></div>
+                        <div class="col-md-3"><label>Detalle</label></div>
+                        <div class="col-md-1"></div>
+                    </div>
+                    {% for campos in form.articulos %}
+                        <div class="row" style="border-bottom:0px solid #666; display:none" id="div{{loop.index - 1}}">
+                            <div class="col-md-2">{% call f.form_group(campos.form.codigo) %}{% endcall %}</div>
+                            <div class="col-md-3">{% call f.form_group(campos.form.descripcion) %}{% endcall %}</div>
+                            <div class="col-md-1">{% call f.form_group(campos.form.unidad) %}{% endcall %}</div>
+                            <div class="col-md-1">{% call f.form_group(campos.form.clave) %}{% endcall %}</div>
+                            <div class="col-md-1">{% call f.form_group(campos.form.cantidad) %}{% endcall %}</div>
+                            <div class="col-md-3">{% call f.form_group(campos.form.detalle) %}{% endcall %}</div>
+                            <div class="col-md-1 my-auto"><button type="button" class="btn btn-danger" onclick="eliminar({{loop.index - 1}})">-</button></div>
+                        </div>
+                    {% endfor %}
+                    
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 text-center mt-5">
+                    {% call f.form_group(form.guardar) %}{% endcall %}
+                </div>
+            </div>
+        {% endcall %}
+    {% endcall %}
+{% endblock %}
+
+{% block template_javascript %}
+    <!-- SweetAlert -->
+    <link data-require="sweet-alert@*" data-semver="0.4.2" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css" />
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+{% endblock %}
+
+{% block custom_javascript %}
+    <script>
+        var contador = 0 ;
+
+        document.getElementById("btnGuardar").addEventListener("click", function(event){
+            event.preventDefault();
+
+            if(contador<=0){
+                swal("Aviso importante", "al menos debe registrar un articulo en la Requisición" ,"warning") ;
+            }
+            else{
+                new_form.submit() ;
+            }
+            
+        });
+
+        function eliminar(contador) {
+                document.getElementById('articulos-' + contador + '-codigo').value = "";
+                document.getElementById('articulos-' + contador + '-descripcion').value = "";
+                document.getElementById('articulos-' + contador + '-unidad').value = "";
+                document.getElementById('articulos-' + contador + '-cantidad').value = "";
+                document.getElementById('articulos-' + contador + '-clave').value = "";
+                document.getElementById('articulos-' + contador + '-detalle').value = "";
+
+                document.getElementById('div' + contador).style.display = "none";
+        }
+
+        function agregar(){
+            var flag=0 ;
+
+            if(codigoTmp.value=="" && flag==0){
+                swal("Seleccion el código del articulo a solicitar","","info");
+                flag=1 ;
+            }
+            if(claveTmp.value=="" && flag==0){
+                swal("Asigne una clave al articulo","","info");
+                flag=1 ;
+            }
+            if(cantidadTmp.value<=0 && flag==0){
+                swal("Seleccion la cantidad a solicitar","","info");
+                flag=1 ;
+            }
+            if(flag==0){
+                var codigo = document.getElementById('codigoTmp') ;
+                var descripcion = document.getElementById('descripcionTmp') ;
+                var unidad = document.getElementById('unidadTmp') ;
+                var cantidad = document.getElementById('cantidadTmp') ;
+                var clave = document.getElementById('claveTmp') ;
+                var detalle = document.getElementById('detalleTmp') ;
+                document.getElementById('articulos-'+ contador + '-codigo').value = codigo.value ;
+                document.getElementById('articulos-'+ contador + '-descripcion').value = descripcion.value ;
+                document.getElementById('articulos-'+ contador + '-unidad').value = unidad.value ;
+                document.getElementById('articulos-'+ contador + '-cantidad').value = cantidad.value ;
+                document.getElementById('articulos-'+ contador + '-clave').value = clave.value ;
+                document.getElementById('articulos-'+ contador + '-detalle').value = detalle.value ;
+
+                document.getElementById('div'+contador).style.display = "inline-flex" ;
+                
+                contador = contador + 1 ;
+
+                codigo.value='' ;
+                descripcion.value = '' ;
+                unidad.value = '' ;
+                cantidad.value = '' ;
+                clave.value = '' ;
+                detalle.value = '' ; 
+            }
+        }
+
+        function buscarRegistro(){
+            $.ajax({
+                type:'GET',
+                data:{'req_catalogo_id': document.getElementById('codigoTmp').value },
+                url:'/req_requisiciones/buscarRegistros',
+                success:function(respuesta){
+                    document.getElementById('descripcionTmp').value = respuesta.descripcion ;
+                    document.getElementById('unidadTmp').value = respuesta.unidad_medida ;
+                }
+            })
+        }        
+    </script>
+{% endblock %}

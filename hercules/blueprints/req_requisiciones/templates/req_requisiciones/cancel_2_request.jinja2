@@ -1,0 +1,23 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Cancelar Requisición Solicitado{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Cancelar Requisición Solicitada ' + req_requisicion.id | string) }}
+{% endblock %}
+
+{% block content %}
+    {% call f.card(title='Cancelar Requisición Solicitada') %}
+        {% set form_kwargs = {'req_requisicion_id': req_requisicion.id} %}
+        {% call f.form_tag('req_requisiciones.cancel_2_request', fid='cancel_2_request_form', **form_kwargs) %}
+            {% call f.form_group(form.solicito_nombre, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.solicito_puesto, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.solicito_email, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.motivo) %}{% endcall %}
+            {% call f.form_group(form.contrasena) %}{% endcall %}
+            {% call f.form_group(form.cancelar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}
