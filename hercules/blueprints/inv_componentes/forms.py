@@ -21,7 +21,7 @@ class InvComponenteForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de inv_categoria"""
+        """Inicializar y cargar opciones en inv_categoria"""
         super().__init__(*args, **kwargs)
         self.inv_categoria.choices = [
             (c.id, c.nombre) for c in InvCategoria.query.filter_by(estatus="A").order_by(InvCategoria.nombre).all()

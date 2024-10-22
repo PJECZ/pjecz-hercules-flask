@@ -17,6 +17,6 @@ class MateriaTipoJuicioForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones en distrito"""
+        """Inicializar y cargar opciones en materia"""
         super().__init__(*args, **kwargs)
-        self.materia.choices = [(d.id, d.nombre) for d in Materia.query.filter_by(estatus="A").order_by(Materia.nombre).all()]
+        self.materia.choices = [(m.id, m.nombre) for m in Materia.query.filter_by(estatus="A").order_by(Materia.nombre).all()]

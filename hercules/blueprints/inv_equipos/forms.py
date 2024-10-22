@@ -31,7 +31,7 @@ class InvEquipoNewForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de inv_red"""
+        """Inicializar y cargar opciones en inv_red"""
         super().__init__(*args, **kwargs)
         self.inv_red.choices = [
             (r.id, f"{r.nombre} ({r.tipo})") for r in InvRed.query.filter_by(estatus="A").order_by(InvRed.nombre).all()
@@ -58,7 +58,7 @@ class InvEquipoEditForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de inv_red"""
+        """Inicializar y cargar opciones en inv_red"""
         super().__init__(*args, **kwargs)
         self.inv_red.choices = [
             (r.id, f"{r.nombre} ({r.tipo})") for r in InvRed.query.filter_by(estatus="A").order_by(InvRed.nombre).all()

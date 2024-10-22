@@ -25,7 +25,7 @@ class PeritoForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de distritos y tipos de peritos"""
+        """Inicializar y cargar opciones en distrito y perito_tipo"""
         super().__init__(*args, **kwargs)
         self.distrito.choices = [
             (d.id, d.nombre_corto)

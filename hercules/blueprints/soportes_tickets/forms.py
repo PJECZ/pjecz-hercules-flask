@@ -3,7 +3,7 @@ Soportes Tickets, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, SelectField
+from wtforms import SelectField, StringField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length, Optional
 
 from hercules.blueprints.soportes_categorias.models import SoporteCategoria
@@ -40,7 +40,7 @@ class SoporteTicketTakeForm(FlaskForm):
     guardar = SubmitField("Tomar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de categoria"""
+        """Inicializar y cargar opciones en categoría"""
         super().__init__(*args, **kwargs)
         self.categoria.choices = [
             (c.id, c.nombre) for c in SoporteCategoria.query.filter_by(estatus="A").order_by(SoporteCategoria.nombre).all()
@@ -56,7 +56,7 @@ class SoporteTicketCategorizeForm(FlaskForm):
     guardar = SubmitField("Categorizar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de categoria"""
+        """Inicializar y cargar opciones en categoría"""
         super().__init__(*args, **kwargs)
         self.categoria.choices = [
             (c.id, c.nombre) for c in SoporteCategoria.query.filter_by(estatus="A").order_by(SoporteCategoria.nombre).all()

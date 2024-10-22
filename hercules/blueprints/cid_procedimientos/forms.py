@@ -116,7 +116,7 @@ class CIDProcedimientoCambiarAreaForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de inv_categoria"""
+        """Inicializar y cargar opciones en inv_categoria"""
         super().__init__(*args, **kwargs)
         self.cid_area.choices = [
             (ca.id, ca.nombre) for ca in CIDArea.query.filter_by(estatus="A").order_by(CIDArea.nombre).all()

@@ -29,7 +29,7 @@ class REPSVMAgresorForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de distritos"""
+        """Inicializar y cargar opciones en distrito"""
         super().__init__(*args, **kwargs)
         self.distrito.choices = [
             (d.id, d.nombre)

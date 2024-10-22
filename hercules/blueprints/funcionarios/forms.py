@@ -31,7 +31,7 @@ class FuncionarioAdminForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de Centros de trabajos"""
+        """Inicializar y cargar opciones en centro_trabajo"""
         super().__init__(*args, **kwargs)
         self.centro_trabajo.choices = [
             (c.id, c.nombre) for c in CentroTrabajo.query.filter_by(estatus="A").order_by(CentroTrabajo.nombre).all()
@@ -59,8 +59,8 @@ class FuncionarioDomicilioForm(FlaskForm):
     asignar = SubmitField("Asignar")
 
     def __init__(self, *args, **kwargs):
-        """Inicializar y cargar opciones de Domicilios"""
+        """Inicializar y cargar opciones en domicilio"""
         super().__init__(*args, **kwargs)
         self.domicilio.choices = [
-            (d.id, d.completo) for d in Domicilio.query.filter_by(estatus="A").order_by(Domicilio.completo).all()
+            (d.id, d.edificio) for d in Domicilio.query.filter_by(estatus="A").order_by(Domicilio.edificio).all()
         ]
