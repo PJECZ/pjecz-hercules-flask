@@ -99,18 +99,11 @@ def datatable_json():
         data.append(
             {
                 "detalle": {
-                    "codigo": resultado.codigo,
+                    "descripcion": resultado.descripcion,
                     "url": url_for("cid_formatos.detail", cid_formato_id=resultado.id),
                 },
-                "cid_procedimiento": {
-                    "titulo_procedimiento": resultado.procedimiento.titulo_procedimiento,
-                    "url": (
-                        url_for("cid_procedimientos.detail", cid_procedimiento_id=resultado.procedimiento.id)
-                        if current_user.can_view("CID PROCEDIMIENTOS")
-                        else ""
-                    ),
-                },
-                "descripcion": resultado.descripcion,
+                "titulo_procedimiento": resultado.procedimiento.titulo_procedimiento,
+                "codigo": resultado.codigo,
                 "descargar": {
                     "archivo": resultado.archivo,
                     "url": resultado.url,
@@ -178,14 +171,7 @@ def datatable_json_admin():
                     "id": resultado.id,
                     "url": url_for("cid_formatos.detail", cid_formato_id=resultado.id),
                 },
-                "cid_procedimiento": {
-                    "titulo_procedimiento": resultado.procedimiento.titulo_procedimiento,
-                    "url": (
-                        url_for("cid_procedimientos.detail", cid_procedimiento_id=resultado.procedimiento.id)
-                        if current_user.can_view("CID PROCEDIMIENTOS")
-                        else ""
-                    ),
-                },
+                "titulo_procedimiento": resultado.procedimiento.titulo_procedimiento,
                 "codigo": resultado.codigo,
                 "descripcion": resultado.descripcion,
                 "descargar": {

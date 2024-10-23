@@ -8,7 +8,7 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons('Formato ' + cid_formato.descripcion) %}
         {{ topbar.button_previous('Formatos', url_for('cid_formatos.list_authorized')) }}
-        {% if current_user.id == cid_formato.procedimiento.usuario_id %}
+        {% if current_user.can_admin('CID FORMATOS') or (current_user.can_edit('CID FORMATOS') and current_user.autoridad_id == cid_formato.procedimiento.autoridad_id)%}
             {{ topbar.button_edit('Editar', url_for('cid_formatos.edit', cid_formato_id=cid_formato.id)) }}
         {% endif %}
         {% if current_user.can_admin('CID FORMATOS') %}

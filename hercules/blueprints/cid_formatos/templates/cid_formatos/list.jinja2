@@ -7,31 +7,19 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        <div class="d-flex flex-row justify-content-between">
-            <div class="btn-group">
-                <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                    Acciones Formatos
-                </button>
-                <div class="dropdown-menu">
-                    {% if show_button_my_autorized %}
-                        <a class="dropdown-item" href="{{ url_for('cid_formatos.list_active') }}"><span class="iconify" data-icon="mdi:table-star"></span> Autorizados de mis áreas</a>
-                    {% endif %}
-                    {% if show_button_list_all_autorized %}
-                        <a class="dropdown-item" href="{{ url_for('cid_formatos.list_authorized') }}"><span class="iconify" data-icon="mdi:table-star"></span> Todos los autorizados</a>
-                    {% endif %}
-                    {% if show_button_list_owned %}
-                        <a class="dropdown-item" href="{{ url_for('cid_formatos.list_owned') }}"><span class="iconify" data-icon="mdi:table-heart"></span>Propios</a>
-                    {% endif %}
-                </div>
-            </div>
-            {% if current_user.can_admin('CID FORMATOS') %}
-                {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('cid_formatos.list_all_inactive')) }}{% endif %}
-                {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('cid_formatos.list_all_active')) }}{% endif %}
-            {% endif %}
-            {% if show_lista_maestra %}
-                {{ modals.button_modal('Exportar Lista Maestra a XLSX', url_for('cid_formatos.exportar_xlsx'), 'ExportXLSX', 'mdi:download', "¿Quiere exportar la Lista Maestra un archivo XLSX?") }}
-            {% endif %}
-        </div>
+        {% if show_button_my_autorized %}
+            {{ topbar.button('Autorizados en mi área', url_for('cid_formatos.list_active'), 'mdi:table-star') }}
+        {% endif %}
+        {% if show_button_list_all_autorized %}
+            {{ topbar.button('Autorizados para todos', url_for('cid_formatos.list_authorized'), 'mdi:table-star') }}
+        {% endif %}
+        {% if show_button_list_owned %}
+            {{ topbar.button('Propios', url_for('cid_formatos.list_owned'), 'mdi:table-heart') }}
+        {% endif %}
+        {% if current_user.can_admin('CID FORMATOS') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('cid_formatos.list_all_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('cid_formatos.list_all_active')) }}{% endif %}
+        {% endif %}
     {% endcall %}
 {% endblock %}
 
@@ -72,6 +60,11 @@
             </thead>
         </table>
     {% endcall %}
+    {% if show_lista_maestra %}
+        {% call list.card('Lista Maestra') %}
+                {{ modals.button_modal('Exportar Lista Maestra a XLSX', url_for('cid_formatos.exportar_xlsx'), 'ExportXLSX', 'mdi:download', "¿Quiere exportar la Lista Maestra un archivo XLSX?") }}
+        {% endcall %}
+    {% endif %}
 {% endblock %}
 
 {% block custom_javascript %}
@@ -85,43 +78,27 @@
         configDataTable['ajax']['url'] = '/cid_formatos/datatable_json';
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
+            { data: 'codigo' },
             { data: 'detalle' },
-            { data: 'descripcion' },
-            { data: 'cid_procedimiento' },
+            { data: 'titulo_procedimiento' },
             { data: 'descargar' },
         ];
         configDataTable['columnDefs'] = [
             {
-                targets: 0, // detalle
+                targets: 1, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.codigo + '</a>';
-                }
-            },
-            {
-                targets: 1, // descripcion
-                data: null,
-                render: function(data, type, row, meta) {
-                    if (data.length > 32) {
-                        return '<span title="' + data + '">' + data.substring(0, 32) + '…' + '</span>';
-                    } else {
-                        return data;
-                    }
+                    return '<a href="' + data.url + '">' + data.descripcion + '</a>';
                 }
             },
             {
                 targets: 2, // titulo procedimiento
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data.titulo_procedimiento.length > 32) {
-                        interior = '<span title="' + data.titulo_procedimiento + '">' + data.titulo_procedimiento.substring(0, 32) + '…' + '</span>';
-                    } else {
-                        interior = data.titulo_procedimiento;
+                    if (data.length > 32) {
+                        return '<span title="' + data + '">' + data.substring(0, 32) + '…' + '</span>';
                     }
-                    if (data.url == '') {
-                        return interior;
-                    }
-                    return '<a href="' + data.url + '">' + interior + '</a>';
+                    return data;
                 }
             },
             {
