@@ -64,8 +64,18 @@ def datatable_json():
     consulta = CIDFormato.query
 
     # Primero hacer el join si se necesita
-    if "cid_areas[]" in request.form or "seguimiento" in request.form or "usuario_id" in request.form:
+    if (
+        "cid_areas[]" in request.form
+        or "cid_area_id" in request.form
+        or "seguimiento" in request.form
+        or "usuario_id" in request.form
+    ):
         consulta = consulta.join(CIDProcedimiento)
+
+    # Si viene cid_area_id
+    if "cid_area_id" in request.form:
+        cid_area_id = request.form["cid_area_id"]
+        consulta = consulta.filter(CIDProcedimiento.cid_area_id == cid_area_id)
 
     # Si viene el filtro con un listado de ids de areas, filtrar por ellas
     if "cid_areas[]" in request.form:
@@ -102,14 +112,12 @@ def datatable_json():
     for resultado in registros:
         data.append(
             {
+                "codigo": resultado.codigo,
                 "detalle": {
                     "descripcion": resultado.descripcion,
                     "url": url_for("cid_formatos.detail", cid_formato_id=resultado.id),
                 },
                 "titulo_procedimiento": resultado.procedimiento.titulo_procedimiento,
-                "codigo": resultado.codigo,
-                "autoridad": resultado.procedimiento.autoridad.clave,
-                "cid_area_clave": resultado.cid_area.clave,
                 "descargar": {
                     "archivo": resultado.archivo,
                     "url": resultado.url,
@@ -181,11 +189,9 @@ def admin_datatable_json():
                     "id": resultado.id,
                     "url": url_for("cid_formatos.detail", cid_formato_id=resultado.id),
                 },
-                "titulo_procedimiento": resultado.procedimiento.titulo_procedimiento,
                 "codigo": resultado.codigo,
                 "descripcion": resultado.descripcion,
-                "autoridad": resultado.procedimiento.autoridad.clave,
-                "cid_area_clave": resultado.cid_area.clave,
+                "titulo_procedimiento": resultado.procedimiento.titulo_procedimiento,
                 "descargar": {
                     "archivo": resultado.archivo,
                     "url": resultado.url,
@@ -205,6 +211,7 @@ def list_active():
     current_user_cid_areas_ids = []
     current_user_roles = set(current_user.get_roles())
     filtros = None
+    mostrar_boton_listado_por_defecto = False
     plantilla = "cid_formatos/list.jinja2"
     titulo = None
 
@@ -215,15 +222,19 @@ def list_active():
     # Si viene area_id o area_clave en la URL, agregar a los filtros
     cid_area = None
     try:
-        if "area_id" in request.args:
-            area_id = int(request.args["area_id"])
-            cid_area = CIDArea.query.get(area_id)
-        elif "area_clave" in request.args:
-            area_clave = safe_clave(request.args["area_clave"])
-            cid_area = CIDArea.query.filter_by(clave=area_clave).first()
-        if cid_area is not None:
-            filtros = {"estatus": "A", "cid_area": cid_area.id}
-            titulo = f"Procedimientos del área {cid_area.nombre}"
+        if "cid_area_id" in request.args:
+            cid_area_id = int(request.args["cid_area_id"])
+            cid_area = CIDArea.query.get(cid_area_id)
+            filtros = {"estatus": "A", "cid_area_id": cid_area.id}
+            titulo = f"Formatos del área {cid_area.nombre}"
+            mostrar_boton_listado_por_defecto = True
+        elif "cid_area_clave" in request.args:
+            cid_area_clave = safe_clave(request.args["cid_area_clave"])
+            cid_area = CIDArea.query.filter_by(clave=cid_area_clave).first()
+            if cid_area:
+                filtros = {"estatus": "A", "cid_area_id": cid_area.id}
+                titulo = f"Formatos del área {cid_area.nombre}"
+                mostrar_boton_listado_por_defecto = True
     except (TypeError, ValueError):
         pass
 
@@ -232,9 +243,9 @@ def list_active():
         titulo = "Todos los formatos activos"
         filtros = {"estatus": "A"}
 
-    # Si titulo es none y tiene el rol "SICGD AUDITOR", mostrar los formatos de procedimientos autorizados
+    # Si titulo es none y tiene el rol "SICGD AUDITOR", mostrar los formatos autorizados
     if titulo is None and "SICGD AUDITOR" in current_user_roles:
-        titulo = "Formatos de procedimientos autorizados"
+        titulo = "Formatos autorizados"
         filtros = {"estatus": "A", "seguimiento": "AUTORIZADO", "seguimiento_posterior": "ARCHIVADO"}
 
     # Si titulo es None y tiene el rol "SICGD COORDINADOR", mostrar todos los formatos activos
@@ -250,9 +261,9 @@ def list_active():
         )
     ]
 
-    # Si el titulo es None y tiene áreas, mostrar los procedimientos autorizados de sus áreas
+    # Si el titulo es None y tiene áreas, mostrar los formatos autorizados de sus áreas
     if titulo is None and len(current_user_cid_areas_ids) > 0:
-        titulo = "Formatos de procedimientos autorizados de mis áreas"
+        titulo = "Formatos autorizados de mis áreas"
         filtros = {
             "estatus": "A",
             "seguimiento": "AUTORIZADO",
@@ -260,9 +271,9 @@ def list_active():
             "cid_areas": current_user_cid_areas_ids,
         }
 
-    # Por defecto, mostrar todos los procedimientos autorizados
+    # Por defecto, mostrar todos los formatos autorizados
     if titulo is None:
-        titulo = "Formatos de procedimientos autorizados de todas las áreas"
+        titulo = "Formatos autorizados de todas las áreas"
         filtros = {"estatus": "A", "seguimiento": "AUTORIZADO", "seguimiento_posterior": "ARCHIVADO"}
 
     # Entregar
@@ -442,3 +453,24 @@ def exportar_xlsx():
     )
     flash("Se ha lanzado esta tarea en el fondo. Esta página se va a recargar en 30 segundos...", "info")
     return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+
+
+@cid_formatos.route("/cid_formatos/tablero")
+@permission_required(MODULO, Permiso.VER)
+def dashboard():
+    """Tablero de Formatos"""
+
+    # Definir valores por defecto
+    current_user_roles = set(current_user.get_roles())
+    mostrar_boton_exportar_lista_maestra_xlsx = False
+
+    # Si es administrador o tiene el rol SICGD AUDITOR o el rol SICGD COORDINADOR, mostrar el botón de exportar lista maestra
+    if current_user.can_admin(MODULO) or current_user_roles.intersection(("SICGD AUDITOR", "SICGD COORDINADOR")):
+        mostrar_boton_exportar_lista_maestra_xlsx = True
+
+    # Entregar
+    return render_template(
+        "cid_formatos/dashboard.jinja2",
+        titulo="Tablero de Formatos",
+        mostrar_boton_exportar_lista_maestra_xlsx=mostrar_boton_exportar_lista_maestra_xlsx,
+    )
