@@ -7,25 +7,23 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {% if show_button_my_autorized %}
-            {{ topbar.button('Autorizados en mi área', url_for('cid_formatos.list_active'), 'mdi:table-star') }}
-        {% endif %}
-        {% if show_button_list_all_autorized %}
-            {{ topbar.button('Autorizados para todos', url_for('cid_formatos.list_authorized'), 'mdi:table-star') }}
-        {% endif %}
-        {% if show_button_list_owned %}
-            {{ topbar.button('Propios', url_for('cid_formatos.list_owned'), 'mdi:table-heart') }}
-        {% endif %}
+        {# topbar.button_previous('Todos los Formatos', url_for('cid_formatos.list_active')) #}
+
+        {# topbar.button('Autorizados en mi área', url_for('cid_formatos.list_active'), 'mdi:table-star') #}
+        {# topbar.button('Autorizados para todos', url_for('cid_formatos.list_active'), 'mdi:table-star') #}
+        {# topbar.button('Propios', url_for('cid_formatos.list_active'), 'mdi:table-heart') #}
         {% if current_user.can_admin('CID FORMATOS') %}
-            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('cid_formatos.list_all_inactive')) }}{% endif %}
-            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('cid_formatos.list_all_active')) }}{% endif %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('cid_formatos.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('cid_formatos.list_active')) }}{% endif %}
         {% endif %}
+        {{ topbar.button_dashboard('Tablero', url_for('cid_formatos.dashboard')) }}
+        {# modals.button_modal('Exportar Lista Maestra a XLSX', url_for('cid_formatos.exportar_xlsx'), 'ExportXLSX', 'mdi:download', "¿Quiere exportar la Lista Maestra un archivo XLSX?") #}
     {% endcall %}
 {% endblock %}
 
 {% block content %}
     {% call list.card() %}
-        <!-- Filtros Formatos -->
+        <!-- Filtros CID Formatos -->
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosCidFormatos.buscar(); return false;">
@@ -35,26 +33,26 @@
                             <label for="filtroId">ID</label>
                         </div>
                     </div>
-                    <div class="col-3">
+                    <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroCodigo" type="text" class="form-control" aria-label="Codigo">
+                            <input id="filtroCodigo" type="text" class="form-control" aria-label="Código">
                             <label for="filtroCodigo">Código</label>
                         </div>
                     </div>
-                    <div class="col-5">
+                    <div class="col-4">
                         <div class="form-floating">
                             <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripcion" style="text-transform: uppercase;">
                             <label for="filtroDescripcion">Descripción</label>
                         </div>
                     </div>
-                    <div class="col-2 text-end">
+                    <div class="col-4 text-end">
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosCidFormatos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
                         <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosCidFormatos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
                 </form>
             </div>
         </div>
-        <!-- DataTable Formatos -->
+        <!-- DataTable CID Formatos -->
         <table id="cid_formatos_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
@@ -67,11 +65,9 @@
             </thead>
         </table>
     {% endcall %}
-    {% if show_lista_maestra %}
-        {% call list.card('Lista Maestra') %}
-            {{ modals.button_modal('Exportar Lista Maestra a XLSX', url_for('cid_formatos.exportar_xlsx'), 'ExportXLSX', 'mdi:download', "¿Quiere exportar la Lista Maestra un archivo XLSX?") }}
-        {% endcall %}
-    {% endif %}
+    {% call list.card('Lista Maestra') %}
+        {{ modals.button_modal('Exportar Lista Maestra a XLSX', url_for('cid_formatos.exportar_xlsx'), 'ExportXLSX', 'mdi:download', "¿Quiere exportar la Lista Maestra un archivo XLSX?") }}
+    {% endcall %}
 {% endblock %}
 
 {% block custom_javascript %}
@@ -79,10 +75,10 @@
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
-        // DataTable Formatos
+        // DataTable CID Formatos
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
         let configDataTable = constructorDataTable.config();
-        configDataTable['ajax']['url'] = '/cid_formatos/datatable_json_admin';
+        configDataTable['ajax']['url'] = '/cid_formatos/admin_datatable_json';
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
             { data: 'detalle' },
@@ -103,8 +99,8 @@
                 targets: 2, // descripcion
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data.length > 32) {
-                        return '<span title="' + data + '">' + data.substring(0, 32) + '…' + '</span>';
+                    if (data.length > 48) {
+                        return '<span title="' + data + '">' + data.substring(0, 48) + '…</span>';
                     }
                     return data;
                 }
@@ -113,8 +109,8 @@
                 targets: 3, // titulo procedimiento
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data.length > 32) {
-                        return '<span title="' + data + '">' + data.substring(0, 32) + '…' + '</span>';
+                    if (data.length > 48) {
+                        return '<span title="' + data + '">' + data.substring(0, 48) + '…</span>';
                     }
                     return data;
                 }
@@ -123,26 +119,16 @@
                 targets: 4, // descargar
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data.archivo.length > 32) {
-                        interior = '<span title="' + data.archivo + '">' + data.archivo.substring(0, 32) + '…' + '</span>';
-                    } else {
-                        interior = data.archivo;
-                    }
-                    return '<a href="' + data.url + '">' + interior + '</a>';
+                    return '<a href="' + data.url + '" title="' + data.archivo + '" class="btn btn-outline-primary btn-sm">' +
+                            '<span class="iconify" data-icon="mdi:download"></span></a>';
                 }
             }
         ];
-        // Filtros Formatos
+        // Filtros CID Formatos
         const filtrosCidFormatos = new FiltrosDataTable('#cid_formatos_datatable', configDataTable);
         filtrosCidFormatos.agregarInput('filtroId', 'cid_formato_id');
         filtrosCidFormatos.agregarInput('filtroCodigo', 'codigo');
         filtrosCidFormatos.agregarInput('filtroDescripcion', 'descripcion');
         filtrosCidFormatos.precargar();
-    </script>
-    <script>
-        var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
-        var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
-            return new bootstrap.Dropdown(dropdownToggleEl)
-        })
     </script>
 {% endblock %}

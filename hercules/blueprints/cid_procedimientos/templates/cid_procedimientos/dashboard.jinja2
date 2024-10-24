@@ -1,0 +1,41 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/card.jinja2' as card %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {{ topbar.button_list_active('Listado', url_for('cid_procedimientos.list_active')) }}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    <!-- Exportar Lista Maestra a XLSX -->
+    {% if mostrar_boton_exportar_lista_maestra_xlsx %}
+        {% call card.card('Exportar Lista Maestra a XLSX') %}
+            {% call card.card_body() %}
+                <a href="{{ url_for('cid_procedimientos.exportar_xlsx') }}" class="btn btn-outline-success">
+                    <span class="iconify" data-icon="mdi:google-spreadsheet"></span>
+                    Exportar XLSX
+                </a>
+            {% endcall %}
+        {% endcall %}
+    {% endif %}
+    <!-- Cantidades de procedimientos por áreas -->
+    {% call card.container_row() %}
+        {% for clave, nombre, cantidad in cantidad_procedimientos_por_area %}
+            {% call card.col_md(3) %}
+                {% call card.card(nombre) %}
+                    {% call card.card_body() %}
+                        {% set url = url_for('cid_procedimientos.list_active') + '?cid_area_clave=' + clave %}
+                        <a href="{{ url }}">{{ cantidad }} Procedimientos</a>
+                    {% endcall %}
+                {% endcall %}
+            {% endcall %}
+        {% endfor %}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+{% endblock %}

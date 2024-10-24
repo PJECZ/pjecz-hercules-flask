@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from delta import html
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.cid_areas.models import CIDArea
@@ -28,6 +28,7 @@ from hercules.blueprints.roles.models import Rol
 from hercules.blueprints.usuarios.decorators import permission_required
 from hercules.blueprints.usuarios.models import Usuario
 from hercules.blueprints.usuarios_roles.models import UsuarioRol
+from hercules.extensions import database
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_clave, safe_email, safe_message, safe_string
 
@@ -41,7 +42,7 @@ ROL_COORDINADOR = "SICGD COORDINADOR"
 ROL_DIRECTOR_JEFE = "SICGD DIRECTOR O JEFE"
 ROL_DUENO_PROCESO = "SICGD DUENO DE PROCESO"
 ROL_INVOLUCRADO = "SICGD INVOLUCRADO"
-ROLES_CON_PROCEDIMIENTOS_PROPIOS = (ROL_COORDINADOR, ROL_DIRECTOR_JEFE, ROL_DUENO_PROCESO)
+ROLES_CON_PROCEDIMIENTOS_PROPIOS = (ROL_DUENO_PROCESO, ROL_DIRECTOR_JEFE)
 ROLES_NUEVA_REVISION = (ROL_COORDINADOR, ROL_DUENO_PROCESO)
 
 
@@ -55,117 +56,116 @@ def before_request():
 @cid_procedimientos.route("/cid_procedimientos/datatable_json", methods=["GET", "POST"])
 def datatable_json():
     """DataTable JSON para listado de CID Procedimientos"""
+
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
+
     # Consultar
     consulta = CIDProcedimiento.query
+
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
         consulta = consulta.filter_by(estatus=request.form["estatus"])
     else:
         consulta = consulta.filter_by(estatus="A")
+    if "cid_area_id" in request.form:
+        consulta = consulta.filter(CIDProcedimiento.cid_area_id == request.form["cid_area_id"])
+    if "cid_area_clave" in request.form:
+        cid_area_clave = safe_clave(request.form["cid_area_clave"])
+        if cid_area_clave != "":
+            consulta = consulta.join(CIDArea).filter(CIDArea.clave == cid_area_clave)
+    if "usuario_id" in request.form:
+        consulta = consulta.filter(CIDProcedimiento.usuario_id == request.form["usuario_id"])
     if "codigo" in request.form:
-        try:
-            codigo = safe_clave(request.form["codigo"])
-            if codigo != "":
-                consulta = consulta.filter(CIDProcedimiento.codigo.contains(codigo))
-        except ValueError:
-            pass
+        codigo = safe_clave(request.form["codigo"])
+        if codigo != "":
+            consulta = consulta.filter(CIDProcedimiento.codigo.contains(codigo))
     if "titulo_procedimiento" in request.form:
         titulo_procedimiento = safe_string(request.form["titulo_procedimiento"], save_enie=True)
         if titulo_procedimiento != "":
             consulta = consulta.filter(CIDProcedimiento.titulo_procedimiento.contains(titulo_procedimiento))
     if "seguimiento" in request.form:
         consulta = consulta.filter(CIDProcedimiento.seguimiento == request.form["seguimiento"])
-    if "usuario_id" in request.form:
-        consulta = consulta.filter(CIDProcedimiento.usuario_id == request.form["usuario_id"])
     if "seguimiento_posterior" in request.form:
         consulta = consulta.filter(CIDProcedimiento.seguimiento_posterior != request.form["seguimiento_posterior"])
-    if "cid_areas[]" in request.form:
-        areas_a_filtrar = request.form.getlist("cid_areas[]")
+    if "cid_areas_ids[]" in request.form:
+        areas_a_filtrar = request.form.getlist("cid_areas_ids[]")
         listado_areas_ids = [int(area_id) for area_id in areas_a_filtrar]
         consulta = consulta.filter(CIDProcedimiento.cid_area_id.in_(listado_areas_ids))
+
     # Ordenar y paginar
     registros = consulta.order_by(CIDProcedimiento.titulo_procedimiento).offset(start).limit(rows_per_page).all()
     total = consulta.count()
+
     # Elaborar datos para DataTable
     data = []
     for resultado in registros:
         data.append(
             {
                 "detalle": {
-                    "codigo": resultado.codigo,
+                    "codigo": resultado.codigo if resultado.codigo else "SIN CODIGO",
                     "url": url_for("cid_procedimientos.detail", cid_procedimiento_id=resultado.id),
                 },
                 "titulo_procedimiento": resultado.titulo_procedimiento,
-                "revision": resultado.revision,
-                "elaboro_nombre": resultado.elaboro_email,
                 "fecha": resultado.fecha.strftime("%Y-%m-%d"),
                 "seguimiento": resultado.seguimiento,
-                "seguimiento_posterior": resultado.seguimiento_posterior,
-                "usuario": {
-                    "nombre": resultado.usuario.nombre,
-                    "url": (
-                        url_for("usuarios.detail", usuario_id=resultado.usuario_id) if current_user.can_view("USUARIOS") else ""
-                    ),
-                },
-                "autoridad": resultado.autoridad.clave,
-                "cid_area": {
-                    "clave": resultado.cid_area.clave,
-                    "url": (
-                        url_for("cid_areas.detail", cid_area_id=resultado.cid_area_id)
-                        if current_user.can_view("CID AREAS")
-                        else ""
-                    ),
-                },
             }
         )
+
     # Entregar JSON
     return output_datatable_json(draw, total, data)
 
 
-@cid_procedimientos.route("/cid_procedimientos/datatable_json_admin", methods=["GET", "POST"])
-def datatable_json_admin():
+@cid_procedimientos.route("/cid_procedimientos/admin_datatable_json", methods=["GET", "POST"])
+def admin_datatable_json():
     """DataTable JSON para listado de Cid Procedimientos"""
+
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
+
     # Consultar
     consulta = CIDProcedimiento.query
+
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
-        consulta = consulta.filter_by(estatus=request.form["estatus"])
+        consulta = consulta.filter(CIDProcedimiento.estatus == request.form["estatus"])
     else:
-        consulta = consulta.filter_by(estatus="A")
+        consulta = consulta.filter(CIDProcedimiento.estatus == "A")
     if "cid_procedmiento_id" in request.form:
         try:
             cid_procedimiento_id = int(request.form["cid_procedmiento_id"])
             consulta = consulta.filter(CIDProcedimiento.id == cid_procedimiento_id)
         except ValueError:
             pass
+    if "cid_area_id" in request.form:
+        consulta = consulta.filter(CIDProcedimiento.cid_area_id == request.form["cid_area_id"])
+    if "cid_area_clave" in request.form:
+        cid_area_clave = safe_clave(request.form["cid_area_clave"])
+        if cid_area_clave != "":
+            consulta = consulta.join(CIDArea).filter(CIDArea.clave == cid_area_clave)
+    if "usuario_id" in request.form:
+        consulta = consulta.filter(CIDProcedimiento.usuario_id == request.form["usuario_id"])
     if "codigo" in request.form:
-        try:
-            codigo = safe_clave(request.form["codigo"])
-            if codigo != "":
-                consulta = consulta.filter(CIDProcedimiento.codigo.contains(codigo))
-        except ValueError:
-            pass
+        codigo = safe_clave(request.form["codigo"])
+        if codigo != "":
+            consulta = consulta.filter(CIDProcedimiento.codigo.contains(codigo))
     if "titulo_procedimiento" in request.form:
         titulo_procedimiento = safe_string(request.form["titulo_procedimiento"], save_enie=True)
         if titulo_procedimiento != "":
             consulta = consulta.filter(CIDProcedimiento.titulo_procedimiento.contains(titulo_procedimiento))
     if "seguimiento" in request.form:
         consulta = consulta.filter(CIDProcedimiento.seguimiento == request.form["seguimiento"])
-    if "usuario_id" in request.form:
-        consulta = consulta.filter(CIDProcedimiento.usuario_id == request.form["usuario_id"])
     if "seguimiento_posterior" in request.form:
         consulta = consulta.filter(CIDProcedimiento.seguimiento_posterior != request.form["seguimiento_posterior"])
-    if "cid_areas[]" in request.form:
-        areas_a_filtrar = request.form.getlist("cid_areas[]")
+    if "cid_areas_ids[]" in request.form:
+        areas_a_filtrar = request.form.getlist("cid_areas_ids[]")
         listado_areas_ids = [int(area_id) for area_id in areas_a_filtrar]
         consulta = consulta.filter(CIDProcedimiento.cid_area_id.in_(listado_areas_ids))
+
     # Ordenar y paginar
     registros = consulta.order_by(CIDProcedimiento.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
+
     # Elaborar datos para DataTable
     data = []
     for resultado in registros:
@@ -175,30 +175,17 @@ def datatable_json_admin():
                     "id": resultado.id,
                     "url": url_for("cid_procedimientos.detail", cid_procedimiento_id=resultado.id),
                 },
-                "titulo_procedimiento": resultado.titulo_procedimiento,
                 "codigo": resultado.codigo,
+                "titulo_procedimiento": resultado.titulo_procedimiento,
                 "revision": resultado.revision,
-                "elaboro_nombre": resultado.elaboro_email,
                 "fecha": resultado.fecha.strftime("%Y-%m-%d"),
                 "seguimiento": resultado.seguimiento,
                 "seguimiento_posterior": resultado.seguimiento_posterior,
-                "usuario": {
-                    "nombre": resultado.usuario.nombre,
-                    "url": (
-                        url_for("usuarios.detail", usuario_id=resultado.usuario_id) if current_user.can_view("USUARIOS") else ""
-                    ),
-                },
-                "autoridad": resultado.autoridad.clave,
-                "cid_area": {
-                    "clave": resultado.cid_area.clave,
-                    "url": (
-                        url_for("cid_areas.detail", cid_area_id=resultado.cid_area_id)
-                        if current_user.can_view("CID AREAS")
-                        else ""
-                    ),
-                },
+                "usuario_email": resultado.usuario.email,
+                "cid_area_clave": resultado.cid_area.clave,
             }
         )
+
     # Entregar JSON
     return output_datatable_json(draw, total, data)
 
@@ -206,160 +193,137 @@ def datatable_json_admin():
 @cid_procedimientos.route("/cid_procedimientos")
 def list_active():
     """Listado de CID Procedimientos activos"""
-    # Consultar las areas del usuario
-    cid_areas = CIDArea.query.join(CIDAreaAutoridad).filter(CIDAreaAutoridad.autoridad_id == current_user.autoridad.id).all()
-    # Definir listado de ids de areas
-    cid_areas_ids = [cid_area.id for cid_area in cid_areas]
-    # Si no tiene areas asignadas, redirigir a la lista de procedimientos autorizados
-    if len(cid_areas_ids) == 0:
-        return redirect(url_for("cid_procedimientos.list_authorized"))
-    # Consultar los roles del usuario
+
+    # Definir valores por defecto
+    current_user_cid_areas_ids = []
     current_user_roles = set(current_user.get_roles())
-    # Si es administrador, usar list_admin.jinja2
-    if current_user.can_admin(MODULO) and ROL_ADMINISTRADOR in current_user_roles:
-        return render_template(
-            "cid_procedimientos/list_admin.jinja2",
-            titulo="Procedimientos autorizados de mis áreas",
-            filtros=json.dumps(
-                {"estatus": "A", "seguimiento": "AUTORIZADO", "seguimiento_posterior": "ARCHIVADO", "cid_areas": cid_areas_ids}
-            ),
-            estatus="A",
-            show_button_list_owned=current_user_roles.intersection(ROLES_CON_PROCEDIMIENTOS_PROPIOS),
-            show_button_list_all=ROL_COORDINADOR in current_user_roles,
-            show_button_list_all_autorized=True,
-            show_button_my_autorized=False,
-            show_lista_maestra=ROL_COORDINADOR in current_user_roles,
+    filtros = None
+    mostrar_boton_listado_por_defecto = False
+    mostrar_boton_procedimientos_de_mis_areas = False
+    plantilla = "cid_procedimientos/list.jinja2"
+    titulo = None
+
+    # Si es administrador, usar la plantilla es list_admin.jinja2
+    if current_user.can_admin(MODULO):
+        plantilla = "cid_procedimientos/list_admin.jinja2"
+
+    # Si viene cid_area_id, cid_areas_ids, cid_area_clave, seguimiento o usuario_id en la URL, agregar a los filtros
+    try:
+        if "cid_area_id" in request.args:
+            cid_area_id = int(request.args["cid_area_id"])
+            cid_area = CIDArea.query.get(cid_area_id)
+            filtros = {
+                "estatus": "A",
+                "cid_area_id": cid_area_id,
+                "seguimiento": "AUTORIZADO",
+                "seguimiento_posterior": "ARCHIVADO",
+            }
+            titulo = f"Procedimientos autorizados del área {cid_area.nombre}"
+            mostrar_boton_listado_por_defecto = True
+        elif "cid_area_clave" in request.args:
+            cid_area_clave = safe_clave(request.args["cid_area_clave"])
+            cid_area = CIDArea.query.filter_by(clave=cid_area_clave).first()
+            if cid_area:
+                filtros = {
+                    "estatus": "A",
+                    "cid_area_clave": cid_area_clave,
+                    "seguimiento": "AUTORIZADO",
+                    "seguimiento_posterior": "ARCHIVADO",
+                }
+                titulo = f"Procedimientos autorizados del área {cid_area.nombre}"
+                mostrar_boton_listado_por_defecto = True
+        elif "cid_areas_ids" in request.args:
+            cid_areas_ids = [int(id) for id in request.args["cid_areas_ids"].split(",")]
+            filtros = {
+                "estatus": "A",
+                "cid_areas_ids": cid_areas_ids,
+                "seguimiento": "AUTORIZADO",
+                "seguimiento_posterior": "ARCHIVADO",
+            }
+            titulo = "Procedimientos autorizados de mis áreas"
+            mostrar_boton_listado_por_defecto = True
+        elif "usuario_id" in request.args:
+            usuario_id = int(request.args["usuario_id"])
+            filtros = {"estatus": "A", "usuario_id": usuario_id}
+            titulo = f"Procedimientos del usuario {Usuario.query.get(usuario_id).nombre}"
+            mostrar_boton_listado_por_defecto = True
+        elif "seguimiento" in request.args:
+            seguimiento = safe_string(request.args["seguimiento"])
+            filtros = {"estatus": "A", "seguimiento": seguimiento}
+            titulo = f"Procedimientos con seguimiento {seguimiento}"
+            mostrar_boton_listado_por_defecto = True
+    except (TypeError, ValueError):
+        pass
+
+    # Si titulo es None y es administrador, mostrar todos los procedimientos activos
+    if titulo is None and current_user.can_admin(MODULO):
+        titulo = "Todos los procedimientos activos"
+        filtros = {"estatus": "A"}
+
+    # Si titulo es none y tiene el rol "SICGD AUDITOR", mostrar los procedimientos autorizados
+    if titulo is None and "SICGD AUDITOR" in current_user_roles:
+        titulo = "Procedimientos autorizados (auditor)"
+        filtros = {"estatus": "A", "seguimiento": "AUTORIZADO", "seguimiento_posterior": "ARCHIVADO"}
+
+    # Si titulo es None y tiene el rol "SICGD COORDINADOR", mostrar todos los procedimientos
+    if titulo is None and "SICGD COORDINADOR" in current_user_roles:
+        titulo = "Todos los procedimientos"
+        filtros = {"estatus": "A"}
+
+    # Obtener los IDs de las áreas del usuario
+    current_user_cid_areas_ids = [
+        cid_area.id
+        for cid_area in (
+            CIDArea.query.join(CIDAreaAutoridad).filter(CIDAreaAutoridad.autoridad_id == current_user.autoridad.id).all()
         )
-    # De lo contrario, usar list.jinja2
+    ]
+
+    # Si titulo es None y tiene ROLES_CON_PROCEDIMIENTOS_PROPIOS, mostrar solo los procedimientos propios
+    if (
+        titulo is None
+        and current_user_roles.intersection(ROLES_CON_PROCEDIMIENTOS_PROPIOS)
+        and len(current_user_cid_areas_ids) > 0
+    ):
+        titulo = "Procedimientos propios"
+        filtros = {"estatus": "A", "usuario_id": current_user.id, "cid_areas_ids": current_user_cid_areas_ids}
+        mostrar_boton_procedimientos_de_mis_areas = True
+
+    # Si el titulo es None y tiene áreas, mostrar los procedimientos autorizados de sus áreas
+    if titulo is None and len(current_user_cid_areas_ids) > 0:
+        titulo = "Procedimientos autorizados de mis áreas (involucrado)"
+        filtros = {
+            "estatus": "A",
+            "seguimiento": "AUTORIZADO",
+            "seguimiento_posterior": "ARCHIVADO",
+            "cid_areas_ids": current_user_cid_areas_ids,
+        }
+
+    # Por defecto, mostrar todos los procedimientos autorizados
+    if titulo is None:
+        titulo = "Procedimientos autorizados de todas las áreas"
+        filtros = {"estatus": "A", "seguimiento": "AUTORIZADO", "seguimiento_posterior": "ARCHIVADO"}
+
+    # Entregar
     return render_template(
-        "cid_procedimientos/list.jinja2",
-        titulo="Procedimientos autorizados de mis áreas",
-        filtros=json.dumps(
-            {"estatus": "A", "seguimiento": "AUTORIZADO", "seguimiento_posterior": "ARCHIVADO", "cid_areas": cid_areas_ids}
-        ),
+        plantilla,
+        current_user_cid_areas_ids=",".join([str(id) for id in current_user_cid_areas_ids]),
         estatus="A",
-        show_button_list_owned=current_user_roles.intersection(ROLES_CON_PROCEDIMIENTOS_PROPIOS),
-        show_button_list_all=current_user.can_admin(MODULO) or ROL_COORDINADOR in current_user_roles,
-        show_button_list_all_autorized=True,
-        show_button_my_autorized=False,
-        show_lista_maestra=current_user.can_admin(MODULO) or ROL_COORDINADOR in current_user_roles,
-    )
-
-
-@cid_procedimientos.route("/cid_procedimientos/autorizados")
-def list_authorized():
-    """Listado de todos los procedimientos autorizados"""
-    # Consultar los roles del usuario
-    current_user_roles = set(current_user.get_roles())
-    # Si es administrador, usar list_admin.jinja2
-    if current_user.can_admin(MODULO) and ROL_ADMINISTRADOR in current_user_roles:
-        return render_template(
-            "cid_procedimientos/list_admin.jinja2",
-            titulo="Todos los procedimientos autorizados",
-            filtros=json.dumps({"estatus": "A", "seguimiento": "AUTORIZADO", "seguimiento_posterior": "ARCHIVADO"}),
-            estatus="A",
-            show_button_list_owned=current_user_roles.intersection(ROLES_CON_PROCEDIMIENTOS_PROPIOS),
-            show_button_list_all=ROL_COORDINADOR in current_user_roles,
-            show_button_list_all_autorized=False,
-            show_button_my_autorized=True,
-            show_lista_maestra=ROL_COORDINADOR in current_user_roles,
-        )
-    # De lo contrario, usar list.jinja2
-    return render_template(
-        "cid_procedimientos/list.jinja2",
-        titulo="Todos los procedimientos autorizados",
-        filtros=json.dumps({"estatus": "A", "seguimiento": "AUTORIZADO", "seguimiento_posterior": "ARCHIVADO"}),
-        estatus="A",
-        show_button_list_owned=current_user_roles.intersection(ROLES_CON_PROCEDIMIENTOS_PROPIOS),
-        show_button_list_all=current_user.can_admin(MODULO) or ROL_COORDINADOR in current_user_roles,
-        show_button_list_all_autorized=False,
-        show_button_my_autorized=True,
-        show_lista_maestra=current_user.can_admin(MODULO) or ROL_COORDINADOR in current_user_roles,
-    )
-
-
-@cid_procedimientos.route("/cid_procedimientos/propios")
-def list_owned():
-    """Listado de procedimientos propios"""
-
-    # Consultar los roles del usuario
-    current_user_roles = set(current_user.get_roles())
-
-    # Si es administrador, usar list_admin.jinja2
-    if current_user.can_admin(MODULO) and ROL_ADMINISTRADOR in current_user_roles:
-        return render_template(
-            "cid_procedimientos/list_admin.jinja2",
-            titulo="Procedimientos propios",
-            filtros=json.dumps({"estatus": "A", "usuario_id": current_user.id, "seguimiento_posterior": "ARCHIVADO"}),
-            estatus="A",
-            show_button_list_owned=False,
-            show_button_list_all=ROL_COORDINADOR in current_user_roles,
-            show_button_list_all_autorized=True,
-            show_button_my_autorized=True,
-            show_lista_maestra=ROL_COORDINADOR in current_user_roles,
-        )
-    # De lo contrario, usar list.jinja2
-    return render_template(
-        "cid_procedimientos/list.jinja2",
-        titulo="Procedimientos propios",
-        filtros=json.dumps({"estatus": "A", "usuario_id": current_user.id, "seguimiento_posterior": "ARCHIVADO"}),
-        estatus="A",
-        show_button_list_owned=False,
-        show_button_list_all=current_user.can_admin(MODULO) or ROL_COORDINADOR in current_user_roles,
-        show_button_list_all_autorized=True,
-        show_button_my_autorized=True,
-        show_lista_maestra=current_user.can_admin(MODULO) or ROL_COORDINADOR in current_user_roles,
-    )
-
-
-@cid_procedimientos.route("/cid_procedimientos/activos")
-@permission_required(MODULO, Permiso.ADMINISTRAR)
-def list_all_active():
-    """Listado de procedimientos activos, solo para administrador"""
-    # Consultar los roles del usuario
-    current_user_roles = set(current_user.get_roles())
-    # Si es administrador, usar list_admin.jinja2
-    if current_user.can_admin(MODULO) and ROL_ADMINISTRADOR in current_user_roles:
-        return render_template(
-            "cid_procedimientos/list_admin.jinja2",
-            titulo="Todos los procedimientos activos",
-            filtros=json.dumps({"estatus": "A"}),
-            estatus="A",
-            show_button_list_owned=True,
-            show_button_list_all=False,
-            show_button_list_all_autorized=True,
-            show_button_my_autorized=True,
-            show_lista_maestra=True,
-        )
-    return render_template(
-        "cid_procedimientos/list.jinja2",
-        titulo="Todos los procedimientos activos",
-        filtros=json.dumps({"estatus": "A"}),
-        estatus="A",
-        show_button_list_owned=True,
-        show_button_list_all=False,
-        show_button_list_all_autorized=True,
-        show_button_my_autorized=True,
-        show_lista_maestra=True,
+        filtros=json.dumps(filtros),
+        mostrar_boton_listado_por_defecto=mostrar_boton_listado_por_defecto,
+        mostrar_boton_procedimientos_de_mis_areas=mostrar_boton_procedimientos_de_mis_areas,
+        titulo=titulo,
     )
 
 
 @cid_procedimientos.route("/cid_procedimientos/eliminados")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
-def list_all_inactive():
+def list_inactive():
     """Listado de procedimientos eliminados, solo para administrador"""
-    # Consultar los roles del usuario
-    current_user_roles = set(current_user.get_roles())
     return render_template(
         "cid_procedimientos/list_admin.jinja2",
         titulo="Todos los procedimientos eliminados",
         filtros=json.dumps({"estatus": "B"}),
         estatus="B",
-        show_button_list_owned=True,
-        show_button_list_all=current_user.can_admin(MODULO) or ROL_COORDINADOR in current_user_roles,
-        show_button_list_all_autorized=True,
-        show_button_my_autorized=True,
-        show_lista_maestra=current_user.can_admin(MODULO) or ROL_COORDINADOR in current_user_roles,
     )
 
 
@@ -1031,17 +995,19 @@ def accept_reject(cid_procedimiento_id):
                 anterior = CIDProcedimiento.query.get(cid_procedimiento_id)
                 anterior.seguimiento_posterior = "EN AUTORIZACION"
                 anterior.save()
-            # Duplicar los formatos del procedimiento anterior a éste que es el nuevo
+            # Mover los formatos del procedimiento anterior al nuevo
             if original.seguimiento == "ELABORADO" or original.seguimiento == "REVISADO":
                 for cid_formato in anterior.cid_formatos:
-                    CIDFormato(
-                        procedimiento=nuevo,
-                        codigo=cid_formato.codigo,
-                        descripcion=cid_formato.descripcion,
-                        archivo=cid_formato.archivo,
-                        url=cid_formato.url,
-                        cid_area=cid_formato.cid_area,
-                    ).save()
+                    # CIDFormato(
+                    #     procedimiento=nuevo,
+                    #     codigo=cid_formato.codigo,
+                    #     descripcion=cid_formato.descripcion,
+                    #     archivo=cid_formato.archivo,
+                    #     url=cid_formato.url,
+                    #     cid_area=cid_formato.cid_area,
+                    # ).save()
+                    cid_formato.procedimiento_id = nuevo.id
+                    cid_formato.save()
             # Bitacora
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -1177,3 +1143,44 @@ def exportar_xlsx():
     )
     flash("Se ha lanzado esta tarea en el fondo. Esta página se va a recargar en 30 segundos...", "info")
     return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+
+
+@cid_procedimientos.route("/cid_procedimientos/tablero")
+@permission_required(MODULO, Permiso.VER)
+def dashboard():
+    """Tablero de Procedimientos"""
+
+    # Definir valores por defecto
+    current_user_roles = set(current_user.get_roles())
+    mostrar_boton_exportar_lista_maestra_xlsx = False
+
+    # Si es administrador o tiene el rol SICGD AUDITOR o el rol SICGD COORDINADOR, mostrar el botón de exportar lista maestra
+    if current_user.can_admin(MODULO) or current_user_roles.intersection(("SICGD AUDITOR", "SICGD COORDINADOR")):
+        mostrar_boton_exportar_lista_maestra_xlsx = True
+
+    # Consultar las cantidades de procedimientos con seguimiento AUTORIZADO por área
+    consulta = (
+        database.session.query(
+            CIDArea.clave,
+            CIDArea.nombre,
+            func.count(CIDProcedimiento.id).label("cantidad"),
+        )
+        .select_from(CIDProcedimiento)
+        .join(CIDArea)
+        .filter(CIDProcedimiento.seguimiento == "AUTORIZADO")
+        .filter(CIDProcedimiento.estatus == "A")
+        .group_by(CIDArea.clave, CIDArea.nombre)
+        .order_by(CIDArea.nombre)
+        .all()
+    )
+
+    # Crear un listado de tuplas con el nombre del área y la cantidad de procedimientos
+    cantidad_procedimientos_por_area = [(clave, nombre, cantidad) for clave, nombre, cantidad in consulta]
+
+    # Entregar
+    return render_template(
+        "cid_procedimientos/dashboard.jinja2",
+        cantidad_procedimientos_por_area=cantidad_procedimientos_por_area,
+        titulo="Tablero de Procedimientos autorizados",
+        mostrar_boton_exportar_lista_maestra_xlsx=mostrar_boton_exportar_lista_maestra_xlsx,
+    )

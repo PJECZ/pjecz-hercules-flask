@@ -11,6 +11,7 @@ body {
 }
 
 /* Google Fonts Roboto */
+
 .roboto-regular {
   font-family: "Roboto", system-ui;
   font-weight: 400;
@@ -147,4 +148,19 @@ body {
   border-radius: 3px;
   /*transition: width 250ms ease-in-out;*/
   transition: width 5s ease-in-out;
+}
+
+/* DataTables rows backgrounds colors */
+
+.bg-yellow {
+    color: rgb(6, 6, 6);
+    background-color: #f3ebb3;
+}
+.bg-blue {
+    color: rgb(42, 42, 42);
+    background-color: #7ebdf7;
+}
+.bg-green {
+    color: rgb(37, 37, 37);
+    background-color: #64cb90;
 }
