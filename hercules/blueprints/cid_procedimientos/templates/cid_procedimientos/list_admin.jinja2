@@ -76,10 +76,10 @@
     <script>
         // DataTable CID Procedimientos
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
-        let configDataTable = constructorDataTable.config();
-        configDataTable['ajax']['url'] = '/cid_procedimientos/admin_datatable_json';
-        configDataTable['ajax']['data'] = {{ filtros }};
-        configDataTable['columns'] = [
+        let configDTCidProcedimientos = constructorDataTable.config();
+        configDTCidProcedimientos['ajax']['url'] = '/cid_procedimientos/admin_datatable_json';
+        configDTCidProcedimientos['ajax']['data'] = {{ filtros }};
+        configDTCidProcedimientos['columns'] = [
             { data: 'detalle' },
             { data: 'codigo' },
             { data: 'titulo_procedimiento' },
@@ -90,7 +90,7 @@
             { data: 'usuario_email' },
             { data: 'cid_area_clave' },
         ];
-        configDataTable['columnDefs'] = [
+        configDTCidProcedimientos['columnDefs'] = [
             {
                 targets: 0, // detalle
                 data: null,
@@ -103,7 +103,7 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data.length > 64)
-                        return '<span title="' + data + '">' + data.substr(0, 64) + '…</span>';
+                        return '<span title="' + data + '">' + data.substring(0, 64) + '…</span>';
                     return data;
                 }
             },
@@ -112,12 +112,12 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     switch (data)    {
-                        case "EN ELABORACION":  return '<span class="badge rounded-pill bg-yellow text-dark"><span class="iconify" data-icon="mdi:account-edit"></span>EN ELABORACION </span>';   break;
-                        case "ELABORADO":       return '<span class="badge rounded-pill bg-warning text-dark"><span class="iconify" data-icon="mdi:account-check"></span> ELABORADO </span>';   break;
-                        case "EN REVISION":     return '<span class="badge rounded-pill bg-blue"><span class="iconify" data-icon="mdi:account-search"></span> EN REVISION </span>';   break;
-                        case "REVISADO":        return '<span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:file-check"></span> REVISADO </span>';   break;
-                        case "EN AUTORIZACION": return '<span class="badge rounded-pill bg-green"><span class="iconify" data-icon="mdi:file-document-check"></span> EN AUTORIZACION </span>';  break;
-                        case "AUTORIZADO":      return '<span class="badge rounded-pill bg-success"><span class="iconify" data-icon="mdi:shield-check"></span> AUTORIZADO </span>';  break;
+                        case "EN ELABORACION":  return '<span class="badge rounded-pill bg-yellow text-dark"><span class="iconify" data-icon="mdi:account-edit"></span>EN ELABORACION </span>'; break;
+                        case "ELABORADO":       return '<span class="badge rounded-pill bg-warning text-dark"><span class="iconify" data-icon="mdi:account-check"></span> ELABORADO </span>'; break;
+                        case "EN REVISION":     return '<span class="badge rounded-pill bg-blue"><span class="iconify" data-icon="mdi:account-search"></span> EN REVISION </span>'; break;
+                        case "REVISADO":        return '<span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:file-check"></span> REVISADO </span>'; break;
+                        case "EN AUTORIZACION": return '<span class="badge rounded-pill bg-green"><span class="iconify" data-icon="mdi:file-document-check"></span> EN AUTORIZACION </span>'; break;
+                        case "AUTORIZADO":      return '<span class="badge rounded-pill bg-success"><span class="iconify" data-icon="mdi:shield-check"></span> AUTORIZADO </span>'; break;
                     }
                     return data;
                 }
@@ -127,12 +127,12 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     switch (data)    {
-                        case "EN ELABORACION":  return '<span class="badge rounded-pill bg-yellow text-dark"><span class="iconify" data-icon="mdi:account-edit"></span> EN ELABORACION </span>';   break;
-                        case "ELABORADO":       return '<span class="badge rounded-pill bg-warning text-dark"><span class="iconify" data-icon="mdi:account-check"></span> ELABORADO </span>';   break;
-                        case "EN REVISION":     return '<span class="badge rounded-pill bg-blue"><span class="iconify" data-icon="mdi:account-search"></span> EN REVISION </span>';   break;
-                        case "REVISADO":        return '<span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:file-check"></span> REVISADO </span>';   break;
-                        case "EN AUTORIZACION": return '<span class="badge rounded-pill bg-green"><span class="iconify" data-icon="mdi:file-document-check"></span> EN AUTORIZACION </span>';  break;
-                        case "AUTORIZADO":      return '<span class="badge rounded-pill bg-success"><span class="iconify" data-icon="mdi:shield-check"></span> AUTORIZADO </span>';  break;
+                        case "EN ELABORACION":  return '<span class="badge rounded-pill bg-yellow text-dark"><span class="iconify" data-icon="mdi:account-edit"></span> EN ELABORACION </span>'; break;
+                        case "ELABORADO":       return '<span class="badge rounded-pill bg-warning text-dark"><span class="iconify" data-icon="mdi:account-check"></span> ELABORADO </span>'; break;
+                        case "EN REVISION":     return '<span class="badge rounded-pill bg-blue"><span class="iconify" data-icon="mdi:account-search"></span> EN REVISION </span>'; break;
+                        case "REVISADO":        return '<span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:file-check"></span> REVISADO </span>'; break;
+                        case "EN AUTORIZACION": return '<span class="badge rounded-pill bg-green"><span class="iconify" data-icon="mdi:file-document-check"></span> EN AUTORIZACION </span>'; break;
+                        case "AUTORIZADO":      return '<span class="badge rounded-pill bg-success"><span class="iconify" data-icon="mdi:shield-check"></span> AUTORIZADO </span>'; break;
                     }
                     return data;
                 }
@@ -142,13 +142,13 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data.length > 16)
-                        return '<span title="' + data + '">' + data.substr(0, 16) + '…</span>';
+                        return '<span title="' + data + '">' + data.substring(0, 16) + '…</span>';
                     return data;
                 }
             },
         ];
         // Filtros CID Procedimientos
-        const filtrosCidProcedimientos = new FiltrosDataTable('#cid_procedimientos_datatable', configDataTable);
+        const filtrosCidProcedimientos = new FiltrosDataTable('#cid_procedimientos_datatable', configDTCidProcedimientos);
         filtrosCidProcedimientos.agregarInput('filtroId', 'cid_procedmiento_id');
         filtrosCidProcedimientos.agregarInput('filtroCodigo', 'codigo');
         filtrosCidProcedimientos.agregarInput('filtroTituloProcedimiento', 'titulo_procedimiento');
