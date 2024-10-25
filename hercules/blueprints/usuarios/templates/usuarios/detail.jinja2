@@ -59,6 +59,9 @@
                 {% endif %}
             </div>
             <div class="col-md-3">
+                {% if current_user.can_admin("CID PROCEDIMIENTOS") and usuario.curp %}
+                    {{ detail.button_md(label='SICGD Procedimientos propios', url=url_for('cid_procedimientos.list_active', usuario_id=usuario.id), icon='mdi:book-open-variant', color_class='btn-outline-secondary') }}
+                {% endif %}
                 {% if current_user.can_admin("USUARIOS NOMINAS") and usuario.curp %}
                     {{ detail.button_md(label='Recibos de Nómina', url=url_for('usuarios_nominas.list', usuario_id=usuario.id), icon='mdi:account-cash', color_class='btn-outline-secondary') }}
                 {% endif %}

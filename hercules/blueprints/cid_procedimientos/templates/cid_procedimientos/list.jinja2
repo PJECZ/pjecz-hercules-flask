@@ -7,7 +7,6 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {# Si puede elaborar procedimientos, mostrar ir a procedimientos de mis areas #}
         {% if mostrar_boton_procedimientos_de_mis_areas %}
             {{ topbar.button_previous('Procedimientos de mis áreas', url_for('cid_procedimientos.list_active') + '?cid_areas_ids=' + current_user_cid_areas_ids) }}
         {% endif %}
