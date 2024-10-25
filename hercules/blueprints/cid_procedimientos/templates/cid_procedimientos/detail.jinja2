@@ -25,6 +25,9 @@
                 {% endif %}
             {% endif %}
         {% endif %}
+        {% if mostrar_cambiar_area %}
+            {{ topbar.button_edit('Editar área', url_for('cid_procedimientos.cambiar_area', cid_procedimiento_id=cid_procedimiento.id)) }}
+        {% endif %}
         {% if current_user.can_admin('CID PROCEDIMIENTOS') %}
             {% if cid_procedimiento.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('cid_procedimientos.delete', cid_procedimiento_id=cid_procedimiento.id)) }}{% endif %}
             {% if cid_procedimiento.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('cid_procedimientos.recover', cid_procedimiento_id=cid_procedimiento.id)) }}{% endif %}
@@ -35,43 +38,6 @@
 {% block content %}
     {% set accordion_id = 'procedimiento_accordion' %}
     {% call accordion.div(accordion_id, estatus=cid_procedimiento.estatus) %}
-        {# Muestra el área actual como un pill #}
-        {% if show_cambiar_area %}
-            <a href="{{url_for('cid_procedimientos.cambiar_area', cid_procedimiento_id=cid_procedimiento.id)}}">
-                <div class="mb-3 d-inline-flex align-items-center">
-                    <span class="badge rounded-pill
-                        {% if cid_procedimiento.cid_area.estatus == 'A' %}
-                            bg-success
-                        {% elif cid_procedimiento.cid_area.estatus == 'B' %}
-                            bg-warning
-                        {% else %}
-                            bg-secondary
-                        {% endif %}
-                        p-2
-                    "
-                    data-bs-toggle="tooltip" data-bs-placement="top" title="Modifica el área si es necesario dando clic en este botón"
-                    >
-                        <i class="iconify ms-2" data-icon="mdi:file-document-edit" style="font-size: 20px;"></i>
-                        {{ cid_procedimiento.cid_area.nombre }}
-                    </span>
-                </div>
-            </a>
-        {% else %}
-            <span class="badge rounded-pill
-                {% if cid_procedimiento.cid_area.estatus == 'A' %}
-                    bg-success
-                {% elif cid_procedimiento.cid_area.estatus == 'B' %}
-                    bg-warning
-                {% else %}
-                    bg-secondary
-                {% endif %}
-                p-2
-            "
-            >
-                <i class="iconify ms-2" data-icon="mdi:file" style="font-size: 20px;"></i>
-                {{ cid_procedimiento.cid_area.nombre }}
-            </span>
-        {% endif%}
         {% call accordion.item('generales_item', 'Generales', accordion_id, expanded=True, estatus=cid_procedimiento.estatus) %}
             {{ detail.label_value('ID', cid_procedimiento.id) }}
             {{ detail.label_value('Título', cid_procedimiento.titulo_procedimiento) }}
@@ -124,11 +90,11 @@
             {{ detail.label_value_new_tab('Archivo PDF', cid_procedimiento.archivo, cid_procedimiento.url) }}
             {{ detail.label_value('Distrito', cid_procedimiento.autoridad.distrito.nombre_corto) }}
             {{ detail.label_value('Autoridad', cid_procedimiento.autoridad.descripcion_corta) }}
-            {# {% if current_user.can_view('CID AREAS') %}
+            {% if current_user.can_view('CID AREAS') %}
                 {{ detail.label_value('Área', cid_procedimiento.cid_area.nombre, url_for('cid_areas.detail', cid_area_id=cid_procedimiento.cid_area_id)) }}
             {% else %}
                 {{ detail.label_value('Área', cid_procedimiento.cid_area.nombre) }}
-            {% endif %} #}
+            {% endif %}
         {% endcall %}
         {% call accordion.item('objetivos_item', 'Objetivo', accordion_id, estatus=cid_procedimiento.estatus) %}
             {{ objetivo }}

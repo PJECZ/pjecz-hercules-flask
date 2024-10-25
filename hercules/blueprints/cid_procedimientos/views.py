@@ -337,7 +337,7 @@ def detail(cid_procedimiento_id):
         .all()
     )
     # Habilitar o deshabilitar poder cambiar área
-    show_cambiar_area = (current_user.id == cid_procedimiento.usuario_id) or (ROL_COORDINADOR in current_user_roles)
+    mostrar_cambiar_area = (ROL_ADMINISTRADOR in current_user_roles) or (ROL_COORDINADOR in current_user_roles)
 
     # Condición para mostrar botón de nueva revisión:
     # El procedimiento debe estar autorizado y el usuario debe tener los roles adecuados o ser el creador.
@@ -358,7 +358,7 @@ def detail(cid_procedimiento_id):
         control_cambios=cid_procedimiento.control_cambios,
         cid_formatos=cid_formatos,
         show_button_edit_admin=current_user.can_admin(MODULO) or ROL_COORDINADOR in current_user.get_roles(),
-        show_cambiar_area=show_cambiar_area,
+        mostrar_cambiar_area=mostrar_cambiar_area,
         show_buttom_new_revision=show_buttom_new_revision,
     )
 
