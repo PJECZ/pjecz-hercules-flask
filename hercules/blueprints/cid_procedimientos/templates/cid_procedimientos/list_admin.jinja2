@@ -7,7 +7,7 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {# topbar.button_previous('Todos los Procedimientos', url_for('cid_procedimientos.list_active')) #}
+        {{ topbar.button_previous('Procedimientos propios', url_for('cid_procedimientos.list_active') + '?usuario_id=' + current_user.id | string) }}
         {% if current_user.can_admin('CID PROCEDIMIENTOS') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('cid_procedimientos.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('cid_procedimientos.list_active')) }}{% endif %}
