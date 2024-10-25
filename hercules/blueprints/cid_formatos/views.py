@@ -7,7 +7,6 @@ import json
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
-from werkzeug.exceptions import NotFound
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.cid_areas.models import CIDArea
@@ -19,15 +18,7 @@ from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.exceptions import (
-    MyBucketNotFoundError,
-    MyFilenameError,
-    MyFileNotFoundError,
-    MyMissingConfigurationError,
-    MyNotAllowedExtensionError,
-    MyNotValidParamError,
-    MyUnknownExtensionError,
-)
+from lib.exceptions import MyFilenameError, MyMissingConfigurationError, MyNotAllowedExtensionError, MyUnknownExtensionError
 from lib.safe_string import safe_clave, safe_message, safe_string
 from lib.storage import GoogleCloudStorage
 
@@ -83,7 +74,8 @@ def datatable_json():
         listado_areas_ids = [int(area_id) for area_id in areas_a_filtrar]
         consulta = consulta.filter(CIDProcedimiento.id == CIDFormato.procedimiento_id)
         consulta = consulta.filter(CIDProcedimiento.cid_area_id.in_(listado_areas_ids))
-
+    if "cid_procedimiento_id" in request.form:
+        consulta = consulta.filter(CIDFormato.procedimiento_id == request.form["cid_procedimiento_id"])
     # Filtrar
     if "estatus" in request.form:
         consulta = consulta.filter_by(estatus=request.form["estatus"])

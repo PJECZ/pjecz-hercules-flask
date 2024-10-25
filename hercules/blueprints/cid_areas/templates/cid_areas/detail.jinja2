@@ -76,7 +76,7 @@
             const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
             let configDTCidProcedimientos = constructorDataTable.config();
             configDTCidProcedimientos['ajax']['url'] = '/cid_procedimientos/datatable_json';
-            configDTCidProcedimientos['ajax']['data'] = { 'estatus': "A", 'cid_area_id': {{ cid_area.id}}, 'seguimiento': 'AUTORIZADO', 'seguimiento_posterior': 'ARCHIVADO' };
+            configDTCidProcedimientos['ajax']['data'] = { 'estatus': "A", 'cid_area_id': {{ cid_area.id}}, 'seguimiento': 'AUTORIZADO' };
             configDTCidProcedimientos['columns'] = [
                 { data: 'detalle' },
                 { data: 'titulo_procedimiento' },
