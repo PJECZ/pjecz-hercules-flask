@@ -77,17 +77,17 @@
     <script>
         // DataTable CID Formatos
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
-        let configDataTable = constructorDataTable.config();
-        configDataTable['ajax']['url'] = '/cid_formatos/admin_datatable_json';
-        configDataTable['ajax']['data'] = {{ filtros }};
-        configDataTable['columns'] = [
+        let configDTCidFormatos = constructorDataTable.config();
+        configDTCidFormatos['ajax']['url'] = '/cid_formatos/admin_datatable_json';
+        configDTCidFormatos['ajax']['data'] = {{ filtros }};
+        configDTCidFormatos['columns'] = [
             { data: 'detalle' },
             { data: 'codigo' },
             { data: 'descripcion' },
             { data: 'titulo_procedimiento' },
             { data: 'descargar' },
         ];
-        configDataTable['columnDefs'] = [
+        configDTCidFormatos['columnDefs'] = [
             {
                 targets: 0, // detalle
                 data: null,
@@ -125,7 +125,7 @@
             }
         ];
         // Filtros CID Formatos
-        const filtrosCidFormatos = new FiltrosDataTable('#cid_formatos_datatable', configDataTable);
+        const filtrosCidFormatos = new FiltrosDataTable('#cid_formatos_datatable', configDTCidFormatos);
         filtrosCidFormatos.agregarInput('filtroId', 'cid_formato_id');
         filtrosCidFormatos.agregarInput('filtroCodigo', 'codigo');
         filtrosCidFormatos.agregarInput('filtroDescripcion', 'descripcion');

@@ -59,14 +59,14 @@
     <script>
         // DataTable Áreas
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
-        let configDataTable = constructorDataTable.config();
-        configDataTable['ajax']['url'] = '/cid_areas/datatable_json';
-        configDataTable['ajax']['data'] = {{ filtros }};
-        configDataTable['columns'] = [
+        let configDTCidAreas = constructorDataTable.config();
+        configDTCidAreas['ajax']['url'] = '/cid_areas/datatable_json';
+        configDTCidAreas['ajax']['data'] = {{ filtros }};
+        configDTCidAreas['columns'] = [
             { data: 'detalle' },
             { data: 'nombre' }
         ];
-        configDataTable['columnDefs'] = [
+        configDTCidAreas['columnDefs'] = [
             {
                 targets: 0, // detalle
                 data: null,
@@ -76,7 +76,7 @@
             }
         ];
         // Filtros Áreas
-        const filtrosCidAreas = new FiltrosDataTable('#cid_areas_datatable', configDataTable);
+        const filtrosCidAreas = new FiltrosDataTable('#cid_areas_datatable', configDTCidAreas);
         filtrosCidAreas.agregarInput('filtroClave', 'clave');
         filtrosCidAreas.agregarInput('filtroNombre', 'nombre');
         filtrosCidAreas.precargar();

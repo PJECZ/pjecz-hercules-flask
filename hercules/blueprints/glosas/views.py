@@ -158,19 +158,19 @@ def admin_datatable_json():
         except (IndexError, ValueError):
             pass
 
-    # Filtrar por fechas, si vienen invertidas se corrigen
-    fecha_desde = None
-    fecha_hasta = None
-    if "fecha_desde" in request.form and re.match(r"\d{4}-\d{2}-\d{2}", request.form["fecha_desde"]):
-        fecha_desde = request.form["fecha_desde"]
-    if "fecha_hasta" in request.form and re.match(r"\d{4}-\d{2}-\d{2}", request.form["fecha_hasta"]):
-        fecha_hasta = request.form["fecha_hasta"]
-    if fecha_desde and fecha_hasta and fecha_desde > fecha_hasta:
-        fecha_desde, fecha_hasta = fecha_hasta, fecha_desde
-    if fecha_desde:
-        consulta = consulta.filter(Glosa.fecha >= fecha_desde)
-    if fecha_hasta:
-        consulta = consulta.filter(Glosa.fecha <= fecha_hasta)
+    # Filtrar por creado, si vienen invertidas se corrigen
+    creado_desde = None
+    creado_hasta = None
+    if "creado_desde" in request.form and re.match(r"\d{4}-\d{2}-\d{2}", request.form["creado_desde"]):
+        creado_desde = request.form["creado_desde"]
+    if "creado_hasta" in request.form and re.match(r"\d{4}-\d{2}-\d{2}", request.form["creado_hasta"]):
+        creado_hasta = request.form["creado_hasta"]
+    if creado_desde and creado_hasta and creado_desde > creado_hasta:
+        creado_desde, creado_hasta = creado_hasta, creado_desde
+    if creado_desde:
+        consulta = consulta.filter(Glosa.fecha >= creado_desde)
+    if creado_hasta:
+        consulta = consulta.filter(Glosa.fecha <= creado_hasta)
 
     # Ordenar y paginar
     registros = consulta.order_by(Glosa.id.desc()).offset(start).limit(rows_per_page).all()

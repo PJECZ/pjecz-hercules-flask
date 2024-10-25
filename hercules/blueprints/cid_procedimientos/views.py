@@ -87,7 +87,7 @@ def datatable_json():
     if "seguimiento" in request.form:
         consulta = consulta.filter(CIDProcedimiento.seguimiento == request.form["seguimiento"])
     if "seguimiento_posterior" in request.form:
-        consulta = consulta.filter(CIDProcedimiento.seguimiento_posterior != request.form["seguimiento_posterior"])
+        consulta = consulta.filter(CIDProcedimiento.seguimiento_posterior == request.form["seguimiento_posterior"])
     if "cid_areas_ids[]" in request.form:
         areas_a_filtrar = request.form.getlist("cid_areas_ids[]")
         listado_areas_ids = [int(area_id) for area_id in areas_a_filtrar]
@@ -107,6 +107,7 @@ def datatable_json():
                     "url": url_for("cid_procedimientos.detail", cid_procedimiento_id=resultado.id),
                 },
                 "titulo_procedimiento": resultado.titulo_procedimiento,
+                "revision": resultado.revision,
                 "fecha": resultado.fecha.strftime("%Y-%m-%d"),
                 "seguimiento": resultado.seguimiento,
             }
@@ -156,7 +157,7 @@ def admin_datatable_json():
     if "seguimiento" in request.form:
         consulta = consulta.filter(CIDProcedimiento.seguimiento == request.form["seguimiento"])
     if "seguimiento_posterior" in request.form:
-        consulta = consulta.filter(CIDProcedimiento.seguimiento_posterior != request.form["seguimiento_posterior"])
+        consulta = consulta.filter(CIDProcedimiento.seguimiento_posterior == request.form["seguimiento_posterior"])
     if "cid_areas_ids[]" in request.form:
         areas_a_filtrar = request.form.getlist("cid_areas_ids[]")
         listado_areas_ids = [int(area_id) for area_id in areas_a_filtrar]
@@ -216,7 +217,6 @@ def list_active():
                 "estatus": "A",
                 "cid_area_id": cid_area_id,
                 "seguimiento": "AUTORIZADO",
-                "seguimiento_posterior": "ARCHIVADO",
             }
             titulo = f"Procedimientos autorizados del área {cid_area.nombre}"
             mostrar_boton_listado_por_defecto = True
@@ -228,7 +228,6 @@ def list_active():
                     "estatus": "A",
                     "cid_area_clave": cid_area_clave,
                     "seguimiento": "AUTORIZADO",
-                    "seguimiento_posterior": "ARCHIVADO",
                 }
                 titulo = f"Procedimientos autorizados del área {cid_area.nombre}"
                 mostrar_boton_listado_por_defecto = True
@@ -238,7 +237,6 @@ def list_active():
                 "estatus": "A",
                 "cid_areas_ids": cid_areas_ids,
                 "seguimiento": "AUTORIZADO",
-                "seguimiento_posterior": "ARCHIVADO",
             }
             titulo = "Procedimientos autorizados de mis áreas"
             mostrar_boton_listado_por_defecto = True
@@ -255,19 +253,19 @@ def list_active():
     except (TypeError, ValueError):
         pass
 
-    # Si titulo es None y es administrador, mostrar todos los procedimientos activos
+    # Si titulo es None y es administrador, mostrar todos los procedimientos
     if titulo is None and current_user.can_admin(MODULO):
-        titulo = "Todos los procedimientos activos"
+        titulo = "Todos los procedimientos (admin)"
         filtros = {"estatus": "A"}
 
-    # Si titulo es none y tiene el rol "SICGD AUDITOR", mostrar los procedimientos autorizados
+    # Si titulo es none y tiene el rol "SICGD AUDITOR", mostrar los procedimientos
     if titulo is None and "SICGD AUDITOR" in current_user_roles:
-        titulo = "Procedimientos autorizados (auditor)"
-        filtros = {"estatus": "A", "seguimiento": "AUTORIZADO", "seguimiento_posterior": "ARCHIVADO"}
+        titulo = "Todos los procedimientos (auditor)"
+        filtros = {"estatus": "A"}
 
     # Si titulo es None y tiene el rol "SICGD COORDINADOR", mostrar todos los procedimientos
     if titulo is None and "SICGD COORDINADOR" in current_user_roles:
-        titulo = "Todos los procedimientos"
+        titulo = "Todos los procedimientos (coordinador)"
         filtros = {"estatus": "A"}
 
     # Obtener los IDs de las áreas del usuario
@@ -278,7 +276,7 @@ def list_active():
         )
     ]
 
-    # Si titulo es None y tiene ROLES_CON_PROCEDIMIENTOS_PROPIOS, mostrar solo los procedimientos propios
+    # Si titulo es None y tiene ROLES_CON_PROCEDIMIENTOS_PROPIOS, mostrar los procedimientos propios
     if (
         titulo is None
         and current_user_roles.intersection(ROLES_CON_PROCEDIMIENTOS_PROPIOS)
@@ -288,20 +286,19 @@ def list_active():
         filtros = {"estatus": "A", "usuario_id": current_user.id, "cid_areas_ids": current_user_cid_areas_ids}
         mostrar_boton_procedimientos_de_mis_areas = True
 
-    # Si el titulo es None y tiene áreas, mostrar los procedimientos autorizados de sus áreas
+    # Si el titulo es None y tiene áreas, mostrar los procedimientos autorizados de mis áreas
     if titulo is None and len(current_user_cid_areas_ids) > 0:
         titulo = "Procedimientos autorizados de mis áreas (involucrado)"
         filtros = {
             "estatus": "A",
             "seguimiento": "AUTORIZADO",
-            "seguimiento_posterior": "ARCHIVADO",
             "cid_areas_ids": current_user_cid_areas_ids,
         }
 
-    # Por defecto, mostrar todos los procedimientos autorizados
+    # Por defecto, mostrar los procedimientos autorizados
     if titulo is None:
         titulo = "Procedimientos autorizados de todas las áreas"
-        filtros = {"estatus": "A", "seguimiento": "AUTORIZADO", "seguimiento_posterior": "ARCHIVADO"}
+        filtros = {"estatus": "A", "seguimiento": "AUTORIZADO"}
 
     # Entregar
     return render_template(

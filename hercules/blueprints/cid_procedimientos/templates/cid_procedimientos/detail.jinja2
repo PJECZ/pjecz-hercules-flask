@@ -6,23 +6,6 @@
 
 {% block title %}Procedimiento {{ cid_procedimiento.codigo }}{% endblock %}
 
-{% block custom_head %}
-    <style>
-    .bg-yellow {
-        color: rgb(6, 6, 6);
-        background-color: #f3ebb3;
-    }
-    .bg-blue {
-        color: rgb(42, 42, 42);
-        background-color: #7ebdf7;
-    }
-    .bg-green {
-        color: rgb(37, 37, 37);
-        background-color: #64cb90;
-    }
-    </style>
-{% endblock %}
-
 {% block topbar_actions %}
     {% call topbar.page_buttons('Procedimiento ' + cid_procedimiento.codigo) %}
         {{ topbar.button_previous('Procedimientos ', url_for('cid_procedimientos.list_active')) }}

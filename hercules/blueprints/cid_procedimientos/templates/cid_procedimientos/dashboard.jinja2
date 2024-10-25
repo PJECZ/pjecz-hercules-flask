@@ -13,12 +13,14 @@
 {% block content %}
     <!-- Exportar Lista Maestra a XLSX -->
     {% if mostrar_boton_exportar_lista_maestra_xlsx %}
-        {% call card.card('Exportar Lista Maestra a XLSX') %}
+        {% call card.card('Lista Maestra') %}
             {% call card.card_body() %}
-                <a href="{{ url_for('cid_procedimientos.exportar_xlsx') }}" class="btn btn-outline-success">
-                    <span class="iconify" data-icon="mdi:google-spreadsheet"></span>
-                    Exportar XLSX
-                </a>
+                {{ card.button_md(
+                    label='Exportar XLSX',
+                    url=url_for('cid_procedimientos.exportar_xlsx'),
+                    icon='google-spreadsheet',
+                    target='_blank',
+                    color_class='btn-outline-success') }}
             {% endcall %}
         {% endcall %}
     {% endif %}
@@ -28,8 +30,12 @@
             {% call card.col_md(3) %}
                 {% call card.card(nombre) %}
                     {% call card.card_body() %}
-                        {% set url = url_for('cid_procedimientos.list_active') + '?cid_area_clave=' + clave %}
-                        <a href="{{ url }}">{{ cantidad }} Procedimientos</a>
+                        {{ card.button_md(
+                            label=cantidad | string + ' Procedimientos',
+                            url=url_for('cid_procedimientos.list_active') + '?cid_area_clave=' + clave,
+                            icon='eye',
+                            target='',
+                            color_class='btn-outline-secondary') }}
                     {% endcall %}
                 {% endcall %}
             {% endcall %}
