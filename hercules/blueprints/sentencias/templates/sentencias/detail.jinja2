@@ -49,7 +49,11 @@
             <div class="col-md-6">
                 {{ detail.label_value('F. de la sentencia', moment(sentencia.sentencia_fecha).format("llll")) }}
                 {{ detail.label_value('F. de publicación', moment(sentencia.fecha).format("llll")) }}
-                {{ detail.label_value('Materia', sentencia.materia_tipo_juicio.materia.nombre) }}
+                {% if current_user.can_view("MATERIAS TIPOS JUICIOS") %}
+                    {{ detail.label_value('Materia', sentencia.materia_tipo_juicio.materia.nombre, url_for('materias.detail', materia_id=sentencia.materia_tipo_juicio.materia_id)) }}
+                {% else %}
+                    {{ detail.label_value('Materia', sentencia.materia_tipo_juicio.materia.nombre) }}
+                {% endif %}
                 {% if current_user.can_view("MATERIAS TIPOS JUICIOS") %}
                     {{ detail.label_value('Tipo de Juicio', sentencia.materia_tipo_juicio.descripcion, url_for('materias_tipos_juicios.detail', materia_tipo_juicio_id=sentencia.materia_tipo_juicio_id)) }}
                 {% else %}

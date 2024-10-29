@@ -252,7 +252,6 @@ def admin_datatable_json():
                 "expediente": sentencia.expediente,
                 "materia_nombre": sentencia.materia_tipo_juicio.materia.nombre,
                 "materia_tipo_juicio_descripcion": sentencia.materia_tipo_juicio.descripcion,
-                "descripcion": sentencia.descripcion if len(sentencia.descripcion) < 12 else sentencia.descripcion[:12] + "…",
                 "es_perspectiva_genero": "Sí" if sentencia.es_perspectiva_genero else "",
             }
         )
@@ -263,7 +262,7 @@ def admin_datatable_json():
 
 @sentencias.route("/sentencias")
 def list_active():
-    """Listado de Sentencias activos"""
+    """Listado de Sentencias activas"""
 
     # Definir valores por defecto
     filtros = None
