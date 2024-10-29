@@ -74,6 +74,8 @@ def exportar_xlsx() -> Tuple[str, str, str]:
     hoja.append(
         [
             "NO.",
+            "CODIGO",
+            "REVISION",
             "DESCRIPCION FORMATO",
             "CODIGO PROCEDIMIENTO",
             "TITULO PROCEDIMIENTO",
@@ -82,11 +84,13 @@ def exportar_xlsx() -> Tuple[str, str, str]:
     )
 
     # Ajustar el ancho de las columnas
-    hoja.column_dimensions["A"].width = 10
-    hoja.column_dimensions["B"].width = 80
-    hoja.column_dimensions["C"].width = 25
-    hoja.column_dimensions["D"].width = 60
-    hoja.column_dimensions["E"].width = 30
+    hoja.column_dimensions["A"].width = 20
+    hoja.column_dimensions["B"].width = 20
+    hoja.column_dimensions["C"].width = 20
+    hoja.column_dimensions["D"].width = 80
+    hoja.column_dimensions["E"].width = 20
+    hoja.column_dimensions["F"].width = 80
+    hoja.column_dimensions["G"].width = 40
 
     # Inicializar el contador
     contador = 0
@@ -100,10 +104,12 @@ def exportar_xlsx() -> Tuple[str, str, str]:
         hoja.append(
             [
                 contador,
+                cid_formato.codigo,
+                cid_formato.procedimiento.revision,
                 cid_formato.descripcion,
                 cid_formato.procedimiento.codigo,
-                safe_string(cid_formato.procedimiento.titulo_procedimiento, save_enie=True),
-                safe_string(cid_formato.procedimiento.cid_area.nombre, save_enie=True),
+                cid_formato.procedimiento.titulo_procedimiento,
+                cid_formato.procedimiento.cid_area.nombre,
             ]
         )
 
