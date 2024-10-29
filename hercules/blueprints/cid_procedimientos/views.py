@@ -627,15 +627,14 @@ def copiar_procedimiento_con_revision(cid_procedimiento_id):
     # Obtener el CID Procedimiento correspondiente o devolver error 404 si no existe
     cid_procedimiento = CIDProcedimiento.query.get_or_404(cid_procedimiento_id)
     # Verificar que tanto seguimiento como seguimiento_posterior sean AUTORIZADO
-    if cid_procedimiento.seguimiento != "AUTORIZADO" or cid_procedimiento.seguimiento_posterior != "AUTORIZADO":
+    if cid_procedimiento.seguimiento != "AUTORIZADO" and cid_procedimiento.seguimiento_posterior != "AUTORIZADO":
         flash("No se puede copiar el procedimiento hasta que ambos seguimientos estén en 'AUTORIZADO'.", "danger")
         return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento.id))
     # Obtener la última revisión
     ultima_revision = (
         CIDProcedimiento.query.filter_by(id=cid_procedimiento.id).order_by(CIDProcedimiento.revision.desc()).first()
     )
-    # Obtener el número de revisión actual
-    numero_revision_actual = cid_procedimiento.revision
+
     # Crear un formulario para la nueva revisión
     form = CIDProcedimientosNewReview()
     # Si el formulario ha sido enviado y es válido
@@ -661,17 +660,6 @@ def copiar_procedimiento_con_revision(cid_procedimiento_id):
                 return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento.id))
         else:
             aprobo_email = ""
-        # Acceder a los datos del formulario
-        cid_procedimiento.titulo_prcedimiento = safe_string(form.titulo_procedimiento.data)
-        cid_procedimiento.codigo = form.codigo.data
-        cid_procedimiento.revision = form.revision.data
-        cid_procedimiento.fecha = form.fecha.data if form.fecha.data else datetime.now(timezone.utc)
-        cid_procedimiento.reviso_nombre = safe_string(reviso_nombre, save_enie=True)
-        cid_procedimiento.reviso_puesto = safe_string(form.reviso_puesto.data)
-        cid_procedimiento.reviso_email = reviso_email
-        cid_procedimiento.aprobo_nombre = safe_string(aprobo_nombre, save_enie=True)
-        cid_procedimiento.aprobo_puesto = safe_string(form.aprobo_puesto.data)
-        cid_procedimiento.aprobo_email = aprobo_email
 
         # Crear una nueva copia del procedimiento con los datos actualizados
         nueva_copia = CIDProcedimiento(
@@ -679,7 +667,7 @@ def copiar_procedimiento_con_revision(cid_procedimiento_id):
             usuario=current_user,
             titulo_procedimiento=safe_string(form.titulo_procedimiento.data),
             codigo=form.codigo.data,
-            revision=cid_procedimiento.revision,
+            revision=form.revision.data,
             fecha=form.fecha.data if form.fecha.data else datetime.now(timezone.utc),
             objetivo=cid_procedimiento.objetivo,
             alcance=cid_procedimiento.alcance,
@@ -691,12 +679,12 @@ def copiar_procedimiento_con_revision(cid_procedimiento_id):
             elaboro_nombre=cid_procedimiento.elaboro_nombre,
             elaboro_puesto=cid_procedimiento.elaboro_puesto,
             elaboro_email=cid_procedimiento.elaboro_email,
-            reviso_nombre=cid_procedimiento.reviso_nombre,
+            reviso_nombre=reviso_nombre,
             reviso_puesto=cid_procedimiento.reviso_puesto,
-            reviso_email=cid_procedimiento.reviso_email,
-            aprobo_nombre=cid_procedimiento.aprobo_nombre,
+            reviso_email=reviso_email,
+            aprobo_nombre=aprobo_nombre,
             aprobo_puesto=cid_procedimiento.aprobo_puesto,
-            aprobo_email=cid_procedimiento.aprobo_email,
+            aprobo_email=aprobo_email,
             control_cambios=cid_procedimiento.control_cambios,
             seguimiento="EN ELABORACION",
             seguimiento_posterior="EN ELABORACION",
@@ -707,36 +695,23 @@ def copiar_procedimiento_con_revision(cid_procedimiento_id):
             url="",
             cid_area=cid_procedimiento.cid_area,
         )
+
         # Guardar la nueva copia en la base de datos
         nueva_copia.save()
-        # Obtener el procedimiento anterior usando su ID, Duplicar los formatos del procedimiento anterior a éste
-        anterior = CIDProcedimiento.query.get(cid_procedimiento_id)
-        # Verificar si el seguimiento del nuevo procedimiento es "AUTORIZADO"
-        if cid_procedimiento.seguimiento == "AUTORIZADO":
-            # Iterar sobre los formatos del procedimiento anterior
-            for cid_formato in anterior.cid_formatos:
-                # Crear una copia del formato actual y guardarla en la base de datos
-                CIDFormato(
-                    procedimiento=nueva_copia,  # Establecer el nuevo procedimiento al que pertenecerá este formato
-                    codigo=cid_formato.codigo,  # Establecer el código del nuevo formato como el mismo código
-                    descripcion=cid_formato.descripcion,  # Establecer la descripción del nuevo formato
-                    archivo=cid_formato.archivo,  # Establecer el archivo del nuevo formato
-                    url=cid_formato.url,  # Establecer la URL del nuevo formato
-                    cid_area=cid_formato.cid_area,  # Establecer el área del nuevo formato
-                ).save()
 
-        # Actualizar el estado de los procedimientos relacionados a "AUTORIZADO"
-        relacionados_a_archivar = CIDProcedimiento.query.filter(
-            (CIDProcedimiento.codigo == cid_procedimiento.codigo)
-            & ((CIDProcedimiento.seguimiento == "AUTORIZADO") | (CIDProcedimiento.seguimiento_posterior == "AUTORIZADO"))
+        # Actualizar el estado de las revisiones anteriores si la nueva copia cumple las condiciones
+        # if nueva_copia.seguimiento == "AUTORIZADO" and nueva_copia.seguimiento_posterior == "AUTORIZADO":
+        #     flash("La nueva rrevision no tiene el seguimiento correcto")
+        procedimientos_anteriores = CIDProcedimiento.query.filter(
+            CIDProcedimiento.codigo == cid_procedimiento.codigo,
+            CIDProcedimiento.revision < nueva_copia.revision,  # Revisiones anteriores
+            CIDProcedimiento.seguimiento == "AUTORIZADO",
+            CIDProcedimiento.seguimiento_posterior == "AUTORIZADO",
         ).all()
-        # Recorrer sobre todos los elementos relacionados que deben ser archivados
-        for relacionado in relacionados_a_archivar:
-            # Asignar el estado "ARCHIVADO" al atributo 'seguimiento_posterior' del elemento relacionado
-            relacionado.seguimiento_posterior = "ARCHIVADO"
-            # Mantener el número de revisión actual en el atributo 'revision' del elemento relacionado
-            relacionado.revision = numero_revision_actual
-            relacionado.save()
+
+        for procedimiento in procedimientos_anteriores:
+            procedimiento.seguimiento = "ARCHIVADO"
+            procedimiento.save()
 
         # Bitácora y redirección a la vista de detalle
         bitacora = Bitacora(
