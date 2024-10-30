@@ -5,7 +5,7 @@
 {% block content %}
     <div class="py-2">
         <p>
-            Fecha {{ moment(lista_de_acuerdo.creado, local=False).format('llll') }}<br>
+            Fecha {{ moment(lista_de_acuerdo.creado, local=False).format("DD MMM YYYY HH:mm") }}<br>
             ID LA-{{ lista_de_acuerdo.id }}<br>
             <strong>{{ lista_de_acuerdo.autoridad.descripcion }}</strong><br>
             <strong>{{ lista_de_acuerdo.autoridad.distrito.nombre }}</strong>

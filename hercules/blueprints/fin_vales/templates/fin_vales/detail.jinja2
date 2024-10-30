@@ -41,12 +41,12 @@
         {% set border_class = 'border-dark' %}
     {% endif %}
     {% call detail.card(title='Este vale es para', estatus=fin_vale.estatus, border_class=border_class) %}
-        {{ detail.label_value('Creado', moment(fin_vale.creado, local=False).format('llll')) }}
         {{ detail.label_value('Usuario', fin_vale.usuario.nombre + ' (' + fin_vale.usuario.email + ')') }}
         {{ detail.label_value('Puesto', fin_vale.usuario.puesto) }}
         {{ detail.label_value('Oficina', fin_vale.usuario.oficina.clave + ': ' + fin_vale.usuario.oficina.descripcion) }}
         {{ detail.label_value('Monto', '$ ' + fin_vale.monto | string) }}
         {{ detail.label_value('Justificacion', fin_vale.justificacion) }}
+        {{ detail.label_value('Creado', moment(fin_vale.creado, local=False).format("DD MMM YYYY HH:mm")) }}
     {% endcall %}
     {% if fin_vale.solicito_efirma_error != None and fin_vale.solicito_efirma_error != '' %}
         {% call detail.card_styled(title='Error al solicitar', classes='bg-warning') %}
@@ -58,7 +58,7 @@
             {{ detail.label_value('Nombre', fin_vale.solicito_nombre) }}
             {{ detail.label_value('Puesto', fin_vale.solicito_puesto) }}
             {{ detail.label_value('e-mail', fin_vale.solicito_email) }}
-            {{ detail.label_value('Tiempo', moment(fin_vale.solicito_efirma_tiempo).format('llll')) }}
+            {{ detail.label_value('Tiempo', moment(fin_vale.solicito_efirma_tiempo).format("DD MMM YYYY HH:mm")) }}
             {{ detail.label_value_new_tab('Folio y URL', fin_vale.solicito_efirma_folio, fin_vale.solicito_efirma_url) }}
             {{ detail.label_value('Sello digital', fin_vale.solicito_efirma_sello_digital) }}
             {% if fin_vale.estatus == 'A' %}
@@ -88,10 +88,10 @@
     {% endif %}
     {% if fin_vale.estado == 'CANCELADO POR SOLICITANTE' %}
         {% call detail.card(title='Cancelado por solicitante', estatus=fin_vale.estatus, border_class=border_class) %}
-            {{ detail.label_value('Tiempo', moment(fin_vale.solicito_cancelo_tiempo).format('llll')) }}
             {{ detail.label_value('Motivo', fin_vale.solicito_cancelo_motivo) }}
             {{ detail.label_value('Error', fin_vale.solicito_cancelo_error) }}
             {{ detail.label_value_new_tab('Folio y URL', fin_vale.solicito_efirma_folio, fin_vale.solicito_efirma_url) }}
+            {{ detail.label_value('Tiempo', moment(fin_vale.solicito_cancelo_tiempo).format("DD MMM YYYY HH:mm")) }}
         {% endcall %}
     {% endif %}
     {% if fin_vale.autorizo_efirma_error != None and fin_vale.autorizo_efirma_error != '' %}
