@@ -47,8 +47,8 @@
                 {{ detail.label_value('Descripción', sentencia.descripcion) }}
             </div>
             <div class="col-md-6">
-                {{ detail.label_value('F. de la sentencia', moment(sentencia.sentencia_fecha).format("llll")) }}
-                {{ detail.label_value('F. de publicación', moment(sentencia.fecha).format("llll")) }}
+                {{ detail.label_value('F. de la sentencia', moment(sentencia.sentencia_fecha, local=False).format("DD MMM YYYY")) }}
+                {{ detail.label_value('F. de publicación', moment(sentencia.fecha, local=False).format("DD MMM YYYY")) }}
                 {% if current_user.can_view("MATERIAS TIPOS JUICIOS") %}
                     {{ detail.label_value('Materia', sentencia.materia_tipo_juicio.materia.nombre, url_for('materias.detail', materia_id=sentencia.materia_tipo_juicio.materia_id)) }}
                 {% else %}
@@ -60,7 +60,7 @@
                     {{ detail.label_value('Tipo de Juicio', sentencia.materia_tipo_juicio.descripcion) }}
                 {% endif %}
                 {{ detail.label_value_boolean('Es P. de Género', sentencia.es_perspectiva_genero) }}
-                {{ detail.label_value('Creado', moment(sentencia.creado, local=False).format('llll')) }}
+                {{ detail.label_value('Creado', moment(sentencia.creado, local=False).format('DD MMM YYYY HH:mm')) }}
             </div>
         </div>
         <div class="row">

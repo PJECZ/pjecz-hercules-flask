@@ -11,17 +11,17 @@
 
 {% block content %}
     {% call detail.card(title='Este vale es para') %}
-        {{ detail.label_value('Creado', moment(fin_vale.creado, local=False).format('llll')) }}
         {{ detail.label_value('Usuario', fin_vale.usuario.nombre + ' (' + fin_vale.usuario.email + ')') }}
         {{ detail.label_value('Puesto', fin_vale.usuario.puesto) }}
         {{ detail.label_value('Monto', '$ ' + fin_vale.monto | string) }}
         {{ detail.label_value('Justificación', fin_vale.justificacion) }}
+        {{ detail.label_value('Creado', moment(fin_vale.creado, local=False).format('DD MMM YYYY HH:mm')) }}
     {% endcall %}
     {% call detail.card(title='Solicitado por') %}
-        {{ detail.label_value('Tiempo', moment(fin_vale.solicito_efirma_tiempo).format('llll')) }}
         {{ detail.label_value('Usuario', fin_vale.solicito_nombre + ' (' + fin_vale.solicito_email + ')') }}
         {{ detail.label_value('Puesto', fin_vale.solicito_puesto) }}
         {{ detail.label_value_new_tab('eFirma', fin_vale.solicito_efirma_folio, fin_vale.solicito_efirma_url) }}
+        {{ detail.label_value('Tiempo', moment(fin_vale.solicito_efirma_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
     {% endcall %}
     {% call f.card(title='Cancelar esta solicitud') %}
         {% set form_kwargs = {'fin_vale_id': fin_vale.id} %}

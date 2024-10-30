@@ -20,6 +20,6 @@
             {{ detail.label_value('Descripción', edicto_acuse.columna_1) }}
         {% endif %}
         {{ detail.label_value('No. de expediente', edicto_acuse.columna_2) }}
-        {{ detail.label_value('Creado', moment(edicto_acuse.creado, local=False).format('llll')) }}
+        {{ detail.label_value('Creado', moment(edicto_acuse.creado, local=False).format('DD MMM YYYY HH:mm')) }}
     {% endcall %}
 {% endblock %}
