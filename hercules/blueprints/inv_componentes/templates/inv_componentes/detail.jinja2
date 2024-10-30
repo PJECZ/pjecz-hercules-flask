@@ -35,7 +35,7 @@
                 {{ detail.label_value('Puesto', inv_componente.inv_equipo.inv_custodia.usuario.puesto) }}
                 {{ detail.label_value('Oficina', inv_componente.inv_equipo.inv_custodia.usuario.oficina.descripcion_corta + ' (' + inv_componente.inv_equipo.inv_custodia.usuario.oficina.clave + ')') }}
                 {{ detail.label_value('Edificio', inv_componente.inv_equipo.inv_custodia.usuario.oficina.domicilio.edificio) }}
-                {{ detail.label_value('Fecha', moment(inv_componente.inv_equipo.inv_custodia.fecha, local=False).format("DD MMM YYYY")) }}
+                {{ detail.label_value('Fecha', inv_componente.inv_equipo.inv_custodia.fecha) }}
             {% endcall %}
         </div>
         <div class="col-md-6">

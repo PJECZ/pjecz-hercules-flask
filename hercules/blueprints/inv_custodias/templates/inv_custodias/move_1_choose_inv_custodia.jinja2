@@ -16,7 +16,7 @@
         {{ detail.label_value('Puesto', origen_inv_custodia.usuario.puesto) }}
         {{ detail.label_value('Oficina', origen_inv_custodia.usuario.oficina.descripcion_corta + ' (' + origen_inv_custodia.usuario.oficina.clave + ')') }}
         {{ detail.label_value('Edificio', origen_inv_custodia.usuario.oficina.domicilio.edificio) }}
-        {{ detail.label_value('Fecha', moment(origen_inv_custodia.fecha, local=False).format("DD MMM YYYY")) }}
+        {{ detail.label_value('Fecha', origen_inv_custodia.fecha) }}
     {% endcall %}
     {% call list.card('Elegir Custodia de destino') %}
         <!-- Filtros InvCustodias -->
