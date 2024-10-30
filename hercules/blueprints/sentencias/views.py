@@ -53,9 +53,9 @@ local_tz = timezone(TIMEZONE)
 # Constantes de este módulo
 MODULO = "SENTENCIAS"
 DASHBOARD_CANTIDAD_DIAS = 15
-LIMITE_DIAS = 365  # Un anio
+LIMITE_DIAS = 3650  # Diez años
 LIMITE_DIAS_EDITAR = LIMITE_DIAS_ELIMINAR = LIMITE_DIAS_RECUPERAR = 7
-LIMITE_ADMINISTRADORES_DIAS = 7300  # Administradores pueden manipular veinte anios
+LIMITE_ADMINISTRADORES_DIAS = 7300  # Administradores pueden manipular veinte años
 ROL_REPORTES_TODOS = ["ADMINISTRADOR", "ESTADISTICA", "VISITADURIA JUDICIAL"]  # Roles que deben estar en la BD
 
 sentencias = Blueprint("sentencias", __name__, template_folder="templates")
