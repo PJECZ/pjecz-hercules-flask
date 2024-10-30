@@ -47,8 +47,8 @@
                 {{ detail.label_value('Descripción', sentencia.descripcion) }}
             </div>
             <div class="col-md-6">
-                {{ detail.label_value('F. de la sentencia', moment(sentencia.sentencia_fecha, local=False).format("DD MMM YYYY")) }}
-                {{ detail.label_value('F. de publicación', moment(sentencia.fecha, local=False).format("DD MMM YYYY")) }}
+                {{ detail.label_value('F. de la sentencia', sentencia.sentencia_fecha) }}
+                {{ detail.label_value('F. de publicación', sentencia.fecha) }}
                 {% if current_user.can_view("MATERIAS TIPOS JUICIOS") %}
                     {{ detail.label_value('Materia', sentencia.materia_tipo_juicio.materia.nombre, url_for('materias.detail', materia_id=sentencia.materia_tipo_juicio.materia_id)) }}
                 {% else %}
