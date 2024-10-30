@@ -16,7 +16,7 @@
         {{ detail.label_value('Descripción del Problema', adjunto.soporte_ticket.descripcion) }}
         {% if adjunto.soporte_ticket.soporte_categoria_id != 1 %}
             {{ detail.label_value('Categoría', adjunto.soporte_ticket.soporte_categoria.nombre) }}
-        {{ detail.label_value('Creado', moment(adjunto.creado, local=False).format("DD MMM YYYY HH:mm")) }}
+        {{ detail.label_value('Creado', moment(adjunto.creado, local=False).format('DD MMM YYYY HH:mm')) }}
         {% endif %}
         {{ detail.label_value('Archivo', adjunto.archivo) }}
         {{ detail.label_value('Descripción', adjunto.descripcion) }}

@@ -46,7 +46,7 @@
         {{ detail.label_value('Oficina', fin_vale.usuario.oficina.clave + ': ' + fin_vale.usuario.oficina.descripcion) }}
         {{ detail.label_value('Monto', '$ ' + fin_vale.monto | string) }}
         {{ detail.label_value('Justificacion', fin_vale.justificacion) }}
-        {{ detail.label_value('Creado', moment(fin_vale.creado, local=False).format("DD MMM YYYY HH:mm")) }}
+        {{ detail.label_value('Creado', moment(fin_vale.creado, local=False).format('DD MMM YYYY HH:mm')) }}
     {% endcall %}
     {% if fin_vale.solicito_efirma_error != None and fin_vale.solicito_efirma_error != '' %}
         {% call detail.card_styled(title='Error al solicitar', classes='bg-warning') %}
@@ -58,7 +58,7 @@
             {{ detail.label_value('Nombre', fin_vale.solicito_nombre) }}
             {{ detail.label_value('Puesto', fin_vale.solicito_puesto) }}
             {{ detail.label_value('e-mail', fin_vale.solicito_email) }}
-            {{ detail.label_value('Tiempo', moment(fin_vale.solicito_efirma_tiempo).format("DD MMM YYYY HH:mm")) }}
+            {{ detail.label_value('Tiempo', moment(fin_vale.solicito_efirma_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
             {{ detail.label_value_new_tab('Folio y URL', fin_vale.solicito_efirma_folio, fin_vale.solicito_efirma_url) }}
             {{ detail.label_value('Sello digital', fin_vale.solicito_efirma_sello_digital) }}
             {% if fin_vale.estatus == 'A' %}
@@ -91,7 +91,7 @@
             {{ detail.label_value('Motivo', fin_vale.solicito_cancelo_motivo) }}
             {{ detail.label_value('Error', fin_vale.solicito_cancelo_error) }}
             {{ detail.label_value_new_tab('Folio y URL', fin_vale.solicito_efirma_folio, fin_vale.solicito_efirma_url) }}
-            {{ detail.label_value('Tiempo', moment(fin_vale.solicito_cancelo_tiempo).format("DD MMM YYYY HH:mm")) }}
+            {{ detail.label_value('Tiempo', moment(fin_vale.solicito_cancelo_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
         {% endcall %}
     {% endif %}
     {% if fin_vale.autorizo_efirma_error != None and fin_vale.autorizo_efirma_error != '' %}
@@ -104,7 +104,7 @@
             {{ detail.label_value('Nombre', fin_vale.autorizo_nombre) }}
             {{ detail.label_value('Puesto', fin_vale.autorizo_puesto) }}
             {{ detail.label_value('e-mail', fin_vale.autorizo_email) }}
-            {{ detail.label_value('Tiempo', fin_vale.autorizo_efirma_tiempo) }}
+            {{ detail.label_value('Tiempo', moment(fin_vale.autorizo_efirma_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
             {{ detail.label_value_new_tab('Folio y URL', fin_vale.autorizo_efirma_folio, fin_vale.autorizo_efirma_url) }}
             {{ detail.label_value('Sello digital', fin_vale.autorizo_efirma_sello_digital) }}
             {% if fin_vale.estatus == 'A' %}
@@ -137,7 +137,7 @@
             {{ detail.label_value('Nombre', fin_vale.autorizo_nombre) }}
             {{ detail.label_value('Puesto', fin_vale.autorizo_puesto) }}
             {{ detail.label_value('e-mail', fin_vale.autorizo_email) }}
-            {{ detail.label_value('Tiempo', fin_vale.autorizo_efirma_tiempo) }}
+            {{ detail.label_value('Tiempo', moment(fin_vale.autorizo_efirma_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
             {{ detail.label_value('Mensaje', fin_vale.autorizo_efirma_mensaje) }}
             {{ detail.label_value_new_tab('Folio y URL', fin_vale.autorizo_efirma_folio, fin_vale.autorizo_efirma_url) }}
         {% endcall %}
