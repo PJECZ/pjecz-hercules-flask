@@ -91,7 +91,7 @@ def datatable_json():
                 },
                 "nombre_completo": resultado.nombre_completo,
                 "oficina_clave": resultado.usuario.oficina.clave,
-                "fecha": resultado.fecha.strftime("%Y-%m-%d"),
+                "fecha": resultado.fecha.strftime("%Y-%m-%d 00:00:00"),
                 "equipos_cantidad": resultado.equipos_cantidad if resultado.equipos_cantidad != 0 else "-",
                 "equipos_fotos_cantidad": resultado.equipos_fotos_cantidad if resultado.equipos_fotos_cantidad != 0 else "-",
             }

@@ -228,7 +228,7 @@ def admin_datatable_json():
                     "semaforo": semaforo,
                 },
                 "autoridad_clave": lista_de_acuerdo.autoridad.clave,
-                "fecha": lista_de_acuerdo.fecha.strftime("%Y-%m-%d"),
+                "fecha": lista_de_acuerdo.fecha.strftime("%Y-%m-%d 00:00:00"),
                 "descripcion": lista_de_acuerdo.descripcion,
                 "descargar_url": lista_de_acuerdo.descargar_url,
             }

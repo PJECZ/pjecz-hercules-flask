@@ -190,7 +190,7 @@ def admin_datatable_json():
                 },
                 "creado": glosa.creado.strftime("%Y-%m-%dT%H:%M:%S"),
                 "autoridad_clave": glosa.autoridad.clave,
-                "fecha": glosa.fecha.strftime("%Y-%m-%d"),
+                "fecha": glosa.fecha.strftime("%Y-%m-%d 00:00:00"),
                 "descripcion": glosa.descripcion,
                 "expediente": glosa.expediente,
                 "tipo_juicio": glosa.tipo_juicio,
