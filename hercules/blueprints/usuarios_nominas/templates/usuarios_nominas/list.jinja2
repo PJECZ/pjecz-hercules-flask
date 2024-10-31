@@ -53,7 +53,7 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return data.fecha + '<br/><strong>' + data.descripcion + '</strong>';
+                    return moment(data.fecha).format('YYYY-MM-DD') + '<br/><strong>' + data.descripcion + '</strong>';
                 }
             },{
                 targets: 1, // pdf

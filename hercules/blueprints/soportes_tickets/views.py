@@ -242,7 +242,7 @@ def datatable_json():
                     ),
                 },
                 "descripcion": resultado.descripcion,
-                "creacion": resultado.creado.strftime("%Y-%m-%dT%H:%M:%S"),
+                "creacion": resultado.creado.strftime("%Y-%m-%d %H:%M"),
                 "tecnico": {
                     "nombre": resultado.funcionario.nombre,
                     "url": (
