@@ -47,7 +47,7 @@ def datatable_json():
         data.append(
             {
                 "detalle": {
-                    "fecha": resultado.fecha,
+                    "fecha": resultado.fecha.strftime("%Y-%m-%d 00:00:00"),
                     "url": url_for("edictos_acuses.detail", edicto_acuse_id=resultado.id),
                 },
                 "edicto_descripcion": resultado.edicto.descripcion,

@@ -247,7 +247,7 @@ def admin_datatable_json():
                 },
                 "creado": sentencia.creado.strftime("%Y-%m-%dT%H:%M:%S"),
                 "autoridad": sentencia.autoridad.clave,
-                "fecha": sentencia.fecha.strftime("%Y-%m-%d"),
+                "fecha": sentencia.fecha.strftime("%Y-%m-%d 00:00:00"),
                 "sentencia": sentencia.sentencia,
                 "expediente": sentencia.expediente,
                 "materia_nombre": sentencia.materia_tipo_juicio.materia.nombre,
