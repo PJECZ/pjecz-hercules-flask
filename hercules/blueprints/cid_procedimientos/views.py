@@ -373,12 +373,19 @@ def new():
         autoridad = current_user.autoridad
         # Consultar la tabla CIDAreaAutoridad para obtener las relación entre la autoridad y el área correspondiente
         area_autoridad = CIDAreaAutoridad.query.filter_by(autoridad_id=autoridad.id).first()
+        # Obtener el área "NO DEFINIDO" desde la base de datos
+        area_no_definida = CIDArea.query.filter_by(nombre="NO DEFINIDO").first()
+
         # Verificar si se encontró un registro válido en la tabla CIDAreaAutoridad y si el área relacionada está definida
-        if not area_autoridad or not area_autoridad.cid_area:
-            # Mostrar un mensaje de error si no se encontró un área asociada a la autoridad del usuario
-            flash("No se encontró un área asociada a la autoridad del usuario.", "error")
-            # Redirigir al usuario a la página para crear un nuevo procedimiento
-            return redirect(url_for("cid_procedimientos.new"))
+        if not area_autoridad:
+            area_autoridad = CIDAreaAutoridad(autoridad_id=autoridad.id, cid_area=area_no_definida)
+        else:
+            # Si el área asociada está definida, verificar si es válida
+            if not area_autoridad.cid_area:
+                # Mostrar un mensaje de error si no se encontró un área asociada a la autoridad del usuario
+                flash("No se encontró un área asociada a la autoridad del usuario.", "warning")
+                # Redirigir al usuario a la página para crear un nuevo procedimiento
+                return redirect(url_for("cid_procedimientos.new"))
         area = area_autoridad.cid_area  # Obtener el área relacionada
         elaboro_email = form.elaboro_email.data
         elaboro_nombre = form.elaboro_nombre.data
@@ -456,6 +463,7 @@ def new():
             archivo="",
             url="",
             cid_area_id=area.id,  # Asignar el área obtenida
+            procedimiento_anterior_autorizado_id=0,
         )
         cid_procedimiento.save()
         bitacora = Bitacora(
