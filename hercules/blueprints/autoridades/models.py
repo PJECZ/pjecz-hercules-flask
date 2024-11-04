@@ -74,12 +74,14 @@ class Autoridad(database.Model, UniversalMixin):
         Enum(*ORGANOS_JURISDICCIONALES, name="autoridades_organos_jurisdiccionales", native_enum=False),
         index=True,
     )
-    directorio_edictos: Mapped[str] = mapped_column(String(256))
-    directorio_glosas: Mapped[str] = mapped_column(String(256))
-    directorio_listas_de_acuerdos: Mapped[str] = mapped_column(String(256))
-    directorio_sentencias: Mapped[str] = mapped_column(String(256))
+    directorio_edictos: Mapped[str] = mapped_column(String(256), default="")
+    directorio_glosas: Mapped[str] = mapped_column(String(256), default="")
+    directorio_listas_de_acuerdos: Mapped[str] = mapped_column(String(256), default="")
+    directorio_sentencias: Mapped[str] = mapped_column(String(256), default="")
     audiencia_categoria: Mapped[str] = mapped_column(
-        Enum(*AUDIENCIAS_CATEGORIAS, name="autoridades_audiencias_categorias", native_enum=False), index=True
+        Enum(*AUDIENCIAS_CATEGORIAS, name="autoridades_audiencias_categorias", native_enum=False),
+        index=True,
+        default="NO DEFINIDO",
     )
     limite_dias_listas_de_acuerdos: Mapped[int] = mapped_column(default=0)
     sede: Mapped[str] = mapped_column(
