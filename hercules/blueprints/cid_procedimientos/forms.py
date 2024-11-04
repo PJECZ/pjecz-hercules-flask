@@ -3,10 +3,11 @@ Cid Procedimientos, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import DateField, IntegerField, SelectField, StringField, SubmitField
+from wtforms import BooleanField, DateField, IntegerField, SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length, Optional
 
 from hercules.blueprints.cid_areas.models import CIDArea
+from hercules.blueprints.cid_procedimientos.models import CIDProcedimiento
 from lib.wtforms import JSONField
 
 

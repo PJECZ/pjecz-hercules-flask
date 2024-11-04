@@ -286,6 +286,7 @@ def crear_pdf(cid_procedimiento_id: int, usuario_id: int = None, accept_reject_u
     if send_grid and cid_procedimiento.seguimiento == "REVISADO":
         # Notificar al elaborador que fue revisado
         anterior = CIDProcedimiento.query.get(cid_procedimiento.anterior_id)
+        # Actualiza el seguimiento de los proceimientos anteriores a "REVISADO"
         while anterior:
             anterior.seguimiento_posterior = "REVISADO"
             anterior.save()
@@ -328,6 +329,10 @@ def crear_pdf(cid_procedimiento_id: int, usuario_id: int = None, accept_reject_u
             anterior.seguimiento_posterior = "AUTORIZADO"
             anterior.save()
             anterior = CIDProcedimiento.query.get(anterior.anterior_id)
+        anterior_autorizado = CIDProcedimiento.query.get(cid_procedimiento.procedimiento_anterior_autorizado_id)
+        anterior_autorizado.seguimiento = "ARCHIVADO"
+        anterior_autorizado.save()
+
         # TODO: Enviar mensaje para informar al elaborador
         # TODO: Enviar mensaje para informar al revisor
 

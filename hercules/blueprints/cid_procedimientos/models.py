@@ -88,6 +88,8 @@ class CIDProcedimiento(database.Model, UniversalMixin):
     # Al elaborar el archivo PDF y subirlo a Google Storage
     archivo: Mapped[str] = mapped_column(String(256), default="")
     url: Mapped[str] = mapped_column(String(512), default="")
+    # ID del procedimineto anterior
+    procedimiento_anterior_autorizado_id: Mapped[int]
 
     cid_formatos: Mapped[List["CIDFormato"]] = relationship(back_populates="procedimiento")
 
