@@ -53,9 +53,9 @@ local_tz = timezone(TIMEZONE)
 # Constantes de este módulo
 MODULO = "SENTENCIAS"
 DASHBOARD_CANTIDAD_DIAS = 15
-LIMITE_DIAS = 365  # Un anio
+LIMITE_DIAS = 3650  # Diez años
 LIMITE_DIAS_EDITAR = LIMITE_DIAS_ELIMINAR = LIMITE_DIAS_RECUPERAR = 7
-LIMITE_ADMINISTRADORES_DIAS = 7300  # Administradores pueden manipular veinte anios
+LIMITE_ADMINISTRADORES_DIAS = 7300  # Administradores pueden manipular veinte años
 ROL_REPORTES_TODOS = ["ADMINISTRADOR", "ESTADISTICA", "VISITADURIA JUDICIAL"]  # Roles que deben estar en la BD
 
 sentencias = Blueprint("sentencias", __name__, template_folder="templates")
@@ -247,12 +247,11 @@ def admin_datatable_json():
                 },
                 "creado": sentencia.creado.strftime("%Y-%m-%dT%H:%M:%S"),
                 "autoridad": sentencia.autoridad.clave,
-                "fecha": sentencia.fecha.strftime("%Y-%m-%d"),
+                "fecha": sentencia.fecha.strftime("%Y-%m-%d 00:00:00"),
                 "sentencia": sentencia.sentencia,
                 "expediente": sentencia.expediente,
                 "materia_nombre": sentencia.materia_tipo_juicio.materia.nombre,
                 "materia_tipo_juicio_descripcion": sentencia.materia_tipo_juicio.descripcion,
-                "descripcion": sentencia.descripcion if len(sentencia.descripcion) < 12 else sentencia.descripcion[:12] + "…",
                 "es_perspectiva_genero": "Sí" if sentencia.es_perspectiva_genero else "",
             }
         )
@@ -263,7 +262,7 @@ def admin_datatable_json():
 
 @sentencias.route("/sentencias")
 def list_active():
-    """Listado de Sentencias activos"""
+    """Listado de Sentencias activas"""
 
     # Definir valores por defecto
     filtros = None

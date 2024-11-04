@@ -50,7 +50,7 @@
                 {% else %}
                     {{ detail.label_value('Edificio', edificio_str) }}
                 {% endif %}
-                {{ detail.label_value('Fecha', moment(inv_equipo.inv_custodia.fecha).format("DD MMM YYYY")) }}
+                {{ detail.label_value('Fecha', inv_equipo.inv_custodia.fecha) }}
             {% endcall %}
         </div>
         <div class="col-md-6">

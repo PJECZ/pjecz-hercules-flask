@@ -60,7 +60,7 @@ def datatable_json():
                 },
                 "nombre": resultado.nombre,
                 "expediente": resultado.expediente,
-                "fecha": resultado.fecha,
+                "fecha": resultado.fecha.strftime("%Y-%m-%d 00:00:00"),
                 "distrito_nombre_corto": resultado.autoridad.distrito.nombre_corto,
                 "autoridad_descripcion_corta": resultado.autoridad.descripcion_corta,
                 "observaciones": resultado.observaciones,

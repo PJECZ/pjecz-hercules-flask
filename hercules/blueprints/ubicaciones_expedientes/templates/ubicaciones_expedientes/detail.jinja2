@@ -22,7 +22,7 @@
         {{ detail.label_value('Distrito', ubicacion_expediente.autoridad.distrito.nombre) }}
         {{ detail.label_value('Autoridad', ubicacion_expediente.autoridad.descripcion) }}
         {{ detail.label_value('Ubicación', ubicacion_expediente.ubicacion) }}
-        {{ detail.label_value('Creado', moment(ubicacion_expediente.creado, local=False).format('llll')) }}
+        {{ detail.label_value('Creado', moment(ubicacion_expediente.creado, local=False).format('DD MMM YYYY HH:mm')) }}
     {% endcall %}
 {% endblock %}
 

@@ -61,19 +61,11 @@
                     </div>
                     <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
-                            <label for="filtroDescripcion">Descripción</label>
-                        </div>
-                    </div>
-                    {% if not mostrar_filtro_autoridad_clave %}
-                    <div class="col-2">
-                        <div class="form-floating">
                             <input id="filtroExpediente" type="text" class="form-control" aria-label="Expediente" style="text-transform: uppercase;">
                             <label for="filtroExpediente">Expediente</label>
                         </div>
                     </div>
-                    {% endif %}
-                    <div class="col-2 text-end">
+                    {% if mostrar_filtro_autoridad_clave %}<div class="col-2 text-end">{% else %}<div class="col-4 text-end">{% endif %}
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosSentencias.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
                         <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosSentencias.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
@@ -87,8 +79,9 @@
                     <th>Fecha</th>
                     <th>Autoridad</th>
                     <th>Sentencia</th>
-                    <th>Descripción</th>
                     <th>Expediente</th>
+                    <th>Materia</th>
+                    <th>Tipo de Juicio</th>
                     <th>P. Género</th>
                 </tr>
             </thead>
@@ -109,8 +102,9 @@
             { data: "fecha" },
             { data: "autoridad_clave" },
             { data: "detalle" },
-            { data: "descripcion" },
             { data: "expediente" },
+            { data: "materia_nombre" },
+            { data: "materia_tipo_juicio_descripcion" },
             { data: "es_perspectiva_genero" }
         ];
         configDTSentencias['columnDefs'] = [
@@ -127,6 +121,16 @@
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.sentencia + '</a>';
                 }
+            },
+            {
+                targets: 5, // materia_tipo_juicio_descripcion
+                data: null,
+                render: function (data, type, row, meta) {
+                    if (data.length > 24) {
+                        return '<span title="' + data + '">' + data.substring(0, 24) + '…</span>';
+                    }
+                    return data;
+                }
             }
         ];
         // Filtros Sentencias
@@ -136,7 +140,6 @@
         filtrosSentencias.agregarInput('filtroFechaHasta', 'fecha_hasta');
         filtrosSentencias.agregarInput('filtroSentencia', 'sentencia');
         filtrosSentencias.agregarInput('filtroExpediente', 'expediente');
-        {% if not mostrar_filtro_autoridad_clave %}filtrosSentencias.agregarInput('filtroDescripcion', 'descripcion');{% endif %}
         filtrosSentencias.precargar();
     </script>
 {% endblock %}

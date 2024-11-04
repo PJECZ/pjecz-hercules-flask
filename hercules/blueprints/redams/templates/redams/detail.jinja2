@@ -30,7 +30,7 @@
             {{ detail.label_value('Autoridad', redam.autoridad.descripcion) }}
         {% endif %}
         {{ detail.label_value('Expediente', redam.expediente) }}
-        {{ detail.label_value('Fecha de emisión de orden de inclusión', moment(redam.fecha).format('DD MMM YYYY')) }}
+        {{ detail.label_value('Fecha de emisión de orden de inclusión', redam.fecha) }}
         {{ detail.label_value('Observaciones', redam.observaciones) }}
     {% endcall %}
 {% endblock %}

@@ -27,7 +27,7 @@
         {{ detail.label_value('e-mail', perito.email) }}
         {{ detail.label_value('Notas', perito.notas) }}
         {{ detail.label_value('Renovación', perito.renovacion) }}
-        {{ detail.label_value('Creado', moment(perito.creado, local=False).format('llll')) }}
+        {{ detail.label_value('Creado', moment(perito.creado, local=False).format('DD MMM YYYY HH:mm')) }}
     {% endcall %}
 {% endblock %}
 
