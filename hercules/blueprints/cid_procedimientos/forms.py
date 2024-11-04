@@ -3,11 +3,10 @@ Cid Procedimientos, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, DateField, IntegerField, SelectField, StringField, SubmitField
+from wtforms import DateField, IntegerField, SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length, Optional
 
 from hercules.blueprints.cid_areas.models import CIDArea
-from hercules.blueprints.cid_procedimientos.models import CIDProcedimiento
 from lib.wtforms import JSONField
 
 
@@ -17,7 +16,6 @@ class CIDProcedimientoForm(FlaskForm):
     titulo_procedimiento = StringField("Título", validators=[DataRequired(), Length(max=256)])
     codigo = StringField("Código", validators=[DataRequired(), Length(max=16)])
     revision = IntegerField("Revisión (Número entero apartir de 1)", validators=[DataRequired()])
-    # es_nueva_revision = BooleanField("Es nueva revisión")
     fecha = DateField("Fecha de elaboración", validators=[DataRequired()])
     cid_area = StringField("Área")  # Read Only
     # Step Objetivo
