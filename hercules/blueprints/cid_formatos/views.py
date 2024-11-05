@@ -320,7 +320,7 @@ def new(cid_procedimiento_id):
             es_valido = False
         # Validar archivo
         archivo = request.files["archivo"]
-        storage = GoogleCloudStorage(base_directory=SUBDIRECTORIO, allowed_extensions=["pdf"])
+        storage = GoogleCloudStorage(base_directory=SUBDIRECTORIO)
         try:
             storage.set_content_type(archivo.filename)
         except MyNotAllowedExtensionError:
