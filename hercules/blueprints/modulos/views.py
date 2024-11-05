@@ -59,6 +59,7 @@ def datatable_json():
                 },
                 "icono": resultado.icono,
                 "en_navegacion": resultado.en_navegacion,
+                "en_plataforma_can_mayor": resultado.en_plataforma_can_mayor,
                 "en_plataforma_carina": resultado.en_plataforma_carina,
                 "en_plataforma_hercules": resultado.en_plataforma_hercules,
                 "en_plataforma_web": resultado.en_plataforma_web,
@@ -117,6 +118,7 @@ def new():
             icono=form.icono.data,
             ruta=form.ruta.data,
             en_navegacion=form.en_navegacion.data,
+            en_plataforma_can_mayor=form.en_plataforma_can_mayor.data,
             en_plataforma_carina=form.en_plataforma_carina.data,
             en_plataforma_hercules=form.en_plataforma_hercules.data,
             en_plataforma_web=form.en_plataforma_web.data,
@@ -157,6 +159,7 @@ def edit(modulo_id):
             modulo.icono = form.icono.data
             modulo.ruta = form.ruta.data
             modulo.en_navegacion = form.en_navegacion.data
+            modulo.en_plataforma_can_mayor = form.en_plataforma_can_mayor.data
             modulo.en_plataforma_carina = form.en_plataforma_carina.data
             modulo.en_plataforma_hercules = form.en_plataforma_hercules.data
             modulo.en_plataforma_web = form.en_plataforma_web.data
@@ -176,6 +179,7 @@ def edit(modulo_id):
     form.icono.data = modulo.icono
     form.ruta.data = modulo.ruta
     form.en_navegacion.data = modulo.en_navegacion
+    form.en_plataforma_can_mayor.data = modulo.en_plataforma_can_mayor
     form.en_plataforma_carina.data = modulo.en_plataforma_carina
     form.en_plataforma_hercules.data = modulo.en_plataforma_hercules
     form.en_plataforma_web.data = modulo.en_plataforma_web

@@ -20,14 +20,21 @@
 
 {% block content %}
     {% call detail.card(estatus=modulo.estatus) %}
-        {{ detail.label_value('Nombre en menú', modulo.nombre_corto) }}
-        {{ detail.label_value('Icono', modulo.icono) }}
-        {{ detail.label_value('Ruta', modulo.ruta) }}
-        {{ detail.label_value_boolean('En menú de navegación', modulo.en_navegacion) }}
-        {{ detail.label_value_boolean('En Plataforma Carina', modulo.en_plataforma_carina) }}
-        {{ detail.label_value_boolean('En Plataforma Hércules', modulo.en_plataforma_hercules) }}
-        {{ detail.label_value_boolean('En Plataforma Web', modulo.en_plataforma_web) }}
-        {{ detail.label_value_boolean('En Portal de Notarías', modulo.en_portal_notarias) }}
+        <div class="row">
+            <div class="col-md-4">
+                {{ detail.label_value('Nombre en menú', modulo.nombre_corto) }}
+                {{ detail.label_value('Icono', modulo.icono) }}
+                {{ detail.label_value('Ruta', modulo.ruta) }}
+                {{ detail.label_value_boolean('En menú de navegación', modulo.en_navegacion) }}
+            </div>
+            <div class="col-md-8">
+                {{ detail.label_value_boolean('En Plataforma Can Mayor', modulo.en_plataforma_can_mayor) }}
+                {{ detail.label_value_boolean('En Plataforma Carina', modulo.en_plataforma_carina) }}
+                {{ detail.label_value_boolean('En Plataforma Hércules', modulo.en_plataforma_hercules) }}
+                {{ detail.label_value_boolean('En Plataforma Web', modulo.en_plataforma_web) }}
+                {{ detail.label_value_boolean('En Portal de Notarías', modulo.en_portal_notarias) }}
+            </div>
+        </div>
     {% endcall %}
     {% if current_user.can_view('PERMISOS') %}
         {% call detail.card('Permisos') %}
