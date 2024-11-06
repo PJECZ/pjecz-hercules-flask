@@ -7,14 +7,14 @@ import json
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_message, safe_string
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.forms import PermisoEditForm, PermisoNewWithModuloForm, PermisoNewWithRolForm
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.roles.models import Rol
 from hercules.blueprints.usuarios.decorators import permission_required
+from lib.datatables import get_datatable_parameters, output_datatable_json
+from lib.safe_string import safe_message, safe_string
 
 MODULO = "PERMISOS"
 
@@ -62,7 +62,9 @@ def datatable_json():
     if "modulo_nombre" in request.form:
         modulo_nombre = safe_string(request.form["modulo_nombre"], save_enie=True)
         if modulo_nombre != "":
-            consulta = consulta.filter(Modulo.nombre.contains(modulo_nombre))  # Antes se hizo el join(Modulo)
+            consulta = consulta.filter(
+                Modulo.nombre.contains(modulo_nombre)
+            )  # Ya se hizo el join arriba en Solo los modulos...
     # Ordenar y paginar
     registros = consulta.order_by(Permiso.nombre).offset(start).limit(rows_per_page).all()
     total = consulta.count()
