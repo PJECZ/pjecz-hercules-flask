@@ -1,5 +1,5 @@
 """
-Estados, modelos
+Exh Areas, modelos
 """
 
 from typing import List
@@ -11,11 +11,11 @@ from hercules.extensions import database
 from lib.universal_mixin import UniversalMixin
 
 
-class Estado(database.Model, UniversalMixin):
-    """Estado"""
+class ExhArea(database.Model, UniversalMixin):
+    """ExhArea"""
 
     # Nombre de la tabla
-    __tablename__ = "estados"
+    __tablename__ = "exh_areas"
 
     # Clave primaria
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -25,9 +25,8 @@ class Estado(database.Model, UniversalMixin):
     nombre: Mapped[str] = mapped_column(String(256))
 
     # Hijos
-    exh_externos: Mapped[List["ExhExterno"]] = relationship("ExhExterno", back_populates="estado")
-    municipios: Mapped[List["Municipio"]] = relationship("Municipio", back_populates="estado")
+    exh_exhortos: Mapped[List["ExhExhorto"]] = relationship("ExhExhorto", back_populates="exh_area")
 
     def __repr__(self):
         """Representación"""
-        return f"<Estado {self.clave}>"
+        return f"<ExhArea {self.clave}>"

@@ -74,12 +74,14 @@ class Autoridad(database.Model, UniversalMixin):
         Enum(*ORGANOS_JURISDICCIONALES, name="autoridades_organos_jurisdiccionales", native_enum=False),
         index=True,
     )
-    directorio_edictos: Mapped[str] = mapped_column(String(256))
-    directorio_glosas: Mapped[str] = mapped_column(String(256))
-    directorio_listas_de_acuerdos: Mapped[str] = mapped_column(String(256))
-    directorio_sentencias: Mapped[str] = mapped_column(String(256))
+    directorio_edictos: Mapped[str] = mapped_column(String(256), default="")
+    directorio_glosas: Mapped[str] = mapped_column(String(256), default="")
+    directorio_listas_de_acuerdos: Mapped[str] = mapped_column(String(256), default="")
+    directorio_sentencias: Mapped[str] = mapped_column(String(256), default="")
     audiencia_categoria: Mapped[str] = mapped_column(
-        Enum(*AUDIENCIAS_CATEGORIAS, name="autoridades_audiencias_categorias", native_enum=False), index=True
+        Enum(*AUDIENCIAS_CATEGORIAS, name="autoridades_audiencias_categorias", native_enum=False),
+        index=True,
+        default="NO DEFINIDO",
     )
     limite_dias_listas_de_acuerdos: Mapped[int] = mapped_column(default=0)
     sede: Mapped[str] = mapped_column(
@@ -95,6 +97,7 @@ class Autoridad(database.Model, UniversalMixin):
     cid_areas_autoridades: Mapped[List["CIDAreaAutoridad"]] = relationship(back_populates="autoridad")
     cid_procedimientos: Mapped[List["CIDProcedimiento"]] = relationship(back_populates="autoridad")
     edictos: Mapped[List["Edicto"]] = relationship(back_populates="autoridad")
+    exh_exhortos: Mapped[List["ExhExhorto"]] = relationship(back_populates="autoridad")
     glosas: Mapped[List["Glosa"]] = relationship(back_populates="autoridad")
     listas_de_acuerdos: Mapped[List["ListaDeAcuerdo"]] = relationship(back_populates="autoridad")
     redam: Mapped[List["Redam"]] = relationship("Redam", back_populates="autoridad")
