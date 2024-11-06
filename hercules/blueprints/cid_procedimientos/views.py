@@ -463,7 +463,7 @@ def new():
             archivo="",
             url="",
             cid_area_id=area.id,  # Asignar el área obtenida
-            procedimiento_anterior_autorizado_id=0,
+            procedimiento_anterior_autorizado_id=None,
         )
         cid_procedimiento.save()
         bitacora = Bitacora(
@@ -963,14 +963,6 @@ def accept_reject(cid_procedimiento_id):
             # Mover los formatos del procedimiento anterior al nuevo
             if original.seguimiento == "ELABORADO" or original.seguimiento == "REVISADO":
                 for cid_formato in anterior.cid_formatos:
-                    # CIDFormato(
-                    #     procedimiento=nuevo,
-                    #     codigo=cid_formato.codigo,
-                    #     descripcion=cid_formato.descripcion,
-                    #     archivo=cid_formato.archivo,
-                    #     url=cid_formato.url,
-                    #     cid_area=cid_formato.cid_area,
-                    # ).save()
                     cid_formato.procedimiento_id = nuevo.id
                     cid_formato.save()
 

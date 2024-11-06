@@ -24,6 +24,7 @@ from openpyxl import Workbook
 from sendgrid.helpers.mail import Content, Email, Mail, To
 
 from hercules.app import create_app
+from hercules.blueprints.cid_formatos.models import CIDFormato
 from hercules.blueprints.cid_procedimientos.models import CIDProcedimiento
 from lib.exceptions import (
     MyAnyError,
@@ -329,10 +330,24 @@ def crear_pdf(cid_procedimiento_id: int, usuario_id: int = None, accept_reject_u
             anterior.seguimiento_posterior = "AUTORIZADO"
             anterior.save()
             anterior = CIDProcedimiento.query.get(anterior.anterior_id)
-        anterior_autorizado = CIDProcedimiento.query.get(cid_procedimiento.procedimiento_anterior_autorizado_id)
-        anterior_autorizado.seguimiento = "ARCHIVADO"
-        anterior_autorizado.save()
-
+        if cid_procedimiento.procedimiento_anterior_autorizado_id is not None:
+            anterior_autorizado = CIDProcedimiento.query.get(cid_procedimiento.procedimiento_anterior_autorizado_id)
+            # Cambiar el seguimiento del procedimiento anterior a ARCHIVADO
+            anterior_autorizado.seguimiento = "ARCHIVADO"
+            anterior_autorizado.save()
+            # Obtener todos los formatos relacionados con el procedimiento
+            formatos_anteriores = CIDFormato.query.filter_by(
+                procedimiento_id=cid_procedimiento.procedimiento_anterior_autorizado_id
+            ).all()
+            # Actualizar el procedimiento_id de cada formato para que apunte al nuevo procedimiento
+            for formato_ant in formatos_anteriores:
+                if anterior_autorizado.id is not None:
+                    formato_ant.procedimiento_id = cid_procedimiento.id
+                    formato_ant.save()
+            # Confirmar que los formatos se han movido correctamente
+            print(f"Formatos movidos al nuevo procedimiento {cid_procedimiento.id}")
+        else:
+            print("Este es el primer procedimiento, no se actualizarán formatos")
         # TODO: Enviar mensaje para informar al elaborador
         # TODO: Enviar mensaje para informar al revisor
 

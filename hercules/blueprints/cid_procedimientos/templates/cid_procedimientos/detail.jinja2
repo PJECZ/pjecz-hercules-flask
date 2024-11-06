@@ -19,10 +19,10 @@
                 {{ topbar.button_edit('Editar', url_for('cid_procedimientos.edit', cid_procedimiento_id=cid_procedimiento.id)) }}
                 {% if current_user.id == cid_procedimiento.usuario_id %}
                     {{ topbar.button_make('Firmar', url_for('cid_procedimientos.sign_for_maker', cid_procedimiento_id=cid_procedimiento.id)) }}
-                    {% if current_user.can_insert('CID FORMATOS') %}
-                        {{ topbar.button_new('Agregar formato', url_for('cid_formatos.new', cid_procedimiento_id=cid_procedimiento.id)) }}
-                    {% endif %}
                 {% endif %}
+            {% endif %}
+            {% if current_user.can_insert('CID FORMATOS') %}
+                {{ topbar.button_new('Agregar formato', url_for('cid_formatos.new', cid_procedimiento_id=cid_procedimiento.id)) }}
             {% endif %}
         {% endif %}
         {% if mostrar_cambiar_area %}
@@ -155,6 +155,11 @@
             {{ detail.label_value('Autorizó correo', cid_procedimiento.aprobo_email) }}
         {% endcall %}
     {% endcall %}
+    {% if cid_procedimiento.revision != 1 and cid_procedimiento.seguimiento != "AUTORIZADO" %}
+        {% call list.card('Aviso') %}
+            <p>Los formatos se mostrarán cuando el procedimiento alcance el estado <strong> AUTORIZADO</strong>.</p>
+        {% endcall %}
+    {% endif %}
     {% if current_user.can_view('CID FORMATOS') %}
         {% call list.card('Formatos') %}
             <!-- Filtros CID Formatos -->
