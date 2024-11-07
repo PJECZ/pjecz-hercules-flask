@@ -330,7 +330,9 @@ def crear_pdf(cid_procedimiento_id: int, usuario_id: int = None, accept_reject_u
             anterior.seguimiento_posterior = "AUTORIZADO"
             anterior.save()
             anterior = CIDProcedimiento.query.get(anterior.anterior_id)
+        # Si procedimiento_anterior_autorizado_id no es nulo, entonces...
         if cid_procedimiento.procedimiento_anterior_autorizado_id is not None:
+            # Consultar el procedimiento anterior
             anterior_autorizado = CIDProcedimiento.query.get(cid_procedimiento.procedimiento_anterior_autorizado_id)
             # Cambiar el seguimiento del procedimiento anterior a ARCHIVADO
             anterior_autorizado.seguimiento = "ARCHIVADO"
@@ -340,14 +342,14 @@ def crear_pdf(cid_procedimiento_id: int, usuario_id: int = None, accept_reject_u
                 procedimiento_id=cid_procedimiento.procedimiento_anterior_autorizado_id
             ).all()
             # Actualizar el procedimiento_id de cada formato para que apunte al nuevo procedimiento
-            for formato_ant in formatos_anteriores:
+            for formato_anterior in formatos_anteriores:
                 if anterior_autorizado.id is not None:
-                    formato_ant.procedimiento_id = cid_procedimiento.id
-                    formato_ant.save()
-            # Confirmar que los formatos se han movido correctamente
-            print(f"Formatos movidos al nuevo procedimiento {cid_procedimiento.id}")
+                    formato_anterior.procedimiento_id = cid_procedimiento.id
+                    formato_anterior.save()
+            # Mandar a log que los formatos se han movido correctamente
+            bitacora.info("Formatos movidos al procedimiento con id %d", cid_procedimiento.id)
         else:
-            print("Este es el primer procedimiento, no se actualizarán formatos")
+            bitacora.info("Este es el primer procedimiento, no se moveran los formatos")
         # TODO: Enviar mensaje para informar al elaborador
         # TODO: Enviar mensaje para informar al revisor
 

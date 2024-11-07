@@ -21,9 +21,6 @@
                     {{ topbar.button_make('Firmar', url_for('cid_procedimientos.sign_for_maker', cid_procedimiento_id=cid_procedimiento.id)) }}
                 {% endif %}
             {% endif %}
-            {% if current_user.can_insert('CID FORMATOS') %}
-                {{ topbar.button_new('Agregar formato', url_for('cid_formatos.new', cid_procedimiento_id=cid_procedimiento.id)) }}
-            {% endif %}
         {% endif %}
         {% if mostrar_cambiar_area %}
             {{ topbar.button_edit('Editar área', url_for('cid_procedimientos.cambiar_area', cid_procedimiento_id=cid_procedimiento.id)) }}
@@ -155,10 +152,10 @@
             {{ detail.label_value('Autorizó correo', cid_procedimiento.aprobo_email) }}
         {% endcall %}
     {% endcall %}
-    {% if cid_procedimiento.revision != 1 and cid_procedimiento.seguimiento != "AUTORIZADO" %}
-        {% call list.card('Aviso') %}
-            <p>Los formatos estarán disponibles una vez que el procedimiento alcance el seguimiento <strong> AUTORIZADO</strong>.</p>
-        {% endcall %}
+    {% if mostrar_alerta_formatos %}
+        <div class="alert alert-warning" role="alert">
+            <p>Cuando esta revisión llegue al seguimiento <strong> AUTORIZADO</strong> los formatos del procedimiento anterior se moveran a éste. Le recomendamos que los revise hasta que llegue al seguimiento <strong> AUTORIZADO</strong>.</p>
+        </div>
     {% endif %}
     {% if current_user.can_view('CID FORMATOS') %}
         {% call list.card('Formatos') %}
@@ -194,6 +191,9 @@
                     </tr>
                 </thead>
             </table>
+            {% if current_user.can_insert('CID FORMATOS') %}
+                <a href="{{ url_for('cid_formatos.new', cid_procedimiento_id=cid_procedimiento.id) }}" class="btn btn-primary">Agregar formato</a>
+            {% endif %}
         {% endcall %}
     {% endif %}
 {% endblock %}
@@ -224,8 +224,8 @@
                     targets: 1, // detalle
                     data: null,
                     render: function(data, type, row, meta) {
-                        if (data.descripcion.length > 32) {
-                            return '<a href="' + data.url + '"><span title="' + data.descripcion + '">' + data.descripcion.substring(0, 32) + '…</span></a>';
+                        if (data.descripcion.length > 52) {
+                            return '<a href="' + data.url + '"><span title="' + data.descripcion + '">' + data.descripcion.substring(0, 52) + '…</span></a>';
                         }
                         return '<a href="' + data.url + '">' + data.descripcion + '</a>';
                     }

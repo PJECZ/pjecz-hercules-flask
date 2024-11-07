@@ -344,6 +344,8 @@ def detail(cid_procedimiento_id):
     show_buttom_new_revision = cid_procedimiento.seguimiento == "AUTORIZADO" and (
         current_user_roles.intersection(ROLES_NUEVA_REVISION)
     )
+
+    mostrar_alerta_formatos = cid_procedimiento.revision != 1 and cid_procedimiento.seguimiento != "AUTORIZADO"
     return render_template(
         "cid_procedimientos/detail.jinja2",
         cid_procedimiento=cid_procedimiento,
@@ -360,6 +362,7 @@ def detail(cid_procedimiento_id):
         show_button_edit_admin=current_user.can_admin(MODULO) or ROL_COORDINADOR in current_user.get_roles(),
         mostrar_cambiar_area=mostrar_cambiar_area,
         show_buttom_new_revision=show_buttom_new_revision,
+        mostrar_alerta_formatos=mostrar_alerta_formatos,
     )
 
 
@@ -488,14 +491,14 @@ def edit(cid_procedimiento_id):
     if cid_procedimiento.seguimiento not in ["EN ELABORACION", "EN REVISION", "EN AUTORIZACION"]:
         flash(f"No puede editar porque su seguimiento es {cid_procedimiento.seguimiento} y ha sido FIRMADO. ", "warning")
         return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento_id))
-    # Cargar procedimiento anterior si existe
+    # Cargar procedimiento anterior si existe y calcula el número de revisión anterior restando 1 a la revisión actual del procedimiento
     revision_anterior = cid_procedimiento.revision - 1
+    # Busca en la base de datos un procedimiento que coincida con la revisión anterior y que esté en estado "AUTORIZADO" tanto en el seguimiento actual como en el seguimiento posterior
     procedimiento_anterior = CIDProcedimiento.query.filter(
         CIDProcedimiento.revision == revision_anterior,
         CIDProcedimiento.seguimiento == "AUTORIZADO",
         CIDProcedimiento.seguimiento_posterior == "AUTORIZADO",
     ).first()
-
     form = CIDProcedimientoEditForm()
     if form.validate_on_submit():
         # Solo validar si se proporcionó un email
@@ -509,7 +512,6 @@ def edit(cid_procedimiento_id):
                 return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento.id))
         else:
             elaboro = ""  # Si no se proporciona email, dejar vacío
-
         # Solo validar si se proporcionó un email
         reviso_email = form.reviso_email.data
         reviso_nombre = form.reviso_nombre.data
@@ -521,7 +523,6 @@ def edit(cid_procedimiento_id):
                 return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento.id))
         else:
             reviso = ""  # Si no se proporciona email, dejar vacío
-
         # Solo validar si se proporcionó un email
         aprobo_email = form.aprobo_email.data
         aprobo_nombre = form.aprobo_nombre.data
@@ -533,7 +534,6 @@ def edit(cid_procedimiento_id):
                 return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento.id))
         else:
             aprobo = ""  # Si no se proporciona email, dejar vacío
-
         registro = form.registros.data
         if registro is None:
             registros = {}
@@ -579,7 +579,6 @@ def edit(cid_procedimiento_id):
         cid_procedimiento.aprobo_email = aprobo_email if aprobo else ""
         cid_procedimiento.control_cambios = control_cambios
         cid_procedimiento.save()
-
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
@@ -587,10 +586,8 @@ def edit(cid_procedimiento_id):
             url=url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento.id),
         )
         bitacora.save()
-
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-
     # Definir los valores de los campos del formulario
     form.titulo_procedimiento.data = cid_procedimiento.titulo_procedimiento
     form.codigo.data = cid_procedimiento.codigo
@@ -646,12 +643,24 @@ def copiar_procedimiento_con_revision(cid_procedimiento_id):
     """Copiar CID Procedimiento con nueva revisión"""
     # Obtener el CID Procedimiento correspondiente o devolver error 404 si no existe
     cid_procedimiento = CIDProcedimiento.query.get_or_404(cid_procedimiento_id)
-
+    # Definir los estados que no permiten crear una nueva revisión
+    seguimientos_no_permitidos = ["EN ELABORACION", "ELABORADO", "EN REVISION", "REVISADO", "EN AUTORIZACION"]
+    # Verificar en la base de datos si hay algún registro que esté relacionado con el procedimiento actual y cuyo estado de seguimiento esté en la lista de seguimientos no permitidos.
+    revision_en_proceso = CIDProcedimiento.query.filter(
+        CIDProcedimiento.anterior_id == cid_procedimiento.id, CIDProcedimiento.seguimiento.in_(seguimientos_no_permitidos)
+    ).first()
+    # Si se encuentra una revisión en proceso en un estado no permitido redirecciona al detalle
+    if revision_en_proceso:
+        flash("No se puede crear una nueva revisión porque ya hay una revisión en proceso.", "warning")
+        return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento.id))
+    # Verificar que tanto seguimiento como seguimiento_posterior sean AUTORIZADO
+    if cid_procedimiento.seguimiento != "AUTORIZADO" or cid_procedimiento.seguimiento_posterior != "AUTORIZADO":
+        flash("No se puede copiar el procedimiento hasta que ambos seguimientos estén en 'AUTORIZADO'.", "danger")
+        return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento.id))
     # Obtener la última revisión
     ultima_revision = (
         CIDProcedimiento.query.filter_by(id=cid_procedimiento.id).order_by(CIDProcedimiento.revision.desc()).first()
     )
-
     # Crear un formulario para la nueva revisión
     form = CIDProcedimientosNewReview()
     # Si el formulario ha sido enviado y es válido
@@ -703,7 +712,6 @@ def copiar_procedimiento_con_revision(cid_procedimiento_id):
         )
         # Guardar la nueva copia en la base de datos
         nueva_copia.save()
-
         # Bitácora y redirección a la vista de detalle
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
