@@ -170,8 +170,8 @@ def edit(autoridad_id):
         # Si cambia la clave verificar que no este en uso
         clave = safe_clave(form.clave.data)
         if autoridad.clave != clave:
-            oficina_existente = Autoridad.query.filter_by(clave=clave).first()
-            if oficina_existente and oficina_existente.id != autoridad_id:
+            autoridad_existente = Autoridad.query.filter_by(clave=clave).first()
+            if autoridad_existente and autoridad_existente.id != autoridad_id:
                 es_valido = False
                 flash("La clave ya está en uso. Debe de ser única.", "warning")
         # Si es valido actualizar
