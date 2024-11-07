@@ -157,7 +157,7 @@
     {% endcall %}
     {% if cid_procedimiento.revision != 1 and cid_procedimiento.seguimiento != "AUTORIZADO" %}
         {% call list.card('Aviso') %}
-            <p>Los formatos se mostrarán cuando el procedimiento alcance el estado <strong> AUTORIZADO</strong>.</p>
+            <p>Los formatos estarán disponibles una vez que el procedimiento alcance el seguimiento <strong> AUTORIZADO</strong>.</p>
         {% endcall %}
     {% endif %}
     {% if current_user.can_view('CID FORMATOS') %}
