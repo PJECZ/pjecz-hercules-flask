@@ -19,9 +19,6 @@
                 {{ topbar.button_edit('Editar', url_for('cid_procedimientos.edit', cid_procedimiento_id=cid_procedimiento.id)) }}
                 {% if current_user.id == cid_procedimiento.usuario_id %}
                     {{ topbar.button_make('Firmar', url_for('cid_procedimientos.sign_for_maker', cid_procedimiento_id=cid_procedimiento.id)) }}
-                    {% if current_user.can_insert('CID FORMATOS') %}
-                        {{ topbar.button_new('Agregar formato', url_for('cid_formatos.new', cid_procedimiento_id=cid_procedimiento.id)) }}
-                    {% endif %}
                 {% endif %}
             {% endif %}
         {% endif %}
@@ -59,6 +56,8 @@
                         <span class="badge rounded-pill bg-green"><span class="iconify" data-icon="mdi:file-document-check"></span> {{ cid_procedimiento.seguimiento }} </span>
                     {% elif cid_procedimiento.seguimiento == "AUTORIZADO" %}
                         <span class="badge rounded-pill bg-success"><span class="iconify" data-icon="mdi:shield-check"></span> {{ cid_procedimiento.seguimiento }} </span>
+                         {% elif cid_procedimiento.seguimiento == "ARCHIVADO" %}
+                        <span class="badge rounded-pill bg-danger"><span class="iconify" data-icon="mdi:archive-arrow-down"></span> {{ cid_procedimiento.seguimiento }} </span>
                     {% else %}
                         <strong>{{ cid_procedimiento.seguimiento }}</strong>
                     {% endif %}
@@ -153,6 +152,11 @@
             {{ detail.label_value('Autorizó correo', cid_procedimiento.aprobo_email) }}
         {% endcall %}
     {% endcall %}
+    {% if mostrar_alerta_formatos %}
+        <div class="alert alert-warning" role="alert">
+            <p>Cuando esta revisión llegue al seguimiento <strong> AUTORIZADO</strong> los formatos del procedimiento anterior se moveran a éste. Le recomendamos que los revise hasta que llegue al seguimiento <strong> AUTORIZADO</strong>.</p>
+        </div>
+    {% endif %}
     {% if current_user.can_view('CID FORMATOS') %}
         {% call list.card('Formatos') %}
             <!-- Filtros CID Formatos -->
@@ -187,6 +191,9 @@
                     </tr>
                 </thead>
             </table>
+            {% if current_user.can_insert('CID FORMATOS') %}
+                <a href="{{ url_for('cid_formatos.new', cid_procedimiento_id=cid_procedimiento.id) }}" class="btn btn-primary">Agregar formato</a>
+            {% endif %}
         {% endcall %}
     {% endif %}
 {% endblock %}
@@ -217,8 +224,8 @@
                     targets: 1, // detalle
                     data: null,
                     render: function(data, type, row, meta) {
-                        if (data.descripcion.length > 32) {
-                            return '<a href="' + data.url + '"><span title="' + data.descripcion + '">' + data.descripcion.substring(0, 32) + '…</span></a>';
+                        if (data.descripcion.length > 52) {
+                            return '<a href="' + data.url + '"><span title="' + data.descripcion + '">' + data.descripcion.substring(0, 52) + '…</span></a>';
                         }
                         return '<a href="' + data.url + '">' + data.descripcion + '</a>';
                     }
