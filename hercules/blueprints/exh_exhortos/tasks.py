@@ -230,7 +230,7 @@ def enviar(exhorto_origen_id: str = "") -> tuple[str, str, str]:
             "archivos": archivos,
         }
 
-        # Enviar el exhorto
+        # Enviar el exhorto (ETAPA 2)
         mensaje_advertencia = ""
         try:
             response = requests.post(
@@ -291,7 +291,7 @@ def enviar(exhorto_origen_id: str = "") -> tuple[str, str, str]:
             bitacora.warning(mensaje_advertencia)
             continue  # Pasar al siguiente exhorto
 
-        # Mandar los archivos del exhorto con multipart/form-data
+        # Mandar los archivos del exhorto con multipart/form-data (ETAPA 3)
         todos_los_archivos_enviados_con_exito = True
         for exh_exhorto_archivo in exh_exhorto.exh_exhortos_archivos:
             # Informar al loggin que se va a enviar el archivo
