@@ -1188,7 +1188,9 @@ def archivar_procedimiento(cid_procedimiento_id):
     bitacora = Bitacora(
         modulo=Modulo.query.filter_by(nombre=MODULO).first(),
         usuario=current_user,
-        descripcion=safe_message(f"Se archiva el procedimiento {cid_procedimiento.titulo_procedimiento}."),
+        descripcion=safe_message(
+            f"Se archiva el procedimiento {cid_procedimiento.codigo}  {cid_procedimiento.titulo_procedimiento}."
+        ),
         url=url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento.id),
     ).save()
     flash(bitacora.descripcion, "success")
