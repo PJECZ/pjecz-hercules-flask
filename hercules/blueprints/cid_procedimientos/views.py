@@ -1192,4 +1192,4 @@ def archivar_procedimiento(cid_procedimiento_id):
         url=url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento.id),
     ).save()
     flash(bitacora.descripcion, "success")
-    return redirect(url_for("cid_procedimientos.detail"))
+    return redirect(url_for("cid_procedimientos.list_active"))
