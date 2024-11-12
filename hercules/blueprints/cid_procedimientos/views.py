@@ -344,8 +344,12 @@ def detail(cid_procedimiento_id):
     show_buttom_new_revision = cid_procedimiento.seguimiento == "AUTORIZADO" and (
         current_user_roles.intersection(ROLES_NUEVA_REVISION)
     )
-
+    # mostrar alerta para formatos revisiones mayores a 1
     mostrar_alerta_formatos = cid_procedimiento.revision != 1 and cid_procedimiento.seguimiento != "AUTORIZADO"
+    # mostrar boton para mandar a archivar porcedimiento
+    mostrar_boton_archivado = cid_procedimiento.seguimiento == "AUTORIZADO" and (
+        ROL_COORDINADOR in current_user_roles or ROL_ADMINISTRADOR in current_user_roles
+    )
     return render_template(
         "cid_procedimientos/detail.jinja2",
         cid_procedimiento=cid_procedimiento,
@@ -363,6 +367,7 @@ def detail(cid_procedimiento_id):
         mostrar_cambiar_area=mostrar_cambiar_area,
         show_buttom_new_revision=show_buttom_new_revision,
         mostrar_alerta_formatos=mostrar_alerta_formatos,
+        mostrar_boton_archivado=mostrar_boton_archivado,
     )
 
 
@@ -1047,13 +1052,18 @@ def query_revisores_autorizadores_json():
 def delete(cid_procedimiento_id):
     """Eliminar CID Procedimiento"""
     cid_procedimiento = CIDProcedimiento.query.get_or_404(cid_procedimiento_id)
+    # Verificación de permisos
     if not (current_user.can_admin(MODULO) or cid_procedimiento.usuario_id == current_user.id):
         abort(403)  # Acceso no autorizado, solo administradores o el propietario puede eliminarlo
-    if not (
+
+    # Restricciones basadas en seguimiento y estatus
+    elif not (
         current_user.can_admin(MODULO) or cid_procedimiento.seguimiento in ["EN ELABORACION", "EN REVISION", "EN AUTORIZACION"]
     ):
         flash(f"No puede eliminarlo porque su seguimiento es {cid_procedimiento.seguimiento}.")
+        return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento_id))
     elif cid_procedimiento.estatus == "A":
+        # Cambia el estado a 'CANCELADO' según el seguimiento
         if cid_procedimiento.seguimiento == "EN ELABORACION":
             cid_procedimiento.seguimiento = "CANCELADO POR ELABORADOR"
         elif cid_procedimiento.seguimiento == "EN REVISION":
@@ -1154,3 +1164,32 @@ def dashboard():
         titulo="Tablero de Procedimientos autorizados",
         mostrar_boton_exportar_lista_maestra_xlsx=mostrar_boton_exportar_lista_maestra_xlsx,
     )
+
+
+@cid_procedimientos.route("/cid_procedimientos/baja/<int:cid_procedimiento_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def archivar_procedimiento(cid_procedimiento_id):
+    """Archivar un procedimiento y cambiara su seguimiento a ARCHIVADO"""
+    if ROL_COORDINADOR not in current_user.get_roles() and ROL_ADMINISTRADOR not in current_user.get_roles():
+        flash(f"Solo puede archivar el rol {ROL_ADMINISTRADOR} o {ROL_COORDINADOR}.", "warning")
+    # Validar procedimientos
+    cid_procedimiento = CIDProcedimiento.query.get_or_404(cid_procedimiento_id)
+    if cid_procedimiento.estatus != "A":
+        flash("El procedimiento seleccionado está eliminado.", "warning")
+        return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento_id))
+    if cid_procedimiento.seguimiento_posterior == "ARCHIVADO":
+        flash("El procedimiento se encuentra ARCHIVADO.", "warning")
+        return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento_id))
+
+    # Archivar procedimiento
+    cid_procedimiento.seguimiento = "ARCHIVADO"
+    cid_procedimiento.save()
+    # Guardado de acciones en bitacora
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Se archiva el procedimiento {cid_procedimiento.titulo_procedimiento}."),
+        url=url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento.id),
+    ).save()
+    flash(bitacora.descripcion, "success")
+    return redirect(url_for("cid_procedimientos.detail"))
