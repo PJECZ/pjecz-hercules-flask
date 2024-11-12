@@ -1172,24 +1172,34 @@ def archivar_procedimiento(cid_procedimiento_id):
     """Archivar un procedimiento y cambiara su seguimiento a ARCHIVADO"""
     if ROL_COORDINADOR not in current_user.get_roles() and ROL_ADMINISTRADOR not in current_user.get_roles():
         flash(f"Solo puede archivar el rol {ROL_ADMINISTRADOR} o {ROL_COORDINADOR}.", "warning")
+        return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento_id))
     # Validar procedimientos
     cid_procedimiento = CIDProcedimiento.query.get_or_404(cid_procedimiento_id)
     if cid_procedimiento.estatus != "A":
         flash("El procedimiento seleccionado está eliminado.", "warning")
         return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento_id))
-    if cid_procedimiento.seguimiento_posterior == "ARCHIVADO":
+    if cid_procedimiento.seguimiento == "ARCHIVADO" or cid_procedimiento.seguimiento_posterior == "ARCHIVADO":
         flash("El procedimiento se encuentra ARCHIVADO.", "warning")
         return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento_id))
 
-    # Archivar procedimiento
-    cid_procedimiento.seguimiento = "ARCHIVADO"
-    cid_procedimiento.save()
+    # Archivar el procedimiento actual y todos sus seguimientos anteriores
+    procedimiento_actual = cid_procedimiento
+    # Cambiamos el seguimiento del procedimiento actual a "ARCHIVADO"
+    procedimiento_actual.seguimiento = "ARCHIVADO"
+    # Iniciamos un bucle para recorrer y archivar todos los procedimientos anteriores
+    while procedimiento_actual:
+        # Cambiamos el seguimiento_posterior del procedimiento actual a "ARCHIVADO"
+        procedimiento_actual.seguimiento_posterior = "ARCHIVADO"
+        # Guardamos los cambios en la base de datos
+        procedimiento_actual.save()
+        # Obtenemos el procedimiento anterior mediante el campo `anterior_id` para seguir recorriendo la cadena de procedimientos anteriores
+        procedimiento_actual = CIDProcedimiento.query.filter_by(id=procedimiento_actual.anterior_id).first()
     # Guardado de acciones en bitacora
     bitacora = Bitacora(
         modulo=Modulo.query.filter_by(nombre=MODULO).first(),
         usuario=current_user,
         descripcion=safe_message(
-            f"Se archiva el procedimiento {cid_procedimiento.codigo}  {cid_procedimiento.titulo_procedimiento}."
+            f"Se archiva el procedimiento {cid_procedimiento.codigo}  {cid_procedimiento.titulo_procedimiento} y sus procedimientos anteriores."
         ),
         url=url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento.id),
     ).save()
