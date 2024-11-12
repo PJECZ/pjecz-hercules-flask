@@ -36,7 +36,7 @@
     {% if mostrar_boton_archivado %}
         {% call detail.card(estatus=cid_procedimiento.estatus) %}
             <div class="card-title">
-                <p>Se archiva el procedimiento <strong>{{cid_procedimiento.codigo}}, </strong>.</p>
+                <p>Se archiva el procedimiento <strong>{{cid_procedimiento.codigo}} </strong>.</p>
             </div>
             {{ topbar.button_delete('Archivar procedimiento', url_for('cid_procedimientos.archivar_procedimiento', cid_procedimiento_id=cid_procedimiento.id),'mdi:archive-arrow-down-outline') }}
             <!-- Modal para confirmar el dar de baja del procedimiento -->
