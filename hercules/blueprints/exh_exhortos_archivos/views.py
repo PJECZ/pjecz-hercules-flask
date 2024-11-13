@@ -10,6 +10,7 @@ from flask import Blueprint, current_app, flash, make_response, redirect, render
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import NotFound
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
@@ -301,3 +302,25 @@ def recover(exh_exhorto_archivo_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(url_for("exh_exhortos_archivos.detail", exh_exhorto_archivo_id=exh_exhorto_archivo.id))
+
+
+@exh_exhortos_archivos.route("/exh_exhortos_archivos/ver_archivo_pdf/<int:exh_exhorto_archivo_id>")
+def view_file_pdf(exh_exhorto_archivo_id):
+    """Ver archivo PDF de ExhortosArchivo para insertarlo en un iframe en el detalle"""
+
+    # Consultar
+    exh_exhorto_archivo = ExhExhortoArchivo.query.get_or_404(exh_exhorto_archivo_id)
+
+    # Obtener el contenido del archivo
+    try:
+        archivo = get_file_from_gcs(
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO"],
+            blob_name=get_blob_name_from_url(exh_exhorto_archivo.url),
+        )
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        raise NotFound("No se encontró el archivo.")
+
+    # Entregar el archivo
+    response = make_response(archivo)
+    response.headers["Content-Type"] = "application/pdf"
+    return response

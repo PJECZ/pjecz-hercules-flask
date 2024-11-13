@@ -219,6 +219,11 @@
                 {{ detail.label_value('Municipio Área Recibida Id', exh_exhorto.acuse_municipio_area_recibe_id) }}
                 {{ detail.label_value('Área Recibida', exh_exhorto.acuse_area_recibe_id + ': ' + exh_exhorto.acuse_area_recibe_nombre) }}
                 {{ detail.label_value('URL Info', exh_exhorto.acuse_url_info) }}
+                <div class="row">
+                    <div class="col">
+                        {{ detail.button_md(label='Acuse', url=url_for('exh_exhortos.acuse_reception', id_hashed=exh_exhorto.encode_id()), icon='mdi:printer', target='_blank', color_class='btn-outline-secondary') }}
+                    </div>
+                </div>
             </div>
         </div>
     {% endif %}
@@ -230,6 +235,11 @@
                 {{ detail.label_value('Respuesta Origen Id', exh_exhorto.respuesta_respuesta_origen_id) }}
                 {{ detail.label_value('Fecha Hora de Recepción', moment(exh_exhorto.respuesta_fecha_hora_recepcion).format('llll')) }}
                 {{ detail.label_value('Observaciones', exh_exhorto.respuesta_observaciones) }}
+                <div class="row">
+                    <div class="col">
+                        {{ detail.button_md(label='Acuse', url=url_for('exh_exhortos.acuse_reponse', id_hashed=exh_exhorto.encode_id()), icon='mdi:printer', target='_blank', color_class='btn-outline-secondary') }}
+                    </div>
+                </div>
             </div>
         </div>
         <!-- Archvivos de respuesta -->
