@@ -337,6 +337,16 @@ def crear_pdf(cid_procedimiento_id: int, usuario_id: int = None, accept_reject_u
             # Cambiar el seguimiento del procedimiento anterior a ARCHIVADO
             anterior_autorizado.seguimiento = "ARCHIVADO"
             anterior_autorizado.save()
+
+            # Recorrer y cambiar 'seguimiento_posterior' a 'ARCHIVADO' para todos los procedimientos anteriores
+            anterior_procedimiento = anterior_autorizado
+            while anterior_procedimiento:
+                anterior_procedimiento.seguimiento_posterior = "ARCHIVADO"
+                anterior_procedimiento.save()
+                anterior_procedimiento = CIDProcedimiento.query.get(
+                    anterior_procedimiento.anterior_id
+                )  # Obtener el procedimiento anterior en la cadena
+
             # Obtener todos los formatos relacionados con el procedimiento
             formatos_anteriores = CIDFormato.query.filter_by(
                 procedimiento_id=cid_procedimiento.procedimiento_anterior_autorizado_id
