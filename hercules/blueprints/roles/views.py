@@ -203,7 +203,7 @@ def recover(rol_id):
 
 
 @roles.route("/roles/select2_json", methods=["POST"])
-def query_select2_json():
+def select2_json():
     """Proporcionar el JSON de roles para elegir con un Select2, se usa para filtrar en DataTables"""
     consulta = Rol.query.filter(Rol.estatus == "A")
     if "searchString" in request.form:
