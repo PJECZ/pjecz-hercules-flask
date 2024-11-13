@@ -14,7 +14,7 @@
             {% endif %}
         {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS') %}
-            {{ modals.button_modal('Consultar', url_for('exh_exhortos.get_from_externo', exh_exhorto_id=exh_exhorto.id), 'GetFromExterno', 'mdi:download', "¿Quiere consultar desde el PJ?") }}
+            {# {{ modals.button_modal('Consultar', url_for('exh_exhortos.get_from_externo', exh_exhorto_id=exh_exhorto.id), 'GetFromExterno', 'mdi:download', "¿Quiere consultar desde el PJ?") }} #}
             {% if exh_exhorto.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('exh_exhortos.delete', exh_exhorto_id=exh_exhorto.id)) }}{% endif %}
             {% if exh_exhorto.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('exh_exhortos.recover', exh_exhorto_id=exh_exhorto.id)) }}{% endif %}
         {% endif %}
@@ -118,6 +118,9 @@
         {% if exh_exhorto.estado == "RECIBIDO CON EXITO" %}
             <div class="row text-center">
                 <div class="col-md-6 d-grid gap-2">
+                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalregresar_enviar_btn('{{url_for('exh_exhortos.get_from_externo', exh_exhorto_id=exh_exhorto.id)}}', '¿Quiere consultar desde el PJ?');">
+                        <span class='iconify' data-icon='mdi:download'></span> Consultar
+                    </a>
                 </div>
                 <div class="col-md-6 d-grid gap-2">
                     <a class="btn btn-lg btn-secondary" href="{{url_for('exh_exhortos.recibe_response_manually', exh_exhorto_id=exh_exhorto.id)}}">
@@ -454,7 +457,7 @@
         html = '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
         titulo_estado.innerHTML = html;
     </script>
-    <!-- Botones de acción en estado Pendiente -->
+    <!-- Botones de acción en diferentes estados -->
     {% if exh_exhorto.estado == 'PENDIENTE' %}
         {{ modals.custom_javascript('Cancelar', '¿Desear cancelar el exhorto?', "cancelar_btn") }}
         {{ modals.custom_javascript('Enviar', '¿Está seguro de enviar el exhorto? Porque una vez enviado ya no podrá ni editarlo ni cancelarlo.', "enviar_btn") }}

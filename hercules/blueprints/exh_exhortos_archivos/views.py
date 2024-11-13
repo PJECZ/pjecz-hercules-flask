@@ -218,7 +218,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
         # Si se sube con exito, actualizar el registro con la URL del archivo
         exh_exhorto_archivo.url = archivo_pdf_url
         exh_exhorto_archivo.tamano = len(data)
-        exh_exhorto_archivo.estado = "RECIBIDO"
+        exh_exhorto_archivo.estado = "PENDIENTE"
         exh_exhorto_archivo.save()
 
         # Insertar en la Bitácora
