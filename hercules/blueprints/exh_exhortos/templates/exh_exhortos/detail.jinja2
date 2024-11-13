@@ -15,7 +15,6 @@
         {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS') %}
             {{ modals.button_modal('Consultar', url_for('exh_exhortos.get_from_externo', exh_exhorto_id=exh_exhorto.id), 'GetFromExterno', 'mdi:download', "¿Quiere consultar desde el PJ?") }}
-            {# {{ modals.button_modal('Enviar', url_for('exh_exhortos.send', exh_exhorto_id=exh_exhorto.id), 'SendToExterno', 'mdi:send', "¿Quiere enviar al PJ?") }} #}
             {% if exh_exhorto.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('exh_exhortos.delete', exh_exhorto_id=exh_exhorto.id)) }}{% endif %}
             {% if exh_exhorto.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('exh_exhortos.recover', exh_exhorto_id=exh_exhorto.id)) }}{% endif %}
         {% endif %}
@@ -60,10 +59,36 @@
                 {{ detail.label_value('Remitente', exh_exhorto.remitente) }}
                 {{ detail.label_value('Autoridad', exh_exhorto.autoridad.clave + ' - ' + exh_exhorto.autoridad.descripcion_corta, url_for("autoridades.detail", autoridad_id=exh_exhorto.autoridad.id )) }}
                 {{ detail.label_value('Número de Exhorto', exh_exhorto.numero_exhorto) }}
-                {# <div class="row">
+                <div class="row">
                     <div class="col-md-3 text-end">Estado</div>
-                    <div class="col-md-9" id="estado">{{ exh_exhorto.estado }}</div>
-                </div> #}
+                    {% if exh_exhorto.estado == "RECIBIDO" %}
+                        <div class="col-md-9"><span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:inbox-arrow-down" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
+                    {% elif exh_exhorto.estado == "TRANSFIRIENDO" %}
+                        <div class="col-md-9"><span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:email-arrow-right" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
+                    {% elif exh_exhorto.estado == "PROCESANDO" %}
+                        <div class="col-md-9"><span class="badge rounded-pill bg-warning text-dark"><span class="iconify" data-icon="mdi:sync" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
+                    {% elif exh_exhorto.estado == "RECHAZADO" %}
+                        <div class="col-md-9"><span class="badge rounded-pill bg-danger"><span class="iconify" data-icon="mdi:hand-back-left" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
+                    {% elif exh_exhorto.estado == "DILIGENCIADO" %}
+                        <div class="col-md-9"><span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:truck-delivery" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
+                    {% elif exh_exhorto.estado == "CONTESTADO" %}
+                        <div class="col-md-9"><span class="badge rounded-pill bg-success"><span class="iconify" data-icon="mdi:check-circle" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
+                    {% elif exh_exhorto.estado == "PENDIENTE" %}
+                        <div class="col-md-9"><span class="badge rounded-pill bg-warning text-dark"><span class="iconify" data-icon="mdi:note-edit" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
+                    {% elif exh_exhorto.estado == "CANCELADO" %}
+                        <div class="col-md-9"><span class="badge rounded-pill bg-secondary"><span class="iconify" data-icon="mdi:close-circle" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
+                    {% elif exh_exhorto.estado == "POR ENVIAR" %}
+                        <div class="col-md-9"><span class="badge rounded-pill bg-warning text-dark"><span class="iconify" data-icon="mdi:package-up" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
+                    {% elif exh_exhorto.estado == "INTENTOS AGOTADOS" %}
+                        <div class="col-md-9"><span class="badge rounded-pill bg-danger"><span class="iconify" data-icon="mdi:alert-decagram" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
+                    {% elif exh_exhorto.estado == "RECIBIDO CON EXITO" %}
+                        <div class="col-md-9"><span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:briefcase-check" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
+                    {% elif exh_exhorto.estado == "NO FUE RESPONDIDO" %}
+                        <div class="col-md-9"><span class="badge rounded-pill bg-danger"><span class="iconify" data-icon="mdi:cancel" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
+                    {% elif exh_exhorto.estado == "RESPONDIDO" %}
+                        <div class="col-md-9"><span class="badge rounded-pill bg-success"><span class="iconify" data-icon="mdi:crown-circle" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
+                    {% endif %}
+                </div>
             </div>
         </div>
         <!-- Botones de acción en diferentes estados -->
@@ -218,7 +243,7 @@
                 {{ detail.label_value('Fecha Hora Recepción', moment(exh_exhorto.acuse_fecha_hora_recepcion).format('llll')) }}
                 {{ detail.label_value('Municipio Área Recibida Id', exh_exhorto.acuse_municipio_area_recibe_id) }}
                 {{ detail.label_value('Área Recibida', exh_exhorto.acuse_area_recibe_id + ': ' + exh_exhorto.acuse_area_recibe_nombre) }}
-                {{ detail.label_value('URL Info', exh_exhorto.acuse_url_info) }}
+                {{ detail.label_value('URL Info', exh_exhorto.acuse_url_info, exh_exhorto.acuse_url_info) }}
                 <div class="row">
                     <div class="col">
                         {{ detail.button_md(label='Acuse', url=url_for('exh_exhortos.acuse_reception', id_hashed=exh_exhorto.encode_id()), icon='mdi:printer', target='_blank', color_class='btn-outline-secondary') }}
