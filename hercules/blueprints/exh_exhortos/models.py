@@ -186,6 +186,25 @@ class ExhExhorto(database.Model, UniversalMixin):
     # Texto simple referente a alguna observación u observaciones correspondientes a la respuesta del Exhorto
     respuesta_observaciones: Mapped[Optional[str]] = mapped_column(String(1024))
 
+    # Identificador que el Poder Judicial exhortado (quien envía la actualización) genera.
+    # Este puede ser un consecutivo (ej. "1", "2", ... "45545"), un GUID/UUID, código (ej. "EX-00001-2024update55" ...)
+    # o cualquíer dato que no se pueda repetir.
+    actualizacion_origen_id: Mapped[Optional[str]] = mapped_column(String(48))
+
+    # Tipo de actualización del exhorto, que está relacionado con el dato o proceso de actualización que sufrió el exhorto.
+    # Estos pueden ser:
+    # - "AreaTurnado" => Cuando se cambia o se turna el Exhorto al Juzgado/Área que hará la diligenciación.
+    # - "NumeroExhorto" => En el Juzgado/Área que va a hacer la diligenciación del exhorto, este ya se radicó y
+    #    se le asignó un Número de Exhorto (local) con el que identifican.
+    actualizacion_tipo_actualizacion: Mapped[Optional[str]] = mapped_column(String(16))
+
+    # Fecha hora local en que se registró la actualización
+    actualizacion_fecha_hora: Mapped[Optional[datetime]]
+
+    # Una descripción que indique cuál fue el dato y/o información del exhorto que se actualizó.
+    # Este puede ser: "Turnado al Juzgado Tercero Familiar (Municipio)", "Radicado con Número de Exhorto 99999/2024"
+    actualizacion_descripcion: Mapped[Optional[str]] = mapped_column(String(1024))
+
     def __repr__(self):
         """Representación"""
         return f"<ExhExhorto {self.id}>"
