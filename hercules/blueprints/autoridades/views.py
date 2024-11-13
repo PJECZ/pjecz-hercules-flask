@@ -358,7 +358,7 @@ def select_autoridades_json():
 
 
 @autoridades.route("/autoridades/select2_json", methods=["GET", "POST"])
-def select_autoridades_json():
+def select2_json():
     """Proporcionar el JSON de autoridades para elegir con un Select2"""
     consulta = Autoridad.query.filter(Autoridad.estatus == "A")
     if "searchString" in request.form:
