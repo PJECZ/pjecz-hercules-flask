@@ -34,10 +34,39 @@ from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.pwgen import generar_identificador
 from lib.safe_string import safe_clave, safe_message, safe_string
+from lib.time_to_text import dia_mes_ano
 
 MODULO = "EXH EXHORTOS"
 
 exh_exhortos = Blueprint("exh_exhortos", __name__, template_folder="templates")
+
+
+@exh_exhortos.route("/exh_exhortos/acuses/recepcion/<id_hashed>")
+def acuse_reception(id_hashed):
+    """Acuse"""
+    exh_exhorto = ExhExhorto.query.get_or_404(ExhExhorto.decode_id(id_hashed))
+    dia, mes, anio = dia_mes_ano(exh_exhorto.creado)
+    return render_template(
+        "exh_exhortos/acuse_reception.jinja2",
+        exh_exhorto=exh_exhorto,
+        dia=dia,
+        mes=mes.upper(),
+        anio=anio,
+    )
+
+
+@exh_exhortos.route("/exh_exhortos/acuses/respuesta/<id_hashed>")
+def acuse_reponse(id_hashed):
+    """Acuse"""
+    exh_exhorto = ExhExhorto.query.get_or_404(ExhExhorto.decode_id(id_hashed))
+    dia, mes, anio = dia_mes_ano(exh_exhorto.creado)
+    return render_template(
+        "exh_exhortos/acuse_response.jinja2",
+        exh_exhorto=exh_exhorto,
+        dia=dia,
+        mes=mes.upper(),
+        anio=anio,
+    )
 
 
 @exh_exhortos.before_request

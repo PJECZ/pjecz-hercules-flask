@@ -42,11 +42,23 @@ def datatable_json():
     else:
         consulta = consulta.filter(Autoridad.estatus == "A")
     if "distrito_id" in request.form:
-        consulta = consulta.filter(Autoridad.distrito_id == request.form["distrito_id"])
+        try:
+            distrito_id = int(request.form["distrito_id"])
+            consulta = consulta.filter(Autoridad.distrito_id == distrito_id)
+        except ValueError:
+            pass
     if "materia_id" in request.form:
-        consulta = consulta.filter(Autoridad.materia_id == request.form["materia_id"])
+        try:
+            materia_id = int(request.form["materia_id"])
+            consulta = consulta.filter(Autoridad.materia_id == materia_id)
+        except ValueError:
+            pass
     if "municipio_id" in request.form:
-        consulta = consulta.filter(Autoridad.municipio_id == request.form["municipio_id"])
+        try:
+            municipio_id = int(request.form["municipio_id"])
+            consulta = consulta.filter(Autoridad.municipio_id == municipio_id)
+        except ValueError:
+            pass
     if "clave" in request.form:
         try:
             clave = safe_clave(request.form["clave"])
