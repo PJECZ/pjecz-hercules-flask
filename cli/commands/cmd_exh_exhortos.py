@@ -8,7 +8,6 @@ import sys
 
 import click
 from faker import Faker
-from redis.utils import safe_str
 from sqlalchemy import text
 
 from hercules.app import create_app
@@ -160,11 +159,45 @@ def demo_ext_02_recibir(estado_origen):
         exh_exhorto_archivo.save()
         click.echo(click.style(f"Archivo {exh_exhorto_archivo.nombre_archivo} Insertar", fg="green"))
 
+    # Mensaje de éxito
+    click.echo(click.style(f"Exhorto {exh_exhorto.exhorto_origen_id} recibido con éxito", fg="green"))
+
 
 @click.command()
-def demo_int_02_enviar():
+@click.argument("exhorto_origen_id", type=str)
+def demo_int_02_enviar(exhorto_origen_id):
     """Demostrar INTERNO 02 Enviar datos de exhorto"""
     click.echo("Demostrar INTERNO 02 Enviar datos de exhorto")
+
+    # Consultar el exhorto con el exhorto_origen_id
+    exh_exhorto = ExhExhorto.query.filter_by(exhorto_origen_id=exhorto_origen_id).first()
+    if exh_exhorto is None:
+        click.echo(click.style(f"No existe el exhorto {exhorto_origen_id}", fg="red"))
+        sys.exit(1)
+
+    # Consultar el municipio de destino en el exhorto
+    municipio_destino = Municipio.query.get(exh_exhorto.municipio_destino_id)
+    estado_destino = municipio_destino.estado
+
+    # Elegir un NUEVO municipio al azar del estado de destino
+    municipios_destinos = Municipio.query.filter_by(estado_id=estado_destino.id).all()
+    nuevo_municipio_destino = random.choice(municipios_destinos)
+
+    # Actualizar con datos aleatorios que vendrían de la recepción del exhorto
+    # exhortoOrigenId
+    exh_exhorto.folio_seguimiento = generar_identificador()  # folioSeguimiento
+    exh_exhorto.acuse_fecha_hora_recepcion = datetime.now()  # fechaHoraRecepcion
+    exh_exhorto.acuse_municipio_area_recibe_id = int(nuevo_municipio_destino.clave)  # municipioAreaRecibeId
+    exh_exhorto.acuse_area_recibe_id = ""  # areaRecibeId
+    exh_exhorto.acuse_area_recibe_nombre = ""  # areaRecibeNombre
+    exh_exhorto.acuse_url_info = f"https://fake.info/acuse/{exh_exhorto.exhorto_origen_id}"  # urlInfo
+
+    # Actualizar el estado del exhorto con el estado "RECIBIDO CON EXITO"
+    exh_exhorto.estado = "RECIBIDO CON EXITO"
+    exh_exhorto.save()
+
+    # Mensaje de éxito
+    click.echo(click.style(f"Exhorto {exh_exhorto.exhorto_origen_id} enviado con éxito", fg="green"))
 
 
 @click.command()
@@ -177,6 +210,18 @@ def demo_ext_05_recibir_respuesta():
 def demo_int_05_enviar_respuesta():
     """Demostrar INTERNO 07 Enviar respuesta"""
     click.echo("Demostrar INTERNO 07 Enviar respuesta")
+
+
+@click.command()
+def demo_ext_06_recibir_actualizacion():
+    """Demostrar EXTERNO 06 Recibir actualización"""
+    click.echo("Demostrar EXTERNO 06 Recibir actualización")
+
+
+@click.command()
+def demo_int_06_enviar_actualizacion():
+    """Demostrar INTERNO 06 Enviar actualización"""
+    click.echo("Demostrar INTERNO 06 Enviar actualización")
 
 
 @click.command()
@@ -196,5 +241,7 @@ cli.add_command(demo_ext_02_recibir)
 cli.add_command(demo_int_02_enviar)
 cli.add_command(demo_ext_05_recibir_respuesta)
 cli.add_command(demo_int_05_enviar_respuesta)
+cli.add_command(demo_ext_06_recibir_actualizacion)
+cli.add_command(demo_int_06_enviar_actualizacion)
 cli.add_command(demo_ext_07_recibir_promocion)
 cli.add_command(demo_int_07_enviar_promocion)
