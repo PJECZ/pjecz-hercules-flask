@@ -234,7 +234,7 @@ def recover(modulo_id):
 
 
 @modulos.route("/modulos/select2_json", methods=["POST"])
-def query_select2_json():
+def select2_json():
     """Proporcionar el JSON de modulos para elegir con un Select2, se usa para filtrar en DataTables"""
     consulta = Modulo.query.filter(Modulo.estatus == "A")
     if "searchString" in request.form:
