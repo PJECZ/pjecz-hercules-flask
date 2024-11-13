@@ -345,7 +345,11 @@ def detail(cid_procedimiento_id):
         current_user_roles.intersection(ROLES_NUEVA_REVISION)
     )
     # mostrar alerta para formatos revisiones mayores a 1
-    mostrar_alerta_formatos = cid_procedimiento.revision != 1 and cid_procedimiento.seguimiento != "AUTORIZADO"
+    mostrar_alerta_formatos = (
+        cid_procedimiento.revision != 1
+        and cid_procedimiento.seguimiento != "AUTORIZADO"
+        and cid_procedimiento.seguimiento != "ARCHIVADO"
+    )
     # mostrar boton para mandar a archivar porcedimiento
     mostrar_boton_archivado = cid_procedimiento.seguimiento == "AUTORIZADO" and (
         ROL_COORDINADOR in current_user_roles or ROL_ADMINISTRADOR in current_user_roles
