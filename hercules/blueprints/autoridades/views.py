@@ -355,3 +355,17 @@ def select_autoridades_json():
             }
         )
     return {"results": results, "pagination": {"more": False}}
+
+
+@autoridades.route("/autoridades/select2_json", methods=["GET", "POST"])
+def select2_json():
+    """Proporcionar el JSON de autoridades para elegir con un Select2"""
+    consulta = Autoridad.query.filter(Autoridad.estatus == "A")
+    if "searchString" in request.form:
+        clave = safe_clave(request.form["searchString"])
+        if clave != "":
+            consulta = consulta.filter(Autoridad.clave.contains(clave))
+    resultados = []
+    for modulo in consulta.order_by(Autoridad.nombre).limit(10).all():
+        resultados.append({"id": modulo.id, "text": modulo.nombre})
+    return {"results": resultados, "pagination": {"more": False}}
