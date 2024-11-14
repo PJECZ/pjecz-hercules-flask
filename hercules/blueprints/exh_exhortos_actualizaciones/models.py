@@ -16,11 +16,6 @@ from hercules.extensions import database
 class ExhExhortoActualizacion(database.Model, UniversalMixin):
     """ExhExhortoActualizacion"""
 
-    TIPOS = {
-        "AreaTurnado": "Área de Turnado",
-        "NumeroExhorto": "Número de Exhorto",
-    }
-
     # Nombre de la tabla
     __tablename__ = "exh_exhortos_actualizaciones"
 
@@ -42,9 +37,7 @@ class ExhExhortoActualizacion(database.Model, UniversalMixin):
     # - "AreaTurnado" => Cuando se cambia o se turna el Exhorto al Juzgado/Área que hará la diligenciación.
     # - "NumeroExhorto" => En el Juzgado/Área que va a hacer la diligenciación del exhorto, este ya se radicó y
     #    se le asignó un Número de Exhorto (local) con el que identifican.
-    tipo_actualizacion: Mapped[str] = mapped_column(
-        Enum(*TIPOS, name="exh_exhortos_actualizaciones_tipo", native_enum=False), index=True
-    )
+    tipo_actualizacion: Mapped[str] = mapped_column(String(48))
 
     # Fecha hora local en que se registró la actualización
     fecha_hora: Mapped[datetime] = mapped_column(DateTime, default=now())
