@@ -192,6 +192,11 @@ class ExhExhorto(database.Model, UniversalMixin):
         "ExhExhortoActualizacion", back_populates="exh_exhorto"
     )
 
+    # Hijo
+    exh_exhortos_promociones: Mapped[List["ExhExhortoPromocion"]] = relationship(
+        "ExhExhortoPromocion", back_populates="exh_exhorto"
+    )
+
     def __repr__(self):
         """Representación"""
         return f"<ExhExhorto {self.id}>"

@@ -14,9 +14,9 @@ from hercules.extensions import database
 
 
 class ExhExhortoPromocionPromovente(database.Model, UniversalMixin):
-    """ ExhExhortoPromocionPromovente """
+    """ExhExhortoPromocionPromovente"""
 
-   GENEROS = {
+    GENEROS = {
         "M": "MASCULINO",
         "F": "FEMENINO",
     }
@@ -84,5 +84,5 @@ class ExhExhortoPromocionPromovente(database.Model, UniversalMixin):
             return "-"
 
     def __repr__(self):
-        """ Representación """
-        return f'<Clase {self.id}>'
+        """Representación"""
+        return f"<Clase {self.id}>"
