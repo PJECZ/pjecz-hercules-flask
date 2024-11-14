@@ -31,7 +31,9 @@ class ExhExhortoPromocion(database.Model, UniversalMixin):
     folio_origen_promocion: Mapped[str] = mapped_column(String(16), unique=True)
 
     # Hijo: Contiene la definición de los promoventes, en este caso el juzgado quien realiza la promoción
-    # exh_promoventes: Mapped[List["ExhExhortosParte"]] = relationship(back_populates="exh_promocion")
+    exh_exhortos_promociones_promoventes: Mapped[List["ExhExhortoPromocionPromovente"]] = relationship(
+        back_populates="exh_exhorto_promocion"
+    )
 
     # Número de fojas que contiene la promoción.
     # El valor 0 significa "No Especificado".
@@ -39,13 +41,15 @@ class ExhExhortoPromocion(database.Model, UniversalMixin):
 
     # Fecha y hora en que el Poder Judicial promovente registró que se envió la promoción en su hora local.
     # En caso de no enviar este dato, el Poder Judicial promovido puede tomar su fecha hora local.
-    fecha_orgien: Mapped[Optional[datetime]] = mapped_column(DateTime, default=now())
+    fecha_origen: Mapped[Optional[datetime]] = mapped_column(DateTime, default=now())
 
     # Texto simple que contenga información extra o relevante sobre el exhorto.
     observaciones: Mapped[Optional[str]] = mapped_column(String(1024))
 
     # Hijo: Colección de los datos referentes a los archivos que se van a recibir el Poder Judicial exhortado en el envío del Exhorto.
-    # exh_archivos: Mapped[List["ExhExhortosArchivo"]] = relationship(back_populates="exh_promocion")
+    exh_exhortos_promociones_archivos: Mapped[List["ExhExhortoPromocionArchivo"]] = relationship(
+        back_populates="exh_exhorto_promocion"
+    )
 
     def __repr__(self):
         """Representación"""
