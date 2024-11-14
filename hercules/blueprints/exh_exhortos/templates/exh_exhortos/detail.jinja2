@@ -92,7 +92,7 @@
             </div>
         </div>
         <!-- Botones de acción en diferentes estados -->
-        {% if exh_exhorto.estado == 'PENDIENTE' %}
+        {% if exh_exhorto.estado == 'PENDIENTE' or exh_exhorto.estado == "POR ENVIAR" %}
             <div class="row text-center">
                 <div class="col-md-6 d-grid gap-2">
                     <a class="btn btn-lg btn-danger" href="javascript:void(0)" onclick="showModalcancelar_btn('{{url_for('exh_exhortos.cancel', exh_exhorto_id=exh_exhorto.id)}}', '¿Desea cancelar el exhorto?');">
@@ -458,7 +458,7 @@
         titulo_estado.innerHTML = html;
     </script>
     <!-- Botones de acción en diferentes estados -->
-    {% if exh_exhorto.estado == 'PENDIENTE' %}
+    {% if exh_exhorto.estado == 'PENDIENTE' or exh_exhorto.estado == 'POR ENVIAR' %}
         {{ modals.custom_javascript('Cancelar', '¿Desear cancelar el exhorto?', "cancelar_btn") }}
         {{ modals.custom_javascript('Enviar', '¿Está seguro de enviar el exhorto? Porque una vez enviado ya no podrá ni editarlo ni cancelarlo.', "enviar_btn") }}
     {% endif %}
