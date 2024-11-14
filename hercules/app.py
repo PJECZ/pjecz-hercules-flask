@@ -33,6 +33,7 @@ from hercules.blueprints.edictos.views import edictos
 from hercules.blueprints.edictos_acuses.views import edictos_acuses
 from hercules.blueprints.entradas_salidas.views import entradas_salidas
 from hercules.blueprints.estados.views import estados
+from hercules.blueprints.exh_exhortos_actualizaciones.views import exh_exhortos_actualizaciones
 from hercules.blueprints.exh_areas.views import exh_areas
 from hercules.blueprints.exh_exhortos.views import exh_exhortos
 from hercules.blueprints.exh_exhortos_archivos.views import exh_exhortos_archivos
@@ -119,6 +120,7 @@ def create_app():
     app.register_blueprint(cid_formatos)
     app.register_blueprint(cid_procedimientos)
     app.register_blueprint(domicilios)
+    app.register_blueprint(exh_exhortos_actualizaciones)
     app.register_blueprint(exh_areas)
     app.register_blueprint(exh_exhortos)
     app.register_blueprint(exh_exhortos_archivos)
