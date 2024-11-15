@@ -128,7 +128,7 @@ def new():
             cid_area = CIDArea(
                 clave=clave,
                 nombre=nombre,
-                descripcion=safe_string(form.descripcion.data),
+                descripcion=safe_string(form.descripcion.data, save_enie=True),
             )
             cid_area.save()
             bitacora = Bitacora(
@@ -163,7 +163,7 @@ def edit(cid_area_id):
         if es_valido:
             cid_area.clave = clave
             cid_area.nombre = nombre
-            cid_area.descripcion = safe_string(form.descripcion.data)
+            cid_area.descripcion = safe_string(form.descripcion.data, save_enie=True)
             cid_area.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
