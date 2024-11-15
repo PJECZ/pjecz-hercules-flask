@@ -33,16 +33,6 @@
 {% endblock %}
 
 {% block content %}
-    {% if mostrar_boton_archivado %}
-        {% call detail.card(estatus=cid_procedimiento.estatus) %}
-            <div class="card-title">
-                <p>Archivar procedimiento <strong>{{cid_procedimiento.codigo}} </strong>en caso de ser necesario.</p>
-            </div>
-            {{ topbar.button_delete('Archivar procedimiento', url_for('cid_procedimientos.archivar_procedimiento', cid_procedimiento_id=cid_procedimiento.id),'mdi:archive-arrow-down-outline') }}
-            <!-- Modal para confirmar el dar de baja del procedimiento -->
-            {{ modals.custom_javascript_delete('Archivar', '¿Desea archivar este procedimiento ' + cid_procedimiento.codigo + '?') }}
-        {% endcall %}
-    {% endif %}
     {% set accordion_id = 'procedimiento_accordion' %}
     {% call accordion.div(accordion_id, estatus=cid_procedimiento.estatus) %}
         {% call accordion.item('generales_item', 'Generales', accordion_id, expanded=True, estatus=cid_procedimiento.estatus) %}
@@ -207,6 +197,15 @@
                 <a href="{{ url_for('cid_formatos.new', cid_procedimiento_id=cid_procedimiento.id) }}" class="btn btn-primary">Agregar formato</a>
             {% endif %}
         {% endcall %}
+    {% endif %}
+    <!-- Mostrar boton de archivar a los roles correspondientes -->
+    {% if mostrar_boton_archivado %}
+        <div class="alert alert-warning" role="alert">
+            <p>Archivar procedimiento <strong>{{cid_procedimiento.codigo}} </strong>en caso de ser necesario.</p>
+            {{ topbar.button_delete('Archivar procedimiento', url_for('cid_procedimientos.archivar_procedimiento', cid_procedimiento_id=cid_procedimiento.id),'mdi:archive-arrow-down-outline') }}
+        </div>
+        <!-- Modal para confirmar el dar de baja del procedimiento -->
+        {{ modals.custom_javascript_delete('Archivar', '¿Desea archivar este procedimiento ' + cid_procedimiento.codigo + '?') }}
     {% endif %}
 {% endblock %}
 
