@@ -183,8 +183,14 @@ class ExhExhorto(database.Model, UniversalMixin):
     # 2 = Diligenciado"
     respuesta_tipo_diligenciado: Mapped[Optional[int]]
 
+    # Fecha hora local del Poder Judicial que recibe la respuesta del Exhorto
+    respuesta_fecha_hora_recepcion: Mapped[Optional[datetime]]
+
     # Texto simple referente a alguna observación u observaciones correspondientes a la respuesta del Exhorto
     respuesta_observaciones: Mapped[Optional[str]] = mapped_column(String(1024))
+
+    # Fecha hora local en el que el Poder Judicial exhortante marca la Respuesta del Exhorto como recibida
+    respuesta_fecha_hora_recepcion_acuse: Mapped[Optional[datetime]]
 
     # Hijos: Colección de objetos de tipo Actualizaciones que representan
     # las diferentes actualizaciones pedidas para el exhorto
