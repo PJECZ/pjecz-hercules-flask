@@ -51,7 +51,7 @@ def datatable_json():
     if "exh_exhorto_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_id=request.form["exh_exhorto_id"])
     if "es_respuesta" in request.form:
-        es_respuesta = True if request.form["es_respuesta"] == True else False
+        es_respuesta = True if request.form["es_respuesta"] == "true" else False
         consulta = consulta.filter_by(es_respuesta=es_respuesta)
     # Ordenar y paginar
     registros = consulta.order_by(ExhExhortoArchivo.id).offset(start).limit(rows_per_page).all()
