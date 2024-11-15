@@ -61,33 +61,7 @@
                 {{ detail.label_value('Número de Exhorto', exh_exhorto.numero_exhorto) }}
                 <div class="row">
                     <div class="col-md-3 text-end">Estado</div>
-                    {% if exh_exhorto.estado == "RECIBIDO" %}
-                        <div class="col-md-9"><span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:inbox-arrow-down" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
-                    {% elif exh_exhorto.estado == "TRANSFIRIENDO" %}
-                        <div class="col-md-9"><span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:email-arrow-right" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
-                    {% elif exh_exhorto.estado == "PROCESANDO" %}
-                        <div class="col-md-9"><span class="badge rounded-pill bg-warning text-dark"><span class="iconify" data-icon="mdi:sync" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
-                    {% elif exh_exhorto.estado == "RECHAZADO" %}
-                        <div class="col-md-9"><span class="badge rounded-pill bg-danger"><span class="iconify" data-icon="mdi:hand-back-left" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
-                    {% elif exh_exhorto.estado == "DILIGENCIADO" %}
-                        <div class="col-md-9"><span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:truck-delivery" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
-                    {% elif exh_exhorto.estado == "CONTESTADO" %}
-                        <div class="col-md-9"><span class="badge rounded-pill bg-success"><span class="iconify" data-icon="mdi:check-circle" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
-                    {% elif exh_exhorto.estado == "PENDIENTE" %}
-                        <div class="col-md-9"><span class="badge rounded-pill bg-warning text-dark"><span class="iconify" data-icon="mdi:note-edit" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
-                    {% elif exh_exhorto.estado == "CANCELADO" %}
-                        <div class="col-md-9"><span class="badge rounded-pill bg-secondary"><span class="iconify" data-icon="mdi:close-circle" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
-                    {% elif exh_exhorto.estado == "POR ENVIAR" %}
-                        <div class="col-md-9"><span class="badge rounded-pill bg-warning text-dark"><span class="iconify" data-icon="mdi:package-up" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
-                    {% elif exh_exhorto.estado == "INTENTOS AGOTADOS" %}
-                        <div class="col-md-9"><span class="badge rounded-pill bg-danger"><span class="iconify" data-icon="mdi:alert-decagram" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
-                    {% elif exh_exhorto.estado == "RECIBIDO CON EXITO" %}
-                        <div class="col-md-9"><span class="badge rounded-pill bg-primary"><span class="iconify" data-icon="mdi:briefcase-check" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
-                    {% elif exh_exhorto.estado == "NO FUE RESPONDIDO" %}
-                        <div class="col-md-9"><span class="badge rounded-pill bg-danger"><span class="iconify" data-icon="mdi:cancel" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
-                    {% elif exh_exhorto.estado == "RESPONDIDO" %}
-                        <div class="col-md-9"><span class="badge rounded-pill bg-success"><span class="iconify" data-icon="mdi:crown-circle" style="font-size: 16px"></span> {{ exh_exhorto.estado }}</span></div>
-                    {% endif %}
+                    <div class="col-md-9"><span id="titulo-estado"> {{ exh_exhorto.estado }}</span></div>
                 </div>
             </div>
         </div>
@@ -373,7 +347,7 @@
         // DataTable Archivos
         let configDTArchivos = constructorDataTable.config();
         configDTArchivos['ajax']['url'] = '/exh_exhortos_archivos/datatable_json';
-        configDTArchivos['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}};
+        configDTArchivos['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}, "es_respuesta":false};
         configDTArchivos['columns'] = [
             { data: 'detalle' },
             { data: 'descargar_pdf' },
