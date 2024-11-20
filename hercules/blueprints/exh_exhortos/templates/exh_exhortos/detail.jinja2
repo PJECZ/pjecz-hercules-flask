@@ -207,7 +207,7 @@
         </table>
         {% if exh_exhorto.estado == 'PENDIENTE' %}
             {% if current_user.can_insert('EXH EXHORTOS ARCHIVOS') %}
-                <a class="btn btn-primary" href="{{url_for('exh_exhortos_archivos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar</a>
+                <a class="btn btn-primary" href="{{url_for('exh_exhortos_archivos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id, es_respuesta=0)}}">Agregar</a>
             {% endif %}
         {% endif %}
     {% endcall %}
@@ -244,9 +244,11 @@
                 </div>
             </div>
         </div>
-        <!-- Archvivos de respuesta -->
+    {% endif %}
+    <!-- Archvivos de respuesta -->
+    {% if exh_exhorto.estado in ('PROCESANDO') %}
         <div class="card bg-success mb-3">
-            <div class="card-header text-light">Archivos de respuesta</div>
+            <div class="card-header text-light">Archivos de Respuesta</div>
             <div class="card-body bg-light">
                 <table id="exh_exhortos_archivos_respuesta_datatable" class="table display nowrap" style="width:100%">
                     <thead>
@@ -260,13 +262,16 @@
                         </tr>
                     </thead>
                 </table>
+                {% if exh_exhorto.estado in ('PROCESANDO')  %}
+                    <a class="btn btn-success" href="{{url_for('exh_exhortos_archivos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id, es_respuesta=1)}}">Agregar Archivo de Respuesta</a>
+                {% endif %}
             </div>
         </div>
     {% endif %}
     <!-- Archivos de respuesta como Videos -->
-    {% if exh_exhorto.estado in ('DILIGENCIADO', 'CONTESTADO') %}
+    {% if exh_exhorto.estado in ('DILIGENCIADO', 'CONTESTADO', 'PROCESANDO') %}
         <div class="card bg-primary mb-3">
-            <div class="card-header text-light">Archivos de respuesta videos</div>
+            <div class="card-header text-light">Enlaces de Video</div>
             <div class="card-body bg-light">
                 <table id="exh_exhortos_respuesta_videos_datatable" class="table display nowrap" style="width:100%">
                     <thead>
@@ -276,8 +281,8 @@
                         </tr>
                     </thead>
                 </table>
-                {% if exh_exhorto.estado == 'DILIGENCIADO' and current_user.can_insert('EXH EXHORTOS VIDEOS') %}
-                    <a class="btn btn-primary" href="{{url_for('exh_exhortos_videos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar</a>
+                {% if exh_exhorto.estado in ('DILIGENCIADO', 'PROCESANDO') and current_user.can_insert('EXH EXHORTOS VIDEOS')  %}
+                    <a class="btn btn-primary" href="{{url_for('exh_exhortos_videos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Enlace de Video</a>
                 {% endif %}
             </div>
         </div>
