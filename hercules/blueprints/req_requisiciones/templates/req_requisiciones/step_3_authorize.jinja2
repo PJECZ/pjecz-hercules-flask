@@ -1,0 +1,43 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Autorizar Requisición{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Autorizar Requisición ' + req_requisicion.glosa | string) }}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(title='Creado') %}
+        {{ detail.label_value('Nombre', req_requisicion.usuario.nombre) }}
+        {{ detail.label_value('Puesto', req_requisicion.usuario.puesto) }}
+        {{ detail.label_value('e-mail', req_requisicion.usuario.email) }}
+        {{ detail.label_value('Fecha de captura', moment(req_requisicion.creado).format('llll')) }}
+        {{ detail.label_value('Glosa', req_requisicion.glosa) }}
+    {% endcall %}
+    {% call detail.card(title='Solicitado') %}
+        {{ detail.label_value('Nombre', req_requisicion.solicito_nombre) }}
+        {{ detail.label_value('Puesto', req_requisicion.solicito_puesto) }}
+        {{ detail.label_value('e-mail', req_requisicion.solicito_email) }}
+        {{ detail.label_value('Fecha de Solicitado', moment(req_requisicion.creado).format('llll')) }}
+        {{ detail.label_value('Mensaje', req_requisicion.solicito_efirma_mensaje) }}
+        {{ detail.label_value('Error', req_requisicion.solicito_efirma_error) }}
+        {{ detail.label_value_new_tab('Folio y URL', req_requisicion.solicito_efirma_folio, req_requisicion.solicito_efirma_url) }}
+    {% endcall %}
+    {% call f.card(title='Autorizar') %}
+        {% set form_kwargs = {'req_requisicion_id': req_requisicion.id} %}
+        {% call f.form_tag('req_requisiciones.step_3_authorize', fid='step_3_authorize_form', **form_kwargs) %}
+            {% call f.form_group(form.autorizo_nombre, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.autorizo_puesto, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.autorizo_email, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.contrasena) %}{% endcall %}
+            {% call f.form_group(form.autorizar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}

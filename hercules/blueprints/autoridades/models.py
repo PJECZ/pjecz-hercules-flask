@@ -104,6 +104,7 @@ class Autoridad(database.Model, UniversalMixin):
     sentencias: Mapped[List["Sentencia"]] = relationship(back_populates="autoridad")
     ubicaciones_expedientes: Mapped[List["UbicacionExpediente"]] = relationship(back_populates="autoridad")
     usuarios: Mapped[List["Usuario"]] = relationship("Usuario", back_populates="autoridad")
+    req_requisiciones : Mapped[List["ReqRequisicion"]] = relationship("ReqRequisicion", back_populates="autoridad")
 
     @property
     def nombre(self):
