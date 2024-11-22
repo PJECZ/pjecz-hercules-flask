@@ -293,8 +293,8 @@
                 <table id="exh_exhortos_actualizaciones_datatable" class="table display nowrap" style="width:100%">
                     <thead>
                         <tr>
-                            <th>Fecha / Hora</th>
                             <th>Origen ID</th>
+                            <th>Fecha / Hora</th>
                             <th>Tipo Actualización</th>
                             <th>Descripción</th>
                         </tr>
@@ -469,6 +469,32 @@
         const filtrosArchivosRespuesta = new FiltrosDataTable('#exh_exhortos_archivos_respuesta_datatable', configDTArchivosRespuesta);
         filtrosArchivosRespuesta.precargar();
     </script>
+    {% if exh_exhorto.estado in ('DILIGENCIADO', 'CONTESTADO', 'PROCESANDO') %}
+    <!-- Tabla de Actualizaciones -->
+    <script>
+        let configDTActualizaciones = constructorDataTable.config();
+        configDTActualizaciones['ajax']['url'] = '/exh_exhortos_actualizaciones/datatable_json';
+        configDTActualizaciones['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}};
+        configDTActualizaciones['columns'] = [
+            { data: 'origen_id' },
+            { data: 'fecha_hora' },
+            { data: 'tipo_actualizacion' },
+            { data: 'descripcion' }
+        ];
+        configDTActualizaciones['columnDefs'] = [
+            {
+                targets: 0, // origen_id
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.origen_id + '</a>';
+                }
+            }
+        ];
+        // Filtros Exhortos Archivos
+        const filtrosActualizaciones = new FiltrosDataTable('#exh_exhortos_actualizaciones_datatable', configDTActualizaciones);
+        filtrosActualizaciones.precargar();
+    </script>
+    {% endif %}
     <!-- Renderizar el campo estado con colores e iconos -->
     <script>
         let titulo_estado = document.getElementById("titulo-estado")
