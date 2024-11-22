@@ -260,7 +260,7 @@ def demo_02_recibir(estado_origen):
 
     # Preparar el listado de archivos hipotéticos que se recibirán
     archivos = []
-    for numero in range(1, random.randint(1, 3)):
+    for numero in range(1, random.randint(1, 2) + 1):
         archivos.append(
             {
                 "nombreArchivo": f"prueba-{numero}.pdf",
@@ -276,7 +276,7 @@ def demo_02_recibir(estado_origen):
     # Preparar los datos hipotéticos que se van a recibir
     datos = {
         "exhortoOrigenId": generar_identificador(),
-        "municipioDestinoId": str(municipo_destino.clave),
+        "municipioDestinoId": int(municipo_destino.clave),
         "materiaClave": "CIV",
         "estadoOrigenId": int(estado.clave),
         "municipioOrigenId": int(municipio_origen.clave),
