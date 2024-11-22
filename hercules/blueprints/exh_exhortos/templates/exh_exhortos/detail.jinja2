@@ -286,6 +286,25 @@
                 {% endif %}
             </div>
         </div>
+    <!-- Listado de Actualizaciones -->
+        <div class="card bg-success mb-3">
+            <div class="card-header text-light">Actualizaciones</div>
+            <div class="card-body bg-light">
+                <table id="exh_exhortos_actualizaciones_datatable" class="table display nowrap" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Fecha / Hora</th>
+                            <th>Origen ID</th>
+                            <th>Tipo Actualización</th>
+                            <th>Descripción</th>
+                        </tr>
+                    </thead>
+                </table>
+                {% if exh_exhorto.estado in ('DILIGENCIADO', 'PROCESANDO') and current_user.can_insert('EXH EXHORTOS ACTUALIZACIONES')  %}
+                    <a class="btn btn-success" href="{{url_for('exh_exhortos_actualizaciones.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Actualizacion</a>
+                {% endif %}
+            </div>
+        </div>
     {% endif %}
 {% endblock %}
 
