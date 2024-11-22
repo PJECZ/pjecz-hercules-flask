@@ -2,10 +2,10 @@
 CLI Exh Exhortos
 """
 
-from datetime import datetime, timedelta
 import random
 import string
 import sys
+from datetime import datetime, timedelta
 
 import click
 from faker import Faker
@@ -37,6 +37,7 @@ ARCHIVO_PRUEBA_PDF = "prueba-1.pdf"
 ARCHIVO_PRUEBA_PDF_HASHSHA1 = "3a9a09bbb22a6da576b2868c4b861cae6b096050"
 ARCHIVO_PRUEBA_PDF_HASHSHA256 = "df3d983d24a5002e7dcbff1629e25f45bb3def406682642643efc4c1c8950a77"
 ESTADO_ORIGEN_ID = 5  # Coahuila de Zaragoza
+
 
 @click.group()
 def cli():
@@ -73,15 +74,17 @@ def demo_02_enviar(exhorto_origen_id):
     partes = []
     for exh_exhorto_parte in exh_exhorto.exh_exhortos_partes:
         if exh_exhorto_parte.estatus == "A":
-            partes.append({
-                "nombre": exh_exhorto_parte.nombre,
-                "apellidoPaterno": exh_exhorto_parte.apellido_paterno,
-                "apellidoMaterno": exh_exhorto_parte.apellido_materno,
-                "genero": exh_exhorto_parte.genero,
-                "esPersonaMoral": exh_exhorto_parte.es_persona_moral,
-                "tipoParte": exh_exhorto_parte.tipo_parte,
-                "tipoParteNombre": exh_exhorto_parte.tipo_parte_nombre,
-            })
+            partes.append(
+                {
+                    "nombre": exh_exhorto_parte.nombre,
+                    "apellidoPaterno": exh_exhorto_parte.apellido_paterno,
+                    "apellidoMaterno": exh_exhorto_parte.apellido_materno,
+                    "genero": exh_exhorto_parte.genero,
+                    "esPersonaMoral": exh_exhorto_parte.es_persona_moral,
+                    "tipoParte": exh_exhorto_parte.tipo_parte,
+                    "tipoParteNombre": exh_exhorto_parte.tipo_parte_nombre,
+                }
+            )
 
     # Validar que haya partes
     if len(partes) == 0:
@@ -120,13 +123,11 @@ def demo_02_enviar(exhorto_origen_id):
         "numeroOficioOrigen": exh_exhorto.numero_oficio_origen,
         "tipoJuicioAsuntoDelitos": exh_exhorto.tipo_juicio_asunto_delitos,
         "juezExhortante": exh_exhorto.juez_exhortante,
-        "partes": partes,
         "fojas": int(exh_exhorto.fojas),
         "diasResponder": int(exh_exhorto.dias_responder),
         "tipoDiligenciacionNombre": exh_exhorto.tipo_diligenciacion_nombre,
         "fechaOrigen": exh_exhorto.fecha_origen,
         "observaciones": exh_exhorto.observaciones,
-        "archivos": archivos,
     }
 
     # Mostrar lo que se va a enviar
@@ -149,8 +150,8 @@ def demo_02_enviar(exhorto_origen_id):
     click.echo(click.style(f"  observaciones:            {datos['observaciones']}", fg="green"))
 
     # Mostrar las partes que se van a enviar
-    click.echo(click.style("Las partes que se van a enviar son...", fg="white"))
-    for parte in datos["partes"]:
+    click.echo(click.style("Las partes son...", fg="white"))
+    for parte in partes:
         click.echo(click.style("Parte", fg="blue"))
         click.echo(click.style(f"  nombre:           {parte['nombre']}", fg="green"))
         click.echo(click.style(f"  apellidoPaterno:  {parte['apellidoPaterno']}", fg="green"))
@@ -161,8 +162,8 @@ def demo_02_enviar(exhorto_origen_id):
         click.echo(click.style(f"  tipoParteNombre:  {parte['tipoParteNombre']}", fg="green"))
 
     # Mostrar los archivos que se van a enviar
-    click.echo(click.style("Los archivos que se van a enviar son...", fg="white"))
-    for archivo in datos["archivos"]:
+    click.echo(click.style("Los archivos son...", fg="white"))
+    for archivo in archivos:
         click.echo(click.style("Archivo", fg="blue"))
         click.echo(click.style(f"  nombreArchivo: {archivo['nombreArchivo']}", fg="green"))
         click.echo(click.style(f"  hashSha1:      {archivo['hashSha1']}", fg="green"))
@@ -198,6 +199,7 @@ def demo_02_enviar(exhorto_origen_id):
     click.echo(click.style(f"  urlInfo:               {acuse['urlInfo']}", fg="green"))
 
     # Actualizar el exhorto con los datos del acuse
+    click.echo(click.style("Actualizando el exhorto...", fg="yellow"))
     exh_exhorto.folio_seguimiento = acuse["folioSeguimiento"]
     exh_exhorto.acuse_fecha_hora_recepcion = acuse["fechaHoraRecepcion"]
     exh_exhorto.acuse_municipio_area_recibe_id = acuse["municipioAreaRecibeId"]
@@ -210,7 +212,7 @@ def demo_02_enviar(exhorto_origen_id):
     exh_exhorto.save()
 
     # Mensaje final
-    click.echo(click.style(f"Terminó enviar un exhorto {exh_exhorto.exhorto_origen_id} con estado {exh_exhorto.estado}", fg="green"))
+    click.echo(click.style(f"Terminó enviar un exhorto {exh_exhorto.exhorto_origen_id}", fg="green"))
 
 
 @click.command()
@@ -248,15 +250,17 @@ def demo_02_recibir(estado_origen):
     partes = []
     for tipo_parte in range(1, 3):
         genero = faker.random_element(elements=("M", "F"))
-        partes.append({
-            "nombre": faker.first_name_female() if genero == "F" else faker.first_name_male(),
-            "apellidoPaterno": faker.last_name(),
-            "apellidoMaterno": faker.last_name(),
-            "genero": genero,
-            "esPersonaMoral": False,
-            "tipoParte": tipo_parte,
-            "tipoParteNombre": "",
-        })
+        partes.append(
+            {
+                "nombre": faker.first_name_female() if genero == "F" else faker.first_name_male(),
+                "apellidoPaterno": faker.last_name(),
+                "apellidoMaterno": faker.last_name(),
+                "genero": genero,
+                "esPersonaMoral": False,
+                "tipoParte": tipo_parte,
+                "tipoParteNombre": "",
+            }
+        )
 
     # Preparar el listado de archivos hipotéticos que se recibirán
     archivos = []
@@ -286,13 +290,11 @@ def demo_02_recibir(estado_origen):
         "numeroOficioOrigen": f"{random.randint(1, 999)}/{datetime.now().year}",
         "tipoJuicioAsuntoDelitos": "DIVORCIO",
         "juezExhortante": safe_string(faker.name(), save_enie=True),
-        "partes": partes,
         "fojas": random.randint(1, 100),
         "diasResponder": 15,
         "tipoDiligenciacionNombre": "OFICIO",
         "fechaOrigen": datetime.now(),
         "observaciones": "PRUEBA DE EXHORTO EXTERNO",
-        "archivos": archivos,
     }
 
     # Mostrar lo que se va a recibir
@@ -315,8 +317,8 @@ def demo_02_recibir(estado_origen):
     click.echo(click.style(f"  observaciones:            {datos['observaciones']}", fg="green"))
 
     # Mostrar las partes que se van a enviar
-    click.echo(click.style("Las partes que se van a enviar son...", fg="white"))
-    for parte in datos["partes"]:
+    click.echo(click.style("Las partes son...", fg="white"))
+    for parte in partes:
         click.echo(click.style("Parte", fg="blue"))
         click.echo(click.style(f"  nombre:           {parte['nombre']}", fg="green"))
         click.echo(click.style(f"  apellidoPaterno:  {parte['apellidoPaterno']}", fg="green"))
@@ -327,8 +329,8 @@ def demo_02_recibir(estado_origen):
         click.echo(click.style(f"  tipoParteNombre:  {parte['tipoParteNombre']}", fg="green"))
 
     # Mostrar los archivos que se van a enviar
-    click.echo(click.style("Los archivos que se van a enviar son...", fg="white"))
-    for archivo in datos["archivos"]:
+    click.echo(click.style("Los archivos son...", fg="white"))
+    for archivo in archivos:
         click.echo(click.style("Archivo", fg="blue"))
         click.echo(click.style(f"  nombreArchivo: {archivo['nombreArchivo']}", fg="green"))
         click.echo(click.style(f"  hashSha1:      {archivo['hashSha1']}", fg="green"))
@@ -339,25 +341,26 @@ def demo_02_recibir(estado_origen):
     input("Presiona ENTER para DEMOSTRAR que se va a recibir este exhorto...")
 
     # Insertar ExhExhorto
+    click.echo(click.style("Insertando el exhorto...", fg="yellow"))
     exh_exhorto = ExhExhorto()
-    exh_exhorto.exhorto_origen_id = datos['exhortoOrigenId']
+    exh_exhorto.exhorto_origen_id = datos["exhortoOrigenId"]
     exh_exhorto.municipio_destino_id = municipo_destino.id  # Clave foránea
-    exh_exhorto.materia_clave = datos['materiaClave']
+    exh_exhorto.materia_clave = datos["materiaClave"]
     exh_exhorto.municipio_origen_id = municipio_origen.id  # Clave foránea
-    exh_exhorto.juzgado_origen_id = datos['juzgadoOrigenId']
-    exh_exhorto.juzgado_origen_nombre = datos['juzgadoOrigenNombre']
-    exh_exhorto.numero_expediente_origen = datos['numeroExpedienteOrigen']
-    exh_exhorto.numero_oficio_origen = datos['numeroOficioOrigen']
-    exh_exhorto.tipo_juicio_asunto_delitos = datos['tipoJuicioAsuntoDelitos']
-    exh_exhorto.juez_exhortante = datos['juezExhortante']
-    exh_exhorto.fojas = datos['fojas']
-    exh_exhorto.dias_responder = datos['diasResponder']
-    exh_exhorto.tipo_diligenciacion_nombre = datos['tipoDiligenciacionNombre']
-    exh_exhorto.fecha_origen = datos['fechaOrigen']
-    exh_exhorto.observaciones = datos['observaciones']
+    exh_exhorto.juzgado_origen_id = datos["juzgadoOrigenId"]
+    exh_exhorto.juzgado_origen_nombre = datos["juzgadoOrigenNombre"]
+    exh_exhorto.numero_expediente_origen = datos["numeroExpedienteOrigen"]
+    exh_exhorto.numero_oficio_origen = datos["numeroOficioOrigen"]
+    exh_exhorto.tipo_juicio_asunto_delitos = datos["tipoJuicioAsuntoDelitos"]
+    exh_exhorto.juez_exhortante = datos["juezExhortante"]
+    exh_exhorto.fojas = datos["fojas"]
+    exh_exhorto.dias_responder = datos["diasResponder"]
+    exh_exhorto.tipo_diligenciacion_nombre = datos["tipoDiligenciacionNombre"]
+    exh_exhorto.fecha_origen = datos["fechaOrigen"]
+    exh_exhorto.observaciones = datos["observaciones"]
 
     # Consultar la materia
-    materia = Materia.query.filter_by(clave=datos['materiaClave']).first()
+    materia = Materia.query.filter_by(clave=datos["materiaClave"]).first()
 
     # Definir las siguientes propiedades del exhorto
     exh_exhorto.folio_seguimiento = generar_identificador()
@@ -371,7 +374,7 @@ def demo_02_recibir(estado_origen):
     click.echo(click.style(f"  Folio de seguimiento {exh_exhorto.folio_seguimiento}", fg="green"))
 
     # Insertar las partes
-    for parte in datos["partes"]:
+    for parte in partes:
         exh_exhorto_parte_actor = ExhExhortoParte()
         exh_exhorto_parte_actor.exh_exhorto_id = exh_exhorto.id
         exh_exhorto_parte_actor.genero = parte["genero"]
@@ -385,7 +388,7 @@ def demo_02_recibir(estado_origen):
         click.echo(click.style(f"He insertado la parte {exh_exhorto_parte_actor.nombre}", fg="white"))
 
     # Insertar los archivos
-    for archivo in datos["archivos"]:
+    for archivo in archivos:
         exh_exhorto_archivo = ExhExhortoArchivo()
         exh_exhorto_archivo.exh_exhorto_id = exh_exhorto.id
         exh_exhorto_archivo.nombre_archivo = archivo["nombreArchivo"]
@@ -422,8 +425,7 @@ def demo_05_enviar_respuesta(exhorto_origen_id):
 
     # Consultar los archivos de la respuesta
     exh_exhortos_archivos = (
-        ExhExhortoArchivo.query
-        .filter_by(exh_exhorto_id=exh_exhorto.id)
+        ExhExhortoArchivo.query.filter_by(exh_exhorto_id=exh_exhorto.id)
         .filter_by(es_respuesta=True)
         .order_by(ExhExhortoArchivo.id)
         .all()
@@ -446,12 +448,7 @@ def demo_05_enviar_respuesta(exhorto_origen_id):
         archivos.append(archivo)
 
     # Consultar los videos de la respuesta
-    exh_exhortos_videos = (
-        ExhExhortoVideo.query
-        .filter_by(exh_exhorto_id=exh_exhorto.id)
-        .order_by(ExhExhortoVideo.id)
-        .all()
-    )
+    exh_exhortos_videos = ExhExhortoVideo.query.filter_by(exh_exhorto_id=exh_exhorto.id).order_by(ExhExhortoVideo.id).all()
 
     # Preparar el listado con los videos para la respuesta
     videos = []
@@ -477,8 +474,6 @@ def demo_05_enviar_respuesta(exhorto_origen_id):
         "numeroExhorto": exh_exhorto.respuesta_numero_exhorto,
         "tipoDiligenciado": exh_exhorto.respuesta_tipo_diligenciado,
         "observaciones": exh_exhorto.respuesta_observaciones,
-        "archivos": archivos,
-        "videos": videos,
     }
 
     # Mostrar los datos de la respuesta que se va a enviar
@@ -493,17 +488,19 @@ def demo_05_enviar_respuesta(exhorto_origen_id):
     click.echo(click.style(f"  observaciones:      {respuesta['observaciones']}", fg="green"))
 
     # Mostrar los datos de los archivos de la respuesta que se va a enviar
-    click.echo(click.style("Los datos de los archivos de la respuesta...", fg="white"))
-    for archivo in respuesta["archivos"]:
+    click.echo(click.style("Los archivos son...", fg="white"))
+    for archivo in archivos:
+        click.echo(click.style("Archivo", fg="blue"))
         click.echo(click.style(f"  nombreArchivo: {archivo['nombreArchivo']}", fg="green"))
         click.echo(click.style(f"  hashSha1:      {archivo['hashSha1']}", fg="green"))
         click.echo(click.style(f"  hashSha256:    {archivo['hashSha256']}", fg="green"))
         click.echo(click.style(f"  tipoDocumento: {archivo['tipoDocumento']}", fg="green"))
 
     # Mostrar los datos de los videos de la respuesta que se va a enviar
-    if len(respuesta["videos"]) > 0:
-        click.echo(click.style("Los datos de los videos de la respuesta...", fg="white"))
-        for video in respuesta["videos"]:
+    if len(videos) > 0:
+        click.echo(click.style("Los los videos son...", fg="white"))
+        for video in videos:
+            click.echo(click.style("Video", fg="blue"))
             click.echo(click.style(f"  titulo:      {video['titulo']}", fg="green"))
             click.echo(click.style(f"  descripcion: {video['descripcion']}", fg="green"))
             click.echo(click.style(f"  fecha:       {video['fecha']}", fg="green"))
@@ -515,20 +512,20 @@ def demo_05_enviar_respuesta(exhorto_origen_id):
     input("Presiona ENTER para DEMOSTRAR que se va a enviar la respuesta...")
 
     # Actualizar el exhorto
+    click.echo(click.style("Actualizando el exhorto...", fg="yellow"))
     exh_exhorto.respuesta_origen_id = generar_identificador()
     exh_exhorto.respuesta_fecha_hora_recepcion = datetime.now()
     exh_exhorto.estado = "CONTESTADO"
     exh_exhorto.save()
 
     # Mostrar
-    click.echo(click.style("Se ha enviado la respuesta.", fg="white"))
-    click.echo(click.style("Actulizamos en exh_exhortos...", fg="white"))
+    click.echo(click.style("Actualicé el exhorto con...", fg="white"))
     click.echo(click.style(f"  respuesta_origen_id: {exh_exhorto.respuesta_origen_id}", fg="green"))
     click.echo(click.style(f"  respuesta_fecha_hora_recepcion: {exh_exhorto.respuesta_fecha_hora_recepcion}", fg="green"))
     click.echo(click.style(f"  estado: {exh_exhorto.estado}", fg="green"))
 
     # Mensaje final
-    click.echo(click.style(f"Terminó responder el exhorto {exh_exhorto.exhorto_origen_id} con estado {exh_exhorto.estado}", fg="green"))
+    click.echo(click.style(f"Terminó responder el exhorto {exh_exhorto.exhorto_origen_id}", fg="green"))
 
 
 @click.command()
@@ -579,14 +576,15 @@ def demo_05_recibir_respuesta(exhorto_origen_id):
             {
                 "titulo": f"Video {numero}",
                 "descripcion": f"DESCRIPCION DEL VIDEO {numero}",
-                "fecha": datetime.now().isoformat(),
+                "fecha": datetime.now(),
                 "urlAcceso": f"https://www.youtube.com/watch?v={random_video_id}",
             }
         )
 
     # Elegir un municipio del estado de origen al azar para turnar
     municipios = (
-        Municipio.query.select_from(Municipio).join(Estado)
+        Municipio.query.select_from(Municipio)
+        .join(Estado)
         .filter(Municipio.estado_id == exh_exhorto.municipio_origen.estado_id)
         .all()
     )
@@ -623,7 +621,7 @@ def demo_05_recibir_respuesta(exhorto_origen_id):
     click.echo(click.style(f"  observaciones:      {respuesta['observaciones']}", fg="green"))
 
     # Mostrar los datos de los archivos de la respuesta que se va a enviar
-    click.echo(click.style("Los datos de los archivos de la respuesta...", fg="white"))
+    click.echo(click.style("Los archivos son...", fg="white"))
     for archivo in respuesta["archivos"]:
         click.echo(click.style(f"  nombreArchivo: {archivo['nombreArchivo']}", fg="green"))
         click.echo(click.style(f"  hashSha1:      {archivo['hashSha1']}", fg="green"))
@@ -632,7 +630,7 @@ def demo_05_recibir_respuesta(exhorto_origen_id):
 
     # Mostrar los datos de los videos de la respuesta que se va a enviar
     if len(respuesta["videos"]) > 0:
-        click.echo(click.style("Los datos de los videos de la respuesta...", fg="white"))
+        click.echo(click.style("Los los videos son...", fg="white"))
         for video in respuesta["videos"]:
             click.echo(click.style(f"  titulo:      {video['titulo']}", fg="green"))
             click.echo(click.style(f"  descripcion: {video['descripcion']}", fg="green"))
@@ -645,21 +643,21 @@ def demo_05_recibir_respuesta(exhorto_origen_id):
     input("Presiona ENTER para DEMOSTRAR que se va a recibir la respuesta...")
 
     # Actualizar el exhorto
-    click.echo(click.style("Actualizando el exhorto...", fg="green"))
-    exh_exhorto.respuesta_origen_id = respuesta['respuestaOrigenId']
-    exh_exhorto.respuesta_municipio_turnado_id = int(respuesta['municipioTurnadoId'])
-    exh_exhorto.respuesta_area_turnado_id = respuesta['areaTurnadoId']
-    exh_exhorto.respuesta_area_turnado_nombre = respuesta['areaTurnadoNombre']
-    exh_exhorto.respuesta_numero_exhorto = respuesta['numeroExhorto']
-    exh_exhorto.respuesta_tipo_diligenciado = respuesta['tipoDiligenciado']
-    exh_exhorto.respuesta_observaciones = respuesta['observaciones']
+    click.echo(click.style("Actualizando el exhorto...", fg="yellow"))
+    exh_exhorto.respuesta_origen_id = respuesta["respuestaOrigenId"]
+    exh_exhorto.respuesta_municipio_turnado_id = int(respuesta["municipioTurnadoId"])
+    exh_exhorto.respuesta_area_turnado_id = respuesta["areaTurnadoId"]
+    exh_exhorto.respuesta_area_turnado_nombre = respuesta["areaTurnadoNombre"]
+    exh_exhorto.respuesta_numero_exhorto = respuesta["numeroExhorto"]
+    exh_exhorto.respuesta_tipo_diligenciado = respuesta["tipoDiligenciado"]
+    exh_exhorto.respuesta_observaciones = respuesta["observaciones"]
     exh_exhorto.respuesta_fecha_hora_recepcion = datetime.now()
     exh_exhorto.respuesta_fecha_hora_recepcion = datetime.now()
     exh_exhorto.estado = "RESPONDIDO"
     exh_exhorto.save()
 
     # Insertar los archivos de la respuesta
-    click.echo(click.style("Insertando los archivos de la respuesta...", fg="green"))
+    click.echo(click.style("Insertando los archivos...", fg="yellow"))
     for archivo in respuesta["archivos"]:
         exh_exhorto_archivo = ExhExhortoArchivo()
         exh_exhorto_archivo.exh_exhorto_id = exh_exhorto.id
@@ -675,7 +673,7 @@ def demo_05_recibir_respuesta(exhorto_origen_id):
         click.echo(click.style(f"He insertado el archivo {exh_exhorto_archivo.nombre_archivo}", fg="green"))
 
     # Insertar los videos con datos aleatorios que vendrían en la respuesta
-    click.echo(click.style("Insertando los videos de la respuesta...", fg="green"))
+    click.echo(click.style("Insertando los videos...", fg="yellow"))
     for video in respuesta["videos"]:
         exh_exhorto_video = ExhExhortoVideo()
         exh_exhorto_video.exh_exhorto_id = exh_exhorto.id
@@ -687,7 +685,7 @@ def demo_05_recibir_respuesta(exhorto_origen_id):
         click.echo(click.style(f"He insertado el video {exh_exhorto_video.titulo}", fg="green"))
 
     # Mensaje final
-    click.echo(click.style(f"Terminó recibir respuesta del exhorto {exh_exhorto.exhorto_origen_id} con estado {exh_exhorto.estado}", fg="green"))
+    click.echo(click.style(f"Terminó recibir respuesta del exhorto {exh_exhorto.exhorto_origen_id}", fg="green"))
 
 
 @click.command()
@@ -710,8 +708,7 @@ def demo_06_enviar_actualizacion(exhorto_origen_id, actualizacion_origen_id):
 
     # Consultar la actualización con la actualizacion_origen_id
     exh_exhorto_actualizacion = (
-        ExhExhortoActualizacion.query
-        .filter_by(exh_exhorto_id=exh_exhorto.id)
+        ExhExhortoActualizacion.query.filter_by(exh_exhorto_id=exh_exhorto.id)
         .filter_by(actualizacion_origen_id=actualizacion_origen_id)
         .first()
     )
@@ -736,18 +733,19 @@ def demo_06_enviar_actualizacion(exhorto_origen_id, actualizacion_origen_id):
     respuesta = {
         "exhortoId": exh_exhorto.exhorto_origen_id,
         "actualizacionOrigenId": exh_exhorto_actualizacion.actualizacion_origen_id,
-        "fechaHora": datetime.now().isoformat(),
+        "fechaHora": datetime.now(),
     }
-
-    # Actualizar la actualización con la fecha y hora de recepción
-    exh_exhorto_actualizacion.fecha_hora_recepcion = respuesta['fechaHora']
-    exh_exhorto_actualizacion.save()
 
     # Simular lo que se va a recibir
     click.echo(click.style("Simular lo que se va a recibir...", fg="white"))
     click.echo(click.style(f"exhortoId:             {respuesta['exhortoId']}", fg="green"))
     click.echo(click.style(f"actualizacionOrigenId: {respuesta['actualizacionOrigenId']}", fg="green"))
     click.echo(click.style(f"fechaHora:             {respuesta['fechaHora']} (TIEMPO ACTUAL)", fg="green"))
+
+    # Actualizar la actualización con la fecha y hora de recepción
+    click.echo(click.style("Actualizando la actualización...", fg="yellow"))
+    exh_exhorto_actualizacion.fecha_hora_recepcion = respuesta["fechaHora"]
+    exh_exhorto_actualizacion.save()
 
     # Mensaje final
     click.echo(click.style(f"Terminó enviar la actualización del exhorto {exhorto_origen_id}", fg="green"))
@@ -783,12 +781,15 @@ def demo_06_recibir_actualizacion(exhorto_origen_id):
     if tipo_actualizacion == "NumeroExhorto":
         descripcion = f"{random.randint(1, 999)}/{datetime.now().year}"
 
+    # Esperar a que se presione ENTER para continuar
+    input("Presiona ENTER para DEMOSTRAR que se va a recibir la actualización...")
+
     # Simular lo que se va a recibir
     recibido = {
         "exhortoId": exh_exhorto.exhorto_origen_id,
         "actualizacionOrigenId": generar_identificador(),
         "tipoActualizacion": tipo_actualizacion,
-        "fechaHora": datetime.now().isoformat(),
+        "fechaHora": datetime.now(),
         "descripcion": descripcion,
     }
 
@@ -800,23 +801,21 @@ def demo_06_recibir_actualizacion(exhorto_origen_id):
     click.echo(click.style(f"fechaHora:             {recibido['fechaHora']} (TIEMPO ACTUAL)", fg="green"))
     click.echo(click.style(f"descripcion:           {recibido['descripcion']} (HIPOTETICO)", fg="green"))
 
-    # Esperar a que se presione ENTER para continuar
-    input("Presiona ENTER para DEMOSTRAR que se va a recibir la actualización...")
-
     # Insertar la actualización
+    click.echo(click.style("Insertando la actualización...", fg="yellow"))
     exh_exhorto_actualizacion = ExhExhortoActualizacion()
     exh_exhorto_actualizacion.exh_exhorto_id = exh_exhorto.id
-    exh_exhorto_actualizacion.actualizacion_origen_id = recibido['actualizacionOrigenId']
-    exh_exhorto_actualizacion.tipo_actualizacion = recibido['tipoActualizacion']
-    exh_exhorto_actualizacion.fecha_hora = recibido['fechaHora']
-    exh_exhorto_actualizacion.descripcion = recibido['descripcion']
+    exh_exhorto_actualizacion.actualizacion_origen_id = recibido["actualizacionOrigenId"]
+    exh_exhorto_actualizacion.tipo_actualizacion = recibido["tipoActualizacion"]
+    exh_exhorto_actualizacion.fecha_hora = recibido["fechaHora"]
+    exh_exhorto_actualizacion.descripcion = recibido["descripcion"]
     exh_exhorto_actualizacion.save()
 
     # Simular lo que se va a responder
     respuesta = {
         "exhortoId": exh_exhorto.exhorto_origen_id,
         "actualizacionOrigenId": exh_exhorto_actualizacion.actualizacion_origen_id,
-        "fechaHora": datetime.now().isoformat(),
+        "fechaHora": datetime.now(),
     }
 
     # Simular lo que se va a responder
@@ -854,7 +853,6 @@ def demo_07_enviar_promocion(exhorto_origen_id, folio_origen_promocion):
         sys.exit(1)
 
     # Se va a enviar...
-    click.echo(click.style("Se va a enviar...", fg="white"))
     # folioSeguimiento
     # folioOrigenPromocion
     # promoventes
@@ -864,7 +862,6 @@ def demo_07_enviar_promocion(exhorto_origen_id, folio_origen_promocion):
     # archivos
 
     # Se va a recibir...
-    click.echo(click.style("Se va a recibir...", fg="white"))
     # folioOrigenPromocion
     # fechaHora
 
