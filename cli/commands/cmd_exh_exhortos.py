@@ -23,6 +23,7 @@ from hercules.blueprints.exh_exhortos_promociones.models import ExhExhortoPromoc
 from hercules.blueprints.exh_exhortos_promociones_archivos.models import ExhExhortoPromocionArchivo
 from hercules.blueprints.exh_exhortos_promociones_promoventes.models import ExhExhortoPromocionPromovente
 from hercules.blueprints.exh_exhortos_videos.models import ExhExhortoVideo
+from hercules.blueprints.materias.models import Materia
 from hercules.blueprints.municipios.models import Municipio
 from hercules.extensions import database
 from lib.pwgen import generar_identificador
@@ -68,19 +69,11 @@ def demo_02_enviar(exhorto_origen_id):
         click.echo(click.style(f"El exhorto {exhorto_origen_id} no está en estado PENDIENTE o POR ENVIAR", fg="red"))
         sys.exit(1)
 
-    # Consultar el municipio de destino en el exhorto
-    municipio_destino = Municipio.query.get(exh_exhorto.municipio_destino_id)
-    estado_destino = municipio_destino.estado
-
-    # Elegir un NUEVO municipio al azar del estado de destino
-    municipios_destinos = Municipio.query.filter_by(estado_id=estado_destino.id).all()
-    nuevo_municipio_destino = random.choice(municipios_destinos)
-
     # Preparar el listado de partes
     partes = []
     for exh_exhorto_parte in exh_exhorto.exh_exhortos_partes:
         if exh_exhorto_parte.estatus == "A":
-            parte = {
+            partes.append({
                 "nombre": exh_exhorto_parte.nombre,
                 "apellidoPaterno": exh_exhorto_parte.apellido_paterno,
                 "apellidoMaterno": exh_exhorto_parte.apellido_materno,
@@ -88,8 +81,7 @@ def demo_02_enviar(exhorto_origen_id):
                 "esPersonaMoral": exh_exhorto_parte.es_persona_moral,
                 "tipoParte": exh_exhorto_parte.tipo_parte,
                 "tipoParteNombre": exh_exhorto_parte.tipo_parte_nombre,
-            }
-            partes.append(parte)
+            })
 
     # Validar que haya partes
     if len(partes) == 0:
@@ -112,13 +104,16 @@ def demo_02_enviar(exhorto_origen_id):
         click.echo(click.style(f"No hay archivos en el exhorto {exhorto_origen_id}", fg="red"))
         sys.exit(1)
 
+    # Consultar el municipio de destino porque municipio_destino_id es el ID de nuestra tabla municipios
+    municipio_destino = Municipio.query.get(exh_exhorto.municipio_destino_id)
+
     # Preparar lo que se va a enviar
     datos = {
         "exhortoOrigenId": exh_exhorto.exhorto_origen_id,
-        "municipioDestinoId": exh_exhorto.municipio_destino_id,
+        "municipioDestinoId": int(municipio_destino.clave),
         "materiaClave": exh_exhorto.materia_clave,
-        "estadoOrigenId": ESTADO_ORIGEN_ID,
-        "municipioOrigenId": exh_exhorto.municipio_destino_id,
+        "estadoOrigenId": int(ESTADO_ORIGEN_ID),
+        "municipioOrigenId": int(exh_exhorto.municipio_origen.clave),
         "juzgadoOrigenId": exh_exhorto.juzgado_origen_id,
         "juzgadoOrigenNombre": exh_exhorto.juzgado_origen_nombre,
         "numeroExpedienteOrigen": exh_exhorto.numero_expediente_origen,
@@ -126,8 +121,8 @@ def demo_02_enviar(exhorto_origen_id):
         "tipoJuicioAsuntoDelitos": exh_exhorto.tipo_juicio_asunto_delitos,
         "juezExhortante": exh_exhorto.juez_exhortante,
         "partes": partes,
-        "fojas": exh_exhorto.fojas,
-        "diasResponder": exh_exhorto.dias_responder,
+        "fojas": int(exh_exhorto.fojas),
+        "diasResponder": int(exh_exhorto.dias_responder),
         "tipoDiligenciacionNombre": exh_exhorto.tipo_diligenciacion_nombre,
         "fechaOrigen": exh_exhorto.fecha_origen,
         "observaciones": exh_exhorto.observaciones,
@@ -135,44 +130,84 @@ def demo_02_enviar(exhorto_origen_id):
     }
 
     # Mostrar lo que se va a enviar
-    click.echo(click.style("Mostrar lo que se va a enviar...", fg="white"))
-    click.echo(click.style(f"  exhortoOrigenId: {datos['exhortoOrigenId']}", fg="green"))
-    click.echo(click.style(f"  municipioDestinoId: {datos['municipioDestinoId']}", fg="green"))
-    click.echo(click.style(f"  materiaClave: {datos['materiaClave']}", fg="green"))
-    click.echo(click.style(f"  estadoOrigenId: {datos['estadoOrigenId']}", fg="green"))
-    click.echo(click.style(f"  municipioOrigenId: {datos['municipioOrigenId']}", fg="green"))
-    click.echo(click.style(f"  juzgadoOrigenId: {datos['juzgadoOrigenId']}", fg="green"))
-    click.echo(click.style(f"  juzgadoOrigenNombre: {datos['juzgadoOrigenNombre']}", fg="green"))
-    click.echo(click.style(f"  numeroExpedienteOrigen: {datos['numeroExpedienteOrigen']}", fg="green"))
-    click.echo(click.style(f"  : {datos['']}", fg="green"))
-    click.echo(click.style(f"  : {datos['']}", fg="green"))
-    click.echo(click.style(f"  : {datos['']}", fg="green"))
-    click.echo(click.style(f"  : {datos['']}", fg="green"))
-    click.echo(click.style(f"  : {datos['']}", fg="green"))
-    click.echo(click.style(f"  : {datos['']}", fg="green"))
-    click.echo(click.style(f"  : {datos['']}", fg="green"))
-    click.echo(click.style(f"  : {datos['']}", fg="green"))
+    click.echo(click.style("Los datos del exhorto a enviar son...", fg="white"))
+    click.echo(click.style(f"  exhortoOrigenId:          {datos['exhortoOrigenId']}", fg="green"))
+    click.echo(click.style(f"  municipioDestinoId:       {datos['municipioDestinoId']}", fg="green"))
+    click.echo(click.style(f"  materiaClave:             {datos['materiaClave']}", fg="green"))
+    click.echo(click.style(f"  estadoOrigenId:           {datos['estadoOrigenId']}", fg="green"))
+    click.echo(click.style(f"  municipioOrigenId:        {datos['municipioOrigenId']}", fg="green"))
+    click.echo(click.style(f"  juzgadoOrigenId:          {datos['juzgadoOrigenId']}", fg="green"))
+    click.echo(click.style(f"  juzgadoOrigenNombre:      {datos['juzgadoOrigenNombre']}", fg="green"))
+    click.echo(click.style(f"  numeroExpedienteOrigen:   {datos['numeroExpedienteOrigen']}", fg="green"))
+    click.echo(click.style(f"  numeroOficioOrigen:       {datos['numeroOficioOrigen']}", fg="green"))
+    click.echo(click.style(f"  tipoJuicioAsuntoDelitos:  {datos['tipoJuicioAsuntoDelitos']}", fg="green"))
+    click.echo(click.style(f"  juezExhortante:           {datos['juezExhortante']}", fg="green"))
+    click.echo(click.style(f"  fojas:                    {datos['fojas']}", fg="green"))
+    click.echo(click.style(f"  diasResponder:            {datos['diasResponder']}", fg="green"))
+    click.echo(click.style(f"  tipoDiligenciacionNombre: {datos['tipoDiligenciacionNombre']}", fg="green"))
+    click.echo(click.style(f"  fechaOrigen:              {datos['fechaOrigen']}", fg="green"))
+    click.echo(click.style(f"  observaciones:            {datos['observaciones']}", fg="green"))
+
+    # Mostrar las partes que se van a enviar
+    click.echo(click.style("Las partes que se van a enviar son...", fg="white"))
+    for parte in datos["partes"]:
+        click.echo(click.style("Parte", fg="blue"))
+        click.echo(click.style(f"  nombre:           {parte['nombre']}", fg="green"))
+        click.echo(click.style(f"  apellidoPaterno:  {parte['apellidoPaterno']}", fg="green"))
+        click.echo(click.style(f"  apellidoMaterno:  {parte['apellidoMaterno']}", fg="green"))
+        click.echo(click.style(f"  genero:           {parte['genero']}", fg="green"))
+        click.echo(click.style(f"  esPersonaMoral:   {parte['esPersonaMoral']}", fg="green"))
+        click.echo(click.style(f"  tipoParte:        {parte['tipoParte']}", fg="green"))
+        click.echo(click.style(f"  tipoParteNombre:  {parte['tipoParteNombre']}", fg="green"))
+
+    # Mostrar los archivos que se van a enviar
+    click.echo(click.style("Los archivos que se van a enviar son...", fg="white"))
+    for archivo in datos["archivos"]:
+        click.echo(click.style("Archivo", fg="blue"))
+        click.echo(click.style(f"  nombreArchivo: {archivo['nombreArchivo']}", fg="green"))
+        click.echo(click.style(f"  hashSha1:      {archivo['hashSha1']}", fg="green"))
+        click.echo(click.style(f"  hashSha256:    {archivo['hashSha256']}", fg="green"))
+        click.echo(click.style(f"  tipoDocumento: {archivo['tipoDocumento']}", fg="green"))
 
     # Esperar a que se presione ENTER para continuar
-    input("Presiona ENTER para continuar...")
+    input("Presiona ENTER para DEMOSTRAR que se va a enviar este exhorto...")
 
-    # Actualizar con datos aleatorios que vendrían de la recepción del exhorto
-    # exhortoOrigenId
-    exh_exhorto.folio_seguimiento = generar_identificador()  # folioSeguimiento
-    exh_exhorto.acuse_fecha_hora_recepcion = datetime.now()  # fechaHoraRecepcion
-    exh_exhorto.acuse_municipio_area_recibe_id = int(nuevo_municipio_destino.clave)  # municipioAreaRecibeId
-    exh_exhorto.acuse_area_recibe_id = ""  # areaRecibeId
-    exh_exhorto.acuse_area_recibe_nombre = ""  # areaRecibeNombre
-    exh_exhorto.acuse_url_info = f"https://fake.info/acuse/{exh_exhorto.exhorto_origen_id}"  # urlInfo
+    # Elegir OTRO municipio al azar del estado de destino
+    municipios_destinos = Municipio.query.filter_by(estado_id=municipio_destino.estado_id).all()
+    nuevo_municipio_destino = random.choice(municipios_destinos)
 
-    # Actualizar el estado del exhorto con el estado "RECIBIDO CON EXITO"
+    # Preparar los datos hipotéticos que se van a recibir como acuse
+    acuse = {
+        "exhortoOrigenId": exh_exhorto.exhorto_origen_id,
+        "folioSeguimiento": generar_identificador(),
+        "fechaHoraRecepcion": datetime.now(),
+        "municipioAreaRecibeId": int(nuevo_municipio_destino.clave),
+        "areaRecibeId": "ID-AREA-DEMO",
+        "areaRecibeNombre": "NOMBRE DEL AREA QUE RECIBE",
+        "urlInfo": f"https://fake.info/acuse/{exh_exhorto.exhorto_origen_id}",
+    }
+
+    # Mostrar el acuse recibido
+    click.echo(click.style("He simulado que llegan estos datos como acuse...", fg="white"))
+    click.echo(click.style(f"  exhortoOrigenId:       {acuse['exhortoOrigenId']}", fg="green"))
+    click.echo(click.style(f"  folioSeguimiento:      {acuse['folioSeguimiento']}", fg="green"))
+    click.echo(click.style(f"  fechaHoraRecepcion:    {acuse['fechaHoraRecepcion']}", fg="green"))
+    click.echo(click.style(f"  municipioAreaRecibeId: {acuse['municipioAreaRecibeId']}", fg="green"))
+    click.echo(click.style(f"  areaRecibeId:          {acuse['areaRecibeId']}", fg="green"))
+    click.echo(click.style(f"  areaRecibeNombre:      {acuse['areaRecibeNombre']}", fg="green"))
+    click.echo(click.style(f"  urlInfo:               {acuse['urlInfo']}", fg="green"))
+
+    # Actualizar el exhorto con los datos del acuse
+    exh_exhorto.folio_seguimiento = acuse["folioSeguimiento"]
+    exh_exhorto.acuse_fecha_hora_recepcion = acuse["fechaHoraRecepcion"]
+    exh_exhorto.acuse_municipio_area_recibe_id = acuse["municipioAreaRecibeId"]
+    exh_exhorto.acuse_area_recibe_id = acuse["areaRecibeId"]
+    exh_exhorto.acuse_area_recibe_nombre = acuse["areaRecibeNombre"]
+    exh_exhorto.acuse_url_info = acuse["urlInfo"]
+
+    # Actualizar el exhorto con el estado "RECIBIDO CON EXITO"
     exh_exhorto.estado = "RECIBIDO CON EXITO"
     exh_exhorto.save()
-
-    # Mensajes sobre los cambios realizados
-    click.echo(click.style(f"He actualizado el folio seguimiento a {exh_exhorto.folio_seguimiento}", fg="green"))
-    click.echo(click.style(f"He actualizado el municipio que recibe a {nuevo_municipio_destino.nombre}", fg="green"))
-    click.echo(click.style(f"He actualizado la url_info a {exh_exhorto.acuse_url_info}", fg="green"))
 
     # Mensaje final
     click.echo(click.style(f"Terminó enviar un exhorto {exh_exhorto.exhorto_origen_id} con estado {exh_exhorto.estado}", fg="green"))
@@ -193,12 +228,12 @@ def demo_02_recibir(estado_origen):
             sys.exit(1)
 
     # Consultar la autoridad con clave ND
-    autoridad = Autoridad.query.filter_by(clave="ND").first()
+    autoridad_nd = Autoridad.query.filter_by(clave="ND").first()
 
     # Consultar el area con clave ND
-    exh_area = ExhArea.query.filter_by(clave="ND").first()
+    exh_area_nd = ExhArea.query.filter_by(clave="ND").first()
 
-    # Elegir un municipio de origen al azar
+    # Elegir un municipio del estado de origen al azar
     municipios_origenes = Municipio.query.filter_by(estado_id=estado.id).all()
     municipio_origen = random.choice(municipios_origenes)
 
@@ -209,86 +244,154 @@ def demo_02_recibir(estado_origen):
     # Inicializar el generador de nombres aleatorios
     faker = Faker(locale="es_MX")
 
+    # Preparar el listado de partes hipotéticas
+    partes = []
+    for tipo_parte in range(1, 3):
+        genero = faker.random_element(elements=("M", "F"))
+        partes.append({
+            "nombre": faker.first_name_female() if genero == "F" else faker.first_name_male(),
+            "apellidoPaterno": faker.last_name(),
+            "apellidoMaterno": faker.last_name(),
+            "genero": genero,
+            "esPersonaMoral": False,
+            "tipoParte": tipo_parte,
+            "tipoParteNombre": "",
+        })
+
+    # Preparar el listado de archivos hipotéticos que se recibirán
+    archivos = []
+    for numero in range(1, random.randint(1, 3)):
+        archivos.append(
+            {
+                "nombreArchivo": f"prueba-{numero}.pdf",
+                "hashSha1": ARCHIVO_PRUEBA_PDF_HASHSHA1,
+                "hashSha256": ARCHIVO_PRUEBA_PDF_HASHSHA256,
+                "tipoDocumento": random.randint(1, 3),
+            }
+        )
+
+    # Definir un numero al azar para el juzgado de origen
+    juzgado_origen_numero = random.randint(1, 6)
+
+    # Preparar los datos hipotéticos que se van a recibir
+    datos = {
+        "exhortoOrigenId": generar_identificador(),
+        "municipioDestinoId": str(municipo_destino.clave),
+        "materiaClave": "CIV",
+        "estadoOrigenId": int(estado.clave),
+        "municipioOrigenId": int(municipio_origen.clave),
+        "juzgadoOrigenId": f"J{juzgado_origen_numero}-CIV",
+        "juzgadoOrigenNombre": f"JUZGADO {juzgado_origen_numero} CIVIL",
+        "numeroExpedienteOrigen": f"{random.randint(1, 999)}/{datetime.now().year}",
+        "numeroOficioOrigen": f"{random.randint(1, 999)}/{datetime.now().year}",
+        "tipoJuicioAsuntoDelitos": "DIVORCIO",
+        "juezExhortante": safe_string(faker.name(), save_enie=True),
+        "partes": partes,
+        "fojas": random.randint(1, 100),
+        "diasResponder": 15,
+        "tipoDiligenciacionNombre": "OFICIO",
+        "fechaOrigen": datetime.now(),
+        "observaciones": "PRUEBA DE EXHORTO EXTERNO",
+        "archivos": archivos,
+    }
+
+    # Mostrar lo que se va a recibir
+    click.echo(click.style("Los datos del exhorto que se van a recibir son...", fg="white"))
+    click.echo(click.style(f"  exhortoOrigenId:          {datos['exhortoOrigenId']}", fg="green"))
+    click.echo(click.style(f"  municipioDestinoId:       {datos['municipioDestinoId']}", fg="green"))
+    click.echo(click.style(f"  materiaClave:             {datos['materiaClave']}", fg="green"))
+    click.echo(click.style(f"  estadoOrigenId:           {datos['estadoOrigenId']}", fg="green"))
+    click.echo(click.style(f"  municipioOrigenId:        {datos['municipioOrigenId']}", fg="green"))
+    click.echo(click.style(f"  juzgadoOrigenId:          {datos['juzgadoOrigenId']}", fg="green"))
+    click.echo(click.style(f"  juzgadoOrigenNombre:      {datos['juzgadoOrigenNombre']}", fg="green"))
+    click.echo(click.style(f"  numeroExpedienteOrigen:   {datos['numeroExpedienteOrigen']}", fg="green"))
+    click.echo(click.style(f"  numeroOficioOrigen:       {datos['numeroOficioOrigen']}", fg="green"))
+    click.echo(click.style(f"  tipoJuicioAsuntoDelitos:  {datos['tipoJuicioAsuntoDelitos']}", fg="green"))
+    click.echo(click.style(f"  juezExhortante:           {datos['juezExhortante']}", fg="green"))
+    click.echo(click.style(f"  fojas:                    {datos['fojas']}", fg="green"))
+    click.echo(click.style(f"  diasResponder:            {datos['diasResponder']}", fg="green"))
+    click.echo(click.style(f"  tipoDiligenciacionNombre: {datos['tipoDiligenciacionNombre']}", fg="green"))
+    click.echo(click.style(f"  fechaOrigen:              {datos['fechaOrigen']}", fg="green"))
+    click.echo(click.style(f"  observaciones:            {datos['observaciones']}", fg="green"))
+
+    # Mostrar las partes que se van a enviar
+    click.echo(click.style("Las partes que se van a enviar son...", fg="white"))
+    for parte in datos["partes"]:
+        click.echo(click.style("Parte", fg="blue"))
+        click.echo(click.style(f"  nombre:           {parte['nombre']}", fg="green"))
+        click.echo(click.style(f"  apellidoPaterno:  {parte['apellidoPaterno']}", fg="green"))
+        click.echo(click.style(f"  apellidoMaterno:  {parte['apellidoMaterno']}", fg="green"))
+        click.echo(click.style(f"  genero:           {parte['genero']}", fg="green"))
+        click.echo(click.style(f"  esPersonaMoral:   {parte['esPersonaMoral']}", fg="green"))
+        click.echo(click.style(f"  tipoParte:        {parte['tipoParte']}", fg="green"))
+        click.echo(click.style(f"  tipoParteNombre:  {parte['tipoParteNombre']}", fg="green"))
+
+    # Mostrar los archivos que se van a enviar
+    click.echo(click.style("Los archivos que se van a enviar son...", fg="white"))
+    for archivo in datos["archivos"]:
+        click.echo(click.style("Archivo", fg="blue"))
+        click.echo(click.style(f"  nombreArchivo: {archivo['nombreArchivo']}", fg="green"))
+        click.echo(click.style(f"  hashSha1:      {archivo['hashSha1']}", fg="green"))
+        click.echo(click.style(f"  hashSha256:    {archivo['hashSha256']}", fg="green"))
+        click.echo(click.style(f"  tipoDocumento: {archivo['tipoDocumento']}", fg="green"))
+
+    # Esperar a que se presione ENTER para continuar
+    input("Presiona ENTER para DEMOSTRAR que se va a recibir este exhorto...")
+
     # Insertar ExhExhorto
     exh_exhorto = ExhExhorto()
-    exh_exhorto.remitente = "EXTERNO"
-    exh_exhorto.autoridad_id = autoridad.id  # Es una clave foránea
-    exh_exhorto.exh_area_id = exh_area.id  # Es una clave foránea
-    exh_exhorto.materia_clave = "CIV"
-    exh_exhorto.materia_nombre = "CIVIL"
-    exh_exhorto.municipio_origen_id = municipio_origen.id  # Es una clave foránea
+    exh_exhorto.exhorto_origen_id = datos['exhortoOrigenId']
+    exh_exhorto.municipio_destino_id = municipo_destino.id  # Clave foránea
+    exh_exhorto.materia_clave = datos['materiaClave']
+    exh_exhorto.municipio_origen_id = municipio_origen.id  # Clave foránea
+    exh_exhorto.juzgado_origen_id = datos['juzgadoOrigenId']
+    exh_exhorto.juzgado_origen_nombre = datos['juzgadoOrigenNombre']
+    exh_exhorto.numero_expediente_origen = datos['numeroExpedienteOrigen']
+    exh_exhorto.numero_oficio_origen = datos['numeroOficioOrigen']
+    exh_exhorto.tipo_juicio_asunto_delitos = datos['tipoJuicioAsuntoDelitos']
+    exh_exhorto.juez_exhortante = datos['juezExhortante']
+    exh_exhorto.fojas = datos['fojas']
+    exh_exhorto.dias_responder = datos['diasResponder']
+    exh_exhorto.tipo_diligenciacion_nombre = datos['tipoDiligenciacionNombre']
+    exh_exhorto.fecha_origen = datos['fechaOrigen']
+    exh_exhorto.observaciones = datos['observaciones']
+
+    # Consultar la materia
+    materia = Materia.query.filter_by(clave=datos['materiaClave']).first()
+
+    # Definir las siguientes propiedades del exhorto
     exh_exhorto.folio_seguimiento = generar_identificador()
-    exh_exhorto.exhorto_origen_id = generar_identificador()
-    exh_exhorto.municipio_destino_id = municipo_destino.id  # Es una clave foránea
-    juzgado_origen_numero = random.randint(1, 9)
-    exh_exhorto.juzgado_origen_id = f"J{juzgado_origen_numero}-CIV"
-    exh_exhorto.juzgado_origen_nombre = f"JUZGADO {juzgado_origen_numero} CIVIL"
-    exh_exhorto.numero_expediente_origen = f"{random.randint(1, 999)}/{datetime.now().year}"
-    exh_exhorto.tipo_juicio_asunto_delitos = "DIVORCIO"
-    exh_exhorto.juez_exhortante = safe_string(faker.name(), save_enie=True)
-    exh_exhorto.fojas = random.randint(1, 100)
-    exh_exhorto.dias_responder = 15
-    exh_exhorto.tipo_diligenciacion_nombre = "OFICIO"
-    exh_exhorto.fecha_origen = datetime.now()
-    exh_exhorto.observaciones = "PRUEBA DESDE CLI"
+    exh_exhorto.remitente = "EXTERNO"
+    exh_exhorto.materia_nombre = materia.nombre
+    exh_exhorto.autoridad_id = autoridad_nd.id  # Clave foránea NO DEFINIDO
+    exh_exhorto.exh_area_id = exh_area_nd.id  # Clave foránea NO DEFINIDO
     exh_exhorto.estado = "RECIBIDO"
     exh_exhorto.save()
-    click.echo(click.style(f"He insertado el exhorto {exh_exhorto.exhorto_origen_id} del estado {estado.nombre}", fg="green"))
+    click.echo(click.style("Exhorto insertado con estado RECIBIDO", fg="white"))
+    click.echo(click.style(f"  Folio de seguimiento {exh_exhorto.folio_seguimiento}", fg="green"))
 
-    # Generar parte actor al azar
-    genero = faker.random_element(elements=("M", "F"))
-    if genero == "F":
-        nombre = faker.first_name_female()
-    else:
-        nombre = faker.first_name_male()
-    apellido_paterno = faker.last_name()
-    apellido_materno = faker.last_name()
-    nombre_completo = f"{nombre} {apellido_paterno} {apellido_materno}"
+    # Insertar las partes
+    for parte in datos["partes"]:
+        exh_exhorto_parte_actor = ExhExhortoParte()
+        exh_exhorto_parte_actor.exh_exhorto_id = exh_exhorto.id
+        exh_exhorto_parte_actor.genero = parte["genero"]
+        exh_exhorto_parte_actor.nombre = safe_string(parte["nombre"], save_enie=True)
+        exh_exhorto_parte_actor.apellido_paterno = safe_string(parte["apellidoPaterno"], save_enie=True)
+        exh_exhorto_parte_actor.apellido_materno = safe_string(parte["apellidoMaterno"], save_enie=True)
+        exh_exhorto_parte_actor.es_persona_moral = parte["esPersonaMoral"]
+        exh_exhorto_parte_actor.tipo_parte = parte["tipoParte"]
+        exh_exhorto_parte_actor.tipo_parte_nombre = parte["tipoParteNombre"]
+        exh_exhorto_parte_actor.save()
+        click.echo(click.style(f"He insertado la parte {exh_exhorto_parte_actor.nombre}", fg="white"))
 
-    # Insertar parte actor (1)
-    exh_exhorto_parte_actor = ExhExhortoParte()
-    exh_exhorto_parte_actor.exh_exhorto_id = exh_exhorto.id
-    exh_exhorto_parte_actor.genero = genero
-    exh_exhorto_parte_actor.nombre = safe_string(nombre, save_enie=True)
-    exh_exhorto_parte_actor.apellido_paterno = safe_string(apellido_paterno, save_enie=True)
-    exh_exhorto_parte_actor.apellido_materno = safe_string(apellido_materno, save_enie=True)
-    exh_exhorto_parte_actor.es_persona_moral = False
-    exh_exhorto_parte_actor.tipo_parte = 1
-    exh_exhorto_parte_actor.tipo_parte_nombre = ""
-    exh_exhorto_parte_actor.save()
-    click.echo(click.style(f"He insertado la parte actor {nombre_completo}", fg="green"))
-
-    # Generar parte demandado al azar
-    genero = faker.random_element(elements=("M", "F"))
-    if genero == "F":
-        nombre = faker.first_name_female()
-    else:
-        nombre = faker.first_name_male()
-    apellido_paterno = faker.last_name()
-    apellido_materno = faker.last_name()
-    nombre_completo = f"{nombre} {apellido_paterno} {apellido_materno}"
-
-    # Insertar parte demandado (2)
-    exh_exhorto_parte_demandado = ExhExhortoParte()
-    exh_exhorto_parte_demandado.exh_exhorto_id = exh_exhorto.id
-    exh_exhorto_parte_demandado.genero = genero
-    exh_exhorto_parte_demandado.nombre = safe_string(nombre, save_enie=True)
-    exh_exhorto_parte_demandado.apellido_paterno = safe_string(apellido_paterno, save_enie=True)
-    exh_exhorto_parte_demandado.apellido_materno = safe_string(apellido_materno, save_enie=True)
-    exh_exhorto_parte_demandado.es_persona_moral = False
-    exh_exhorto_parte_demandado.tipo_parte = 1
-    exh_exhorto_parte_demandado.tipo_parte_nombre = ""
-    exh_exhorto_parte_demandado.save()
-    click.echo(click.style(f"He insertado la parte demandado {nombre_completo}", fg="green"))
-
-    # Insertar archivos
-    for numero in range(1, random.randint(1, 4) + 1):
+    # Insertar los archivos
+    for archivo in datos["archivos"]:
         exh_exhorto_archivo = ExhExhortoArchivo()
         exh_exhorto_archivo.exh_exhorto_id = exh_exhorto.id
-        exh_exhorto_archivo.nombre_archivo = f"prueba-{numero}.pdf"
-        exh_exhorto_archivo.hash_sha1 = "3a9a09bbb22a6da576b2868c4b861cae6b096050"
-        exh_exhorto_archivo.hash_sha256 = "df3d983d24a5002e7dcbff1629e25f45bb3def406682642643efc4c1c8950a77"
-        exh_exhorto_archivo.tipo_documento = 1
+        exh_exhorto_archivo.nombre_archivo = archivo["nombreArchivo"]
+        exh_exhorto_archivo.hash_sha1 = archivo["hashSha1"]
+        exh_exhorto_archivo.hash_sha256 = archivo["hashSha256"]
+        exh_exhorto_archivo.tipo_documento = archivo["tipoDocumento"]
         exh_exhorto_archivo.es_respuesta = False
         exh_exhorto_archivo.estado = "PENDIENTE"
         exh_exhorto_archivo.url = ""
@@ -297,7 +400,7 @@ def demo_02_recibir(estado_origen):
         click.echo(click.style(f"He insertado el archivo {exh_exhorto_archivo.nombre_archivo}", fg="green"))
 
     # Mensaje final
-    click.echo(click.style(f"Terminó recibir un exhorto {exh_exhorto.exhorto_origen_id} con estado {exh_exhorto.estado}", fg="green"))
+    click.echo(click.style(f"Terminó recibir un exhorto {exh_exhorto.exhorto_origen_id}", fg="green"))
 
 
 @click.command()
@@ -409,7 +512,7 @@ def demo_05_enviar_respuesta(exhorto_origen_id):
         click.echo(click.style("No hay videos en la respuesta.", fg="white"))
 
     # Esperar a que se presione ENTER para continuar
-    input("Presiona ENTER para continuar...")
+    input("Presiona ENTER para DEMOSTRAR que se va a enviar la respuesta...")
 
     # Actualizar el exhorto
     exh_exhorto.respuesta_origen_id = generar_identificador()
@@ -539,7 +642,7 @@ def demo_05_recibir_respuesta(exhorto_origen_id):
         click.echo(click.style("No hay videos en la respuesta.", fg="white"))
 
     # Esperar a que se presione ENTER para continuar
-    input("Presiona ENTER para continuar...")
+    input("Presiona ENTER para DEMOSTRAR que se va a recibir la respuesta...")
 
     # Actualizar el exhorto
     click.echo(click.style("Actualizando el exhorto...", fg="green"))
@@ -626,6 +729,9 @@ def demo_06_enviar_actualizacion(exhorto_origen_id, actualizacion_origen_id):
     click.echo(click.style(f"fechaHora:             {exh_exhorto_actualizacion.fecha_hora}", fg="green"))
     click.echo(click.style(f"descripcion:           {exh_exhorto_actualizacion.descripcion}", fg="green"))
 
+    # Esperar a que se presione ENTER para continuar
+    input("Presiona ENTER para DEMOSTRAR que se va a enviar la actualización...")
+
     # Simular lo que se va a recibir
     respuesta = {
         "exhortoId": exh_exhorto.exhorto_origen_id,
@@ -693,6 +799,9 @@ def demo_06_recibir_actualizacion(exhorto_origen_id):
     click.echo(click.style(f"tipoActualizacion:     {recibido['tipoActualizacion']} (GENERADO AL AZAR)", fg="green"))
     click.echo(click.style(f"fechaHora:             {recibido['fechaHora']} (TIEMPO ACTUAL)", fg="green"))
     click.echo(click.style(f"descripcion:           {recibido['descripcion']} (HIPOTETICO)", fg="green"))
+
+    # Esperar a que se presione ENTER para continuar
+    input("Presiona ENTER para DEMOSTRAR que se va a recibir la actualización...")
 
     # Insertar la actualización
     exh_exhorto_actualizacion = ExhExhortoActualizacion()
