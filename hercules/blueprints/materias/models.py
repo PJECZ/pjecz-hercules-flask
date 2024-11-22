@@ -21,6 +21,7 @@ class Materia(database.Model, UniversalMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     # Columnas
+    clave: Mapped[str] = mapped_column(String(16), unique=True)
     nombre: Mapped[str] = mapped_column(String(256), unique=True)
     descripcion: Mapped[str] = mapped_column(String(1024))
     en_sentencias: Mapped[bool] = mapped_column(Boolean, default=False)
