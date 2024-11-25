@@ -340,8 +340,10 @@ def demo_02_recibir(estado_origen):
     # Esperar a que se presione ENTER para continuar
     input("Presiona ENTER para DEMOSTRAR que se va a recibir este exhorto...")
 
+    # Consultar la materia
+    materia = Materia.query.filter_by(clave=datos["materiaClave"]).first()
+
     # Insertar ExhExhorto
-    click.echo(click.style("Insertando el exhorto...", fg="yellow"))
     exh_exhorto = ExhExhorto()
     exh_exhorto.exhorto_origen_id = datos["exhortoOrigenId"]
     exh_exhorto.municipio_destino_id = municipo_destino.id  # Clave foránea
@@ -358,11 +360,6 @@ def demo_02_recibir(estado_origen):
     exh_exhorto.tipo_diligenciacion_nombre = datos["tipoDiligenciacionNombre"]
     exh_exhorto.fecha_origen = datos["fechaOrigen"]
     exh_exhorto.observaciones = datos["observaciones"]
-
-    # Consultar la materia
-    materia = Materia.query.filter_by(clave=datos["materiaClave"]).first()
-
-    # Definir las siguientes propiedades del exhorto
     exh_exhorto.folio_seguimiento = generar_identificador()
     exh_exhorto.remitente = "EXTERNO"
     exh_exhorto.materia_nombre = materia.nombre
@@ -370,7 +367,7 @@ def demo_02_recibir(estado_origen):
     exh_exhorto.exh_area_id = exh_area_nd.id  # Clave foránea NO DEFINIDO
     exh_exhorto.estado = "RECIBIDO"
     exh_exhorto.save()
-    click.echo(click.style("Exhorto insertado con estado RECIBIDO", fg="white"))
+    click.echo(click.style("Exhorto insertado con estado RECIBIDO", fg="yellow"))
     click.echo(click.style(f"  Folio de seguimiento {exh_exhorto.folio_seguimiento}", fg="green"))
 
     # Insertar las partes
@@ -385,7 +382,7 @@ def demo_02_recibir(estado_origen):
         exh_exhorto_parte_actor.tipo_parte = parte["tipoParte"]
         exh_exhorto_parte_actor.tipo_parte_nombre = parte["tipoParteNombre"]
         exh_exhorto_parte_actor.save()
-        click.echo(click.style(f"He insertado la parte {exh_exhorto_parte_actor.nombre}", fg="white"))
+        click.echo(click.style(f"Parte insertada {exh_exhorto_parte_actor.nombre}", fg="yellow"))
 
     # Insertar los archivos
     for archivo in archivos:
@@ -400,7 +397,7 @@ def demo_02_recibir(estado_origen):
         exh_exhorto_archivo.url = ""
         exh_exhorto_archivo.tamano = 0
         exh_exhorto_archivo.save()
-        click.echo(click.style(f"He insertado el archivo {exh_exhorto_archivo.nombre_archivo}", fg="green"))
+        click.echo(click.style(f"Archivo insertado {exh_exhorto_archivo.nombre_archivo}", fg="yellow"))
 
     # Mensaje final
     click.echo(click.style(f"Terminó recibir un exhorto {exh_exhorto.exhorto_origen_id}", fg="green"))
@@ -512,14 +509,13 @@ def demo_05_enviar_respuesta(exhorto_origen_id):
     input("Presiona ENTER para DEMOSTRAR que se va a enviar la respuesta...")
 
     # Actualizar el exhorto
-    click.echo(click.style("Actualizando el exhorto...", fg="yellow"))
     exh_exhorto.respuesta_origen_id = generar_identificador()
     exh_exhorto.respuesta_fecha_hora_recepcion = datetime.now()
     exh_exhorto.estado = "CONTESTADO"
     exh_exhorto.save()
 
     # Mostrar
-    click.echo(click.style("Actualicé el exhorto con...", fg="white"))
+    click.echo(click.style("Exhorto actualizado...", fg="yellow"))
     click.echo(click.style(f"  respuesta_origen_id: {exh_exhorto.respuesta_origen_id}", fg="green"))
     click.echo(click.style(f"  respuesta_fecha_hora_recepcion: {exh_exhorto.respuesta_fecha_hora_recepcion}", fg="green"))
     click.echo(click.style(f"  estado: {exh_exhorto.estado}", fg="green"))
