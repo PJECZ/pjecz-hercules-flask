@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 
 from hercules.app import create_app
 from hercules.blueprints.arc_documentos.models import ArcDocumento
+from hercules.blueprints.arc_documentos_tipos.models import ArcDocumentoTipo
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.extensions import database
 from lib.safe_string import safe_clave
@@ -117,7 +118,9 @@ def mostrar_duplicados(autoridad_clave):
     # Consultar los documentos de la autoridad
     arc_documentos = (
         session.query(ArcDocumento)
+        .join(ArcDocumentoTipo)
         .filter(ArcDocumento.autoridad_id == autoridad.id)
+        .filter(ArcDocumentoTipo.nombre == "EXPEDIENTE")
         .filter(ArcDocumento.estatus == "A")
         .order_by(ArcDocumento.id)
     )
@@ -160,6 +163,9 @@ def mostrar_duplicados(autoridad_clave):
         if duplicados.count() > 1:
             expedientes_duplicados.append(arc_documento.expediente)
             contador_duplicados += 1
+
+    # Mostrar expedientes duplicados
+    click.echo(",".join(expedientes_duplicados))
 
     # Mensaje de finalización
     click.echo(f"Se encontraron {contador_duplicados} expedientes duplicados en {contador_consultados}.")
