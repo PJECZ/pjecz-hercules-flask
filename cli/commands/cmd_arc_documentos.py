@@ -153,8 +153,10 @@ def mostrar_duplicados(autoridad_clave):
         # Consultar en arc_documentos, con la autoridad dada, los expedientes duplicados
         duplicados = (
             session.query(ArcDocumento)
+            .join(ArcDocumentoTipo)
             .filter(ArcDocumento.autoridad_id == autoridad.id)
             .filter(ArcDocumento.expediente == arc_documento.expediente)
+            .filter(ArcDocumentoTipo.nombre == "EXPEDIENTE")
             .filter(ArcDocumento.estatus == "A")
             .order_by(ArcDocumento.id)
         )
@@ -168,7 +170,7 @@ def mostrar_duplicados(autoridad_clave):
     click.echo(",".join(expedientes_duplicados))
 
     # Mensaje de finalización
-    click.echo(f"Se encontraron {contador_duplicados} expedientes duplicados en {contador_consultados}.")
+    click.echo(f"Se encontraron {contador_duplicados} duplicados en {contador_consultados} expedientes.")
 
 
 cli.add_command(buscar)
