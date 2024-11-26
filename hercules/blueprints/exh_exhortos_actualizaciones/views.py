@@ -63,6 +63,7 @@ def datatable_json():
                 "fecha_hora": resultado.fecha_hora.strftime("%Y/%m/%d %H:%M"),
                 "tipo_actualizacion": resultado.tipo_actualizacion,
                 "descripcion": resultado.descripcion,
+                "remitente": resultado.remitente,
             }
         )
     # Entregar JSON
@@ -89,6 +90,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
             tipo_actualizacion=safe_string(form.tipo_actualizacion.data),
             descripcion=safe_string(form.descripcion.data),
             fecha_hora=datetime.now(),
+            remitente="INTERNO",
         )
         exh_exhorto_actualizacion.save()
         bitacora = Bitacora(
