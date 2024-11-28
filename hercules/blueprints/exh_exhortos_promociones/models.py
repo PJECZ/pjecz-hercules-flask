@@ -5,7 +5,7 @@ Exhortos - Promociones, modelos
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, String, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.functions import now
 
@@ -15,6 +15,16 @@ from hercules.extensions import database
 
 class ExhExhortoPromocion(database.Model, UniversalMixin):
     """ExhExhortoPromocion"""
+
+    REMITENTES = {
+        "INTERNO": "Interno",
+        "EXTERNO": "Externo",
+    }
+
+    ESTADOS = {
+        "PENDIENTE": "Pendiente",
+        "ENVIADO": "Enviado",
+    }
 
     # Nombre de la tabla
     __tablename__ = "exh_exhortos_promociones"
@@ -50,6 +60,14 @@ class ExhExhortoPromocion(database.Model, UniversalMixin):
     exh_exhortos_promociones_archivos: Mapped[List["ExhExhortoPromocionArchivo"]] = relationship(
         back_populates="exh_exhorto_promocion"
     )
+
+    # Campo para saber si es un proceso interno o extorno
+    remitente: Mapped[str] = mapped_column(
+        Enum(*REMITENTES, name="exh_exhortos_promociones_remitentes", native_enum=False), index=True
+    )
+
+    # Campo para saber si es una promoción está siendo creada o editada de otra que ya se envió.
+    estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="exh_exhortos_promociones_estados", native_enum=False), index=True)
 
     def __repr__(self):
         """Representación"""
