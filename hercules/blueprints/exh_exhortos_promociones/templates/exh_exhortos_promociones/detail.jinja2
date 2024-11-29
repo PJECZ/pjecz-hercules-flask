@@ -55,7 +55,7 @@
             </thead>
         </table>
         {% if exh_exhorto_promocion.estado == 'PENDIENTE' and current_user.can_insert('EXH EXHORTOS PROMOCIONES PROMOVENTES')  %}
-            <a class="btn btn-primary" href="#">Agregar Promovente</a>
+            <a class="btn btn-primary" href="{{ url_for('exh_exhortos_promociones_promoventes.new_with_exh_exhorto_promocion', exh_exhorto_promocion_id=exh_exhorto_promocion.id) }}">Agregar Promovente</a>
         {% endif %}
     {% endcall %}
 
