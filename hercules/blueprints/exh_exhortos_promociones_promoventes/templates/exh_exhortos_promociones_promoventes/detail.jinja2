@@ -10,11 +10,11 @@
         {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_promocion_promovente.exh_exhorto_promocion.exh_exhorto.id)) }}
         {{ topbar.button_previous('Promoción', url_for('exh_exhortos_promociones.detail', exh_exhorto_promocion_id=exh_exhorto_promocion_promovente.exh_exhorto_promocion.id)) }}
         {% if current_user.can_edit('EXH EXHORTOS PROMOCIONES PROMOVENTES') %}
-            {# {{ topbar.button_edit('Editar', url_for('exh_exhortos_partes.edit', exh_exhorto_promocion_promovente_id=exh_exhorto_promocion_promovente.id)) }} #}
+            {{ topbar.button_edit('Editar', url_for('exh_exhortos_promociones_promoventes.edit', exh_exhorto_promocion_promovente_id=exh_exhorto_promocion_promovente.id)) }}
         {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES PROMOVENTES') %}
-            {# {% if exh_exhorto_promocion_promovente.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('exh_exhortos_partes.delete', exh_exhorto_promocion_promovente_id=exh_exhorto_promocion_promovente.id)) }}{% endif %}
-            {% if exh_exhorto_promocion_promovente.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('exh_exhortos_partes.recover', exh_exhorto_promocion_promovente_id=exh_exhorto_promocion_promovente.id)) }}{% endif %} #}
+            {% if exh_exhorto_promocion_promovente.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('exh_exhortos_promociones_promoventes.delete', exh_exhorto_promocion_promovente_id=exh_exhorto_promocion_promovente.id)) }}{% endif %}
+            {% if exh_exhorto_promocion_promovente.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('exh_exhortos_promociones_promoventes.recover', exh_exhorto_promocion_promovente_id=exh_exhorto_promocion_promovente.id)) }}{% endif %}
         {% endif %}
     {% endcall %}
 {% endblock %}

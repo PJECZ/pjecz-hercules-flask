@@ -44,7 +44,7 @@
     {% endcall %}
 
     {% call detail.card('Promoventes') %}
-        <table id="exh_exhortos_promociones_partes_datatable" class="table display nowrap" style="width:100%">
+        <table id="exh_exhortos_promociones_promoventes_datatable" class="table display nowrap" style="width:100%">
             <thead>
                 <tr>
                     <th>Nombre Completo</th>
@@ -102,4 +102,56 @@
     {% if exh_exhorto_promocion.estado == 'PENDIENTE' %}
         {{ modals.custom_javascript('Enviar', '', "enviar_btn") }}
     {% endif %}
+    <!-- Creación de Tablas -->
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+    </script>
+    <!-- Listado de Promoventes -->
+    <script>
+        // DataTable Promoventes
+        let configDTPromoventes = constructorDataTable.config();
+        configDTPromoventes['ajax']['url'] = '/exh_exhortos_promociones_promoventes/datatable_json';
+        configDTPromoventes['ajax']['data'] = {'estatus':'A', 'exh_exhorto_promocion_id':{{exh_exhorto_promocion.id}}};
+        configDTPromoventes['columns'] = [
+            { data: 'detalle' },
+            { data: 'genero' },
+            { data: 'es_persona_moral' },
+            { data: 'tipo_parte' },
+        ];
+        configDTPromoventes['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.nombre + '</a>';
+                }
+            },
+            {
+                targets: 1, // genero
+                data: null,
+                render: function(data, type, row, meta) {
+                    switch (data) {
+                        case "M": return "<span title='Masculino'>M <span class='iconify' data-icon='mdi:gender-male'></span></span>";
+                        case "F": return "<span title='Femenino'>F <span class='iconify' data-icon='mdi:gender-female'></span></span>";
+                    }
+                    return "-";
+                }
+            },
+            {
+                targets: 2, // es_persona_moral
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data == true) {
+                        return "SÍ";
+                    }
+                    return "-";
+                }
+            }
+        ];
+        // Filtros Exhortos Promocion Promoventes
+        const filtrosPromoventes = new FiltrosDataTable('#exh_exhortos_promociones_promoventes_datatable', configDTPromoventes);
+        filtrosPromoventes.precargar();
+    </script>
 {% endblock %}
