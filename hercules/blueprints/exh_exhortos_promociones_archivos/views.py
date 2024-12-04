@@ -6,7 +6,7 @@ import hashlib
 import json
 from datetime import datetime
 
-from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
 from werkzeug.utils import secure_filename
@@ -39,6 +39,49 @@ exh_exhortos_promociones_archivos = Blueprint("exh_exhortos_promociones_archivos
 @permission_required(MODULO, Permiso.VER)
 def before_request():
     """Permiso por defecto"""
+
+
+@exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/datatable_json", methods=["GET", "POST"])
+def datatable_json():
+    """DataTable JSON para listado de Archivos"""
+    # Tomar parámetros de Datatables
+    draw, start, rows_per_page = get_datatable_parameters()
+    # Consultar
+    consulta = ExhExhortoPromocionArchivo.query
+    # Primero filtrar por columnas propias
+    if "estatus" in request.form:
+        consulta = consulta.filter_by(estatus=request.form["estatus"])
+    else:
+        consulta = consulta.filter_by(estatus="A")
+    if "exh_exhorto_promocion_id" in request.form:
+        consulta = consulta.filter_by(exh_exhorto_promocion_id=request.form["exh_exhorto_promocion_id"])
+    # Ordenar y paginar
+    registros = consulta.order_by(ExhExhortoPromocionArchivo.id).offset(start).limit(rows_per_page).all()
+    total = consulta.count()
+    # Elaborar datos para DataTable
+    data = []
+    for resultado in registros:
+        data.append(
+            {
+                "detalle": {
+                    "nombre_archivo": resultado.nombre_archivo,
+                    "url": url_for("exh_exhortos_promociones_archivos.detail", exh_exhorto_promocion_archivo_id=resultado.id),
+                },
+                "descargar_pdf": {
+                    "nombre_archivo": resultado.nombre_archivo,
+                    "url": url_for(
+                        "exh_exhortos_promociones_archivos.download_pdf", exh_exhorto_promocion_archivo_id=resultado.id
+                    ),
+                },
+                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
+                "tipo_documento_nombre": resultado.tipo_documento_nombre,
+                "estado": resultado.estado,
+                "fecha_hora_recepcion": resultado.fecha_hora_recepcion.strftime("%Y-%m-%d %H:%M:%S"),
+                "tamano": f"{round((resultado.tamano / 1024), 2)} MB",
+            }
+        )
+    # Entregar JSON
+    return output_datatable_json(draw, total, data)
 
 
 @exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/<int:exh_exhorto_promocion_archivo_id>")
@@ -140,3 +183,149 @@ def new_with_exh_exhorto_promocion(exh_exhorto_promocion_id):
         form=form,
         exh_exhorto_promocion=exh_exhorto_promocion,
     )
+
+
+@exh_exhortos_promociones_archivos.route(
+    "/exh_exhortos_promociones_archivos/edicion/<int:exh_exhorto_promocion_archivo_id>", methods=["GET", "POST"]
+)
+@permission_required(MODULO, Permiso.MODIFICAR)
+def edit(exh_exhorto_promocion_archivo_id):
+    """Editar Archivo"""
+    exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
+    form = ExhExhortoPromocionArchivoEditForm()
+    if form.validate_on_submit():
+        exh_exhorto_promocion_archivo.nombre_archivo = safe_string(form.nombre_archivo.data)
+        exh_exhorto_promocion_archivo.tipo_documento = form.tipo_documento.data
+        exh_exhorto_promocion_archivo.fecha_hora_recepcion = datetime.now()
+        exh_exhorto_promocion_archivo.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Editado Archivo {exh_exhorto_promocion_archivo.nombre_archivo}"),
+            url=url_for(
+                "exh_exhortos_promociones_archivos.detail", exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id
+            ),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    form.nombre_archivo.data = exh_exhorto_promocion_archivo.nombre_archivo
+    form.hash_sha1.data = exh_exhorto_promocion_archivo.hash_sha1
+    form.hash_sha256.data = exh_exhorto_promocion_archivo.hash_sha256
+    form.tipo_documento.data = exh_exhorto_promocion_archivo.tipo_documento
+    form.url.data = exh_exhorto_promocion_archivo.url
+    form.tamano.data = f"{exh_exhorto_promocion_archivo.tamano / 1024} MB"
+    form.fecha_hora_recepcion.data = exh_exhorto_promocion_archivo.fecha_hora_recepcion.strftime("%Y-%m-%d %H:%M:%S")
+    return render_template(
+        "exh_exhortos_promociones_archivos/edit.jinja2", form=form, exh_exhorto_promocion_archivo=exh_exhorto_promocion_archivo
+    )
+
+
+@exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/eliminar/<int:exh_exhorto_promocion_archivo_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def delete(exh_exhorto_promocion_archivo_id):
+    """Eliminar Archivo"""
+    exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
+    if exh_exhorto_promocion_archivo.estatus == "A":
+        exh_exhorto_promocion_archivo.delete()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Eliminado Archivo {exh_exhorto_promocion_archivo.nombre_archivo}"),
+            url=url_for(
+                "exh_exhortos_promociones_archivos.detail", exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id
+            ),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(
+        url_for("exh_exhortos_promociones_archivos.detail", exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id)
+    )
+
+
+@exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/recuperar/<int:exh_exhorto_promocion_archivo_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def recover(exh_exhorto_promocion_archivo_id):
+    """Recuperar Archivo"""
+    exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
+    if exh_exhorto_promocion_archivo.estatus == "B":
+        exh_exhorto_promocion_archivo.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Recuperado Archivo {exh_exhorto_promocion_archivo.nombre_archivo}"),
+            url=url_for(
+                "exh_exhortos_promociones_archivos.detail", exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id
+            ),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(
+        url_for("exh_exhortos_promociones_archivos.detail", exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id)
+    )
+
+
+@exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/<int:exh_exhorto_promocion_archivo_id>/pdf")
+def download_pdf(exh_exhorto_promocion_archivo_id):
+    """Descargar el archivo PDF de un Archivo"""
+
+    # Consultar el ExhExhortoArchivo
+    exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
+
+    # Si el estatus es B, no se puede descargar
+    if exh_exhorto_promocion_archivo.estatus == "B":
+        flash("No se puede descargar un archivo inactivo", "warning")
+        return redirect(
+            url_for(
+                "exh_exhortos_promociones.detail",
+                exh_exhorto_promocion_id=exh_exhorto_promocion_archivo.exh_exhorto_promocion_id,
+            )
+        )
+
+    # Tomar el nombre del archivo con el que sera descargado
+    descarga_nombre = exh_exhorto_promocion_archivo.nombre_archivo
+
+    # Obtener el contenido del archivo desde Google Storage
+    try:
+        descarga_contenido = get_file_from_gcs(
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO"],
+            blob_name=get_blob_name_from_url(exh_exhorto_promocion_archivo.url),
+        )
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        flash(str(error), "danger")
+        return redirect(
+            url_for(
+                "exh_exhortos_promociones.detail",
+                exh_exhorto_promocion_id=exh_exhorto_promocion_archivo.exh_exhorto_promocion_id,
+            )
+        )
+
+    # Descargar un archivo PDF
+    response = make_response(descarga_contenido)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = f"attachment; filename={descarga_nombre}"
+    return response
+
+
+@exh_exhortos_promociones_archivos.route(
+    "/exh_exhortos_promociones_archivos/ver_archivo_pdf/<int:exh_exhorto_promocion_archivo_id>"
+)
+def view_file_pdf(exh_exhorto_promocion_archivo_id):
+    """Ver archivo PDF de ExhortosArchivo para insertarlo en un iframe en el detalle"""
+
+    # Consultar
+    exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
+
+    # Obtener el contenido del archivo
+    try:
+        archivo = get_file_from_gcs(
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO"],
+            blob_name=get_blob_name_from_url(exh_exhorto_promocion_archivo.url),
+        )
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        raise NotFound("No se encontró el archivo.")
+
+    # Entregar el archivo
+    response = make_response(archivo)
+    response.headers["Content-Type"] = "application/pdf"
+    return response

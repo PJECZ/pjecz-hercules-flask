@@ -154,4 +154,42 @@
         const filtrosPromoventes = new FiltrosDataTable('#exh_exhortos_promociones_promoventes_datatable', configDTPromoventes);
         filtrosPromoventes.precargar();
     </script>
+    <!-- Tabla de Archivos -->
+    <script>
+        // DataTable Archivos
+        let configDTArchivos = constructorDataTable.config();
+        configDTArchivos['ajax']['url'] = '/exh_exhortos_promociones_archivos/datatable_json';
+        configDTArchivos['ajax']['data'] = {'estatus':'A', 'exh_exhorto_promocion_id':{{exh_exhorto_promocion.id}}};
+        configDTArchivos['columns'] = [
+            { data: 'detalle' },
+            { data: 'descargar_pdf' },
+            { data: 'tipo_documento_nombre' },
+            { data: 'estado' },
+            { data: 'fecha_hora_recepcion' },
+            { data: 'tamano' }
+        ];
+        configDTArchivos['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.url != '') {
+                        return '<a href="' + data.url + '">' + data.nombre_archivo + '</a>';
+                    } else {
+                        return data.nombre_archivo;
+                    }
+                }
+            },
+            {
+                targets: 1, // descargar_pdf
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '" download="' + data.nombre_archivo + '"><span class="iconify" data-icon="mdi:file-pdf-box" style="font-size:2.0rem"></span></a>';
+                }
+            }
+        ];
+        // Filtros Exhortos Archivos
+        const filtrosArchivos = new FiltrosDataTable('#exh_exhortos_promociones_archivos_datatable', configDTArchivos);
+        filtrosArchivos.precargar();
+    </script>
 {% endblock %}
