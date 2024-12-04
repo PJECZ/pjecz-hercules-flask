@@ -95,6 +95,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
             fecha_origen=datetime.now(),
             fojas=form.fojas.data,
             remitente="INTERNO",
+            estado="PENDIENTE",
             observaciones=safe_message(form.observaciones.data, max_len=1024, default_output_str=None),
         )
         exh_exhorto_promocion.save()

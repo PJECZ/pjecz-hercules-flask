@@ -143,7 +143,7 @@ def new_with_exh_exhorto_promocion(exh_exhorto_promocion_id):
                 usuario=current_user,
                 descripcion=safe_message(f"Nueva Parte {exh_exhorto_promocion_promovente.nombre}"),
                 url=url_for(
-                    "exh_exhortos_promocion.detail",
+                    "exh_exhortos_promociones.detail",
                     exh_exhorto_promocion_id=exh_exhorto_promocion_promovente.exh_exhorto_promocion.id,
                 ),
             )
