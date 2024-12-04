@@ -30,6 +30,7 @@ class ExhExhorto(database.Model, UniversalMixin):
         "RECIBIDO CON EXITO": "Recibido con éxito",
         "NO FUE RESPONDIDO": "No fue respondido",
         "RESPONDIDO": "Respondido",
+        "ARCHIVADO": "Archivado",
     }
 
     REMITENTES = {
