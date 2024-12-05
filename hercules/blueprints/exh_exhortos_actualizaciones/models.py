@@ -9,8 +9,8 @@ from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.functions import now
 
-from lib.universal_mixin import UniversalMixin
 from hercules.extensions import database
+from lib.universal_mixin import UniversalMixin
 
 
 class ExhExhortoActualizacion(database.Model, UniversalMixin):
@@ -51,7 +51,7 @@ class ExhExhortoActualizacion(database.Model, UniversalMixin):
     # Este puede ser: "Turnado al Juzgado Tercero Familiar (Municipio)", "Radicado con Número de Exhorto 99999/2024"
     descripcion: Mapped[str] = mapped_column(String(256))
 
-    # Campo para saber si es un proceso interno o extorno
+    # Si el remitente es INTERNO entonces fue creada por nosotros, si es EXTERNO fue creada por otro PJ
     remitente: Mapped[str] = mapped_column(
         Enum(*REMITENTES, name="exh_exhortos_actualizaciones_remitentes", native_enum=False), index=True
     )
