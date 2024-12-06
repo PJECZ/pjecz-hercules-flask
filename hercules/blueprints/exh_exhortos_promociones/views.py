@@ -46,6 +46,14 @@ def datatable_json():
         consulta = consulta.filter_by(estatus="A")
     if "exh_exhorto_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_id=request.form["exh_exhorto_id"])
+    if "folio_origen" in request.form:
+        folio_origen = safe_string(request.form["folio_origen"])
+        consulta = consulta.filter(ExhExhortoPromocion.folio_origen_promocion.contains(folio_origen))
+    if "remitente" in request.form:
+        consulta = consulta.filter_by(remitente=request.form["remitente"])
+    if "observaciones" in request.form:
+        observaciones = safe_string(request.form["observaciones"])
+        consulta = consulta.filter(ExhExhortoPromocion.observaciones.contains(observaciones))
     # Luego filtrar por columnas de otras tablas
     # if "persona_rfc" in request.form:
     #     consulta = consulta.join(Persona)
@@ -73,6 +81,31 @@ def datatable_json():
     return output_datatable_json(draw, total, data)
 
 
+@exh_exhortos_promociones.route("/exh_exhortos_promociones")
+def list_active():
+    """Listado de Promociones activos"""
+    return render_template(
+        "exh_exhortos_promociones/list.jinja2",
+        filtros=json.dumps({"estatus": "A"}),
+        titulo="Promociones",
+        remitentes=ExhExhortoPromocion.REMITENTES,
+        estatus="A",
+    )
+
+
+@exh_exhortos_promociones.route("/exh_exhortos_promociones/inactivos")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def list_inactive():
+    """Listado de Promociones inactivos"""
+    return render_template(
+        "exh_exhortos_promociones/list.jinja2",
+        filtros=json.dumps({"estatus": "B"}),
+        titulo="Promociones inactivos",
+        remitentes=ExhExhortoPromocion.REMITENTES,
+        estatus="B",
+    )
+
+
 @exh_exhortos_promociones.route("/exh_exhortos_promociones/<int:exh_exhorto_promocion_id>")
 def detail(exh_exhorto_promocion_id):
     """Detalle de un Promoción"""
@@ -96,7 +129,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
             fojas=form.fojas.data,
             remitente="INTERNO",
             estado="PENDIENTE",
-            observaciones=safe_message(form.observaciones.data, max_len=1024, default_output_str=None),
+            observaciones=safe_string(form.observaciones.data, max_len=1024),
         )
         exh_exhorto_promocion.save()
 
@@ -125,7 +158,7 @@ def edit(exh_exhorto_promocion_id):
     form = ExhExhortoPromocionEditForm()
     if form.validate_on_submit():
         exh_exhorto_promocion.fojas = form.fojas.data
-        exh_exhorto_promocion.observaciones = (safe_message(form.observaciones.data, max_len=1024, default_output_str=None),)
+        exh_exhorto_promocion.observaciones = safe_string(form.observaciones.data, max_len=1024)
         exh_exhorto_promocion.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
