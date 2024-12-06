@@ -599,7 +599,7 @@ def demo_05_recibir_respuesta(exhorto_origen_id):
         "areaTurnadoId": area_turnado_id,
         "areaTurnadoNombre": area_turnado_nombre,
         "numeroExhorto": f"{numero}/{datetime.now().year}",
-        "tipoDiligenciado": random.choice(["", "OFICIO", "PETICION DE PARTE"]),
+        "tipoDiligenciado": random.randint(0, 2),
         "observaciones": "OBSERVACIONES DE ESTA PRUEBA",
         "archivos": archivos,
         "videos": videos,
