@@ -393,7 +393,7 @@ def demo_02_recibir(estado_origen):
         exh_exhorto_archivo.hash_sha256 = archivo["hashSha256"]
         exh_exhorto_archivo.tipo_documento = archivo["tipoDocumento"]
         exh_exhorto_archivo.es_respuesta = False
-        exh_exhorto_archivo.estado = "PENDIENTE"
+        exh_exhorto_archivo.estado = "RECIBIDO"
         exh_exhorto_archivo.url = ""
         exh_exhorto_archivo.tamano = 0
         exh_exhorto_archivo.save()
