@@ -2,9 +2,10 @@
 Listas de Acuerdos, modelos
 """
 
-from datetime import date
+from datetime import date, datetime
+from typing import Optional
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import JSON, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.extensions import database
@@ -29,6 +30,13 @@ class ListaDeAcuerdo(database.Model, UniversalMixin):
     descripcion: Mapped[str] = mapped_column(String(256))
     archivo: Mapped[str] = mapped_column(String(256), default="")
     url: Mapped[str] = mapped_column(String(512), default="")
+
+    # Columnas para análisis de datos (data analytics)
+    da_tiempo: Mapped[Optional[datetime]]
+    da_contenido: Mapped[Optional[dict]] = mapped_column(JSON())
+    da_modelo: Mapped[Optional[str]] = mapped_column(String(256))
+    da_resumen: Mapped[Optional[str]] = mapped_column(String(1024))
+    da_etiquetas: Mapped[Optional[str]] = mapped_column(String(256))
 
     @property
     def descargar_url(self):

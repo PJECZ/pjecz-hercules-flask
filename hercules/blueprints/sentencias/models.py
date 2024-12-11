@@ -2,10 +2,10 @@
 Sentencias, modelos
 """
 
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import Date, ForeignKey, String
+from sqlalchemy import Date, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.extensions import database
@@ -38,6 +38,13 @@ class Sentencia(database.Model, UniversalMixin):
     es_perspectiva_genero: Mapped[bool] = mapped_column(default=False)
     archivo: Mapped[str] = mapped_column(String(256), default="", server_default="")
     url: Mapped[str] = mapped_column(String(512), default="", server_default="")
+
+    # Columnas para análisis de datos (data analytics)
+    da_tiempo: Mapped[Optional[datetime]]
+    da_contenido: Mapped[Optional[str]] = mapped_column(Text())
+    da_modelo: Mapped[Optional[str]] = mapped_column(String(256))
+    da_resumen: Mapped[Optional[str]] = mapped_column(String(1024))
+    da_etiquetas: Mapped[Optional[str]] = mapped_column(String(256))
 
     @property
     def descargar_url(self):

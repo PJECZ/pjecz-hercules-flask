@@ -2,10 +2,10 @@
 Edictos, modelos
 """
 
-from datetime import date
-from typing import List
+from datetime import date, datetime
+from typing import List, Optional
 
-from sqlalchemy import Date, ForeignKey, String
+from sqlalchemy import Date, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.extensions import database
@@ -35,6 +35,13 @@ class Edicto(database.Model, UniversalMixin):
     acuse_num: Mapped[int] = mapped_column(default=0)
     edicto_id_original: Mapped[int] = mapped_column(default=0)
     es_declaracion_de_ausencia: Mapped[bool] = mapped_column(default=False)
+
+    # Columnas para análisis de datos (data analytics)
+    da_tiempo: Mapped[Optional[datetime]]
+    da_contenido: Mapped[Optional[str]] = mapped_column(Text())
+    da_modelo: Mapped[Optional[str]] = mapped_column(String(256))
+    da_resumen: Mapped[Optional[str]] = mapped_column(String(1024))
+    da_etiquetas: Mapped[Optional[str]] = mapped_column(String(256))
 
     # Hijos
     edictos_acuses: Mapped[List["EdictoAcuse"]] = relationship(back_populates="edicto")

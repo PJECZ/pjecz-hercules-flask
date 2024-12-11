@@ -12,6 +12,9 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('BITACORAS APIS') %}
+            {{ topbar.button('Bitácoras APIs', url_for('bitacoras_apis.list_active'), 'mdi:calendar-clock') }}
+        {% endif %}
         {% if current_user.can_view('ENTRADAS SALIDAS') %}
             {{ topbar.button('Entradas/Salidas', url_for('entradas_salidas.list_active'), 'mdi:calendar-clock') }}
         {% endif %}
