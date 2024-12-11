@@ -15,6 +15,7 @@ from lib.pwgen import generar_identificador
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
+from hercules.blueprints.municipios.models import Municipio
 from hercules.blueprints.usuarios.decorators import permission_required
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
 from hercules.blueprints.exh_exhortos_promociones.models import ExhExhortoPromocion
@@ -46,6 +47,14 @@ def datatable_json():
         consulta = consulta.filter_by(estatus="A")
     if "exh_exhorto_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_id=request.form["exh_exhorto_id"])
+    if "folio_origen" in request.form:
+        folio_origen = safe_string(request.form["folio_origen"])
+        consulta = consulta.filter(ExhExhortoPromocion.folio_origen_promocion.contains(folio_origen))
+    if "remitente" in request.form:
+        consulta = consulta.filter_by(remitente=request.form["remitente"])
+    if "observaciones" in request.form:
+        observaciones = safe_string(request.form["observaciones"])
+        consulta = consulta.filter(ExhExhortoPromocion.observaciones.contains(observaciones))
     # Luego filtrar por columnas de otras tablas
     # if "persona_rfc" in request.form:
     #     consulta = consulta.join(Persona)
@@ -73,11 +82,39 @@ def datatable_json():
     return output_datatable_json(draw, total, data)
 
 
+@exh_exhortos_promociones.route("/exh_exhortos_promociones")
+def list_active():
+    """Listado de Promociones activos"""
+    return render_template(
+        "exh_exhortos_promociones/list.jinja2",
+        filtros=json.dumps({"estatus": "A"}),
+        titulo="Promociones",
+        remitentes=ExhExhortoPromocion.REMITENTES,
+        estatus="A",
+    )
+
+
+@exh_exhortos_promociones.route("/exh_exhortos_promociones/inactivos")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def list_inactive():
+    """Listado de Promociones inactivos"""
+    return render_template(
+        "exh_exhortos_promociones/list.jinja2",
+        filtros=json.dumps({"estatus": "B"}),
+        titulo="Promociones inactivos",
+        remitentes=ExhExhortoPromocion.REMITENTES,
+        estatus="B",
+    )
+
+
 @exh_exhortos_promociones.route("/exh_exhortos_promociones/<int:exh_exhorto_promocion_id>")
 def detail(exh_exhorto_promocion_id):
     """Detalle de un Promoción"""
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
-    return render_template("exh_exhortos_promociones/detail.jinja2", exh_exhorto_promocion=exh_exhorto_promocion)
+    # Consultar el municipio de origen porque NO es una relacion
+    municipio_destino = Municipio.query.filter_by(id=exh_exhorto_promocion.exh_exhorto.municipio_destino_id).first()
+    estado = municipio_destino.estado.nombre
+    return render_template("exh_exhortos_promociones/detail.jinja2", exh_exhorto_promocion=exh_exhorto_promocion, estado=estado)
 
 
 @exh_exhortos_promociones.route("/exh_exhortos_promociones/nuevo_con_exhorto/<int:exh_exhorto_id>", methods=["GET", "POST"])
@@ -91,12 +128,12 @@ def new_with_exh_exhorto(exh_exhorto_id):
         # Insertar el registro ExhExhortoPromocion
         exh_exhorto_promocion = ExhExhortoPromocion(
             exh_exhorto=exh_exhorto,
-            folio_origen_promocion=generar_identificador(),
+            folio_origen_promocion=form.folio_origen.data,
             fecha_origen=datetime.now(),
             fojas=form.fojas.data,
             remitente="INTERNO",
             estado="PENDIENTE",
-            observaciones=safe_message(form.observaciones.data, max_len=1024, default_output_str=None),
+            observaciones=safe_string(form.observaciones.data, max_len=1024),
         )
         exh_exhorto_promocion.save()
 
@@ -114,6 +151,8 @@ def new_with_exh_exhorto(exh_exhorto_id):
         return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id))
 
     # Entregar el formulario
+    # Crear y mostrar el folio de origen
+    form.folio_origen.data = generar_identificador()
     return render_template("exh_exhortos_promociones/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
 
 
@@ -125,7 +164,7 @@ def edit(exh_exhorto_promocion_id):
     form = ExhExhortoPromocionEditForm()
     if form.validate_on_submit():
         exh_exhorto_promocion.fojas = form.fojas.data
-        exh_exhorto_promocion.observaciones = (safe_message(form.observaciones.data, max_len=1024, default_output_str=None),)
+        exh_exhorto_promocion.observaciones = safe_string(form.observaciones.data, max_len=1024)
         exh_exhorto_promocion.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
