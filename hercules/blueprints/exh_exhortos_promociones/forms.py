@@ -10,6 +10,7 @@ from wtforms.validators import DataRequired, Length, Optional
 class ExhExhortoPromocionNewForm(FlaskForm):
     """Formulario ExhExhortoPromocionNew"""
 
+    folio_origen = StringField("Folio Origen")  # ReadOnly
     fojas = IntegerField("Fojas", validators=[DataRequired()])
     observaciones = TextAreaField("Observaciones", validators=[Optional()])
     crear = SubmitField("Crear")

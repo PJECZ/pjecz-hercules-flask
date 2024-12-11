@@ -9,6 +9,7 @@ from flask_login import current_user, login_required
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_string, safe_message, safe_clave
+from lib.pwgen import generar_identificador
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
@@ -133,4 +134,6 @@ def new_with_exh_exhorto(exh_exhorto_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
+    # Despliega el campo Origen ID generado
+    form.origen_id.data = generar_identificador()
     return render_template("exh_exhortos_actualizaciones/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)

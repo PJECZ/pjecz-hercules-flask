@@ -6,7 +6,7 @@
 {% block title %}Exhorto {{ exh_exhorto.id }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Exhorto ' + exh_exhorto.id | string) %}
+    {% call topbar.page_buttons('Exhorto para ' + municipio_destino.estado.nombre + ': ' + exh_exhorto.id | string) %}
         {{ topbar.button_previous('Exhortos', url_for('exh_exhortos.list_active')) }}
         {% if current_user.can_edit('EXH EXHORTOS') %}
             {% if exh_exhorto.estado == "PENDIENTE" %}

@@ -124,7 +124,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
         # Insertar el registro ExhExhortoPromocion
         exh_exhorto_promocion = ExhExhortoPromocion(
             exh_exhorto=exh_exhorto,
-            folio_origen_promocion=generar_identificador(),
+            folio_origen_promocion=form.folio_origen.data,
             fecha_origen=datetime.now(),
             fojas=form.fojas.data,
             remitente="INTERNO",
@@ -147,6 +147,8 @@ def new_with_exh_exhorto(exh_exhorto_id):
         return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id))
 
     # Entregar el formulario
+    # Crear y mostrar el folio de origen
+    form.folio_origen.data = generar_identificador()
     return render_template("exh_exhortos_promociones/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
 
 
