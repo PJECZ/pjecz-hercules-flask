@@ -15,6 +15,7 @@ from lib.pwgen import generar_identificador
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
+from hercules.blueprints.municipios.models import Municipio
 from hercules.blueprints.usuarios.decorators import permission_required
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
 from hercules.blueprints.exh_exhortos_promociones.models import ExhExhortoPromocion
@@ -110,7 +111,10 @@ def list_inactive():
 def detail(exh_exhorto_promocion_id):
     """Detalle de un Promoción"""
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
-    return render_template("exh_exhortos_promociones/detail.jinja2", exh_exhorto_promocion=exh_exhorto_promocion)
+    # Consultar el municipio de origen porque NO es una relacion
+    municipio_destino = Municipio.query.filter_by(id=exh_exhorto_promocion.exh_exhorto.municipio_destino_id).first()
+    estado = municipio_destino.estado.nombre
+    return render_template("exh_exhortos_promociones/detail.jinja2", exh_exhorto_promocion=exh_exhorto_promocion, estado=estado)
 
 
 @exh_exhortos_promociones.route("/exh_exhortos_promociones/nuevo_con_exhorto/<int:exh_exhorto_id>", methods=["GET", "POST"])

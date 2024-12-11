@@ -6,7 +6,7 @@
 {% block title %}Exhorto Promoción {{ exh_exhorto_promocion.folio_origen_promocion }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Promoción ' + exh_exhorto_promocion.folio_origen_promocion) %}
+    {% call topbar.page_buttons('Promoción para el Exhorto ' + exh_exhorto_promocion.exh_exhorto.id | string + ' del estado ' + estado) %}
         {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_promocion.exh_exhorto_id)) }}
         {% if current_user.can_edit('EXH EXHORTOS PROMOCIONES') and exh_exhorto_promocion.estado == 'PENDIENTE' %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_promociones.edit', exh_exhorto_promocion_id=exh_exhorto_promocion.id)) }}
