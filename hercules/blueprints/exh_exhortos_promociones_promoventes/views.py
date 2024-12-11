@@ -5,6 +5,7 @@ Exhortos Promociones Promoventes, vistas
 import json
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import or_
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_string, safe_message
@@ -43,6 +44,17 @@ def datatable_json():
         consulta = consulta.filter_by(estatus="A")
     if "exh_exhorto_promocion_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_promocion_id=request.form["exh_exhorto_promocion_id"])
+    if "nombre_completo" in request.form:
+        nombre_completo = safe_string(request.form["nombre_completo"])
+        palabras = nombre_completo.split()
+        for palabra in palabras:
+            consulta = consulta.filter(
+                or_(
+                    ExhExhortoPromocionPromovente.nombre.contains(palabra),
+                    ExhExhortoPromocionPromovente.apellido_paterno.contains(palabra),
+                    ExhExhortoPromocionPromovente.apellido_materno.contains(palabra),
+                )
+            )
     # Luego filtrar por columnas de otras tablas
     # if "persona_rfc" in request.form:
     #     consulta = consulta.join(Persona)
@@ -87,6 +99,29 @@ def datatable_json():
         )
     # Entregar JSON
     return output_datatable_json(draw, total, data)
+
+
+@exh_exhortos_promociones_promoventes.route("/exh_exhortos_promociones_promoventes")
+def list_active():
+    """Listado de Promoventes activos"""
+    return render_template(
+        "exh_exhortos_promociones_promoventes/list.jinja2",
+        filtros=json.dumps({"estatus": "A"}),
+        titulo="Promoventes de promociones",
+        estatus="A",
+    )
+
+
+@exh_exhortos_promociones_promoventes.route("/exh_exhortos_promociones_promoventes/inactivos")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def list_inactive():
+    """Listado de Promoventes inactivos"""
+    return render_template(
+        "exh_exhortos_promociones_promoventes/list.jinja2",
+        filtros=json.dumps({"estatus": "B"}),
+        titulo="Promoventes de promociones inactivos",
+        estatus="B",
+    )
 
 
 @exh_exhortos_promociones_promoventes.route("/exh_exhortos_promociones_promoventes/<int:exh_exhorto_promocion_promovente_id>")

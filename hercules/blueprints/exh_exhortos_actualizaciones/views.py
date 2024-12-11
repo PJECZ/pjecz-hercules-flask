@@ -8,7 +8,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_string, safe_message
+from lib.safe_string import safe_string, safe_message, safe_clave
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
@@ -44,6 +44,14 @@ def datatable_json():
         consulta = consulta.filter_by(estatus="A")
     if "exh_exhorto_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_id=request.form["exh_exhorto_id"])
+    if "actualizacion_origen_id" in request.form:
+        actualizacion_origen_id = safe_clave(request.form["actualizacion_origen_id"])
+        if actualizacion_origen_id:
+            consulta = consulta.filter(ExhExhortoActualizacion.actualizacion_origen_id.contains(actualizacion_origen_id))
+    if "descripcion" in request.form:
+        descripcion = safe_string(request.form["descripcion"])
+        if descripcion:
+            consulta = consulta.filter(ExhExhortoActualizacion.descripcion.contains(descripcion))
     # Luego filtrar por columnas de otras tablas
     # if "persona_rfc" in request.form:
     #     consulta = consulta.join(Persona)
@@ -68,6 +76,29 @@ def datatable_json():
         )
     # Entregar JSON
     return output_datatable_json(draw, total, data)
+
+
+@exh_exhortos_actualizaciones.route("/exh_exhortos_actualizaciones")
+def list_active():
+    """Listado de Actualizaciones activos"""
+    return render_template(
+        "exh_exhortos_actualizaciones/list.jinja2",
+        filtros=json.dumps({"estatus": "A"}),
+        titulo="Actualizaciones",
+        estatus="A",
+    )
+
+
+@exh_exhortos_actualizaciones.route("/exh_exhortos_actualizaciones/inactivos")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def list_inactive():
+    """Listado de Actualizaciones inactivos"""
+    return render_template(
+        "exh_exhortos_actualizaciones/list.jinja2",
+        filtros=json.dumps({"estatus": "B"}),
+        titulo="Actualizaciones inactivos",
+        estatus="B",
+    )
 
 
 @exh_exhortos_actualizaciones.route("/exh_exhortos_actualizaciones/<int:exh_exhorto_actualizacion_id>")

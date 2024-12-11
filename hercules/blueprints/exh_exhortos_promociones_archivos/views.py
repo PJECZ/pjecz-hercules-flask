@@ -93,6 +93,29 @@ def detail(exh_exhorto_promocion_archivo_id):
     )
 
 
+@exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos")
+def list_active():
+    """Listado de Archivos activos"""
+    return render_template(
+        "exh_exhortos_promociones_archivos/list.jinja2",
+        filtros=json.dumps({"estatus": "A"}),
+        titulo="Archivos de Promociones",
+        estatus="A",
+    )
+
+
+@exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/inactivos")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def list_inactive():
+    """Listado de Archivos inactivos"""
+    return render_template(
+        "exh_exhortos_promociones_archivos/list.jinja2",
+        filtros=json.dumps({"estatus": "B"}),
+        titulo="Archivos de Promociones inactivos",
+        estatus="B",
+    )
+
+
 @exh_exhortos_promociones_archivos.route(
     "/exh_exhortos_promociones_archivos/nuevo_con_exhorto_promocion/<int:exh_exhorto_promocion_id>", methods=["GET", "POST"]
 )
