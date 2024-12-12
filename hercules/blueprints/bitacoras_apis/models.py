@@ -4,7 +4,7 @@ Bitácoras de APIs
 
 from typing import Optional
 
-from sqlalchemy import JSON, Enum, ForeignKey, String
+from sqlalchemy import JSONB, Boolean, Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.extensions import database
@@ -14,7 +14,7 @@ from lib.universal_mixin import UniversalMixin
 class BitacoraAPI(database.Model, UniversalMixin):
     """BitacoraAPI"""
 
-    OPERACIONES = {
+    HTTP_REQUESTS = {
         "GET": "GET",
         "POST": "POST",
         "PUT": "PUT",
@@ -33,10 +33,12 @@ class BitacoraAPI(database.Model, UniversalMixin):
 
     # Columnas
     api: Mapped[str] = mapped_column(String(256))
-    ruta: Mapped[str] = mapped_column(String(512))
-    operacion: Mapped[str] = mapped_column(Enum(*OPERACIONES, name="operaciones_tipos", native_enum=False), index=True)
-    descripcion: Mapped[str] = mapped_column(String(256))
-    datos: Mapped[Optional[dict]] = mapped_column(JSON)
+    endpoint: Mapped[str] = mapped_column(String(512))
+    http_request: Mapped[str] = mapped_column(Enum(*HTTP_REQUESTS, name="http_requests_types", native_enum=False), index=True)
+    success: Mapped[bool] = mapped_column(Boolean, index=True)
+    message: Mapped[str] = mapped_column(String(512))
+    errors: Mapped[list[str]]
+    data: Mapped[list[dict]] = mapped_column(JSONB)
 
     def __repr__(self):
         """Representación"""
