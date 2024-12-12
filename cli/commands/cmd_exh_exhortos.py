@@ -393,7 +393,7 @@ def demo_02_recibir(estado_origen):
         exh_exhorto_archivo.hash_sha256 = archivo["hashSha256"]
         exh_exhorto_archivo.tipo_documento = archivo["tipoDocumento"]
         exh_exhorto_archivo.es_respuesta = False
-        exh_exhorto_archivo.estado = "PENDIENTE"
+        exh_exhorto_archivo.estado = "RECIBIDO"
         exh_exhorto_archivo.url = ""
         exh_exhorto_archivo.tamano = 0
         exh_exhorto_archivo.save()
@@ -599,7 +599,7 @@ def demo_05_recibir_respuesta(exhorto_origen_id):
         "areaTurnadoId": area_turnado_id,
         "areaTurnadoNombre": area_turnado_nombre,
         "numeroExhorto": f"{numero}/{datetime.now().year}",
-        "tipoDiligenciado": random.choice(["", "OFICIO", "PETICION DE PARTE"]),
+        "tipoDiligenciado": random.randint(0, 2),
         "observaciones": "OBSERVACIONES DE ESTA PRUEBA",
         "archivos": archivos,
         "videos": videos,

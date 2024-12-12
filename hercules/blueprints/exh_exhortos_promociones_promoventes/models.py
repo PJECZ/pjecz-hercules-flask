@@ -19,6 +19,7 @@ class ExhExhortoPromocionPromovente(database.Model, UniversalMixin):
     GENEROS = {
         "M": "MASCULINO",
         "F": "FEMENINO",
+        "-": "SIN SEXO",
     }
 
     TIPOS_PARTES = {

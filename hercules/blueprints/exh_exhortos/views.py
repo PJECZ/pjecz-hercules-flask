@@ -692,3 +692,28 @@ def response(exh_exhorto_id):
     return render_template(
         "exh_exhortos/response.jinja2", form=form, exh_exhorto=exh_exhorto, municipio_destino=municipio_destino
     )
+
+
+@exh_exhortos.route("/exh_exhortos/archivar/<int:exh_exhorto_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def archive(exh_exhorto_id):
+    """Regresar el estado del exhorto a ARCHIVAR"""
+    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    es_valido = True
+    # Validar que el estado del Exhorto sea "INTENTOS AGOTADOS"
+    if exh_exhorto.estado not in ("DILIGENCIADO", "RESPONDIDO"):
+        es_valido = False
+        flash("El estado del exhorto debe ser DILIGENCIADO o RESPONDIDO.", "warning")
+    # Hacer el cambio de estado
+    if es_valido:
+        exh_exhorto.estado = "ARCHIVADO"
+        exh_exhorto.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Se paso a ARCHIVADO el exhorto {exh_exhorto.exhorto_origen_id}"),
+            url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
