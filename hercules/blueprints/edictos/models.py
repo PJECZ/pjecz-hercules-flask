@@ -5,7 +5,7 @@ Edictos, modelos
 from datetime import date, datetime
 from typing import List, Optional
 
-from sqlalchemy import JSONB, Date, ForeignKey, String
+from sqlalchemy import JSON, Date, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.extensions import database
@@ -38,11 +38,11 @@ class Edicto(database.Model, UniversalMixin):
 
     # Columnas para Retrieval-Augmented Generation (RAG)
     rag_fue_analizado_tiempo: Mapped[Optional[datetime]]
-    rag_analisis: Mapped[Optional[JSONB]]
+    rag_analisis: Mapped[Optional[dict]] = mapped_column(JSON)
     rag_fue_sintetizado_tiempo: Mapped[Optional[datetime]]
-    rag_sintesis: Mapped[Optional[JSONB]]
+    rag_sintesis: Mapped[Optional[dict]] = mapped_column(JSON)
     rag_fue_categorizado_tiempo: Mapped[Optional[datetime]]
-    rag_categorias: Mapped[Optional[JSONB]]
+    rag_categorias: Mapped[Optional[dict]] = mapped_column(JSON)
 
     # Hijos
     edictos_acuses: Mapped[List["EdictoAcuse"]] = relationship(back_populates="edicto")

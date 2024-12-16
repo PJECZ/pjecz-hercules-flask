@@ -54,11 +54,16 @@ def datatable_json():
         data.append(
             {
                 "creado": resultado.creado.strftime("%Y-%m-%dT%H:%M:%S"),
-                "usuario_email": resultado.usuario.email,
-                "api": resultado.api,
-                "ruta": resultado.ruta,
-                "operacion": resultado.operacion,
-                "descripcion": resultado.descripcion,
+                "usuario": {
+                    "email": resultado.usuario.email,
+                    "url": (
+                        url_for("usuarios.detail", usuario_id=resultado.usuario_id) if current_user.can_view("USUARIOS") else ""
+                    ),
+                },
+                "api_nombre": resultado.api_nombre,
+                "api_ruta": resultado.api_ruta,
+                "peticion": resultado.peticion,
+                "respuesta_mensaje": resultado.respuesta_mensaje if resultado.respuesta_mensaje else "",
             }
         )
     # Entregar JSON

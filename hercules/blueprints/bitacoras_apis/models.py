@@ -4,7 +4,7 @@ Bitácoras de APIs
 
 from typing import Optional
 
-from sqlalchemy import JSONB, Boolean, Enum, ForeignKey, String
+from sqlalchemy import JSON, Boolean, Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.extensions import database
@@ -29,7 +29,7 @@ class BitacoraAPI(database.Model, UniversalMixin):
 
     # Claves foráneas
     usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"))
-    usuario: Mapped["Usuario"] = relationship(back_populates="bitacoras")
+    usuario: Mapped["Usuario"] = relationship(back_populates="bitacoras_apis")
 
     # Columnas
     api_nombre: Mapped[str] = mapped_column(String(256))
@@ -37,8 +37,8 @@ class BitacoraAPI(database.Model, UniversalMixin):
     peticion: Mapped[str] = mapped_column(Enum(*PETICIONES, name="peticiones_tipos", native_enum=False), index=True)
     respuesta_exitosa: Mapped[Optional[bool]] = mapped_column(Boolean)
     respuesta_mensaje: Mapped[Optional[str]] = mapped_column(String(256))
-    respuesta_errores: Mapped[Optional[str]] = mapped_column(JSONB)
-    respuesta_datos: Mapped[list[dict]] = mapped_column(JSONB)
+    respuesta_errores: Mapped[list[str]] = mapped_column(JSON)
+    respuesta_datos: Mapped[list[dict]] = mapped_column(JSON)
 
     def __repr__(self):
         """Representación"""

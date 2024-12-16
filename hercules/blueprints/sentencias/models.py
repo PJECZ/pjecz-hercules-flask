@@ -5,7 +5,7 @@ Sentencias, modelos
 from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import Date, ForeignKey, String, Text
+from sqlalchemy import JSON, Date, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.extensions import database
@@ -41,11 +41,11 @@ class Sentencia(database.Model, UniversalMixin):
 
     # Columnas para Retrieval-Augmented Generation (RAG)
     rag_fue_analizado_tiempo: Mapped[Optional[datetime]]
-    rag_analisis: Mapped[Optional[JSONB]]
+    rag_analisis: Mapped[Optional[dict]] = mapped_column(JSON)
     rag_fue_sintetizado_tiempo: Mapped[Optional[datetime]]
-    rag_sintesis: Mapped[Optional[JSONB]]
+    rag_sintesis: Mapped[Optional[dict]] = mapped_column(JSON)
     rag_fue_categorizado_tiempo: Mapped[Optional[datetime]]
-    rag_categorias: Mapped[Optional[JSONB]]
+    rag_categorias: Mapped[Optional[dict]] = mapped_column(JSON)
 
     @property
     def descargar_url(self):

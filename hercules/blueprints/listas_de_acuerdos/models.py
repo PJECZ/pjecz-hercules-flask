@@ -33,11 +33,11 @@ class ListaDeAcuerdo(database.Model, UniversalMixin):
 
     # Columnas para Retrieval-Augmented Generation (RAG)
     rag_fue_analizado_tiempo: Mapped[Optional[datetime]]
-    rag_analisis: Mapped[Optional[JSONB]]
+    rag_analisis: Mapped[Optional[dict]] = mapped_column(JSON)
     rag_fue_sintetizado_tiempo: Mapped[Optional[datetime]]
-    rag_sintesis: Mapped[Optional[JSONB]]
+    rag_sintesis: Mapped[Optional[dict]] = mapped_column(JSON)
     rag_fue_categorizado_tiempo: Mapped[Optional[datetime]]
-    rag_categorias: Mapped[Optional[JSONB]]
+    rag_categorias: Mapped[Optional[dict]] = mapped_column(JSON)
 
     @property
     def descargar_url(self):
