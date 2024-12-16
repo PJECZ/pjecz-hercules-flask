@@ -39,12 +39,13 @@ class Sentencia(database.Model, UniversalMixin):
     archivo: Mapped[str] = mapped_column(String(256), default="", server_default="")
     url: Mapped[str] = mapped_column(String(512), default="", server_default="")
 
-    # Columnas para análisis de datos (data analytics)
-    da_tiempo: Mapped[Optional[datetime]]
-    da_contenido: Mapped[Optional[str]] = mapped_column(Text())
-    da_modelo: Mapped[Optional[str]] = mapped_column(String(256))
-    da_resumen: Mapped[Optional[str]] = mapped_column(String(1024))
-    da_etiquetas: Mapped[Optional[str]] = mapped_column(String(256))
+    # Columnas para Retrieval-Augmented Generation (RAG)
+    rag_fue_analizado_tiempo: Mapped[Optional[datetime]]
+    rag_analisis: Mapped[Optional[JSONB]]
+    rag_fue_sintetizado_tiempo: Mapped[Optional[datetime]]
+    rag_sintesis: Mapped[Optional[JSONB]]
+    rag_fue_categorizado_tiempo: Mapped[Optional[datetime]]
+    rag_categorias: Mapped[Optional[JSONB]]
 
     @property
     def descargar_url(self):

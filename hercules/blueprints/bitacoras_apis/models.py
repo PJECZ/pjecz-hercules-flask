@@ -14,7 +14,7 @@ from lib.universal_mixin import UniversalMixin
 class BitacoraAPI(database.Model, UniversalMixin):
     """BitacoraAPI"""
 
-    HTTP_REQUESTS = {
+    PETICIONES = {
         "GET": "GET",
         "POST": "POST",
         "PUT": "PUT",
@@ -32,14 +32,14 @@ class BitacoraAPI(database.Model, UniversalMixin):
     usuario: Mapped["Usuario"] = relationship(back_populates="bitacoras")
 
     # Columnas
-    api: Mapped[str] = mapped_column(String(256))
-    endpoint: Mapped[str] = mapped_column(String(512))
-    http_request: Mapped[str] = mapped_column(Enum(*HTTP_REQUESTS, name="http_requests_types", native_enum=False), index=True)
-    success: Mapped[bool] = mapped_column(Boolean, index=True)
-    message: Mapped[str] = mapped_column(String(512))
-    errors: Mapped[list[str]]
-    data: Mapped[list[dict]] = mapped_column(JSONB)
+    api_nombre: Mapped[str] = mapped_column(String(256))
+    api_ruta: Mapped[str] = mapped_column(String(512))
+    peticion: Mapped[str] = mapped_column(Enum(*PETICIONES, name="peticiones_tipos", native_enum=False), index=True)
+    respuesta_exitosa: Mapped[Optional[bool]] = mapped_column(Boolean)
+    respuesta_mensaje: Mapped[Optional[str]] = mapped_column(String(256))
+    respuesta_errores: Mapped[Optional[str]] = mapped_column(JSONB)
+    respuesta_datos: Mapped[list[dict]] = mapped_column(JSONB)
 
     def __repr__(self):
         """Representación"""
-        return f"<Bitacora API {self.creado} {self.descripcion}>"
+        return f"<Bitacora API {self.id}>"
