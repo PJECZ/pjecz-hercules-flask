@@ -172,43 +172,60 @@
         {% endif %}
     {% endcall %}
     <!-- Tabla de Partes -->
-    {% call detail.card("Partes") %}
-        <table id="exh_exhortos_partes_datatable" class="table display nowrap" style="width:100%">
-            <thead>
-                <tr>
-                    <th>Nombre Completo</th>
-                    <th>Género</th>
-                    <th>Es Persona Moral</th>
-                    <th>Tipo Parte</th>
-                </tr>
-            </thead>
-        </table>
-        {% if exh_exhorto.estado == 'PENDIENTE' %}
-            {% if current_user.can_insert('EXH EXHORTOS PARTES') %}
-                <a class="btn btn-primary" href="{{url_for('exh_exhortos_partes.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar</a>
+    {% if exh_exhorto.estado == 'PENDIENTE' %}
+        {% call detail.card("Partes") %}
+            <table id="exh_exhortos_partes_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Nombre Completo</th>
+                        <th>Género</th>
+                        <th>Es Persona Moral</th>
+                        <th>Tipo Parte</th>
+                    </tr>
+                </thead>
+            </table>
+            {% if exh_exhorto.estado == 'PENDIENTE' %}
+                {% if current_user.can_insert('EXH EXHORTOS PARTES') %}
+                    <a class="btn btn-primary" href="{{url_for('exh_exhortos_partes.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar</a>
+                {% endif %}
             {% endif %}
-        {% endif %}
-    {% endcall %}
-    <!-- Tabla de Archivos -->
-    {% call detail.card("Archivos") %}
-        <table id="exh_exhortos_archivos_datatable" class="table display nowrap" style="width:100%">
-            <thead>
-                <tr>
-                    <th>Archivo</th>
-                    <th>Descargar</th>
-                    <th>Tipo Documento</th>
-                    <th>Estado</th>
-                    <th>Recepción</th>
-                    <th>Tamaño</th>
-                </tr>
-            </thead>
-        </table>
-        {% if exh_exhorto.estado == 'PENDIENTE' %}
-            {% if current_user.can_insert('EXH EXHORTOS ARCHIVOS') %}
-                <a class="btn btn-primary" href="{{url_for('exh_exhortos_archivos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id, es_respuesta=0)}}">Agregar</a>
+        {% endcall %}
+        <!-- Tabla de Archivos -->
+        {% call detail.card("Archivos") %}
+            <table id="exh_exhortos_archivos_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Archivo</th>
+                        <th>Descargar</th>
+                        <th>Tipo Documento</th>
+                        <th>Estado</th>
+                        <th>Recepción</th>
+                        <th>Tamaño</th>
+                    </tr>
+                </thead>
+            </table>
+            {% if exh_exhorto.estado == 'PENDIENTE' %}
+                {% if current_user.can_insert('EXH EXHORTOS ARCHIVOS') %}
+                    <a class="btn btn-primary" href="{{url_for('exh_exhortos_archivos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id, es_respuesta=0)}}">Agregar</a>
+                {% endif %}
             {% endif %}
-        {% endif %}
+        {% endcall %}
+    {% else %}
+    <!-- Se muestran las partes y archvios envíados como bullets -->
+    {% call detail.card("Partes y Archivos", estatus=exh_exhorto.estatus) %}
+        <ul>
+            {% for parte in partes %}
+                <li>{{ parte.nombre_completo }} | {% if parte.es_persona_moral %} ES PERSONA MORAL {% else %} {{ parte.genero_descripcion }} {% endif %} | {{ parte.tipo_parte_descripcion }}</li>
+            {% endfor %}
+        </ul>
+        <hr />
+        <ul>
+            {% for archivo in archivos %}
+                <li>{{ archivo.nombre_archivo }} | {{ archivo.tipo_documento_nombre }} | {{ archivo.tamano }}</li>
+            {% endfor %}
+        </ul>
     {% endcall %}
+    {% endif %}
     <!-- Acuse de recibido -->
     {% if exh_exhorto.acuse_fecha_hora_recepcion %}
         <div class="card bg-warning mb-3">
@@ -488,7 +505,7 @@
         const filtrosArchivosRespuesta = new FiltrosDataTable('#exh_exhortos_archivos_respuesta_datatable', configDTArchivosRespuesta);
         filtrosArchivosRespuesta.precargar();
     </script>
-    {% if exh_exhorto.estado in ('DILIGENCIADO', 'CONTESTADO', 'PROCESANDO', 'ARCHIVADO') %}
+    {% if exh_exhorto.estado in ('DILIGENCIADO', 'CONTESTADO', 'PROCESANDO', 'RESPONDIDO', 'ARCHIVADO') %}
     <!-- Tabla de Actualizaciones -->
     <script>
         let configDTActualizaciones = constructorDataTable.config();
