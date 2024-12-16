@@ -163,10 +163,16 @@ def detail(exh_exhorto_id):
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
     # Consultar el municipio de origen porque NO es una relacion
     municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
+    # Comprimir partes
+    partes = ExhExhortoParte.query.filter_by(exh_exhorto=exh_exhorto).all()
+    # Comprimir archvios
+    archivos = ExhExhortoArchivo.query.filter_by(exh_exhorto=exh_exhorto).filter_by(es_respuesta=False).all()
     # Entregar
     return render_template(
         "exh_exhortos/detail.jinja2",
         exh_exhorto=exh_exhorto,
+        partes=partes,
+        archivos=archivos,
         municipio_destino=municipio_destino,
     )
 
