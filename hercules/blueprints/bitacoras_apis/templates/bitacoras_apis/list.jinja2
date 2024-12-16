@@ -12,8 +12,8 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {% if current_user.can_view('BITACORAS APIS') %}
-            {{ topbar.button('Bitácoras APIs', url_for('bitacoras_apis.list_active'), 'mdi:calendar-clock') }}
+        {% if current_user.can_view('BITACORAS') %}
+            {{ topbar.button('Bitácoras', url_for('bitacoras.list_active'), 'mdi:calendar-clock') }}
         {% endif %}
         {% if current_user.can_view('ENTRADAS SALIDAS') %}
             {{ topbar.button('Entradas/Salidas', url_for('entradas_salidas.list_active'), 'mdi:calendar-clock') }}
@@ -23,35 +23,32 @@
 
 {% block content %}
     {% call list.card() %}
-        <!-- Filtros Bitácoras -->
+        <!-- Filtros Bitácoras APIs -->
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosBitacoras.buscar(); return false;">
                     <div class="col-4">
                         <div class="form-floating">
-                            <select id="filtroBitacoraUsuarioId" class="form-select js-select2-filter" aria-label="Usuario e-mail"></select>
+                            <select id="filtroBitacoraApiUsuarioId" class="form-select js-select2-filter" aria-label="Usuario e-mail"></select>
                         </div>
                     </div>
-                    <div class="col-4">
-                        <div class="form-floating">
-                            <select id="filtroBitacoraModuloId" class="form-select js-select2-filter" aria-label="Módulo"></select>
-                        </div>
-                    </div>
-                    <div class="col-4 text-end">
+                    <div class="col-8 text-end">
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosBitacoras.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
                         <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosBitacoras.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
                 </form>
             </div>
         </div>
-        <!-- Datatable Bitácoras -->
+        <!-- Datatable Bitácoras APIs -->
         <table id="bitacoras_datatable" class="table display nowrap" style="width:100%">
             <thead>
                 <tr>
                     <th>Creado</th>
                     <th>Usuario</th>
-                    <th>Modulo</th>
-                    <th>Descripción</th>
+                    <th>API</th>
+                    <th>Ruta</th>
+                    <th>Petición</th>
+                    <th>Mensaje</th>
                 </tr>
             </thead>
         </table>
@@ -63,18 +60,20 @@
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
-        // DataTable Bitácoras
+        // DataTable Bitácoras APIs
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
-        let configDTBitacoras = constructorDataTable.config();
-        configDTBitacoras['ajax']['url'] = '/bitacoras/datatable_json';
-        configDTBitacoras['ajax']['data'] = {{ filtros }};
-        configDTBitacoras['columns'] = [
+        let configDTBitacorasApis = constructorDataTable.config();
+        configDTBitacorasApis['ajax']['url'] = '/bitacoras_apis/datatable_json';
+        configDTBitacorasApis['ajax']['data'] = {{ filtros }};
+        configDTBitacorasApis['columns'] = [
             { data: "creado" },
             { data: "usuario" },
-            { data: "modulo" },
-            { data: "vinculo" }
+            { data: "api_nombre" },
+            { data: "api_ruta" },
+            { data: "peticion" },
+            { data: "respuesta_mensaje" }
         ];
-        configDTBitacoras['columnDefs'] = [
+        configDTBitacorasApis['columnDefs'] = [
             {
                 targets: 0, // creado
                 type: "date",
@@ -90,22 +89,18 @@
                 }
             },
             {
-                targets: 2, // modulo
+                targets: 5, // respuesta_mensaje
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.nombre + '</a>';
-                }
-            },
-            {
-                targets: 3, // vinculo
-                data: null,
-                render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '" target="_blank">' + data.descripcion + ' <span class="iconify" data-icon="mdi:open-in-new"></span></a>';
+                    if (data.data.length > 24) {
+                        return '<span title="' + data.data + '">' + data.data.substring(0, 24) + '…</span>';
+                    }
+                    return data.data;
                 }
             }
         ];
-        // Filtros Bitácoras
-        const filtrosBitacoras = new FiltrosDataTable('#bitacoras_datatable', configDTBitacoras);
+        // Filtros Bitácoras APIs
+        const filtrosBitacoras = new FiltrosDataTable('#bitacoras_datatable', configDTBitacorasApis);
         filtrosBitacoras.agregarInput('filtroBitacoraUsuarioId', 'usuario_id');
         filtrosBitacoras.agregarInput('filtroBitacoraModuloId', 'modulo_id');
         filtrosBitacoras.precargar();
@@ -116,28 +111,12 @@
         // Cuando esté listo el DOM
         $(document).ready(function(){
             // Preparar Select2 para filtrar por Usuario
-            $('#filtroBitacoraUsuarioId').select2({
+            $('#filtroBitacoraApiUsuarioId').select2({
                 placeholder: {id: "", text: "Todos los usuarios"},
                 allowClear: true,
                 minimumInputLength: 4,
                 ajax: {
                     url: '/usuarios/select2_json',
-                    headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
-                    dataType: 'json',
-                    delay: 250,
-                    type: "POST",
-                    data: function (params) {
-                        return { 'searchString': params.term }
-                    }
-                }
-            });
-            // Preparar Select2 para filtrar por Módulo
-            $('#filtroBitacoraModuloId').select2({
-                placeholder: {id: "", text: "Todos los módulos"},
-                allowClear: true,
-                minimumInputLength: 4,
-                ajax: {
-                    url: '/modulos/select2_json',
                     headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
                     dataType: 'json',
                     delay: 250,
