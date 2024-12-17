@@ -201,7 +201,7 @@
                 <div class="col-md-6 d-grid gap-2">
                 </div>
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-secondary" href="{{url_for('exh_exhortos.archive', exh_exhorto_id=exh_exhorto.id)}}">
+                    <a class="btn btn-lg btn-secondary" href="javascript:void(0)" onclick="showModalarchivar_btn('{{url_for('exh_exhortos.archive', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de querer ARCHIVAR el exhorto?');">
                         <span class='iconify' data-icon='mdi:archive'></span> Archivar
                     </a>
                 </div>
@@ -594,5 +594,8 @@
     {% endif %}
     {% if exh_exhorto.estado == 'RECIBIDO' %}
         {{ modals.custom_javascript('Transferir', '', "transferir_btn") }}
+    {% endif %}
+    {% if exh_exhorto.estado == 'RESPONDIDO' or exh_exhorto.estado == 'DILIGENCIADO' %}
+        {{ modals.custom_javascript('Archivar', '¿Está seguro de querer ARCHIVAR el exhorto?', "archivar_btn") }}
     {% endif %}
 {% endblock %}
