@@ -1,23 +1,16 @@
 """
-Tareas en el fondo, 04 consultar exhorto
+Tareas en el fondo, Exh Exhortos 04 consultar exhorto
 """
 
-import logging
-
-bitacora = logging.getLogger(__name__)
-bitacora.setLevel(logging.INFO)
-formato = logging.Formatter("%(asctime)s:%(levelname)s:%(message)s")
-empunadura = logging.FileHandler("logs/exh_exhortos.log")
-empunadura.setFormatter(formato)
-bitacora.addHandler(empunadura)
+from hercules.blueprints.exh_exhortos.tasks.tasks_00_bitacora import bitacora
 
 
-def consultar(exh_exhorto_id: int) -> tuple[str, str, str]:
+def task_consultar_exhorto(folio_seguimiento: str = "") -> tuple[str, str, str]:
     """Consultar exhortos"""
-    bitacora.info("Inicia consultar")
+    bitacora.info("Inicia consultar exhorto")
 
     # Elaborar mensaje_termino
-    mensaje_termino = "Termina consultar"
+    mensaje_termino = f"Termina consultar exhorto {folio_seguimiento}"
     bitacora.info(mensaje_termino)
 
     # Entregar mensaje_termino, nombre_archivo y url_publica

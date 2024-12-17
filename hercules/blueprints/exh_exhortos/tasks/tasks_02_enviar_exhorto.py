@@ -1,8 +1,7 @@
 """
-Tareas en el fondo, 02 enviar exhorto
+Tareas en el fondo, Exh Exhortos 02 Enviar Exhorto
 """
 
-import logging
 import time
 from datetime import datetime, timedelta
 
@@ -11,18 +10,12 @@ import requests
 from hercules.app import create_app
 from hercules.blueprints.estados.models import Estado
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
+from hercules.blueprints.exh_exhortos.tasks.tasks_00_bitacora import bitacora
 from hercules.blueprints.exh_externos.models import ExhExterno
 from hercules.blueprints.municipios.models import Municipio
 from hercules.extensions import database
 from lib.exceptions import MyBucketNotFoundError, MyEmptyError, MyFileNotFoundError, MyNotExistsError, MyNotValidParamError
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
-
-bitacora = logging.getLogger(__name__)
-bitacora.setLevel(logging.INFO)
-formato = logging.Formatter("%(asctime)s:%(levelname)s:%(message)s")
-empunadura = logging.FileHandler("logs/exh_exhortos.log")
-empunadura.setFormatter(formato)
-bitacora.addHandler(empunadura)
 
 app = create_app()
 app.app_context().push()
@@ -33,9 +26,9 @@ SEGUNDOS_ESPERA_ENTRE_INTENTOS = 60  # 1 minuto
 TIMEOUT = 30  # 30 segundos
 
 
-def enviar(exhorto_origen_id: str = "") -> tuple[str, str, str]:
-    """Enviar exhortos"""
-    bitacora.info("Inicia enviar")
+def task_enviar_exhorto(exhorto_origen_id: str = "") -> tuple[str, str, str]:
+    """Enviar exhorto"""
+    bitacora.info("Inicia enviar exhorto")
 
     # Inicializar el listado de exhortos a enviar
     exh_exhortos = []
@@ -465,7 +458,7 @@ def enviar(exhorto_origen_id: str = "") -> tuple[str, str, str]:
         exhortos_procesados_contador += 1
 
     # Elaborar mensaje final
-    mensaje_final = f"Termina enviar exhortos con {exhortos_procesados_contador} exhortos procesados."
+    mensaje_final = f"Termina enviar exhorto con {exhortos_procesados_contador} exhortos procesados."
     mensajes_termino.append(mensaje_final)
     bitacora.info(mensaje_final)
 
