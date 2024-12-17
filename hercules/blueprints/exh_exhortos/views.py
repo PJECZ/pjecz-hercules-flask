@@ -110,6 +110,7 @@ def datatable_json():
     # Elaborar datos para DataTable
     data = []
     for resultado in registros:
+        municipio_destino = Municipio.query.filter_by(id=resultado.municipio_destino_id).first()
         data.append(
             {
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
@@ -123,6 +124,7 @@ def datatable_json():
                 },
                 "numero_expediente_origen": resultado.numero_expediente_origen,
                 "estado_origen": resultado.municipio_origen.estado.nombre,
+                "estado_destino": municipio_destino.estado.nombre,
                 "remitente": resultado.remitente,
                 "estado": resultado.estado,
             }
