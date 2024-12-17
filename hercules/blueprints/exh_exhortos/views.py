@@ -33,7 +33,7 @@ from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.pwgen import generar_identificador
-from lib.safe_string import safe_clave, safe_message, safe_string, safe_expediente
+from lib.safe_string import safe_clave, safe_expediente, safe_message, safe_string
 from lib.time_to_text import dia_mes_ano
 
 MODULO = "EXH EXHORTOS"
@@ -420,9 +420,9 @@ def get_from_externo(exh_exhorto_id):
     """Lanzar tarea en el fondo para consultar Exhorto al PJ Externo"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
     tarea = current_user.launch_task(
-        comando="exh_exhortos.tasks.lanzar_consultar",
+        comando="exh_exhortos.tasks.lanzar_task_04_consultar_exhorto",
         mensaje="Consultando exhorto desde externo",
-        exh_exhorto_id=exh_exhorto.id,
+        folio_seguimiento=exh_exhorto.folio_seguimiento,
     )
     flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
     return redirect(url_for("tareas.detail", tarea_id=tarea.id))
@@ -452,7 +452,7 @@ def send(exh_exhorto_id):
     exh_exhorto.save()
     # Lanzar tarea en el fondo
     tarea = current_user.launch_task(
-        comando="exh_exhortos.tasks.lanzar_enviar",
+        comando="exh_exhortos.tasks.lanzar_task_02_enviar_exhorto",
         mensaje="Enviando exhorto al externo",
         exhorto_origen_id=exh_exhorto.exhorto_origen_id,
     )
