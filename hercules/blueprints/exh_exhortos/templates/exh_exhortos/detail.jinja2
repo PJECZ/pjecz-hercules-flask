@@ -63,7 +63,12 @@
                     <div class="col-md-9"><span id="titulo-estado"> {{ exh_exhorto.estado }}</span></div>
                 </div>
                 <hr />
-
+                {% if exh_exhorto.acuse_fecha_hora_recepcion %}
+                    {{ detail.button_md(label='Acuse de Recepción', url=url_for('exh_exhortos.acuse_reception', id_hashed=exh_exhorto.encode_id()), icon='mdi:printer', target='_blank', color_class='btn-outline-secondary') }}
+                {% endif %}
+                {% if exh_exhorto.respuesta_origen_id %}
+                    {{ detail.button_md(label='Acuse de Respuesta', url=url_for('exh_exhortos.acuse_reponse', id_hashed=exh_exhorto.encode_id()), icon='mdi:printer', target='_blank', color_class='btn-outline-secondary') }}
+                {% endif %}
             </div>
         </div>
         {% if exh_exhorto.estado != 'PENDIENTE' %}
@@ -242,40 +247,6 @@
                 {% endif %}
             {% endif %}
         {% endcall %}
-    {% endif %}
-    <!-- Acuse de recibido -->
-    {% if exh_exhorto.acuse_fecha_hora_recepcion %}
-        <div class="card bg-warning mb-3">
-            <div class="card-header">Acuse de recepción</div>
-            <div class="card-body bg-light">
-                {{ detail.label_value('Folio Seguimiento', exh_exhorto.folio_seguimiento) }}
-                {{ detail.label_value('Fecha Hora Recepción', moment(exh_exhorto.acuse_fecha_hora_recepcion).format('llll')) }}
-                {{ detail.label_value('Municipio Área Recibida Id', exh_exhorto.acuse_municipio_area_recibe_id) }}
-                {{ detail.label_value('Área Recibida', exh_exhorto.acuse_area_recibe_id + ': ' + exh_exhorto.acuse_area_recibe_nombre) }}
-                {{ detail.label_value('URL Info', exh_exhorto.acuse_url_info, exh_exhorto.acuse_url_info) }}
-                <div class="row">
-                    <div class="col">
-                        {{ detail.button_md(label='Acuse', url=url_for('exh_exhortos.acuse_reception', id_hashed=exh_exhorto.encode_id()), icon='mdi:printer', target='_blank', color_class='btn-outline-secondary') }}
-                    </div>
-                </div>
-            </div>
-        </div>
-    {% endif %}
-    <!-- Acuse de respuesta -->
-    {% if exh_exhorto.respuesta_origen_id %}
-        <div class="card bg-success mb-3">
-            <div class="card-header text-light">Acuse de respuesta</div>
-            <div class="card-body bg-light">
-                {{ detail.label_value('Respuesta Origen Id', exh_exhorto.respuesta_origen_id) }}
-                {{ detail.label_value('Fecha Hora de Recepción', moment(exh_exhorto.respuesta_fecha_hora_recepcion).format('llll')) }}
-                {{ detail.label_value('Observaciones', exh_exhorto.respuesta_observaciones) }}
-                <div class="row">
-                    <div class="col">
-                        {{ detail.button_md(label='Acuse', url=url_for('exh_exhortos.acuse_reponse', id_hashed=exh_exhorto.encode_id()), icon='mdi:printer', target='_blank', color_class='btn-outline-secondary') }}
-                    </div>
-                </div>
-            </div>
-        </div>
     {% endif %}
     <!-- Archvivos de respuesta -->
     {% if exh_exhorto.estado in ('PROCESANDO', 'RESPONDIDO', 'ARCHIVADO') %}
