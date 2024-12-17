@@ -62,8 +62,40 @@
                     <div class="col-md-3 text-end">Estado</div>
                     <div class="col-md-9"><span id="titulo-estado"> {{ exh_exhorto.estado }}</span></div>
                 </div>
+                <hr />
+
             </div>
         </div>
+        {% if exh_exhorto.estado != 'PENDIENTE' %}
+        <!-- Se muestran las partes y archvios envíados como bullets -->
+        <hr/>
+        <div class="row">
+            <div class="col-md-12">
+            <h6>Partes</h6>
+            <ul>
+                {% for parte in partes %}
+                    <li>{{ parte.nombre_completo }} | {% if parte.es_persona_moral %} ES PERSONA MORAL {% else %} {{ parte.genero_descripcion }} {% endif %} | {{ parte.tipo_parte_descripcion }}</li>
+                {% endfor %}
+            </ul>
+        <hr />
+            <h6>Archivos</h6>
+            <ul>
+                {% for archivo in archivos %}
+                    <li>
+                    <a href="{{ url_for('exh_exhortos_archivos.detail', exh_exhorto_archivo_id=archivo.id) }}">{{ archivo.nombre_archivo }}</a>
+                    | {{ archivo.tipo_documento_nombre }}
+                    | {% if archivo.estado == 'PENDIENTE' %}
+                        <span class="badge rounded-pill bg-warning text-dark">{{ archivo.estado }}</span>
+                    {% else %}
+                        <span class="badge rounded-pill bg-primary">{{ archivo.estado }}</span>
+                    {% endif %}
+                    | {{ archivo.tamano }} Bytes</li>
+                {% endfor %}
+            </ul>
+            </div>
+        </div>
+        {% endif %}
+        <hr/>
         <!-- Botones de acción en diferentes estados -->
         {% if exh_exhorto.estado == 'PENDIENTE' or exh_exhorto.estado == "POR ENVIAR" %}
             <div class="row text-center">
@@ -210,21 +242,6 @@
                 {% endif %}
             {% endif %}
         {% endcall %}
-    {% else %}
-    <!-- Se muestran las partes y archvios envíados como bullets -->
-    {% call detail.card("Partes y Archivos", estatus=exh_exhorto.estatus) %}
-        <ul>
-            {% for parte in partes %}
-                <li>{{ parte.nombre_completo }} | {% if parte.es_persona_moral %} ES PERSONA MORAL {% else %} {{ parte.genero_descripcion }} {% endif %} | {{ parte.tipo_parte_descripcion }}</li>
-            {% endfor %}
-        </ul>
-        <hr />
-        <ul>
-            {% for archivo in archivos %}
-                <li>{{ archivo.nombre_archivo }} | {{ archivo.tipo_documento_nombre }} | {{ archivo.tamano }}</li>
-            {% endfor %}
-        </ul>
-    {% endcall %}
     {% endif %}
     <!-- Acuse de recibido -->
     {% if exh_exhorto.acuse_fecha_hora_recepcion %}
