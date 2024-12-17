@@ -273,7 +273,7 @@
     {% endif %}
     <!-- Archivos de respuesta como Videos -->
     {% if exh_exhorto.estado in ('DILIGENCIADO', 'CONTESTADO', 'PROCESANDO', 'RESPONDIDO', 'ARCHIVADO') %}
-        <div class="card bg-primary mb-3">
+        <div class="card bg-secondary mb-3">
             <div class="card-header text-light">Enlaces de Video</div>
             <div class="card-body bg-light">
                 <table id="exh_exhortos_respuesta_videos_datatable" class="table display nowrap" style="width:100%">
@@ -285,13 +285,13 @@
                     </thead>
                 </table>
                 {% if exh_exhorto.estado in ('DILIGENCIADO', 'PROCESANDO') and current_user.can_insert('EXH EXHORTOS VIDEOS')  %}
-                    <a class="btn btn-primary" href="{{url_for('exh_exhortos_videos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Enlace de Video</a>
+                    <a class="btn btn-secondary" href="{{url_for('exh_exhortos_videos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Enlace de Video</a>
                 {% endif %}
             </div>
         </div>
     <!-- Listado de Actualizaciones -->
-        <div class="card bg-success mb-3">
-            <div class="card-header text-light">Actualizaciones</div>
+        <div class="card bg-warning mb-3">
+            <div class="card-header text-dark">Actualizaciones</div>
             <div class="card-body bg-light">
                 <table id="exh_exhortos_actualizaciones_datatable" class="table display nowrap" style="width:100%">
                     <thead>
@@ -305,7 +305,7 @@
                     </thead>
                 </table>
                 {% if exh_exhorto.estado in ('DILIGENCIADO', 'PROCESANDO', 'RESPONDIDO') and current_user.can_insert('EXH EXHORTOS ACTUALIZACIONES')  %}
-                    <a class="btn btn-success" href="{{url_for('exh_exhortos_actualizaciones.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Actualización</a>
+                    <a class="btn btn-warning text-dark" href="{{url_for('exh_exhortos_actualizaciones.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Actualización</a>
                 {% endif %}
             </div>
         </div>
