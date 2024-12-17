@@ -62,8 +62,45 @@
                     <div class="col-md-3 text-end">Estado</div>
                     <div class="col-md-9"><span id="titulo-estado"> {{ exh_exhorto.estado }}</span></div>
                 </div>
+                <hr />
+                {% if exh_exhorto.acuse_fecha_hora_recepcion %}
+                    {{ detail.button_md(label='Acuse de Recepción', url=url_for('exh_exhortos.acuse_reception', id_hashed=exh_exhorto.encode_id()), icon='mdi:printer', target='_blank', color_class='btn-outline-secondary') }}
+                {% endif %}
+                {% if exh_exhorto.respuesta_origen_id %}
+                    {{ detail.button_md(label='Acuse de Respuesta', url=url_for('exh_exhortos.acuse_reponse', id_hashed=exh_exhorto.encode_id()), icon='mdi:printer', target='_blank', color_class='btn-outline-secondary') }}
+                {% endif %}
             </div>
         </div>
+        {% if exh_exhorto.estado != 'PENDIENTE' %}
+        <!-- Se muestran las partes y archvios envíados como bullets -->
+        <hr/>
+        <div class="row">
+            <div class="col-md-12">
+            <h6>Partes</h6>
+            <ul>
+                {% for parte in partes %}
+                    <li>{{ parte.nombre_completo }} | {% if parte.es_persona_moral %} ES PERSONA MORAL {% else %} {{ parte.genero_descripcion }} {% endif %} | {{ parte.tipo_parte_descripcion }}</li>
+                {% endfor %}
+            </ul>
+        <hr />
+            <h6>Archivos</h6>
+            <ul>
+                {% for archivo in archivos %}
+                    <li>
+                    <a href="{{ url_for('exh_exhortos_archivos.detail', exh_exhorto_archivo_id=archivo.id) }}">{{ archivo.nombre_archivo }}</a>
+                    | {{ archivo.tipo_documento_nombre }}
+                    | {% if archivo.estado == 'PENDIENTE' %}
+                        <span class="badge rounded-pill bg-warning text-dark">{{ archivo.estado }}</span>
+                    {% else %}
+                        <span class="badge rounded-pill bg-primary">{{ archivo.estado }}</span>
+                    {% endif %}
+                    | {{ archivo.tamano }} Bytes</li>
+                {% endfor %}
+            </ul>
+            </div>
+        </div>
+        {% endif %}
+        <hr/>
         <!-- Botones de acción en diferentes estados -->
         {% if exh_exhorto.estado == 'PENDIENTE' or exh_exhorto.estado == "POR ENVIAR" %}
             <div class="row text-center">
@@ -164,7 +201,7 @@
                 <div class="col-md-6 d-grid gap-2">
                 </div>
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-secondary" href="{{url_for('exh_exhortos.archive', exh_exhorto_id=exh_exhorto.id)}}">
+                    <a class="btn btn-lg btn-secondary" href="javascript:void(0)" onclick="showModalarchivar_btn('{{url_for('exh_exhortos.archive', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de querer ARCHIVAR el exhorto?');">
                         <span class='iconify' data-icon='mdi:archive'></span> Archivar
                     </a>
                 </div>
@@ -210,55 +247,6 @@
                 {% endif %}
             {% endif %}
         {% endcall %}
-    {% else %}
-    <!-- Se muestran las partes y archvios envíados como bullets -->
-    {% call detail.card("Partes y Archivos", estatus=exh_exhorto.estatus) %}
-        <ul>
-            {% for parte in partes %}
-                <li>{{ parte.nombre_completo }} | {% if parte.es_persona_moral %} ES PERSONA MORAL {% else %} {{ parte.genero_descripcion }} {% endif %} | {{ parte.tipo_parte_descripcion }}</li>
-            {% endfor %}
-        </ul>
-        <hr />
-        <ul>
-            {% for archivo in archivos %}
-                <li>{{ archivo.nombre_archivo }} | {{ archivo.tipo_documento_nombre }} | {{ archivo.tamano }}</li>
-            {% endfor %}
-        </ul>
-    {% endcall %}
-    {% endif %}
-    <!-- Acuse de recibido -->
-    {% if exh_exhorto.acuse_fecha_hora_recepcion %}
-        <div class="card bg-warning mb-3">
-            <div class="card-header">Acuse de recepción</div>
-            <div class="card-body bg-light">
-                {{ detail.label_value('Folio Seguimiento', exh_exhorto.folio_seguimiento) }}
-                {{ detail.label_value('Fecha Hora Recepción', moment(exh_exhorto.acuse_fecha_hora_recepcion).format('llll')) }}
-                {{ detail.label_value('Municipio Área Recibida Id', exh_exhorto.acuse_municipio_area_recibe_id) }}
-                {{ detail.label_value('Área Recibida', exh_exhorto.acuse_area_recibe_id + ': ' + exh_exhorto.acuse_area_recibe_nombre) }}
-                {{ detail.label_value('URL Info', exh_exhorto.acuse_url_info, exh_exhorto.acuse_url_info) }}
-                <div class="row">
-                    <div class="col">
-                        {{ detail.button_md(label='Acuse', url=url_for('exh_exhortos.acuse_reception', id_hashed=exh_exhorto.encode_id()), icon='mdi:printer', target='_blank', color_class='btn-outline-secondary') }}
-                    </div>
-                </div>
-            </div>
-        </div>
-    {% endif %}
-    <!-- Acuse de respuesta -->
-    {% if exh_exhorto.respuesta_origen_id %}
-        <div class="card bg-success mb-3">
-            <div class="card-header text-light">Acuse de respuesta</div>
-            <div class="card-body bg-light">
-                {{ detail.label_value('Respuesta Origen Id', exh_exhorto.respuesta_origen_id) }}
-                {{ detail.label_value('Fecha Hora de Recepción', moment(exh_exhorto.respuesta_fecha_hora_recepcion).format('llll')) }}
-                {{ detail.label_value('Observaciones', exh_exhorto.respuesta_observaciones) }}
-                <div class="row">
-                    <div class="col">
-                        {{ detail.button_md(label='Acuse', url=url_for('exh_exhortos.acuse_reponse', id_hashed=exh_exhorto.encode_id()), icon='mdi:printer', target='_blank', color_class='btn-outline-secondary') }}
-                    </div>
-                </div>
-            </div>
-        </div>
     {% endif %}
     <!-- Archvivos de respuesta -->
     {% if exh_exhorto.estado in ('PROCESANDO', 'RESPONDIDO', 'ARCHIVADO') %}
@@ -285,7 +273,7 @@
     {% endif %}
     <!-- Archivos de respuesta como Videos -->
     {% if exh_exhorto.estado in ('DILIGENCIADO', 'CONTESTADO', 'PROCESANDO', 'RESPONDIDO', 'ARCHIVADO') %}
-        <div class="card bg-primary mb-3">
+        <div class="card bg-secondary mb-3">
             <div class="card-header text-light">Enlaces de Video</div>
             <div class="card-body bg-light">
                 <table id="exh_exhortos_respuesta_videos_datatable" class="table display nowrap" style="width:100%">
@@ -297,13 +285,13 @@
                     </thead>
                 </table>
                 {% if exh_exhorto.estado in ('DILIGENCIADO', 'PROCESANDO') and current_user.can_insert('EXH EXHORTOS VIDEOS')  %}
-                    <a class="btn btn-primary" href="{{url_for('exh_exhortos_videos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Enlace de Video</a>
+                    <a class="btn btn-secondary" href="{{url_for('exh_exhortos_videos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Enlace de Video</a>
                 {% endif %}
             </div>
         </div>
     <!-- Listado de Actualizaciones -->
-        <div class="card bg-success mb-3">
-            <div class="card-header text-light">Actualizaciones</div>
+        <div class="card bg-warning mb-3">
+            <div class="card-header text-dark">Actualizaciones</div>
             <div class="card-body bg-light">
                 <table id="exh_exhortos_actualizaciones_datatable" class="table display nowrap" style="width:100%">
                     <thead>
@@ -317,7 +305,7 @@
                     </thead>
                 </table>
                 {% if exh_exhorto.estado in ('DILIGENCIADO', 'PROCESANDO', 'RESPONDIDO') and current_user.can_insert('EXH EXHORTOS ACTUALIZACIONES')  %}
-                    <a class="btn btn-success" href="{{url_for('exh_exhortos_actualizaciones.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Actualización</a>
+                    <a class="btn btn-warning text-dark" href="{{url_for('exh_exhortos_actualizaciones.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Actualización</a>
                 {% endif %}
             </div>
         </div>
@@ -606,5 +594,8 @@
     {% endif %}
     {% if exh_exhorto.estado == 'RECIBIDO' %}
         {{ modals.custom_javascript('Transferir', '', "transferir_btn") }}
+    {% endif %}
+    {% if exh_exhorto.estado == 'RESPONDIDO' or exh_exhorto.estado == 'DILIGENCIADO' %}
+        {{ modals.custom_javascript('Archivar', '¿Está seguro de querer ARCHIVAR el exhorto?', "archivar_btn") }}
     {% endif %}
 {% endblock %}
