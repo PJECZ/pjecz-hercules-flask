@@ -21,9 +21,10 @@ from hercules.extensions import database
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "NONE")
 OPENAI_ENDPOINT = os.getenv("OPENAI_ENDPOINT", "http://127.0.0.1:11434/v1")
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "llama3.2:latest")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "")
 OPENAI_ORG_ID = os.getenv("OPENAI_ORG_ID", "NONE")
 OPENAI_PROJECT_ID = os.getenv("OPENAI_PROJECT_ID", "NONE")
+OPENAI_PROMPT = os.getenv("OPENAI_PROMPT", "")
 BASE_DIR = os.getenv("SENTENCIAS_BASE_DIR", "")
 GCS_BASE_URL = os.getenv("SENTENCIAS_GCS_BASE_URL", "")
 
@@ -43,23 +44,22 @@ def cli():
 def probar_ollama(prompt):
     """Probar Ollama"""
 
-    # Definir el cliente de OpenAI
+    # Inicializar OpenAI
     open_ai = OpenAI(
         api_key=OPENAI_API_KEY,
         base_url=OPENAI_ENDPOINT,
         organization=OPENAI_ORG_ID,
         project=OPENAI_PROJECT_ID,
+        timeout=60,
     )
 
-    # Definir la carga que se va a enviar
-    mensajes = [
-        {
-            "role": "user",
-            "content": prompt,
-        }
-    ]
+    # Definir los mensajes que se va a enviar
+    mensajes = []
+    if OPENAI_PROMPT != "":
+        mensajes.append({"role": "system", "content": OPENAI_PROMPT})
+    mensajes.append({"role": "user", "content": prompt})
 
-    # Comunicar con el LLM
+    # Enviar los mensajes
     try:
         response = open_ai.chat.completions.create(
             model=OPENAI_MODEL,
@@ -101,7 +101,8 @@ def extraer_texto_de_un_archivo_pdf(archivo):
 
 @click.command()
 @click.argument("fecha", type=str)
-def extraer_texto_de_sentencias_con_fecha(fecha):
+@click.option("--sobreescribir", is_flag=True)
+def sintetizar(fecha, sobreescribir):
     """Extraer texto de sentencias de una fecha dada"""
 
     # Validar la fecha
@@ -116,6 +117,20 @@ def extraer_texto_de_sentencias_con_fecha(fecha):
         click.echo(click.style(f"No existe el directorio {BASE_DIR}", fg="red"))
         sys.exit(1)
 
+    # Validar el prompt
+    if OPENAI_PROMPT == "":
+        click.echo(click.style(f"No esta definido OPENAI_PROMPT", fg="red"))
+        sys.exit(1)
+
+    # Inicializar OpenAI
+    open_ai = OpenAI(
+        api_key=OPENAI_API_KEY,
+        base_url=OPENAI_ENDPOINT,
+        organization=OPENAI_ORG_ID,
+        project=OPENAI_PROJECT_ID,
+        timeout=60,
+    )
+
     # Consultar las sentencias
     sentencias = Sentencia.query.filter(Sentencia.fecha == fecha).filter(Sentencia.estatus == "A").order_by(Sentencia.id)
     if sentencias.count() == 0:
@@ -124,10 +139,11 @@ def extraer_texto_de_sentencias_con_fecha(fecha):
 
     # Bucle por las sentencias
     for sentencia in sentencias.all():
+        click.echo(click.style(f"[{sentencia.id}] ", fg="white"), nl=False)
+
         # Si la sentencia ya fue analizada, se omite
-        if sentencia.rag_fue_analizado_tiempo is not None:
-            click.echo(click.style(sentencia.archivo, fg="white"), nl=False)
-            click.echo(click.style(" se va omitir porque ya fue analizada", fg="yellow"))
+        if sobreescribir is False and sentencia.rag_fue_analizado_tiempo is not None:
+            click.echo(click.style("Se va omitir porque ya fue analizada", fg="yellow"))
             continue
 
         # Definir la ruta al archivo pdf reemplazando el inicio del url con el directorio
@@ -138,18 +154,16 @@ def extraer_texto_de_sentencias_con_fecha(fecha):
 
         # Mostrar el nombre del archivo en verde
         if archivo_ruta_existe is True:
-            click.echo(click.style(archivo_ruta.name, fg="green"), nl=False)
-            click.echo(click.style(": ", fg="white"), nl=False)
+            click.echo(click.style(f"{archivo_ruta.name} ", fg="green"), nl=False)
         else:
             click.echo(click.style(sentencia.archivo, fg="white"), nl=False)
-            click.echo(click.style("No existe ", fg="red"), nl=False)
-            click.echo(click.style(" se va omitir", fg="yellow"))
+            click.echo(click.style("No existe y se va omitir", fg="yellow"), nl=False)
             continue
 
         # Validar que el archivo sea PDF
         if archivo_ruta.suffix.lower() != ".pdf":
             click.echo(click.style("No es un archivo PDF", fg="yellow"))
-            sys.exit(1)
+            continue
 
         # Extraer el texto
         texto = ""
@@ -161,12 +175,16 @@ def extraer_texto_de_sentencias_con_fecha(fecha):
                 paginas_textos.append(" ".join(texto_sin_avances_de_linea.split()))
             texto = " ".join(paginas_textos)
         except Exception as error:
-            click.echo(click.style(str(error), fg="yellow"))
+            click.echo(click.style("Error al extraer: " + str(error), fg="yellow"))
+            continue
+
+        # Si no hay texto, omitir
+        if texto == "":
+            click.echo(click.style("No hay texto", fg="yellow"))
             continue
 
         # Mostrar los primeros 48 caracteres del texto
-        click.echo(click.style(texto[:48], fg="white"), nl=False)
-        click.echo(" ", nl=False)
+        click.echo(click.style(texto[:48] + ", ", fg="white"), nl=False)
 
         # Definir los datos del análisis
         rag_analisis = {
@@ -181,10 +199,48 @@ def extraer_texto_de_sentencias_con_fecha(fecha):
         sentencia.rag_fue_analizado_tiempo = datetime.now()
         sentencia.save()
 
-        # Mostrar que se ha guardado y dar avance de linea
-        click.echo(click.style(f"Guardado con {rag_analisis['longitud']} caracteres", fg="green"))
+        # Mostrar que se ha guardado
+        click.echo(click.style(f"Analizado ({rag_analisis['longitud']}) ", fg="green"), nl=False)
+
+        # Si la sentencia ya fue sintetizada, se omite
+        if sobreescribir is False and sentencia.rag_fue_sintetizado_tiempo is not None:
+            click.echo(click.style(" se va omitir porque ya fue sintetizada", fg="yellow"))
+            continue
+
+        # Definir los mensajes a enviar
+        mensajes = [
+            {"role": "system", "content": OPENAI_PROMPT},
+            {"role": "user", "content": texto},
+        ]
+
+        # Enviar a OpenAI el texto
+        try:
+            chat_response = open_ai.chat.completions.create(
+                model=OPENAI_MODEL,
+                messages=mensajes,
+                stream=False,
+            )
+        except Exception as error:
+            click.echo(click.style("Error al sintetizar: " + str(error), fg="yellow"))
+            continue
+
+        # Definir los datos de la síntesis
+        rag_sintesis = {
+            "modelo": chat_response.model,
+            "sintesis": chat_response.choices[0].message.content,
+            "tokens_total": chat_response.usage.total_tokens,
+        }
+
+        # Actualizar en la base de datos
+        sentencia.rag_sintesis = rag_sintesis
+        sentencia.rag_fue_sintetizado_tiempo = datetime.now()
+        sentencia.save()
+
+        # Mostrar que se ha guardado
+        click.echo(click.style(f"Sintetizado ({rag_sintesis['tokens_total']}) ", fg="magenta"), nl=False)
+        click.echo()
 
 
 cli.add_command(probar_ollama)
 cli.add_command(extraer_texto_de_un_archivo_pdf)
-cli.add_command(extraer_texto_de_sentencias_con_fecha)
+cli.add_command(sintetizar)

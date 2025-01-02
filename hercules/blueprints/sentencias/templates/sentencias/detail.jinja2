@@ -74,12 +74,19 @@
         </div>
     {% endcall %}
     {# Card sobre RAG #}
-    {% if current_user.can_admin("SENTENCIAS") %}
+    {% if current_user.can_admin("SENTENCIAS") and (sentencia.rag_fue_analizado_tiempo or sentencia.rag_fue_sintetizado_tiempo) %}
         {% call detail.card() %}
-            {{ detail.label_value('Cuándo se extrajo', moment(sentencia.rag_fue_analizado_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
-            {{ detail.label_value_textarea('Texto', sentencia.rag_analisis['texto']) }}
-            {{ detail.label_value('Longitud de caracteres', sentencia.rag_analisis['longitud']) }}
-            {{ detail.label_value('Tamaño del archivo', sentencia.rag_analisis['archivo_tamanio']) }}
+            {% if sentencia.rag_fue_analizado_tiempo %}
+                {{ detail.label_value('Cuándo se extrajo el texto', moment(sentencia.rag_fue_analizado_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
+                {{ detail.label_value_textarea('Texto', sentencia.rag_analisis['texto']) }}
+                {{ detail.label_value('Longitud de caracteres', sentencia.rag_analisis['longitud']) }}
+            {% endif %}
+            {% if sentencia.rag_fue_sintetizado_tiempo %}
+                {{ detail.label_value('Cuándo se analizó', moment(sentencia.rag_fue_analizado_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
+                {{ detail.label_value('Modelo', sentencia.rag_sintesis['modelo']) }}
+                {{ detail.label_value_textarea('Síntesis', sentencia.rag_sintesis['sintesis']) }}
+                {{ detail.label_value('Cantidad de tokens', sentencia.rag_sintesis['tokens_total']) }}
+            {% endif %}
         {% endcall %}
     {% endif %}
     {# Visualizar archivo PDF #}
