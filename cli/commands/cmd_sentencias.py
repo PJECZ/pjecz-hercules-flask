@@ -124,6 +124,12 @@ def extraer_texto_de_sentencias_con_fecha(fecha):
 
     # Bucle por las sentencias
     for sentencia in sentencias.all():
+        # Si la sentencia ya fue analizada, se omite
+        if sentencia.rag_fue_analizado_tiempo is not None:
+            click.echo(click.style(sentencia.archivo, fg="white"), nl=False)
+            click.echo(click.style(" se va omitir porque ya fue analizada", fg="yellow"))
+            continue
+
         # Definir la ruta al archivo pdf reemplazando el inicio del url con el directorio
         archivo_ruta = Path(BASE_DIR + unquote(sentencia.url[len(GCS_BASE_URL) :]))
 
@@ -135,8 +141,8 @@ def extraer_texto_de_sentencias_con_fecha(fecha):
             click.echo(click.style(archivo_ruta.name, fg="green"), nl=False)
             click.echo(click.style(": ", fg="white"), nl=False)
         else:
-            click.echo(click.style("No existe ", fg="yellow"), nl=False)
             click.echo(click.style(sentencia.archivo, fg="white"), nl=False)
+            click.echo(click.style("No existe ", fg="red"), nl=False)
             click.echo(click.style(" se va omitir", fg="yellow"))
             continue
 
@@ -159,7 +165,24 @@ def extraer_texto_de_sentencias_con_fecha(fecha):
             continue
 
         # Mostrar los primeros 48 caracteres del texto
-        click.echo(texto[:48])
+        click.echo(click.style(texto[:48], fg="white"), nl=False)
+        click.echo(" ", nl=False)
+
+        # Definir los datos del análisis
+        rag_analisis = {
+            "archivo_tamanio": archivo_ruta.stat().st_size,
+            "autor": sentencia.autoridad.clave,
+            "longitud": len(texto),
+            "texto": texto,
+        }
+
+        # Actualizar en la base de datos
+        sentencia.rag_analisis = rag_analisis
+        sentencia.rag_fue_analizado_tiempo = datetime.now()
+        sentencia.save()
+
+        # Mostrar que se ha guardado y dar avance de linea
+        click.echo(click.style(f"Guardado con {rag_analisis['longitud']} caracteres", fg="green"))
 
 
 cli.add_command(probar_ollama)
