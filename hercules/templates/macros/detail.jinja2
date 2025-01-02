@@ -58,6 +58,20 @@
     {% endif %}
 {%- endmacro -%}
 
+{# Detail pre #}
+{%- macro label_value_textarea(label, value, rows=10) -%}
+    {% if value != None and value != '' %}
+        <div class="row">
+            <div class="col-md-3 text-end">
+                {{ label }}
+            </div>
+            <div class="col-md-9">
+                <textarea rows="{{ rows }}" style="width:100%">{{ value }}</textarea>
+            </div>
+        </div>
+    {% endif %}
+{%- endmacro -%}
+
 {# Detail currency #}
 {%- macro label_value_currency(label, value, link='') -%}
     {% if value != None and value != '' and value != 0 %}
