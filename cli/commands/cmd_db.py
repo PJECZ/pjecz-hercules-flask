@@ -1,14 +1,24 @@
 """
 CLI Base de Datos
+
+No deje de configurar la variable de entorno RESPALDOS_BASE_DIR
+
+    # CLI Directorio base donde encontrar los respaldos de la base de datos
+    RESPALDOS_BASE_DIR=/home/USUARIO/Descargas/Minerva/pjecz_plataforma_web
+
+Para hacer un bucle del mes 01 al 12 de 2024, ejecutar
+
+    for mes in {01..12}; do cli db generar-csv "2024-${mes}"; done
+
 """
 
-import os
-import sys
 import csv
+import os
 import re
-
-from pathlib import Path
+import sys
 from datetime import datetime
+from pathlib import Path
+
 import click
 from dotenv import load_dotenv
 
@@ -47,8 +57,8 @@ database.app = app
 
 load_dotenv()  # Take environment variables from .env
 
-entorno_implementacion = os.environ.get("DEPLOYMENT_ENVIRONMENT", "develop").upper()
-DIR_RESPALDO_BD = os.getenv("DIR_RESPALDO_BD")
+DEPLOYMENT_ENVIRONMENT = os.environ.get("DEPLOYMENT_ENVIRONMENT", "develop").upper()
+RESPALDOS_BASE_DIR = os.getenv("RESPALDOS_BASE_DIR", "")
 
 
 @click.group()
@@ -59,7 +69,7 @@ def cli():
 @click.command()
 def inicializar():
     """Inicializar"""
-    if entorno_implementacion == "PRODUCTION":
+    if DEPLOYMENT_ENVIRONMENT == "PRODUCTION":
         click.echo("PROHIBIDO: No se inicializa porque este es el servidor de producción.")
         sys.exit(1)
     database.drop_all()
@@ -70,7 +80,7 @@ def inicializar():
 @click.command()
 def alimentar():
     """Alimentar"""
-    if entorno_implementacion == "PRODUCTION":
+    if DEPLOYMENT_ENVIRONMENT == "PRODUCTION":
         click.echo("PROHIBIDO: No se alimenta porque este es el servidor de producción.")
         sys.exit(1)
     alimentar_estados()
@@ -129,25 +139,39 @@ def copiar():
 
 @click.command()
 @click.argument("anio_mes", type=str)
-@click.option("--output", default="reporte_respaldos_BD.csv", type=str, help="Archivo CSV a escribir")
-def generar_csv(anio_mes, output):
-    """Reporte de respaldos de BD a un archivo CSV"""
-    # Validar el archivo CSV a escribir, que no exista
-    ruta = Path(output)
-    if ruta.exists():
-        click.echo(f"AVISO: {output} existe, no voy a sobreescribirlo.")
+def generar_csv(anio_mes):
+    """Generar CSV para SICGD Respaldos BD"""
+
+    # Validar que la variable de entorno este definida
+    if RESPALDOS_BASE_DIR is None or RESPALDOS_BASE_DIR == "":
+        click.echo("ERROR: Falta la variable de entorno RESPALDOS_BASE_DIR")
         return
+
+    # Validar que exista y que sea un directorio
+    respaldos_base_dir = Path(RESPALDOS_BASE_DIR)
+    if not respaldos_base_dir.exists() or not respaldos_base_dir.is_dir():
+        click.echo(f"ERROR: No existe o no es directorio {respaldos_base_dir}")
+        return
+
     # Validar que el parámetro mes_int sea YYYY-MM
     if not re.match(r"^\d{4}-\d{2}$", anio_mes):
         click.echo(f"ERROR: {anio_mes} no es una fecha valida (YYYY-MM)")
         return
-    # Consultar
+
+    # Definir el nombre del archivo CSV que se va a escribir
+    output = f"reporte_respaldos_bd_{anio_mes}.csv"
+
+    # Validar que el archivo CSV no exista
+    ruta = Path(output)
+    if ruta.exists():
+        click.echo(f"AVISO: {output} existe, no voy a sobreescribirlo.")
+        return
+
+    # Buscar archivos dentro del directorio de respaldo que tengan el nombre buscado
     click.echo("Elaborando reporte de respaldos BD...")
-    # Lectura de archivos dentro del directorio de respaldo
     archivos = []
     nombre_buscado = f"pjecz_plataforma_web-{anio_mes[0:4]}-{anio_mes[5:7]}-"
-    for archivo in Path(DIR_RESPALDO_BD).rglob("*"):
-        # Consultar archivos que tengan el nombre tal
+    for archivo in respaldos_base_dir.rglob("*"):
         if nombre_buscado in archivo.name:
             stat = os.stat(archivo)
             patron_fecha = re.search(r"\d{4}-\d{2}-\d{2}-\d{4}", archivo.name)
@@ -160,24 +184,22 @@ def generar_csv(anio_mes, output):
             }
             archivos.append(archivo)
 
-    # si no hay contenido salir
+    # Si no se encontraron archivos, salir
     if len(archivos) <= 0:
-        click.echo("  No se genero archivo de reporte porque no hubo registros.")
+        click.echo("No se genero el archivo porque no se encontraron archivos.")
         return
 
-    # Escribir el reporte en el archivo CSV
+    # Escribir el archivo CSV
     with open(ruta, "w", encoding="utf8") as puntero:
         reporte = csv.writer(puntero)
         reporte.writerow(
             [
                 "Fecha",
                 "Nombre del archivo",
-                "Tamanio",
+                "Tamaño",
             ]
         )
-        # Escribir contenido
         for archivo in archivos:
-            # Escribir la linea
             reporte.writerow(
                 [
                     archivo["fecha"].strftime("%Y-%m-%d %H:%M:%S"),
@@ -191,6 +213,7 @@ def generar_csv(anio_mes, output):
     for archivo in archivos:
         click.echo(f"  + {archivo['fecha'].strftime('%Y-%m-%d %H:%M')} | {archivo['nombre']} | {archivo['tamanio']:.2f}")
 
+    # Mostrar mensaje final
     click.echo(f"  {len(archivos)} archivos de respaldo en {ruta.name}")
 
 
