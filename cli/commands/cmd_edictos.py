@@ -39,16 +39,16 @@ def cli():
 
 
 @click.command()
-@click.option("--autoridad_clave", default="", type=str, help="Clave de la autoridad")
+@click.option("--clave", default="", type=str, help="Clave de la autoridad")
 @click.option("--probar", is_flag=True, help="Probar sin cambiar la BD")
-@click.option("--limpiar", is_flag=True, help="CUIDADO: Eliminar (A->B si NO hay archivo en GCS)")
-@click.option("--limpiar-recuperar", is_flag=True, help="CUIDADO: Eliminar y recuperar (B->A si hay archivo en GCS)")
-def refrescar(autoridad_clave, probar, limpiar, limpiar_recuperar):
+@click.option("--eliminar", is_flag=True, help="CUIDADO: Eliminar (A->B si NO hay archivo en GCS)")
+@click.option("--eliminar-recuperar", is_flag=True, help="CUIDADO: Eliminar y recuperar (B->A si hay archivo en GCS)")
+def refrescar(clave, probar, eliminar, eliminar_recuperar):
     """Refrescar la tabla edictos con los archivos en GCStorage"""
 
-    # Si limpiar_recuperar es verdadero, siempre limpiar será verdadero
-    if limpiar_recuperar is True:
-        limpiar = True
+    # Si eliminar_recuperar es verdadero, siempre limpiar será verdadero
+    if eliminar_recuperar is True:
+        eliminar = True
 
     # Validar que exista el depósito
     try:
@@ -84,23 +84,29 @@ def refrescar(autoridad_clave, probar, limpiar, limpiar_recuperar):
 
     # Si viene la autoridad, validar
     autoridad = None
-    if autoridad_clave != "":
-        autoridad_clave = safe_clave(autoridad_clave)
-        autoridad = Autoridad.query.filter_by(clave=autoridad_clave).first()
+    if clave != "":
+        clave = safe_clave(clave)
+        autoridad = Autoridad.query.filter_by(clave=clave).first()
         if not autoridad:
-            click.echo(click.style(f"No existe la autoridad con clave {autoridad_clave}", fg="red"))
+            click.echo(click.style(f"No existe la autoridad con clave {clave}", fg="red"))
             sys.exit(1)
         if autoridad.estatus != "A":
-            click.echo(click.style(f"La autoridad con clave {autoridad_clave} está eliminada", fg="red"))
+            click.echo(click.style(f"La autoridad con clave {clave} está eliminada", fg="red"))
             sys.exit(1)
         autoridades = [autoridad]
 
     # Si NO hay filtro por autoridad, consultar TODAS las autoridades jurisdiccionales
     if autoridad is None:
-        autoridades = Autoridad.query.filter(Autoridad.es_jurisdiccional == True).order_by(Autoridad.clave).all()
+        autoridades = (
+            Autoridad.query.filter(Autoridad.es_jurisdiccional == True)
+            .filter(Autoridad.estatus == "A")
+            .order_by(Autoridad.clave)
+            .all()
+        )
         if len(autoridades) == 0:
             click.echo(click.style("No hay autoridades jurisdiccionales", fg="red"))
             sys.exit(1)
+        click.echo(f"Encontré {len(autoridades)} autoridades jurisdiccionales")
 
     #
     # Bucle por autoridades
@@ -109,15 +115,15 @@ def refrescar(autoridad_clave, probar, limpiar, limpiar_recuperar):
         # Consultar los edictos (activos e inactivos) de la autoridad
         edictos = Edicto.query.filter(Edicto.autoridad == autoridad).all()
 
-        # Buscar los archivos nuevos en el subdirectorio
+        # Buscar los archivos en el subdirectorio
         subdirectorio = autoridad.directorio_edictos
         if subdirectorio == "":
+            click.echo(click.style(f"Se omite {autoridad.clave} porque no tiene subdirectorio para edictos", fg="yellow"))
             continue
-        blob = bucket.list_blobs(prefix=subdirectorio)
-
-        # Obtener TODOS los archivos en el depósito
-        blobs = list(blob)
+        blobs = list(bucket.list_blobs(prefix=subdirectorio))
         archivos_cantidad = len(blobs)
+        if archivos_cantidad == 0:
+            click.echo(click.style(f"No hay archivos en el subdirectorio {subdirectorio} para insertar", fg="yellow"))
 
         #
         # Bucle por los archivos en el depósito para insertar nuevos edictos
@@ -223,7 +229,7 @@ def refrescar(autoridad_clave, probar, limpiar, limpiar_recuperar):
             click.echo()
 
         # Si NO hay que limpiar, continuar
-        if (limpiar is False) and (limpiar_recuperar is False):
+        if (eliminar is False) and (eliminar_recuperar is False):
             continue
 
         #
@@ -232,6 +238,15 @@ def refrescar(autoridad_clave, probar, limpiar, limpiar_recuperar):
         if len(edictos) > 0:
             click.echo(f"Buscando {len(edictos)} edictos de {autoridad.clave} para cambiar su estatus: ", nl=False)
             for edicto in edictos:
+                # Validar el URL
+                if edicto.url == "":
+                    click.echo(click.style("[Empty URL]", fg="red"), nl=False)
+                    contador_incorrectos += 1
+                    if probar is False:
+                        edicto.estatus = "B"
+                        edicto.save()
+                    continue
+
                 # Obtener el archivo en el depósito a partir del URL
                 parsed_url = urlparse(edicto.url)
                 try:
@@ -239,12 +254,15 @@ def refrescar(autoridad_clave, probar, limpiar, limpiar_recuperar):
                     blob_name = "/".join(blob_name_complete.split("/")[1:])  # Remove first directory, it's the bucket name
                 except IndexError as error:
                     click.echo(click.style("[Bad URL]", fg="red"), nl=False)
+                    if probar is False:
+                        edicto.estatus = "B"
+                        edicto.save()
                     contador_incorrectos += 1
                     continue
                 blob = bucket.get_blob(unquote(blob_name))  # Get the file
 
                 # Si NO existe el archivo y está en estatus A, se elimina
-                if limpiar is True and blob is None and edicto.estatus == "A":
+                if eliminar is True and blob is None and edicto.estatus == "A":
                     if probar is False:
                         edicto.estatus = "B"
                         edicto.save()
@@ -253,7 +271,7 @@ def refrescar(autoridad_clave, probar, limpiar, limpiar_recuperar):
                     continue
 
                 # Si SI existe el archivo y está en estatus B, se recupera
-                if limpiar_recuperar is True and blob and edicto.estatus == "B":
+                if eliminar_recuperar is True and blob and edicto.estatus == "B":
                     if probar is False:
                         edicto.estatus = "A"
                         edicto.save()
