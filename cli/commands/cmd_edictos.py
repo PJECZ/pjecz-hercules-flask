@@ -111,6 +111,8 @@ def refrescar(autoridad_clave, probar, limpiar, limpiar_recuperar):
 
         # Buscar los archivos nuevos en el subdirectorio
         subdirectorio = autoridad.directorio_edictos
+        if subdirectorio == "":
+            continue
         blob = bucket.list_blobs(prefix=subdirectorio)
 
         # Obtener TODOS los archivos en el depósito
@@ -120,104 +122,105 @@ def refrescar(autoridad_clave, probar, limpiar, limpiar_recuperar):
         #
         # Bucle por los archivos en el depósito para insertar nuevos edictos
         #
-        click.echo(f"Tomando {archivos_cantidad} edictos en el subdirectorio {subdirectorio} para insertar: ", nl=False)
-        for blob in blobs:
-            # Saltar si no es un archivo PDF
-            ruta = Path(blob.name)
-            if ruta.suffix.lower() != ".pdf":
-                click.echo(click.style("[Bad pdf]", fg="red"))
-                contador_incorrectos += 1
-                continue
+        if archivos_cantidad > 0:
+            click.echo(f"Tomando {archivos_cantidad} edictos en el subdirectorio {subdirectorio} para insertar: ", nl=False)
+            for blob in blobs:
+                # Saltar si no es un archivo PDF
+                ruta = Path(blob.name)
+                if ruta.suffix.lower() != ".pdf":
+                    click.echo(click.style("[Bad pdf]", fg="red"))
+                    contador_incorrectos += 1
+                    continue
 
-            # Saltar y quitar de la lista de edictos si se encuentra
-            esta_en_bd = False
-            for indice, edicto in enumerate(edictos):
-                if blob.public_url == edicto.url:
-                    edictos.pop(indice)
-                    esta_en_bd = True
-                    break
-            if esta_en_bd:
-                contador_presentes += 1
-                click.echo(click.style(".", fg="blue"), nl=False)
-                continue
+                # Saltar y quitar de la lista de edictos si se encuentra
+                esta_en_bd = False
+                for indice, edicto in enumerate(edictos):
+                    if blob.public_url == edicto.url:
+                        edictos.pop(indice)
+                        esta_en_bd = True
+                        break
+                if esta_en_bd:
+                    contador_presentes += 1
+                    click.echo(click.style(".", fg="blue"), nl=False)
+                    continue
 
-            # A partir de aquí tenemos un archivo NUEVO que NO está en la base de datos
-            # El nombre del archivo para un edicto debe ser como
-            # AAAA-MM-DD-EEEE-EEEE-NUMP-NUMP-DESCRIPCION-BLA-BLA-IDHASED.pdf
+                # A partir de aquí tenemos un archivo NUEVO que NO está en la base de datos
+                # El nombre del archivo para un edicto debe ser como
+                # AAAA-MM-DD-EEEE-EEEE-NUMP-NUMP-DESCRIPCION-BLA-BLA-IDHASED.pdf
 
-            # Separar elementos del nombre del archivo
-            nombre_sin_extension = ruta.name[:-4]
-            elementos = re.sub(letras_digitos_regex, "-", nombre_sin_extension).strip("-").split("-")
+                # Separar elementos del nombre del archivo
+                nombre_sin_extension = ruta.name[:-4]
+                elementos = re.sub(letras_digitos_regex, "-", nombre_sin_extension).strip("-").split("-")
 
-            # Tomar la fecha
-            try:
-                ano = int(elementos.pop(0))
-                mes = int(elementos.pop(0))
-                dia = int(elementos.pop(0))
-                fecha = date(ano, mes, dia)
-            except (IndexError, ValueError):
-                click.echo(click.style("[Bad date]", fg="red"), nl=False)
-                contador_incorrectos += 1
-                continue
+                # Tomar la fecha
+                try:
+                    ano = int(elementos.pop(0))
+                    mes = int(elementos.pop(0))
+                    dia = int(elementos.pop(0))
+                    fecha = date(ano, mes, dia)
+                except (IndexError, ValueError):
+                    click.echo(click.style("[Bad date]", fg="red"), nl=False)
+                    contador_incorrectos += 1
+                    continue
 
-            # Descartar fechas en el futuro o muy en el pasado
-            if not limite_dt <= datetime(year=fecha.year, month=fecha.month, day=fecha.day) <= hoy_dt:
-                click.echo(click.style("[Out of range]", fg="red"), nl=False)
-                contador_incorrectos += 1
-                continue
+                # Descartar fechas en el futuro o muy en el pasado
+                if not limite_dt <= datetime(year=fecha.year, month=fecha.month, day=fecha.day) <= hoy_dt:
+                    click.echo(click.style("[Out of range]", fg="red"), nl=False)
+                    contador_incorrectos += 1
+                    continue
 
-            # Tomar el expediente
-            try:
-                numero = int(elementos[0])
-                ano = int(elementos[1])
-                expediente = str(numero) + "/" + str(ano)
-                elementos.pop(0)
-                elementos.pop(0)
-            except (IndexError, ValueError):
-                expediente = ""
+                # Tomar el expediente
+                try:
+                    numero = int(elementos[0])
+                    ano = int(elementos[1])
+                    expediente = str(numero) + "/" + str(ano)
+                    elementos.pop(0)
+                    elementos.pop(0)
+                except (IndexError, ValueError):
+                    expediente = ""
 
-            # Tomar el número publicación
-            try:
-                numero = int(elementos[0])
-                ano = int(elementos[1])
-                numero_publicacion = str(numero) + "/" + str(ano)
-                elementos.pop(0)
-                elementos.pop(0)
-            except (IndexError, ValueError):
-                numero_publicacion = ""
+                # Tomar el número publicación
+                try:
+                    numero = int(elementos[0])
+                    ano = int(elementos[1])
+                    numero_publicacion = str(numero) + "/" + str(ano)
+                    elementos.pop(0)
+                    elementos.pop(0)
+                except (IndexError, ValueError):
+                    numero_publicacion = ""
 
-            # Tomar la descripción, sin el hash del id de estar presente
-            if len(elementos) > 1:
-                if re.match(hashid_regexp, elementos[-1]) is None:
-                    descripcion = safe_string(" ".join(elementos))
-                else:
-                    decodificado = hashids.decode(elementos[-1])
-                    if isinstance(decodificado, tuple) and len(decodificado) > 0:
-                        descripcion = safe_string(" ".join(elementos[:-1]))
-                    else:
+                # Tomar la descripción, sin el hash del id de estar presente
+                if len(elementos) > 1:
+                    if re.match(hashid_regexp, elementos[-1]) is None:
                         descripcion = safe_string(" ".join(elementos))
-            else:
-                descripcion = "SIN DESCRIPCION"
+                    else:
+                        decodificado = hashids.decode(elementos[-1])
+                        if isinstance(decodificado, tuple) and len(decodificado) > 0:
+                            descripcion = safe_string(" ".join(elementos[:-1]))
+                        else:
+                            descripcion = safe_string(" ".join(elementos))
+                else:
+                    descripcion = "SIN DESCRIPCION"
 
-            # Insertar EL EDICTO
-            if probar is False:
-                tiempo_local = blob.time_created.astimezone(tzlocal())
-                Edicto(
-                    creado=tiempo_local,
-                    modificado=tiempo_local,
-                    autoridad=autoridad,
-                    fecha=fecha,
-                    descripcion=descripcion,
-                    expediente=expediente,
-                    numero_publicacion=numero_publicacion,
-                    archivo=ruta.name,
-                    url=blob.public_url,
-                ).save()
-            click.echo(click.style("+", fg="green"), nl=False)
-            contador_insertados += 1
+                # Insertar EL EDICTO
+                if probar is False:
+                    tiempo_local = blob.time_created.astimezone(tzlocal())
+                    Edicto(
+                        creado=tiempo_local,
+                        modificado=tiempo_local,
+                        autoridad=autoridad,
+                        fecha=fecha,
+                        descripcion=descripcion,
+                        expediente=expediente,
+                        numero_publicacion=numero_publicacion,
+                        archivo=ruta.name,
+                        url=blob.public_url,
+                    ).save()
+                click.echo(click.style("+", fg="green"), nl=False)
+                contador_insertados += 1
 
-        # Poner avance de linea
-        click.echo()
+            # Poner avance de linea
+            click.echo()
 
         # Si NO hay que limpiar, continuar
         if (limpiar is False) and (limpiar_recuperar is False):
@@ -226,39 +229,40 @@ def refrescar(autoridad_clave, probar, limpiar, limpiar_recuperar):
         #
         # Bucle por los edictos restantes que se van a buscar por su URL
         #
-        click.echo(f"Buscando {len(edictos)} edictos de {autoridad.clave} para cambiar su estatus: ", nl=False)
-        for edicto in edictos:
-            # Obtener el archivo en el depósito a partir del URL
-            parsed_url = urlparse(edicto.url)
-            try:
-                blob_name_complete = parsed_url.path[1:]  # Extract path and remove the first slash
-                blob_name = "/".join(blob_name_complete.split("/")[1:])  # Remove first directory, it's the bucket name
-            except IndexError as error:
-                click.echo(click.style("[Bad URL]", fg="red"), nl=False)
-                contador_incorrectos += 1
-                continue
-            blob = bucket.get_blob(unquote(blob_name))  # Get the file
+        if len(edictos) > 0:
+            click.echo(f"Buscando {len(edictos)} edictos de {autoridad.clave} para cambiar su estatus: ", nl=False)
+            for edicto in edictos:
+                # Obtener el archivo en el depósito a partir del URL
+                parsed_url = urlparse(edicto.url)
+                try:
+                    blob_name_complete = parsed_url.path[1:]  # Extract path and remove the first slash
+                    blob_name = "/".join(blob_name_complete.split("/")[1:])  # Remove first directory, it's the bucket name
+                except IndexError as error:
+                    click.echo(click.style("[Bad URL]", fg="red"), nl=False)
+                    contador_incorrectos += 1
+                    continue
+                blob = bucket.get_blob(unquote(blob_name))  # Get the file
 
-            # Si NO existe el archivo y está en estatus A, se elimina
-            if limpiar is True and blob is None and edicto.estatus == "A":
-                if probar is False:
-                    edicto.estatus = "B"
-                    edicto.save()
-                click.echo(click.style("B", fg="yellow"), nl=False)
-                contador_eliminados += 1
-                continue
+                # Si NO existe el archivo y está en estatus A, se elimina
+                if limpiar is True and blob is None and edicto.estatus == "A":
+                    if probar is False:
+                        edicto.estatus = "B"
+                        edicto.save()
+                    click.echo(click.style("B", fg="yellow"), nl=False)
+                    contador_eliminados += 1
+                    continue
 
-            # Si SI existe el archivo y está en estatus B, se recupera
-            if limpiar_recuperar is True and blob and edicto.estatus == "B":
-                if probar is False:
-                    edicto.estatus = "A"
-                    edicto.save()
-                click.echo(click.style("A", fg="green"), nl=False)
-                contador_recuperados += 1
-                continue
+                # Si SI existe el archivo y está en estatus B, se recupera
+                if limpiar_recuperar is True and blob and edicto.estatus == "B":
+                    if probar is False:
+                        edicto.estatus = "A"
+                        edicto.save()
+                    click.echo(click.style("A", fg="green"), nl=False)
+                    contador_recuperados += 1
+                    continue
 
-            # No hay que cambiar nada
-            click.echo(click.style(".", fg="blue"), nl=False)
+                # No hay que cambiar nada
+                click.echo(click.style(".", fg="blue"), nl=False)
 
     # Mensaje final
     click.echo()
