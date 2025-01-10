@@ -1,6 +1,7 @@
 """
 CLI Autoridades
 """
+
 import sys
 
 import click
