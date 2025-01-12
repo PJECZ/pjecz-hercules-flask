@@ -1,9 +1,12 @@
 """
 CLI Edictos
 
-refrescar - Refrescar la tabla edictos con los archivos en GCStorage
+- actualizar: Actualizar el estatus de los edictos a partir de un archivo CSV
+- exportar: Exportar el ID y el estatus de todos los edictos a un archivo CSV
+- refrescar: Refrescar la tabla edictos con los archivos en GCStorage
 """
 
+import csv
 import os
 import re
 import sys
@@ -39,12 +42,76 @@ def cli():
 
 
 @click.command()
+@click.argument("archivo_csv", type=click.Path(exists=True))
+@click.option("--probar", is_flag=True, help="Probar sin cambiar la BD")
+def actualizar(archivo_csv, probar):
+    """Actualizar el estatus de los edictos a partir de un archivo CSV"""
+
+    # Leer el archivo CSV y actualizar la base de datos
+    contador = 0
+    click.echo("Actualizando edictos: ", nl=False)
+    with open(archivo_csv, "r", encoding="utf8") as puntero:
+        lector = csv.DictReader(puntero)
+        for renglon in lector:
+            id_valor = int(renglon["id"])
+            estatus_valor = renglon["estatus"]
+            edicto = Edicto.query.get(id_valor)
+            if edicto is None:
+                click.echo(click.style("!", fg="red"), nl=False)
+                continue
+            if edicto.estatus != estatus_valor:
+                if estatus_valor == "A":
+                    if probar is True:
+                        edicto.estatus = estatus_valor
+                        edicto.save()
+                    contador += 1
+                    click.echo(click.style("A", fg="green"), nl=False)
+                elif estatus_valor == "B":
+                    if probar is True:
+                        edicto.estatus = estatus_valor
+                        edicto.save()
+                    contador += 1
+                    click.echo(click.style("B", fg="yellow"), nl=False)
+                else:
+                    click.echo(click.style("?", fg="red"), nl=False)
+                continue
+            click.echo(click.style(".", fg="blue"), nl=False)
+
+    # Mensaje final
+    click.echo()
+    if probar is True:
+        click.echo(click.style("Terminó en modo PROBAR: No hay cambios en la base de datos.", fg="white"))
+    click.echo(click.style(f"Se actualizaron {contador} edictos", fg="green"))
+
+
+@click.command()
+@click.argument("archivo_csv", type=click.Path(exists=False))
+def exportar(archivo_csv):
+    """Exportar el ID y el estatus de todos los edictos a un archivo CSV"""
+
+    # Consultar TODOS los edictos
+    edictos = Edicto.query.order_by(Edicto.id).all()
+
+    # Crear el archivo CSV
+    contador = 0
+    with open(archivo_csv, mode="w", encoding="utf8") as puntero:
+        escritor = csv.DictWriter(puntero, fieldnames=["id", "estatus"])
+        escritor.writeheader()
+        for edicto in edictos:
+            escritor.writerow({"id": edicto.id, "estatus": edicto.estatus})
+            contador += 1
+
+    # Mensaje final
+    click.echo(click.style(f"Se escribieron {contador} renglones en {archivo_csv}", fg="green"))
+
+
+@click.command()
 @click.option("--clave", default="", type=str, help="Clave de la autoridad")
 @click.option("--probar", is_flag=True, help="Probar sin cambiar la BD")
 @click.option("--eliminar", is_flag=True, help="CUIDADO: Eliminar (A->B si NO hay archivo en GCS)")
 @click.option("--eliminar-recuperar", is_flag=True, help="CUIDADO: Eliminar y recuperar (B->A si hay archivo en GCS)")
 def refrescar(clave, probar, eliminar, eliminar_recuperar):
-    """Refrescar la tabla edictos con los archivos en GCStorage"""
+    """Refrescar edictos con los archivos en GCStorage"""
 
     # Si eliminar_recuperar es verdadero, siempre limpiar será verdadero
     if eliminar_recuperar is True:
@@ -123,7 +190,7 @@ def refrescar(clave, probar, eliminar, eliminar_recuperar):
         blobs = list(bucket.list_blobs(prefix=subdirectorio))
         archivos_cantidad = len(blobs)
         if archivos_cantidad == 0:
-            click.echo(click.style(f"No hay archivos en el subdirectorio {subdirectorio} para insertar", fg="yellow"))
+            click.echo(click.style(f"No hay archivos en el subdirectorio {subdirectorio} para insertar", fg="blue"))
 
         #
         # Bucle por los archivos en el depósito para insertar nuevos edictos
@@ -232,55 +299,62 @@ def refrescar(clave, probar, eliminar, eliminar_recuperar):
         if (eliminar is False) and (eliminar_recuperar is False):
             continue
 
+        # Si NO hay edictos
+        if len(edictos) == 0:
+            click.echo(click.style(f"No hay edictos de {autoridad.clave} para buscar por URL y cambiar su estatus", fg="blue"))
+            continue
+
         #
         # Bucle por los edictos restantes que se van a buscar por su URL
         #
-        if len(edictos) > 0:
-            click.echo(f"Buscando {len(edictos)} edictos de {autoridad.clave} para cambiar su estatus: ", nl=False)
-            for edicto in edictos:
-                # Validar el URL
-                if edicto.url == "":
-                    click.echo(click.style("[Empty URL]", fg="red"), nl=False)
-                    contador_incorrectos += 1
-                    if probar is False:
-                        edicto.estatus = "B"
-                        edicto.save()
-                    continue
+        click.echo(f"Buscando por URL {len(edictos)} edictos de {autoridad.clave} para cambiar su estatus: ", nl=False)
+        for edicto in edictos:
+            # Validar el URL
+            if edicto.url == "":
+                click.echo(click.style("[Empty URL]", fg="yellow"), nl=False)
+                contador_incorrectos += 1
+                if probar is False:
+                    edicto.estatus = "B"
+                    edicto.save()
+                continue
 
-                # Obtener el archivo en el depósito a partir del URL
-                parsed_url = urlparse(edicto.url)
-                try:
-                    blob_name_complete = parsed_url.path[1:]  # Extract path and remove the first slash
-                    blob_name = "/".join(blob_name_complete.split("/")[1:])  # Remove first directory, it's the bucket name
-                except IndexError as error:
-                    click.echo(click.style("[Bad URL]", fg="red"), nl=False)
-                    if probar is False:
-                        edicto.estatus = "B"
-                        edicto.save()
-                    contador_incorrectos += 1
-                    continue
-                blob = bucket.get_blob(unquote(blob_name))  # Get the file
+            # Obtener el archivo en el depósito a partir del URL
+            parsed_url = urlparse(edicto.url)
+            try:
+                blob_name_complete = parsed_url.path[1:]  # Extract path and remove the first slash
+                blob_name = "/".join(blob_name_complete.split("/")[1:])  # Remove first directory, it's the bucket name
+            except IndexError as error:
+                click.echo(click.style("[Bad URL]", fg="yellow"), nl=False)
+                if probar is False:
+                    edicto.estatus = "B"
+                    edicto.save()
+                contador_incorrectos += 1
+                continue
+            blob = bucket.get_blob(unquote(blob_name))  # Get the file
 
-                # Si NO existe el archivo y está en estatus A, se elimina
-                if eliminar is True and blob is None and edicto.estatus == "A":
-                    if probar is False:
-                        edicto.estatus = "B"
-                        edicto.save()
-                    click.echo(click.style("B", fg="yellow"), nl=False)
-                    contador_eliminados += 1
-                    continue
+            # Si NO existe el archivo y está en estatus A, se elimina
+            if eliminar is True and blob is None and edicto.estatus == "A":
+                if probar is False:
+                    edicto.estatus = "B"
+                    edicto.save()
+                click.echo(click.style("B", fg="yellow"), nl=False)
+                contador_eliminados += 1
+                continue
 
-                # Si SI existe el archivo y está en estatus B, se recupera
-                if eliminar_recuperar is True and blob and edicto.estatus == "B":
-                    if probar is False:
-                        edicto.estatus = "A"
-                        edicto.save()
-                    click.echo(click.style("A", fg="green"), nl=False)
-                    contador_recuperados += 1
-                    continue
+            # Si SI existe el archivo y está en estatus B, se recupera
+            if eliminar_recuperar is True and blob and edicto.estatus == "B":
+                if probar is False:
+                    edicto.estatus = "A"
+                    edicto.save()
+                click.echo(click.style("A", fg="green"), nl=False)
+                contador_recuperados += 1
+                continue
 
-                # No hay que cambiar nada
-                click.echo(click.style(".", fg="blue"), nl=False)
+            # No hay que cambiar nada
+            click.echo(click.style(".", fg="blue"), nl=False)
+
+        # Poner avance de linea
+        click.echo()
 
     # Mensaje final
     click.echo()
@@ -298,4 +372,6 @@ def refrescar(clave, probar, eliminar, eliminar_recuperar):
         click.echo(click.style(f"Se eliminaron {contador_eliminados} edictos (estatus cambio a B)", fg="green"))
 
 
+cli.add_command(actualizar)
+cli.add_command(exportar)
 cli.add_command(refrescar)
