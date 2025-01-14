@@ -139,7 +139,7 @@ def copiar():
 
 @click.command()
 @click.argument("anio_mes", type=str)
-def generar_csv(anio_mes):
+def generar_sicgd_csv(anio_mes):
     """Generar CSV para SICGD Respaldos BD"""
 
     # Validar que la variable de entorno este definida
@@ -222,4 +222,4 @@ cli.add_command(alimentar)
 cli.add_command(reiniciar)
 cli.add_command(respaldar)
 cli.add_command(copiar)
-cli.add_command(generar_csv)
+cli.add_command(generar_sicgd_csv)
