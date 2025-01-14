@@ -34,7 +34,7 @@ def cli():
 @click.command()
 @click.argument("anio_mes", type=str)
 @click.option("--output", default="reporte_soportes_tickets.csv", type=str, help="Archivo CSV a escribir")
-def reporte(anio_mes, output):
+def generar_sicgd_csv(anio_mes, output):
     """Generar CSV para SICGD Soporte Tickets en el Sistema de Plataforma Web"""
     # Validar el archivo CSV a escribir, que no exista
     ruta = Path(output)
@@ -82,6 +82,13 @@ def reporte(anio_mes, output):
             ]
         )
         for soporte_ticket in soportes_tickets:
+            # Recortar líneas largas
+            descripcion = soporte_ticket.descripcion.replace("\n", " ")
+            soluciones = soporte_ticket.soluciones.replace("\n", " ")
+            if len(descripcion) > 32:
+                descripcion = descripcion[0:32] + "..."
+            if len(soluciones) > 32:
+                soluciones = soluciones[0:32] + "..."
             # Escribir la linea
             respaldo.writerow(
                 [
@@ -89,8 +96,8 @@ def reporte(anio_mes, output):
                     soporte_ticket.resolucion.strftime("%Y-%m-%d %H:%M:%S"),
                     soporte_ticket.usuario.nombre,
                     soporte_ticket.funcionario.nombre,
-                    soporte_ticket.descripcion[0:32].replace("\n", " "),
-                    soporte_ticket.soluciones[0:32].replace("\n", " "),
+                    descripcion,
+                    soluciones,
                     soporte_ticket.estado,
                 ]
             )
@@ -100,4 +107,4 @@ def reporte(anio_mes, output):
     click.echo(f"  {contador} en {ruta.name}")
 
 
-cli.add_command(reporte)
+cli.add_command(generar_sicgd_csv)
