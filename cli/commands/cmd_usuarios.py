@@ -10,6 +10,7 @@ CLI Usuarios
 import sys
 import re
 import csv
+import calendar
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -82,24 +83,25 @@ def nueva_contrasena(email):
 
 
 @click.command()
-@click.argument("desde", type=str)
-@click.argument("hasta", type=str)
+@click.argument("anio_mes", type=str)
 @click.option("--output", default="reporte_usuarios.csv", type=str, help="Archivo CSV a escribir")
-def reporte(desde, hasta, output):
-    """Reporte de usuarios modificados a un archivo CSV"""
+def reporte(anio_mes, output):
+    """Generar CSV para SICGD Usuarios en el Sistema de Plataforma Web"""
     # Validar el archivo CSV a escribir, que no exista
     ruta = Path(output)
     if ruta.exists():
         click.echo(f"AVISO: {output} existe, no voy a sobreescribirlo.")
         return
-    # Validar que el parametro desde sea YYYY-MM-DD
-    if not re.match(r"^\d{4}-\d{2}-\d{2}$", desde):
-        click.echo(f"ERROR: {desde} no es una fecha valida (YYYY-MM-DD)")
+    # Validar que el parámetro mes_int sea YYYY-MM
+    if not re.match(r"^\d{4}-\d{2}$", anio_mes):
+        click.echo(f"ERROR: {anio_mes} no es una fecha valida (YYYY-MM)")
         return
-    # Validar que el parametro hasta sea YYYY-MM-DD
-    if not re.match(r"^\d{4}-\d{2}-\d{2}$", hasta):
-        click.echo(f"ERROR: {hasta} no es una fecha valida (YYYY-MM-DD)")
-        return
+    # Calcular fecha desde y hasta
+    desde = f"{anio_mes}-01"
+    anio = int(anio_mes[0:4])
+    mes = int(anio_mes[5:7])
+    _, ultimo_dia = calendar.monthrange(anio, mes)
+    hasta = f"{anio_mes}-{ultimo_dia}"
     # Validar que la fecha desde sea menor que la fecha hasta
     if desde > hasta:
         click.echo(f"ERROR: {desde} es mayor que {hasta}")
