@@ -10,6 +10,11 @@ Para hacer un bucle del mes 01 al 12 de 2024, ejecutar
 
     for mes in {01..12}; do cli db generar-csv "2024-${mes}"; done
 
+Para tomar los archivos en GCS agregue en las variables de entorno
+
+    # Google Cloud Storage para generar reportes SICGD CSV
+    CLOUD_STORAGE_DEPOSITO_RESPALDOS=
+
 """
 
 import csv
@@ -21,6 +26,9 @@ from pathlib import Path
 
 import click
 from dotenv import load_dotenv
+from google.cloud import storage
+from google.cloud.exceptions import NotFound
+from tabulate import tabulate
 
 from cli.commands.alimentar_autoridades import alimentar_autoridades
 from cli.commands.alimentar_distritos import alimentar_distritos, eliminar_distritos_sin_autoridades
@@ -50,15 +58,18 @@ from cli.commands.respaldar_roles_permisos import respaldar_roles_permisos
 from cli.commands.respaldar_usuarios_roles import respaldar_usuarios_roles
 from hercules.app import create_app
 from hercules.extensions import database
+from lib.safe_string import safe_clave, safe_string
 
 app = create_app()
 app.app_context().push()
 database.app = app
 
 load_dotenv()  # Take environment variables from .env
-
+CLOUD_STORAGE_DEPOSITO_RESPALDOS = os.environ.get("CLOUD_STORAGE_DEPOSITO_RESPALDOS")
 DEPLOYMENT_ENVIRONMENT = os.environ.get("DEPLOYMENT_ENVIRONMENT", "develop").upper()
 RESPALDOS_BASE_DIR = os.getenv("RESPALDOS_BASE_DIR", "")
+
+BASE_DE_DATOS = "pjecz_plataforma_web"
 
 
 @click.group()
@@ -139,27 +150,15 @@ def copiar():
 
 @click.command()
 @click.argument("anio_mes", type=str)
-def generar_sicgd_csv(anio_mes):
+@click.option("--cloud-storage", is_flag=True, help="Con datos de GCStorage")
+def generar_sicgd_csv(anio_mes, cloud_storage):
     """Generar CSV para SICGD Respaldos BD"""
 
-    # Validar que la variable de entorno este definida
-    if RESPALDOS_BASE_DIR is None or RESPALDOS_BASE_DIR == "":
-        click.echo("ERROR: Falta la variable de entorno RESPALDOS_BASE_DIR")
-        return
-
-    # Validar que exista y que sea un directorio
-    respaldos_base_dir = Path(RESPALDOS_BASE_DIR)
-    if not respaldos_base_dir.exists() or not respaldos_base_dir.is_dir():
-        click.echo(f"ERROR: No existe o no es directorio {respaldos_base_dir}")
-        return
-
-    # Validar que el parámetro mes_int sea YYYY-MM
-    if not re.match(r"^\d{4}-\d{2}$", anio_mes):
-        click.echo(f"ERROR: {anio_mes} no es una fecha valida (YYYY-MM)")
-        return
+    # Compilar la expresion regular que sirve para tomar YYYY-MM-DD-HHMM del nombre del archivo
+    fecha_hm_regexp = re.compile(r"\d{4}-\d{2}-\d{2}-\d{4}")
 
     # Definir el nombre del archivo CSV que se va a escribir
-    output = f"reporte_respaldos_bd_{anio_mes}.csv"
+    output = f"reporte_respaldos_bd_{BASE_DE_DATOS}_{anio_mes}.csv"
 
     # Validar que el archivo CSV no exista
     ruta = Path(output)
@@ -167,22 +166,81 @@ def generar_sicgd_csv(anio_mes):
         click.echo(f"AVISO: {output} existe, no voy a sobreescribirlo.")
         return
 
-    # Buscar archivos dentro del directorio de respaldo que tengan el nombre buscado
-    click.echo("Elaborando reporte de respaldos BD...")
+    # Validar que el parámetro mes_int sea YYYY-MM
+    if not re.match(r"^\d{4}-\d{2}$", anio_mes):
+        click.echo(f"ERROR: {anio_mes} no es una fecha valida (YYYY-MM)")
+        return
+
+    # Inicializar el listado de archivos
     archivos = []
-    nombre_buscado = f"pjecz_plataforma_web-{anio_mes[0:4]}-{anio_mes[5:7]}-"
-    for archivo in respaldos_base_dir.rglob("*"):
-        if nombre_buscado in archivo.name:
-            stat = os.stat(archivo)
-            patron_fecha = re.search(r"\d{4}-\d{2}-\d{2}-\d{4}", archivo.name)
-            patron_fecha = patron_fecha.group()
-            fecha = datetime.strptime(patron_fecha, "%Y-%m-%d-%H%M")
-            archivo = {
-                "fecha": fecha,
-                "nombre": archivo.name,
-                "tamanio": stat.st_size / (1024 * 1024),
-            }
-            archivos.append(archivo)
+
+    # Si se solicita con datos de Google Cloud Storage
+    if cloud_storage is True:
+        # Validar que exista el depósito
+        try:
+            bucket = storage.Client().get_bucket(CLOUD_STORAGE_DEPOSITO_RESPALDOS)
+        except NotFound as error:
+            click.echo(click.style(f"No existe el depósito {CLOUD_STORAGE_DEPOSITO_RESPALDOS}", fg="red"))
+            sys.exit(1)
+
+        # Buscar los archivos en el subdirectorio
+        subdirectorio = BASE_DE_DATOS
+        blobs = list(bucket.list_blobs(prefix=subdirectorio))
+        archivos_cantidad = len(blobs)
+        if archivos_cantidad == 0:
+            click.echo(click.style(f"No hay archivos en el subdirectorio {subdirectorio} para insertar", fg="blue"))
+            for blob in blobs:
+                if anio_mes in blob.name:
+                    click.echo(f"  {blob.name}")
+
+        # Buscar archivos dentro del directorio de respaldo que tengan el nombre buscado
+        click.echo("Elaborando reporte de respaldos BD...")
+        nombre_buscado = f"{BASE_DE_DATOS}-{anio_mes[0:4]}-{anio_mes[5:7]}-"
+        for blob in blobs:
+            if nombre_buscado in blob.name:
+                stat = 0
+                concordancia = fecha_hm_regexp.search(blob.name)
+                if concordancia:
+                    patron_fecha = concordancia.group()
+                    fecha = datetime.strptime(patron_fecha, "%Y-%m-%d-%H%M")
+                    stat = blob.size / (1024 * 1024)
+                else:
+                    fecha = datetime.now()
+                archivo = {
+                    "fecha": fecha,
+                    "nombre": blob.name.split("/")[-1],
+                    "tamanio": stat,
+                }
+                archivos.append(archivo)
+
+    # Si NO se solicita con datos de Google Cloud Storage, entonces es con archivos locales
+    if cloud_storage is False:
+        # Validar que la variable de entorno este definida
+        if RESPALDOS_BASE_DIR is None or RESPALDOS_BASE_DIR == "":
+            click.echo("ERROR: Falta la variable de entorno RESPALDOS_BASE_DIR")
+            return
+
+        # Validar que exista y que sea un directorio
+        respaldos_base_dir = Path(RESPALDOS_BASE_DIR)
+        if not respaldos_base_dir.exists() or not respaldos_base_dir.is_dir():
+            click.echo(f"ERROR: No existe o no es directorio {respaldos_base_dir}")
+            return
+
+        # Buscar archivos dentro del directorio de respaldo que tengan el nombre buscado
+        click.echo("Elaborando reporte de respaldos BD...")
+        nombre_buscado = f"{BASE_DE_DATOS}-{anio_mes[0:4]}-{anio_mes[5:7]}-"
+        for archivo in respaldos_base_dir.rglob("*"):
+            if nombre_buscado in archivo.name:
+                stat = os.stat(archivo)
+                patron_fecha = re.search(r"\d{4}-\d{2}-\d{2}-\d{4}", archivo.name)
+                patron_fecha = patron_fecha.group()
+                fecha = datetime.strptime(patron_fecha, "%Y-%m-%d-%H%M")
+                archivo = {
+                    "fecha": fecha,
+                    "nombre": archivo.name,
+                    "tamanio": stat.st_size / (1024 * 1024),
+                }
+                archivos.append(archivo)
 
     # Si no se encontraron archivos, salir
     if len(archivos) <= 0:
@@ -208,10 +266,12 @@ def generar_sicgd_csv(anio_mes):
                 ]
             )
 
-    # Mostrar en pantalla resultado
-    click.echo(f"  |      Fecha       | Nombre                                      | Tamanio (MB)")
-    for archivo in archivos:
-        click.echo(f"  + {archivo['fecha'].strftime('%Y-%m-%d %H:%M')} | {archivo['nombre']} | {archivo['tamanio']:.2f}")
+    # Crear tabla con tabulate
+    table = [
+        [archivo["fecha"].strftime("%Y-%m-%d %H:%M"), archivo["nombre"], f"{archivo['tamanio']:.2f}"] for archivo in archivos
+    ]
+    headers = ["Fecha", "Nombre del archivo", "Tamaño (MB)"]
+    click.echo(tabulate(table, headers, tablefmt="github"))
 
     # Mostrar mensaje final
     click.echo(f"  {len(archivos)} archivos de respaldo en {ruta.name}")
