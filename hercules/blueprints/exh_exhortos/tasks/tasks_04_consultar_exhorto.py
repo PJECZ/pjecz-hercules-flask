@@ -8,7 +8,7 @@ from hercules.blueprints.exh_exhortos.models import ExhExhorto
 from hercules.blueprints.exh_exhortos.tasks.tasks_00_bitacora import bitacora
 from hercules.blueprints.exh_externos.models import ExhExterno
 from hercules.blueprints.municipios.models import Municipio
-from lib.exceptions import MyEmptyError, MyNotExistsError
+from lib.exceptions import MyAnyError, MyConnectionError, MyEmptyError, MyNotExistsError
 
 TIMEOUT = 30  # 30 segundos
 
@@ -20,7 +20,7 @@ def task_consultar_exhorto(folio_seguimiento: str = "") -> tuple[str, str, str]:
     # Consultar el exhorto a partir del folio_seguimiento
     exh_exhorto = ExhExhorto.query.filter_by(folio_seguimiento=folio_seguimiento).filter_by(estatus="A").first()
 
-    # Validar que el exhorto exista
+    # Validar que exista el exhorto
     if exh_exhorto is None:
         mensaje_error = f"No existe el exhorto con folio de seguimiento {folio_seguimiento}"
         bitacora.error(mensaje_error)
@@ -51,6 +51,7 @@ def task_consultar_exhorto(folio_seguimiento: str = "") -> tuple[str, str, str]:
         raise MyEmptyError(mensaje_error)
 
     # Consultar el exhorto
+    contenido = None
     mensaje_advertencia = ""
     try:
         respuesta = requests.get(
@@ -58,6 +59,8 @@ def task_consultar_exhorto(folio_seguimiento: str = "") -> tuple[str, str, str]:
             headers={"X-Api-Key": exh_externo.api_key},
             timeout=TIMEOUT,
         )
+        respuesta.raise_for_status()
+        contenido = respuesta.json()
     except requests.exceptions.ConnectionError:
         mensaje_advertencia = "No hubo respuesta del servidor al consultar el exhorto"
     except requests.exceptions.HTTPError as error:
@@ -65,24 +68,79 @@ def task_consultar_exhorto(folio_seguimiento: str = "") -> tuple[str, str, str]:
     except requests.exceptions.RequestException:
         mensaje_advertencia = "Falla desconocida al consultar el exhorto"
 
-    # Si fallo la petición
+    # Si hubo mensaje_advertencia por problemas de comunicación
     if mensaje_advertencia != "":
         bitacora.warning(mensaje_advertencia)
-        raise MyEmptyError(mensaje_advertencia)
+        raise MyConnectionError(mensaje_advertencia)
 
     # Validar el contenido de la respuesta
-    contenido = respuesta.json()
+    if not ("success", "message", "errors", "data") in contenido:
+        mensaje_advertencia = "Falla la validación de success, message, errors y data"
+        bitacora.warning(mensaje_advertencia)
+        raise MyConnectionError(mensaje_advertencia)
 
-    # Validar que se haya tenido éxito
+    # Si success es FALSO, mandar a la bitácora el listado de errores y terminar
+    if contenido["success"] is False:
+        bitacora.warning(",".join(contenido["errors"]))
+        raise MyAnyError("El envío del exhorto no fue exitoso. Ver errores en bitácora.")
 
-    # Validar el data
+    # Definir los campos que esperamos vengan en el data
+    campos = [
+        "exhortoOrigenId",
+        "folioSeguimiento",
+        "estadoDestinoId",
+        "estadoDestinoNombre",
+        "municipioDestinoId",
+        "municipioDestinoNombre",
+        "materiaClave",
+        "materiaNombre",
+        "estadoOrigenId",
+        "estadoOrigenNombre",
+        "municipioOrigenId",
+        "municipioOrigenNombre",
+        "juzgadoOrigenId",
+        "juzgadoOrigenNombre",
+        "numeroExpedienteOrigen",
+        "numeroOficioOrigen",
+        "tipoJuicioAsuntoDelitos",
+        "juezExhortante",
+        "partes",
+        "fojas",
+        "diasResponder",
+        "tipoDiligenciacionNombre",
+        "fechaOrigen",
+        "observaciones",
+        "archivos",
+        "fechaHoraRecepcion",
+        "municipioTurnadoId",
+        "municipioTurnadoNombre",
+        "areaTurnadoId",
+        "areaTurnadoNombre",
+        "numeroExhorto",
+        "urlInfo",
+    ]
 
-    # Validar el contenido de data
+    # Validar que vengan los campos en el data
+    data = contenido["data"]
+    mensaje_advertencia = ""
+    for campo in campos:
+        if campo not in data:
+            mensaje_advertencia = f"Falta {campo} en el data"
+            bitacora.warning(mensaje_advertencia)
 
-    # Guardar los datos de la respuesta en la base de datos
+    # Si hubo mensaje_advertencia
+    if mensaje_advertencia != "":
+        mensaje_advertencia = "Fallo la validación de los campos de la consulta del exhorto"
+        bitacora.warning(mensaje_advertencia)
+        raise MyAnyError(mensaje_advertencia)
 
-    # Elaborar mensaje_termino
-    mensaje_termino = f"Termina consultar exhorto {folio_seguimiento}"
+    # Elaborar un listado con los nombres de los campos y sus valores
+    listado = []
+    for campo in campos:
+        listado.append(f"{campo}: {data[campo]}")
+
+    # Juntar todos los items del listado en un texto para que sea el mensaje_termino
+    mensaje_termino = ",".join(listado)
     bitacora.info(mensaje_termino)
 
     # Entregar mensaje_termino, nombre_archivo y url_publica
