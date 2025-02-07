@@ -249,7 +249,7 @@
         {% endcall %}
     {% endif %}
     <!-- Archvivos de respuesta -->
-    {% if exh_exhorto.estado in ('PROCESANDO', 'RESPONDIDO', 'ARCHIVADO') %}
+    {% if exh_exhorto.estado in ('PROCESANDO', 'RESPONDIDO', 'DILIGENCIADO', 'CONTESTADO', 'ARCHIVADO') %}
         <div class="card bg-success mb-3">
             <div class="card-header text-light">Archivos de Respuesta</div>
             <div class="card-body bg-light">

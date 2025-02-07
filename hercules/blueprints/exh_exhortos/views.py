@@ -632,6 +632,7 @@ def refuse(exh_exhorto_id):
     form = ExhExhortoRefuseForm(CombinedMultiDict((request.files, request.form)))
     if form.validate_on_submit():
         exh_exhorto.estado = "RECHAZADO"
+        exh_exhorto.respuesta_tipo_diligenciado = 0
         exh_exhorto.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -658,6 +659,7 @@ def diligence(exh_exhorto_id):
     form = ExhExhortoDiligenceForm(CombinedMultiDict((request.files, request.form)))
     if form.validate_on_submit():
         exh_exhorto.estado = "DILIGENCIADO"
+        exh_exhorto.respuesta_tipo_diligenciado = 2
         exh_exhorto.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),

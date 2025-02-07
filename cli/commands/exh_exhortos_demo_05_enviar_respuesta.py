@@ -86,7 +86,7 @@ def demo_enviar_respuesta(exhorto_origen_id: str) -> str:
         "municipioTurnadoId": exh_exhorto.respuesta_municipio_turnado_id,
         "areaTurnadoId": exh_exhorto.respuesta_area_turnado_id,
         "areaTurnadoNombre": exh_exhorto.respuesta_area_turnado_nombre,
-        "numeroExhorto": exh_exhorto.respuesta_numero_exhorto,
+        "numeroExhorto": exh_exhorto.numero_exhorto,
         "tipoDiligenciado": exh_exhorto.respuesta_tipo_diligenciado,
         "observaciones": exh_exhorto.respuesta_observaciones,
     }
