@@ -62,6 +62,9 @@
                     <div class="col-md-3 text-end">Estado</div>
                     <div class="col-md-9"><span id="titulo-estado"> {{ exh_exhorto.estado }}</span></div>
                 </div>
+                {% if exh_exhorto.folio_seguimiento %}
+                    {{ detail.label_value('Folio de Seguimiento', exh_exhorto.folio_seguimiento) }}
+                {% endif %}
                 <hr />
                 {% if exh_exhorto.acuse_fecha_hora_recepcion %}
                     {{ detail.button_md(label='Acuse de Recepción', url=url_for('exh_exhortos.acuse_reception', id_hashed=exh_exhorto.encode_id()), icon='mdi:printer', target='_blank', color_class='btn-outline-secondary') }}
