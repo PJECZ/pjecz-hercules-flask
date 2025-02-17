@@ -8,12 +8,12 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons('Exhorto Actualización ' + exh_exhorto_actualizacion.actualizacion_origen_id | string) %}
         {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_actualizacion.exh_exhorto_id)) }}
-        {% if current_user.can_edit('EXH EXHORTOS ACTUALIZACIONES') %}
-            {# {{ topbar.button_edit('Editar', url_for('exh_exhortos_actualizacions.edit', exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id)) }} #}
+        {% if current_user.can_edit('EXH EXHORTOS ACTUALIZACIONES') and exh_exhorto_actualizacion.estado == "PENDIENTE" %}
+            {{ topbar.button_edit('Editar', url_for('exh_exhortos_actualizaciones.edit', exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id)) }}
         {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS ACTUALIZACIONES') %}
-            {# {% if exh_exhorto_actualizacion.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('exh_exhortos_actualizaciones.delete', exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id)) }}{% endif %}
-            {% if exh_exhorto_actualizacion.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('exh_exhortos_actualizaciones.recover', exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id)) }}{% endif %} #}
+            {% if exh_exhorto_actualizacion.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('exh_exhortos_actualizaciones.delete', exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id)) }}{% endif %}
+            {% if exh_exhorto_actualizacion.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('exh_exhortos_actualizaciones.recover', exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id)) }}{% endif %}
         {% endif %}
     {% endcall %}
 {% endblock %}
@@ -27,7 +27,7 @@
         {{ detail.label_value('Fecha Hora', moment(exh_exhorto_actualizacion.fecha_hora, local=True).format('llll')) }}
         {{ detail.label_value_big('Estado', exh_exhorto_actualizacion.estado) }}
         {# Botón #}
-        {% if exh_exhorto_actualizacion.estado == "PENDIENTE" %}
+        {% if exh_exhorto_actualizacion.estado == "PENDIENTE" and exh_exhorto_actualizacion.estatus == 'A' %}
             <div class="row text-center">
                 <div class="col-md-6 d-grid gap-2">
                 </div>

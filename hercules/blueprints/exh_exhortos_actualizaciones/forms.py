@@ -13,7 +13,7 @@ TIPOS_ACTUALIZACIONES = [
 ]
 
 
-class ExhExhortoActualizacionNewForm(FlaskForm):
+class ExhExhortoActualizacionForm(FlaskForm):
     """Formulario ExhExhortosActualizaciones"""
 
     origen_id = StringField("Origen ID", validators=[DataRequired(), Length(max=48)])
