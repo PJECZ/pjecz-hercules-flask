@@ -2,9 +2,15 @@
 Exh Exhortos Promociones, tareas en el fondo
 """
 
+from hercules.app import create_app
 from hercules.blueprints.exh_exhortos_promociones.communications.send import enviar_promocion
+from hercules.extensions import database
 from lib.exceptions import MyAnyError
 from lib.tasks import set_task_error, set_task_progress
+
+app = create_app()
+app.app_context().push()
+database.app = app
 
 
 def task_enviar_promocion(exh_exhorto_promocion_id: int) -> str:

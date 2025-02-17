@@ -105,7 +105,7 @@
         {% if exh_exhorto.estado == 'PENDIENTE' or exh_exhorto.estado == "POR ENVIAR" %}
             <div class="row text-center">
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-danger" href="javascript:void(0)" onclick="showModalcancelar_btn('{{url_for('exh_exhortos.cancel', exh_exhorto_id=exh_exhorto.id)}}', '¿Desea cancelar el exhorto?');">
+                    <a class="btn btn-lg btn-danger" href="javascript:void(0)" onclick="showModalcancelar_btn('{{url_for('exh_exhortos.change_to_cancel', exh_exhorto_id=exh_exhorto.id)}}', '¿Desea cancelar el exhorto?');">
                         <span class='iconify' data-icon='mdi:cancel'></span> Cancelar
                     </a>
                 </div>

@@ -395,109 +395,6 @@ def recover(exh_exhorto_id):
     return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
 
 
-@exh_exhortos.route("/exh_exhortos/cancelar/<int:exh_exhorto_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
-def cancel(exh_exhorto_id):
-    """Cancelar Exhorto"""
-    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
-    if exh_exhorto.estado == "PENDIENTE":
-        exh_exhorto.estado = "CANCELADO"
-        exh_exhorto.save()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Exhorto CANCELADO {exh_exhorto.exhorto_origen_id}"),
-            url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-    return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
-
-
-@exh_exhortos.route("/exh_exhortos/transferir/<int:exh_exhorto_id>", methods=["GET", "POST"])
-@permission_required(MODULO, Permiso.MODIFICAR)
-def transfer(exh_exhorto_id):
-    """Transferir un exhorto a un juzgado"""
-    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
-    form = ExhExhortoTransferForm()
-    if form.validate_on_submit():
-        exh_exhorto.exh_area_id = form.exh_area.data
-        exh_exhorto.autoridad_id = form.autoridad.data
-        exh_exhorto.estado = "TRANSFIRIENDO"
-        exh_exhorto.save()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Exhorto Transferido {exh_exhorto.exhorto_origen_id}"),
-            url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-        return redirect(bitacora.url)
-    # Buscar el juzgado origen en Autoridades
-    municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
-    # Cargar los valores guardados en el formulario
-    form.exh_area.data = exh_exhorto.exh_area.id
-    # Entregar
-    return render_template(
-        "exh_exhortos/transfer.jinja2", form=form, exh_exhorto=exh_exhorto, municipio_destino=municipio_destino
-    )
-
-
-@exh_exhortos.route("/exh_exhortos/archivar/<int:exh_exhorto_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
-def archive(exh_exhorto_id):
-    """Regresar el estado del exhorto a ARCHIVAR"""
-    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
-    es_valido = True
-    # Validar que el estado del Exhorto sea "INTENTOS AGOTADOS"
-    if exh_exhorto.estado not in ("DILIGENCIADO", "RESPONDIDO"):
-        es_valido = False
-        flash("El estado del exhorto debe ser DILIGENCIADO o RESPONDIDO.", "warning")
-    # Hacer el cambio de estado
-    if es_valido:
-        exh_exhorto.estado = "ARCHIVADO"
-        exh_exhorto.save()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Se paso a ARCHIVADO el exhorto {exh_exhorto.exhorto_origen_id}"),
-            url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-    return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
-
-
-@exh_exhortos.route("/exh_exhortos/enviar/<int:exh_exhorto_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
-def launch_task_send(exh_exhorto_id):
-    """Lanzar tarea en el fondo para envíar exhorto al PJ Externo"""
-    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
-    # Validar que tenga partes
-    exh_exhorto_partes = ExhExhortoParte.query.filter_by(exh_exhorto_id=exh_exhorto_id).filter_by(estatus="A").first()
-    if exh_exhorto_partes is None:
-        flash("No se pudo enviar el exhorto. Debe incluir al menos una parte.", "warning")
-        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
-    # Validar que tenga archivos
-    exh_exhorto_archivos = ExhExhortoArchivo.query.filter_by(exh_exhorto_id=exh_exhorto_id).filter_by(estatus="A").first()
-    if exh_exhorto_archivos is None:
-        flash("No se pudo enviar el exhorto. Debe incluir al menos un archivo.", "warning")
-        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
-    # Validar el estado
-    if exh_exhorto.estado not in ("PENDIENTE", "POR ENVIAR"):
-        flash("El estado del exhorto debe ser PENDIENTE.", "warning")
-        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
-    # Lanzar tarea en el fondo
-    tarea = current_user.launch_task(
-        comando="exh_exhortos.tasks.task_enviar_exhorto",
-        mensaje="Enviando el exhorto al PJ externo",
-        exh_exhorto_id=exh_exhorto_id,
-    )
-    flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
-    return redirect(url_for("tareas.detail", tarea_id=tarea.id))
-
-
 @exh_exhortos.route("/exh_exhortos/consultar/<int:exh_exhorto_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def launch_task_query(exh_exhorto_id):
@@ -534,3 +431,240 @@ def launch_task_reply(exh_exhorto_id):
     )
     flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
     return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+
+
+@exh_exhortos.route("/exh_exhortos/enviar/<int:exh_exhorto_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def launch_task_send(exh_exhorto_id):
+    """Lanzar tarea en el fondo para envíar exhorto al PJ Externo"""
+    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    # Validar que tenga partes
+    exh_exhorto_partes = ExhExhortoParte.query.filter_by(exh_exhorto_id=exh_exhorto_id).filter_by(estatus="A").first()
+    if exh_exhorto_partes is None:
+        flash("No se pudo enviar el exhorto. Debe incluir al menos una parte.", "warning")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+    # Validar que tenga archivos
+    exh_exhorto_archivos = ExhExhortoArchivo.query.filter_by(exh_exhorto_id=exh_exhorto_id).filter_by(estatus="A").first()
+    if exh_exhorto_archivos is None:
+        flash("No se pudo enviar el exhorto. Debe incluir al menos un archivo.", "warning")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+    # Validar el estado
+    if exh_exhorto.estado not in ("PENDIENTE", "POR ENVIAR"):
+        flash("El estado del exhorto debe ser PENDIENTE.", "warning")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+    # Lanzar tarea en el fondo
+    tarea = current_user.launch_task(
+        comando="exh_exhortos.tasks.task_enviar_exhorto",
+        mensaje="Enviando el exhorto al PJ externo",
+        exh_exhorto_id=exh_exhorto_id,
+    )
+    flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
+    return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+
+
+@exh_exhortos.route("/exh_exhortos/archivar/<int:exh_exhorto_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def change_to_archive(exh_exhorto_id):
+    """Regresar el estado del exhorto a ARCHIVAR"""
+    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    es_valido = True
+    # Validar que el estado del Exhorto sea "INTENTOS AGOTADOS"
+    if exh_exhorto.estado not in ("DILIGENCIADO", "RESPONDIDO"):
+        es_valido = False
+        flash("El estado del exhorto debe ser DILIGENCIADO o RESPONDIDO.", "warning")
+    # Hacer el cambio de estado
+    if es_valido:
+        exh_exhorto.estado = "ARCHIVADO"
+        exh_exhorto.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Se paso a ARCHIVADO el exhorto {exh_exhorto.exhorto_origen_id}"),
+            url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+
+
+@exh_exhortos.route("/exh_exhortos/cancelar/<int:exh_exhorto_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def change_to_cancel(exh_exhorto_id):
+    """Cancelar Exhorto"""
+    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    if exh_exhorto.estado == "PENDIENTE":
+        exh_exhorto.estado = "CANCELADO"
+        exh_exhorto.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Exhorto CANCELADO {exh_exhorto.exhorto_origen_id}"),
+            url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+
+
+@exh_exhortos.route("/exh_exhortos/deligenciar/<int:exh_exhorto_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def change_to_diligence(exh_exhorto_id):
+    """Diligenciado exhorto por un juzgado"""
+    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    form = ExhExhortoDiligenceForm(CombinedMultiDict((request.files, request.form)))
+    if form.validate_on_submit():
+        exh_exhorto.estado = "DILIGENCIADO"
+        exh_exhorto.respuesta_tipo_diligenciado = 2
+        exh_exhorto.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Exhorto Diligenciado {exh_exhorto.exhorto_origen_id}"),
+            url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    # Buscar el juzgado origen en Autoridades
+    municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
+    # Entregar
+    return render_template(
+        "exh_exhortos/diligence.jinja2", form=form, exh_exhorto=exh_exhorto, municipio_destino=municipio_destino
+    )
+
+
+@exh_exhortos.route("/exh_exhortos/regresar_a_pendiente/<int:exh_exhorto_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def change_to_pending(exh_exhorto_id):
+    """Regresar el estado del exhorto a por enviar"""
+    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    es_valido = True
+    # Validar que el estado del Exhorto sea "RECHAZADO"
+    if exh_exhorto.estado != "RECHAZADO":
+        es_valido = False
+        flash("El estado del exhorto debe ser RECHAZADO.", "warning")
+    # Hacer el cambio de estado
+    if es_valido:
+        exh_exhorto.estado = "PENDIENTE"
+        exh_exhorto.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"El exhorto se regresó al estado PENDIENTE {exh_exhorto.exhorto_origen_id}"),
+            url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+
+
+@exh_exhortos.route("/exh_exhortos/procesar/<int:exh_exhorto_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def change_to_process(exh_exhorto_id):
+    """Procesar un exhorto por un juzgado"""
+    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    form = ExhExhortoProcessForm()
+    if form.validate_on_submit():
+        exh_exhorto.numero_exhorto = safe_string(form.numero_exhorto.data)
+        exh_exhorto.estado = "PROCESANDO"
+        exh_exhorto.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Exhorto Procesando {exh_exhorto.exhorto_origen_id}"),
+            url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    # Buscar el juzgado origen en Autoridades
+    municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
+    # Cargar los valores guardados en el formulario
+    form.numero_exhorto.data = exh_exhorto.numero_exhorto
+    # Entregar
+    return render_template(
+        "exh_exhortos/process.jinja2", form=form, exh_exhorto=exh_exhorto, municipio_destino=municipio_destino
+    )
+
+
+@exh_exhortos.route("/exh_exhortos/rechazar/<int:exh_exhorto_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def change_to_refuse(exh_exhorto_id):
+    """Rechazar un exhorto por un juzgado"""
+    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    form = ExhExhortoRefuseForm(CombinedMultiDict((request.files, request.form)))
+    if form.validate_on_submit():
+        exh_exhorto.estado = "RECHAZADO"
+        exh_exhorto.respuesta_tipo_diligenciado = 0
+        exh_exhorto.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Exhorto Rechazado {exh_exhorto.exhorto_origen_id}"),
+            url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    # Buscar el juzgado origen en Autoridades
+    municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
+    # Entregar
+    return render_template(
+        "exh_exhortos/refuse.jinja2", form=form, exh_exhorto=exh_exhorto, municipio_destino=municipio_destino
+    )
+
+
+@exh_exhortos.route("/exh_exhortos/regresar_a_por_enviar/<int:exh_exhorto_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def change_to_send(exh_exhorto_id):
+    """Regresar el estado del exhorto a por enviar"""
+    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    es_valido = True
+    # Validar que el estado del Exhorto sea "INTENTOS AGOTADOS"
+    if exh_exhorto.estado != "INTENTOS AGOTADOS":
+        es_valido = False
+        flash("El estado del exhorto debe ser INTENTOS AGOTADOS.", "warning")
+    # Hacer el cambio de estado
+    if es_valido:
+        exh_exhorto.estado = "POR ENVIAR"
+        exh_exhorto.por_enviar_intentos = 0
+        exh_exhorto.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Se reiniciaron los intentos de envío del exhorto {exh_exhorto.exhorto_origen_id}"),
+            url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+
+
+@exh_exhortos.route("/exh_exhortos/transferir/<int:exh_exhorto_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def change_to_transfer(exh_exhorto_id):
+    """Transferir un exhorto a un juzgado"""
+    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    form = ExhExhortoTransferForm()
+    if form.validate_on_submit():
+        exh_exhorto.exh_area_id = form.exh_area.data
+        exh_exhorto.autoridad_id = form.autoridad.data
+        exh_exhorto.estado = "TRANSFIRIENDO"
+        exh_exhorto.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Exhorto Transferido {exh_exhorto.exhorto_origen_id}"),
+            url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    # Buscar el juzgado origen en Autoridades
+    municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
+    # Cargar los valores guardados en el formulario
+    form.exh_area.data = exh_exhorto.exh_area.id
+    # Entregar
+    return render_template(
+        "exh_exhortos/transfer.jinja2", form=form, exh_exhorto=exh_exhorto, municipio_destino=municipio_destino
+    )

@@ -2,21 +2,27 @@
 Exh Exhortos, tareas en el fondo
 """
 
+from hercules.app import create_app
 from hercules.blueprints.exh_exhortos.communications.query import consultar_exhorto
 from hercules.blueprints.exh_exhortos.communications.reply import responder_exhorto
 from hercules.blueprints.exh_exhortos.communications.send import enviar_exhorto
+from hercules.extensions import database
 from lib.exceptions import MyAnyError
 from lib.tasks import set_task_error, set_task_progress
 
+app = create_app()
+app.app_context().push()
+database.app = app
 
-def task_enviar_exhorto(exhorto_origen_id: str) -> str:
+
+def task_enviar_exhorto(exh_exhorto_id: int) -> str:
     """Lanzar tarea en el fondo para enviar un exhorto"""
     # Iniciar la tarea en el fondo
     set_task_progress(0, "Se ha lanzado la tarea en el fondo para enviar un exhorto")
 
     # Ejecutar
     try:
-        mensaje_termino, nombre_archivo, url_publica = enviar_exhorto(exhorto_origen_id)
+        mensaje_termino, nombre_archivo, url_publica = enviar_exhorto(exh_exhorto_id)
     except MyAnyError as error:
         mensaje_error = str(error)
         set_task_error(mensaje_error)
@@ -29,14 +35,14 @@ def task_enviar_exhorto(exhorto_origen_id: str) -> str:
     return mensaje_termino
 
 
-def task_consultar_exhorto(folio_seguimiento: str) -> str:
+def task_consultar_exhorto(exh_exhorto_id: int) -> str:
     """Lanzar tarea en el fondo para consultar un exhorto"""
     # Iniciar la tarea en el fondo
     set_task_progress(0, "Se ha lanzado la tarea en el fondo para consultar un exhorto")
 
     # Ejecutar
     try:
-        mensaje_termino, nombre_archivo, url_publica = consultar_exhorto(folio_seguimiento)
+        mensaje_termino, nombre_archivo, url_publica = consultar_exhorto(exh_exhorto_id)
     except MyAnyError as error:
         mensaje_error = str(error)
         set_task_error(mensaje_error)
@@ -49,14 +55,14 @@ def task_consultar_exhorto(folio_seguimiento: str) -> str:
     return mensaje_termino
 
 
-def task_responder_exhorto(folio_seguimiento: str) -> str:
+def task_responder_exhorto(exh_exhorto_id: int) -> str:
     """Lanzar tarea en el fondo para responder un exhorto"""
     # Iniciar la tarea en el fondo
     set_task_progress(0, "Se ha lanzado la tarea en el fondo para responder un exhorto")
 
     # Ejecutar
     try:
-        mensaje_termino, nombre_archivo, url_publica = responder_exhorto(folio_seguimiento)
+        mensaje_termino, nombre_archivo, url_publica = responder_exhorto(exh_exhorto_id)
     except MyAnyError as error:
         mensaje_error = str(error)
         set_task_error(mensaje_error)

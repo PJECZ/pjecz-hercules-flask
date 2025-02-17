@@ -10,7 +10,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     bitacora.info("Inicia enviar el exhorto al PJ externo.")
 
     # Elaborar mensaje final
-    mensaje_termino = "Termina enviar el exhorto al PJ externo."
+    mensaje_termino = f"Termina enviar el exhorto con ID {exh_exhorto_id} al PJ externo."
     bitacora.info(mensaje_termino)
 
     # Entregar mensaje_termino, nombre_archivo y url_publica
