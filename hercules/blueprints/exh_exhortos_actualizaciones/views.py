@@ -4,20 +4,20 @@ Exhorto - Actualizaciones, vistas
 
 import json
 from datetime import datetime
+
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_string, safe_message, safe_clave
-from lib.pwgen import generar_identificador
-
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.exh_exhortos.models import ExhExhorto
+from hercules.blueprints.exh_exhortos_actualizaciones.forms import ExhExhortoActualizacionNewForm
+from hercules.blueprints.exh_exhortos_actualizaciones.models import ExhExhortoActualizacion
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
-from hercules.blueprints.exh_exhortos_actualizaciones.models import ExhExhortoActualizacion
-from hercules.blueprints.exh_exhortos_actualizaciones.forms import ExhExhortoActualizacionNewForm
-from hercules.blueprints.exh_exhortos.models import ExhExhorto
+from lib.datatables import get_datatable_parameters, output_datatable_json
+from lib.pwgen import generar_identificador
+from lib.safe_string import safe_clave, safe_message, safe_string
 
 MODULO = "EXH EXHORTOS ACTUALIZACIONES"
 
@@ -137,3 +137,19 @@ def new_with_exh_exhorto(exh_exhorto_id):
     # Despliega el campo Origen ID generado
     form.origen_id.data = generar_identificador()
     return render_template("exh_exhortos_actualizaciones/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
+
+
+@exh_exhortos_actualizaciones.route("/exh_exhortos_actualizaciones/enviar/<int:exh_exhorto_actualizacion_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def launch_task_send(exh_exhorto_actualizacion_id):
+    """Lanzar tarea en el fondo para enviar una actualización al PJ Externo"""
+    # exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get_or_404(exh_exhorto_actualizacion_id)
+    # TODO: Validar el estado de la actualizacion
+    # Lanzar tarea en el fondo
+    tarea = current_user.launch_task(
+        comando="exh_exhortos_actualizaciones.tasks.task_enviar_actualizacion",
+        mensaje="Enviando la actualización al PJ Externo",
+        exh_exhorto_actualizacion_id=exh_exhorto_actualizacion_id,
+    )
+    flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
+    return redirect(url_for("tareas.detail", tarea_id=tarea.id))

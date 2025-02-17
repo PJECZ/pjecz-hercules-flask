@@ -1,5 +1,5 @@
 """
-Exh Exhortos, tareas en el fondo, 00 Bitácora
+Communications init
 """
 
 import logging

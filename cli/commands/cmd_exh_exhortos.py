@@ -13,11 +13,11 @@ from cli.commands.exh_exhortos_demo_06_recibir_actualizacion import demo_recibir
 from cli.commands.exh_exhortos_demo_07_enviar_promocion import demo_enviar_promocion
 from cli.commands.exh_exhortos_demo_07_recibir_promocion import demo_recibir_promocion
 from cli.commands.exh_exhortos_truncar import truncar as ejecutar_truncar
-from hercules.blueprints.exh_exhortos.tasks.tasks_02_enviar_exhorto import task_enviar_exhorto
-from hercules.blueprints.exh_exhortos.tasks.tasks_04_consultar_exhorto import task_consultar_exhorto
-from hercules.blueprints.exh_exhortos.tasks.tasks_05_responder_exhorto import task_responder_exhorto
-from hercules.blueprints.exh_exhortos.tasks.tasks_06_enviar_actualizacion import task_enviar_actualizacion
-from hercules.blueprints.exh_exhortos.tasks.tasks_07_enviar_promocion import task_enviar_promocion
+from hercules.blueprints.exh_exhortos.communications.consultar_exhorto import consultar_exhorto
+from hercules.blueprints.exh_exhortos.communications.enviar_actualizacion import enviar_actualizacion
+from hercules.blueprints.exh_exhortos.communications.enviar_exhorto import enviar_exhorto
+from hercules.blueprints.exh_exhortos.communications.enviar_promocion import enviar_promocion
+from hercules.blueprints.exh_exhortos.communications.responder_exhorto import responder_exhorto
 
 
 @click.group()
@@ -104,7 +104,7 @@ def demo_07_recibir_promocion(exhorto_origen_id):
 def task_02_enviar_exhorto(exhorto_origen_id):
     """Enviar un exhorto"""
     click.echo("Enviar un exhorto")
-    mensaje, _, _ = task_enviar_exhorto(exhorto_origen_id)
+    mensaje, _, _ = enviar_exhorto(exhorto_origen_id)
     click.echo(click.style(mensaje, fg="green"))
 
 
@@ -113,7 +113,7 @@ def task_02_enviar_exhorto(exhorto_origen_id):
 def task_04_consultar_exhorto(folio_seguimiento):
     """Consultar un exhorto"""
     click.echo("Consultar un exhorto")
-    mensaje, _, _ = task_consultar_exhorto(folio_seguimiento)
+    mensaje, _, _ = consultar_exhorto(folio_seguimiento)
     click.echo(click.style(mensaje, fg="green"))
 
 
@@ -122,7 +122,7 @@ def task_04_consultar_exhorto(folio_seguimiento):
 def task_05_responder_exhorto(folio_seguimiento):
     """Responder un exhorto"""
     click.echo("Responder un exhorto")
-    mensaje, _, _ = task_responder_exhorto(folio_seguimiento)
+    mensaje, _, _ = responder_exhorto(folio_seguimiento)
     click.echo(click.style(mensaje, fg="green"))
 
 
@@ -131,7 +131,7 @@ def task_05_responder_exhorto(folio_seguimiento):
 def task_06_enviar_actualizacion(exhorto_origen_id):
     """Enviar una actualización"""
     click.echo("Enviar una actualización")
-    mensaje, _, _ = task_enviar_actualizacion(exhorto_origen_id)
+    mensaje, _, _ = enviar_actualizacion(exhorto_origen_id)
     click.echo(click.style(mensaje, fg="green"))
 
 
@@ -140,7 +140,7 @@ def task_06_enviar_actualizacion(exhorto_origen_id):
 def task_07_enviar_promocion(exhorto_origen_id):
     """Enviar una promoción"""
     click.echo("Enviar una promoción")
-    mensaje, _, _ = task_enviar_promocion(exhorto_origen_id)
+    mensaje, _, _ = enviar_promocion(exhorto_origen_id)
     click.echo(click.style(mensaje, fg="green"))
 
 

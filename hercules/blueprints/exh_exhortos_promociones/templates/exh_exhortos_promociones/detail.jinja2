@@ -19,6 +19,7 @@
 {% endblock %}
 
 {% block content %}
+    {# Detalle de la promocion #}
     {% call detail.card(estatus=exh_exhorto_promocion.estatus) %}
         {{ detail.label_value('Exhorto Origen ID', exh_exhorto_promocion.exh_exhorto.exhorto_origen_id, url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_promocion.exh_exhorto_id)) }}
         {{ detail.label_value('Folio Origen', exh_exhorto_promocion.folio_origen_promocion) }}
@@ -35,14 +36,14 @@
                 <div class="col-md-6 d-grid gap-2">
                 </div>
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalenviar_btn('{{url_for('exh_exhortos_promociones.send', exh_exhorto_promocion_id=exh_exhorto_promocion.id)}}', '¿Está seguro de enviar la promoción? Porque una vez enviado ya no podrá ni editarlo ni eliminarlo.');">
+                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalenviar_btn('{{url_for('exh_exhortos_promociones.launch_task_send_promotion', exh_exhorto_promocion_id=exh_exhorto_promocion.id)}}', '¿Está seguro de enviar la promoción? Porque una vez enviado ya no podrá ni editarlo ni eliminarlo.');">
                         <span class='iconify' data-icon='mdi:send'></span> Enviar
                     </a>
                 </div>
             </div>
         {% endif %}
     {% endcall %}
-
+    {# DataTable con promoventes #}
     {% call detail.card('Promoventes') %}
         <table id="exh_exhortos_promociones_promoventes_datatable" class="table display nowrap" style="width:100%">
             <thead>
@@ -58,7 +59,7 @@
             <a class="btn btn-primary" href="{{ url_for('exh_exhortos_promociones_promoventes.new_with_exh_exhorto_promocion', exh_exhorto_promocion_id=exh_exhorto_promocion.id) }}">Agregar Promovente</a>
         {% endif %}
     {% endcall %}
-
+    {# DataTable con archivos #}
     {% call detail.card('Archivos') %}
         <table id="exh_exhortos_promociones_archivos_datatable" class="table display nowrap" style="width:100%">
             <thead>
@@ -76,7 +77,6 @@
             <a class="btn btn-primary" href="{{ url_for('exh_exhortos_promociones_archivos.new_with_exh_exhorto_promocion', exh_exhorto_promocion_id=exh_exhorto_promocion.id) }}">Agregar Archivo</a>
         {% endif %}
     {% endcall %}
-
 {% endblock %}
 
 {% block custom_javascript %}

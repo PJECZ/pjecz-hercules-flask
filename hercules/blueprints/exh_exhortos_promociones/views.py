@@ -2,24 +2,24 @@
 Exhorto Promociones, vistas
 """
 
-import json
 import hashlib
+import json
 from datetime import datetime
+
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_string, safe_message
-from lib.pwgen import generar_identificador
-
 from hercules.blueprints.bitacoras.models import Bitacora
-from hercules.blueprints.modulos.models import Modulo
-from hercules.blueprints.permisos.models import Permiso
-from hercules.blueprints.municipios.models import Municipio
-from hercules.blueprints.usuarios.decorators import permission_required
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
+from hercules.blueprints.exh_exhortos_promociones.forms import ExhExhortoPromocionEditForm, ExhExhortoPromocionNewForm
 from hercules.blueprints.exh_exhortos_promociones.models import ExhExhortoPromocion
-from hercules.blueprints.exh_exhortos_promociones.forms import ExhExhortoPromocionNewForm, ExhExhortoPromocionEditForm
+from hercules.blueprints.modulos.models import Modulo
+from hercules.blueprints.municipios.models import Municipio
+from hercules.blueprints.permisos.models import Permiso
+from hercules.blueprints.usuarios.decorators import permission_required
+from lib.datatables import get_datatable_parameters, output_datatable_json
+from lib.pwgen import generar_identificador
+from lib.safe_string import safe_message, safe_string
 
 MODULO = "EXH EXHORTOS PROMOCIONES"
 
@@ -217,17 +217,20 @@ def recover(exh_exhorto_promocion_id):
     return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id))
 
 
-@exh_exhortos_promociones.route("/exh_exhortos_promociones/enviar/<int:exh_exhorto_promocion_id>", methods=["GET", "POST"])
-@permission_required(MODULO, Permiso.CREAR)
-def send(exh_exhorto_promocion_id):
-    """Enviar una Promoción"""
+@exh_exhortos_promociones.route("/exh_exhortos_promociones/enviar/<int:exh_exhorto_promocion_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def launch_task_send_promotion(exh_exhorto_promocion_id):
+    """Lanzar tarea en el fondo para enviar una promoción al PJ Externo"""
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
-
-    # Revisar que este en estado de "PENDIENTE"
-
-    # Revisar que tenga almenos una Parte
-
-    # Revisar que tenga almenos un archivo
-
-    # Entregar el formulario
-    return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id))
+    # Validar el estado
+    if exh_exhorto_promocion.estado != "PENDIENTE":
+        flash("El estado de la promoción debe ser PENDIENTE.", "warning")
+        return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id))
+    # Lanzar tarea en el fondo
+    tarea = current_user.launch_task(
+        comando="exh_exhortos_promociones.tasks.task_enviar_promocion",
+        mensaje="Enviando la promoción al PJ externo",
+        exh_exhorto_promocion_id=exh_exhorto_promocion_id,
+    )
+    flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
+    return redirect(url_for("tareas.detail", tarea_id=tarea.id))

@@ -101,16 +101,16 @@
         </div>
         {% endif %}
         <hr/>
-        <!-- Botones de acción en diferentes estados -->
+        <!-- Botones de acciones -->
         {% if exh_exhorto.estado == 'PENDIENTE' or exh_exhorto.estado == "POR ENVIAR" %}
             <div class="row text-center">
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-danger" href="javascript:void(0)" onclick="showModalcancelar_btn('{{url_for('exh_exhortos.cancel', exh_exhorto_id=exh_exhorto.id)}}', '¿Desea cancelar el exhorto?');">
+                    <a class="btn btn-lg btn-danger" href="javascript:void(0)" onclick="showModalcancelar_btn('{{url_for('exh_exhortos.change_to_cancel', exh_exhorto_id=exh_exhorto.id)}}', '¿Desea cancelar el exhorto?');">
                         <span class='iconify' data-icon='mdi:cancel'></span> Cancelar
                     </a>
                 </div>
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalenviar_btn('{{url_for('exh_exhortos.send', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de enviar el exhorto? Porque una vez enviado ya no podrá ni editarlo ni cancelarlo.');">
+                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalenviar_btn('{{url_for('exh_exhortos.launch_task_send', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de enviar el exhorto? Porque una vez enviado ya no podrá ni editarlo ni cancelarlo.');">
                         <span class='iconify' data-icon='mdi:send'></span> Enviar
                     </a>
                 </div>
@@ -119,7 +119,7 @@
         {% if exh_exhorto.estado == "RECIBIDO CON EXITO" %}
             <div class="row text-center">
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalregresar_enviar_btn('{{url_for('exh_exhortos.get_from_externo', exh_exhorto_id=exh_exhorto.id)}}', '¿Quiere consultar desde el PJ?');">
+                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalregresar_enviar_btn('{{url_for('exh_exhortos.launch_task_query', exh_exhorto_id=exh_exhorto.id)}}', '¿Quiere consultar desde el PJ?');">
                         <span class='iconify' data-icon='mdi:download'></span> Consultar
                     </a>
                 </div>
@@ -189,8 +189,9 @@
             <div class="row text-center">
                 <div class="col-md-6 d-grid gap-2">
                 </div>
+                <!-- TODO: Poner en modal -->
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-success" href="{{url_for('exh_exhortos.response', exh_exhorto_id=exh_exhorto.id)}}">
+                    <a class="btn btn-lg btn-success" href="{{url_for('exh_exhortos.launch_task_reply', exh_exhorto_id=exh_exhorto.id)}}">
                         <span class='iconify' data-icon='mdi:check-circle'></span> Contestar
                     </a>
                 </div>
