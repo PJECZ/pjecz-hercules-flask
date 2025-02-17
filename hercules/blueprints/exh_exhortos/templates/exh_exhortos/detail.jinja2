@@ -300,6 +300,7 @@
                             <th>Origen ID</th>
                             <th>Fecha / Hora</th>
                             <th>Remitente</th>
+                            <th>Estado</th>
                             <th>Tipo Actualización</th>
                             <th>Descripción</th>
                         </tr>
@@ -504,6 +505,7 @@
             { data: 'origen_id' },
             { data: 'fecha_hora' },
             { data: 'remitente' },
+            { data: 'estado' },
             { data: 'tipo_actualizacion' },
             { data: 'descripcion' }
         ];
@@ -513,6 +515,17 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.origen_id + '</a>';
+                }
+            },
+            {
+                targets: 3, // estado
+                data: null,
+                render: function(data, type, row, meta) {
+                    switch(data) {
+                        case "PENDIENTE": bgcolor = 'bg-warning text-dark';     icon="note-edit"; break;
+                        case "ENVIADO":   bgcolor = 'bg-success';               icon="send";      break;
+                    }
+                    return '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + data + '</span>';
                 }
             }
         ];
