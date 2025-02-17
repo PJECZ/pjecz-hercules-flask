@@ -7,7 +7,7 @@ from lib.exceptions import MyAnyError
 from lib.tasks import set_task_error, set_task_progress
 
 
-def lanzar_task_enviar_promocion(exh_exhorto_promocion_id: int) -> str:
+def task_enviar_promocion(exh_exhorto_promocion_id: int) -> str:
     """Lanzar tarea en el fondo para enviar una promoción"""
     # Iniciar la tarea en el fondo
     set_task_progress(0, "Se ha lanzado la tarea en el fondo para enviar una promoción")

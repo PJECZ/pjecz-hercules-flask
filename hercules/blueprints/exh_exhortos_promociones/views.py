@@ -228,7 +228,7 @@ def launch_task_send_promotion(exh_exhorto_promocion_id):
         return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id))
     # Lanzar tarea en el fondo
     tarea = current_user.launch_task(
-        comando="exh_exhortos_promociones.tasks.lanzar_task_enviar_promocion",
+        comando="exh_exhortos_promociones.tasks.task_enviar_promocion",
         mensaje="Enviando la promoción al PJ externo",
         exh_exhorto_promocion_id=exh_exhorto_promocion_id,
     )

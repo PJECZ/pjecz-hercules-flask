@@ -519,7 +519,7 @@ def launch_task_query(exh_exhorto_id):
 
 @exh_exhortos.route("/exh_exhortos/responder/<int:exh_exhorto_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
-def launch_task_send_reply(exh_exhorto_id):
+def launch_task_reply(exh_exhorto_id):
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
     """Lanzar tarea en el fondo para responder un exhorto al PJ Externo"""
     # Validar el estado del exhorto

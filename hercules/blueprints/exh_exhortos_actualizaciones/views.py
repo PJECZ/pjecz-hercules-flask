@@ -141,13 +141,13 @@ def new_with_exh_exhorto(exh_exhorto_id):
 
 @exh_exhortos_actualizaciones.route("/exh_exhortos_actualizaciones/enviar/<int:exh_exhorto_actualizacion_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
-def launch_task_send_update(exh_exhorto_actualizacion_id):
+def launch_task_send(exh_exhorto_actualizacion_id):
     """Lanzar tarea en el fondo para enviar una actualización al PJ Externo"""
     # exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get_or_404(exh_exhorto_actualizacion_id)
     # TODO: Validar el estado de la actualizacion
     # Lanzar tarea en el fondo
     tarea = current_user.launch_task(
-        comando="exh_exhortos.tasks.task_enviar_actualizacion",
+        comando="exh_exhortos_actualizaciones.tasks.task_enviar_actualizacion",
         mensaje="Enviando la actualización al PJ Externo",
         exh_exhorto_actualizacion_id=exh_exhorto_actualizacion_id,
     )
