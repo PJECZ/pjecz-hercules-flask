@@ -123,6 +123,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
             descripcion=safe_string(form.descripcion.data),
             fecha_hora=datetime.now(),
             remitente="INTERNO",
+            estado="PENDIENTE",
         )
         exh_exhorto_actualizacion.save()
         bitacora = Bitacora(

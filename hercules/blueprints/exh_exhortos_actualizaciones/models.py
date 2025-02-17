@@ -21,6 +21,11 @@ class ExhExhortoActualizacion(database.Model, UniversalMixin):
         "EXTERNO": "Externo",
     }
 
+    ESTADOS = {
+        "PENDIENTE": "Pendiente",
+        "ENVIADO": "Enviado",
+    }
+
     # Nombre de la tabla
     __tablename__ = "exh_exhortos_actualizaciones"
 
@@ -54,6 +59,11 @@ class ExhExhortoActualizacion(database.Model, UniversalMixin):
     # Si el remitente es INTERNO entonces fue creada por nosotros, si es EXTERNO fue creada por otro PJ
     remitente: Mapped[str] = mapped_column(
         Enum(*REMITENTES, name="exh_exhortos_actualizaciones_remitentes", native_enum=False), index=True
+    )
+
+    # Dato interno para conocer si fue enviado o sigue en proceso de edición
+    estado: Mapped[str] = mapped_column(
+        Enum(*ESTADOS, name="exh_exhortos_actualizaciones_estados", native_enum=False), index=True
     )
 
     def __repr__(self):
