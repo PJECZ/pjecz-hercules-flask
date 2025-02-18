@@ -316,10 +316,10 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     except KeyError:
         pass
 
-    # Cambiar el estado a RECHAZADO y terminar si hubo mensaje_advertencia
+    # Terminar si hubo mensaje_advertencia
     if mensaje_advertencia != "":
-        exh_exhorto.estado = "RECHAZADO"
-        exh_exhorto.save()
+        # exh_exhorto.estado = "RECHAZADO"
+        # exh_exhorto.save()
         bitacora.warning(mensaje_advertencia)
         raise MyAnyError(mensaje_advertencia)
 

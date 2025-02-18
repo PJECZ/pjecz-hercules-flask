@@ -116,7 +116,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     # Definir los datos de la promoción a enviar
     datos_promocion = {
         "folioSeguimiento": exh_exhorto_promocion.exh_exhorto.folio_seguimiento,
-        "folioOrigenPromocion": "PENDIENTE-FOLIO-ORIGEN-PROMOCION",
+        "folioOrigenPromocion": exh_exhorto_promocion.folio_origen_promocion,
         "promoventes": promoventes,
         "fojas": int(exh_exhorto_promocion.fojas),
         "fechaOrigen": exh_exhorto_promocion.fecha_origen.strftime("%Y-%m-%d %H:%M:%S"),
@@ -234,7 +234,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
 
     # Validar que el ULTIMO acuse tenga en el data
 
-    # Cambiar el estado a RECHAZADO y terminar si hubo mensaje_advertencia
+    # Terminar si hubo mensaje_advertencia
 
     # Actualizar el estado a ENVIADO
 
