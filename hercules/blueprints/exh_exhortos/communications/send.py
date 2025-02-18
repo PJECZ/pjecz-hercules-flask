@@ -96,32 +96,32 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
 
     # Bucle para juntar los datos de las partes
     partes = []
-    for exh_exhorto_parte in exh_exhorto.exh_exhortos_partes:
+    for parte in exh_exhorto.exh_exhortos_partes:
         partes.append(
             {
-                "nombre": str(exh_exhorto_parte.nombre),
-                "apellidoPaterno": str(exh_exhorto_parte.apellido_paterno),
-                "apellidoMaterno": str(exh_exhorto_parte.apellido_materno),
-                "genero": str(exh_exhorto_parte.genero),
-                "esPersonaMoral": bool(exh_exhorto_parte.es_persona_moral),
-                "tipoParte": int(exh_exhorto_parte.tipo_parte),
-                "tipoParteNombre": str(exh_exhorto_parte.tipo_parte_nombre),
+                "nombre": str(parte.nombre),
+                "apellidoPaterno": str(parte.apellido_paterno),
+                "apellidoMaterno": str(parte.apellido_materno),
+                "genero": str(parte.genero),
+                "esPersonaMoral": bool(parte.es_persona_moral),
+                "tipoParte": int(parte.tipo_parte),
+                "tipoParteNombre": str(parte.tipo_parte_nombre),
             }
         )
 
     # Bucle para juntar los datos de los archivos exh_exhortos_archivos
     archivos = []
-    for exh_exhorto_archivo in exh_exhorto.exh_exhortos_archivos:
+    for archivo in exh_exhorto.exh_exhortos_archivos:
         archivos.append(
             {
-                "nombreArchivo": str(exh_exhorto_archivo.nombre_archivo),
-                "hashSha1": str(exh_exhorto_archivo.hash_sha1),
-                "hashSha256": str(exh_exhorto_archivo.hash_sha256),
-                "tipoDocumento": int(exh_exhorto_archivo.tipo_documento),
+                "nombreArchivo": str(archivo.nombre_archivo),
+                "hashSha1": str(archivo.hash_sha1),
+                "hashSha256": str(archivo.hash_sha256),
+                "tipoDocumento": int(archivo.tipo_documento),
             }
         )
 
-    # Definir los datos del exhorto
+    # Definir los datos del exhorto a enviar
     datos_exhorto = {
         "exhortoOrigenId": str(exh_exhorto.exhorto_origen_id),
         "municipioDestinoId": int(municipio_destino.clave),
@@ -196,16 +196,16 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
 
     # Mandar los archivos del exhorto con multipart/form-data (ETAPA 3)
     data = None
-    for exh_exhorto_archivo in exh_exhorto.exh_exhortos_archivos:
+    for archivo in exh_exhorto.exh_exhortos_archivos:
         # Informar al bitácora que se va a enviar el archivo
-        bitacora.info(f"Enviando el archivo {exh_exhorto_archivo.nombre_archivo}.")
+        bitacora.info(f"Enviando el archivo {archivo.nombre_archivo}.")
         # Pausa de 2 segundos entre envios de archivos
         time.sleep(2)
         # Obtener el contenido del archivo desde GCStorage
         try:
             archivo_contenido = get_file_from_gcs(
                 bucket_name=app.config["CLOUD_STORAGE_DEPOSITO"],
-                blob_name=get_blob_name_from_url(exh_exhorto_archivo.url),
+                blob_name=get_blob_name_from_url(archivo.url),
             )
         except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
             mensaje_error = f"Falla al tratar de bajar el archivo del storage {str(error)}"
@@ -220,7 +220,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
                 headers={"X-Api-Key": exh_externo.api_key},
                 timeout=TIMEOUT,
                 data={"exhortoOrigenId": exh_exhorto.exhorto_origen_id},
-                files={"archivo": (exh_exhorto_archivo.nombre_archivo, archivo_contenido, "application/pdf")},
+                files={"archivo": (archivo.nombre_archivo, archivo_contenido, "application/pdf")},
             )
             respuesta.raise_for_status()
             contenido = respuesta.json()
@@ -337,7 +337,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     exh_exhorto.save()
 
     # Elaborar mensaje final
-    mensaje_termino = f"Termina enviar el exhorto con ID {exh_exhorto_id} al PJ externo y cambia a RECIBIDO CON EXITO."
+    mensaje_termino = f"Termina enviar el exhorto con ID {exh_exhorto_id} al PJ externo."
     bitacora.info(mensaje_termino)
 
     # Entregar mensaje_termino, nombre_archivo y url_publica
