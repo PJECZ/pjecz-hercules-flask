@@ -10,7 +10,7 @@ from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
-from hercules.blueprints.exh_exhortos_actualizaciones.forms import ExhExhortoActualizacionNewForm
+from hercules.blueprints.exh_exhortos_actualizaciones.forms import ExhExhortoActualizacionForm
 from hercules.blueprints.exh_exhortos_actualizaciones.models import ExhExhortoActualizacion
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
@@ -73,6 +73,7 @@ def datatable_json():
                 "tipo_actualizacion": resultado.tipo_actualizacion,
                 "descripcion": resultado.descripcion,
                 "remitente": resultado.remitente,
+                "estado": resultado.estado,
             }
         )
     # Entregar JSON
@@ -114,7 +115,7 @@ def detail(exh_exhorto_actualizacion_id):
 def new_with_exh_exhorto(exh_exhorto_id):
     """Nuevo Actualización"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
-    form = ExhExhortoActualizacionNewForm()
+    form = ExhExhortoActualizacionForm()
     if form.validate_on_submit():
         exh_exhorto_actualizacion = ExhExhortoActualizacion(
             exh_exhorto=exh_exhorto,
@@ -123,6 +124,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
             descripcion=safe_string(form.descripcion.data),
             fecha_hora=datetime.now(),
             remitente="INTERNO",
+            estado="PENDIENTE",
         )
         exh_exhorto_actualizacion.save()
         bitacora = Bitacora(
@@ -137,6 +139,71 @@ def new_with_exh_exhorto(exh_exhorto_id):
     # Despliega el campo Origen ID generado
     form.origen_id.data = generar_identificador()
     return render_template("exh_exhortos_actualizaciones/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
+
+
+@exh_exhortos_actualizaciones.route(
+    "/exh_exhortos_actualizaciones/edicion/<int:exh_exhorto_actualizacion_id>", methods=["GET", "POST"]
+)
+@permission_required(MODULO, Permiso.MODIFICAR)
+def edit(exh_exhorto_actualizacion_id):
+    """Editar Actualización"""
+    exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get_or_404(exh_exhorto_actualizacion_id)
+    form = ExhExhortoActualizacionForm()
+    if form.validate_on_submit():
+        exh_exhorto_actualizacion.tipo_actualizacion = safe_string(form.tipo_actualizacion.data)
+        exh_exhorto_actualizacion.descripcion = safe_string(form.descripcion.data)
+        exh_exhorto_actualizacion.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Editado Actualización {exh_exhorto_actualizacion.descripcion}"),
+            url=url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    form.origen_id.data = exh_exhorto_actualizacion.actualizacion_origen_id
+    form.tipo_actualizacion.data = exh_exhorto_actualizacion.tipo_actualizacion
+    form.descripcion.data = exh_exhorto_actualizacion.descripcion
+    return render_template(
+        "exh_exhortos_actualizaciones/edit.jinja2", form=form, exh_exhorto_actualizacion=exh_exhorto_actualizacion
+    )
+
+
+@exh_exhortos_actualizaciones.route("/exh_exhortos_actualizaciones/eliminar/<int:exh_exhorto_actualizacion_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def delete(exh_exhorto_actualizacion_id):
+    """Eliminar Actualización"""
+    exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get_or_404(exh_exhorto_actualizacion_id)
+    if exh_exhorto_actualizacion.estatus == "A":
+        exh_exhorto_actualizacion.delete()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Eliminado Actualización {exh_exhorto_actualizacion.actualizacion_origen_id}"),
+            url=url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id))
+
+
+@exh_exhortos_actualizaciones.route("/exh_exhortos_actualizaciones/recuperar/<int:exh_exhorto_actualizacion_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def recover(exh_exhorto_actualizacion_id):
+    """Recuperar Actualización"""
+    exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get_or_404(exh_exhorto_actualizacion_id)
+    if exh_exhorto_actualizacion.estatus == "B":
+        exh_exhorto_actualizacion.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Recuperado Actualización {exh_exhorto_actualizacion.actualizacion_origen_id}"),
+            url=url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id))
 
 
 @exh_exhortos_actualizaciones.route("/exh_exhortos_actualizaciones/enviar/<int:exh_exhorto_actualizacion_id>")

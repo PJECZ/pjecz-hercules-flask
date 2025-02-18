@@ -67,7 +67,7 @@
     {% endcall %}
     {% call f.card('Asignar número de exhorto') %}
         {% set form_kwargs = {'exh_exhorto_id': exh_exhorto.id} %}
-        {% call f.form_tag('exh_exhortos.process', fid='exh_exhorto_form', **form_kwargs) %}
+        {% call f.form_tag('exh_exhortos.change_to_process', fid='exh_exhorto_form', **form_kwargs) %}
             <div class="row">
                 <div class="col-md-6">
                     {% call f.form_group(form.numero_exhorto) %}{% endcall %}
