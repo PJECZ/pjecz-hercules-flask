@@ -143,9 +143,6 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         "archivos": archivos,
     }
 
-    # Obtener el tiempo actual
-    tiempo_actual = datetime.now()
-
     # Informar a la bitácora que se va a enviar el exhorto
     mensaje = "Pasan las validaciones y comienza el envío del exhorto."
     bitacora.info(mensaje)
@@ -155,7 +152,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     mensaje_advertencia = ""
     try:
         respuesta = requests.post(
-            exh_externo.endpoint_recibir_exhorto,
+            url=exh_externo.endpoint_recibir_exhorto,
             headers={"X-Api-Key": exh_externo.api_key},
             timeout=TIMEOUT,
             json=datos_exhorto,

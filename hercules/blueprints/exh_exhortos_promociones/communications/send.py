@@ -2,6 +2,8 @@
 Communications, Enviar Promocion
 """
 
+import time
+
 import requests
 
 from hercules.app import create_app
@@ -19,6 +21,7 @@ from lib.exceptions import (
     MyNotExistsError,
     MyNotValidParamError,
 )
+from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
 
 app = create_app()
 app.app_context().push()
@@ -126,12 +129,40 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     bitacora.info(mensaje)
 
     # Enviar la promoción
+    contenido = None
+    mensaje_advertencia = ""
+    try:
+        respuesta = requests.post(
+            url=exh_externo.endpoint_recibir_promocion,
+            headers={"X-Api-Key": exh_externo.api_key},
+            timeout=TIMEOUT,
+            json=datos_promocion,
+        )
+        respuesta.raise_for_status()
+        contenido = respuesta.json()
+    except requests.exceptions.ConnectionError:
+        mensaje_advertencia = "No hubo respuesta del servidor al enviar la promoción"
+    except requests.exceptions.HTTPError as error:
+        mensaje_advertencia = f"Status Code {str(error)} al enviar la promoción"
+    except requests.exceptions.RequestException:
+        mensaje_advertencia = "Falla desconocida al enviar la promoción"
 
     # Terminar si hubo mensaje_advertencia
+    if mensaje_advertencia != "":
+        bitacora.warning(mensaje_advertencia)
+        raise MyConnectionError(mensaje_advertencia)
 
     # Terminar si el contenido de la respuesta no es valido
+    if not ("success", "message", "errors", "data") in contenido:
+        mensaje_advertencia = "Falló la validación de success, message, errors y data"
+        bitacora.warning(mensaje_advertencia)
+        raise MyConnectionError(mensaje_advertencia)
 
     # Terminar si success es FALSO
+    if contenido["success"] is False:
+        mensaje_advertencia = f"Falló el envío del exhorto: {','.join(contenido['errors'])}"
+        bitacora.warning(mensaje_advertencia)
+        raise MyAnyError(mensaje_advertencia)
 
     # Informar a la bitácora que terminó el envío la promoción
     mensaje = "Termina el envío la promoción."
@@ -142,6 +173,57 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     bitacora.info(mensaje)
 
     # Mandar los archivos del exhorto con multipart/form-data (ETAPA 3)
+    data = None
+    for archivo in exh_exhorto_promocion.exh_exhortos_promociones_archivos:
+        # Informar al bitácora que se va a enviar el archivo
+        bitacora.info(f"Enviando el archivo {archivo.nombre_archivo}.")
+        # Pausa de 2 segundos entre envios de archivos
+        time.sleep(2)
+        # Obtener el contenido del archivo desde GCStorage
+        try:
+            archivo_contenido = get_file_from_gcs(
+                bucket_name=app.config["CLOUD_STORAGE_DEPOSITO"],
+                blob_name=get_blob_name_from_url(archivo.url),
+            )
+        except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+            mensaje_error = f"Falla al tratar de bajar el archivo del storage {str(error)}"
+            bitacora.error(mensaje_error)
+            raise MyFileNotFoundError(mensaje_error)
+        # Enviar el archivo
+        contenido = None
+        mensaje_advertencia = ""
+        try:
+            respuesta = requests.post(
+                url=exh_externo.endpoint_recibir_exhorto_archivo,
+                headers={"X-Api-Key": exh_externo.api_key},
+                timeout=TIMEOUT,
+                data={"exhortoOrigenId": exh_exhorto_promocion.exh_exhorto.exhorto_origen_id},
+                files={"archivo": (archivo.nombre_archivo, archivo_contenido, "application/pdf")},
+            )
+            respuesta.raise_for_status()
+            contenido = respuesta.json()
+        except requests.exceptions.ConnectionError:
+            mensaje_advertencia = "No hubo respuesta del servidor al enviar el archivo"
+        except requests.exceptions.HTTPError as error:
+            mensaje_advertencia = f"Status Code {str(error)} al enviar el archivo"
+        except requests.exceptions.RequestException:
+            mensaje_advertencia = "Falla desconocida al enviar el archivo"
+        # Terminar si hubo mensaje_advertencia
+        if mensaje_advertencia != "":
+            bitacora.warning(mensaje_advertencia)
+            raise MyAnyError(mensaje_advertencia)
+        # Validar el contenido de la respuesta
+        if not ("success", "message", "errors", "data") in contenido:
+            mensaje_advertencia = "Falló la validación de success, message, errors y data"
+            bitacora.warning(mensaje_advertencia)
+            raise MyConnectionError(mensaje_advertencia)
+        # Si success es FALSO, mandar a la bitácora el listado de errores y terminar
+        if contenido["success"] is False:
+            mensaje_advertencia = f"Falló el envío del archivo: {','.join(contenido['errors'])}"
+            bitacora.warning(mensaje_advertencia)
+            raise MyAnyError(mensaje_advertencia)
+        # Tomar el data que llega por enviar el archivo
+        data = contenido["data"]
 
     # Informar a la bitácora que terminó el envío los archivos
     mensaje = "Termina el envío de los archivos de la promoción."
