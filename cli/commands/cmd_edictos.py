@@ -10,13 +10,14 @@ import csv
 import os
 import re
 import sys
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
 import click
 from dateutil.tz import tzlocal
 from dotenv import load_dotenv
+from faker import Faker
 from google.cloud import storage
 from google.cloud.exceptions import NotFound
 from hashids import Hashids
@@ -24,6 +25,7 @@ from hashids import Hashids
 from hercules.app import create_app
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.edictos.models import Edicto
+from hercules.blueprints.edictos_acuses.models import EdictoAcuse
 from hercules.extensions import database
 from lib.safe_string import safe_clave, safe_string
 
@@ -82,6 +84,75 @@ def actualizar(archivo_csv, probar):
     if probar is True:
         click.echo(click.style("Terminó en modo PROBAR: No hay cambios en la base de datos.", fg="white"))
     click.echo(click.style(f"Se actualizaron {contador} edictos", fg="green"))
+
+
+@click.command()
+@click.argument("autoridad_clave", type=str)
+@click.option("--cantidad", default=10, type=int, help="Cantidad de edictos a insertar")
+def demo_insertar_edictos(autoridad_clave, cantidad):
+    """Insertar edictos de demostración"""
+
+    # Consultar la autoridad
+    autoridad = Autoridad.query.filter_by(clave=autoridad_clave).first()
+    if not autoridad:
+        click.echo(click.style(f"No existe la autoridad con clave {autoridad_clave}", fg="red"))
+        sys.exit(1)
+
+    # Preparar el Faker
+    faker = Faker("es_MX")
+
+    # Insertar los edictos
+    click.echo(f"Insertando {cantidad} edictos de demostración para {autoridad_clave}: ", nl=False)
+    for i in range(1, cantidad + 1):
+        # Preparar la fecha
+        fecha = date.today()
+
+        # Preparar la descripción
+        descripcion = f"Edicto {faker.sentence()}"
+
+        # Preparar el expediente, con un numero al azar y el año actual
+        expediente = f"{faker.random_int(min=1, max=9999)}/{fecha.year}"
+
+        # Preparar el número de publicación
+        numero_publicacion = f"1/{fecha.year}"
+
+        # Preparar el archivo
+        archivo = f"{fecha.year}-{fecha.month}-{fecha.day}-0001-0001-DESCRIPCION-IDHASED.pdf"
+
+        # Preparar la URL
+        url = f"https://storage.googleapis.com/hercules-edictos/autoridad/demo/{archivo}"
+
+        # Insertar el edicto
+        tiempo_local = datetime.now(tzlocal())
+        edicto = Edicto(
+            creado=tiempo_local,
+            modificado=tiempo_local,
+            autoridad=autoridad,
+            fecha=fecha,
+            descripcion=descripcion,
+            expediente=expediente,
+            numero_publicacion=numero_publicacion,
+            archivo=archivo,
+            url=url,
+        )
+        edicto.save()
+        click.echo(click.style("+", fg="green"), nl=False)
+
+        # Insertar de 1 a 3 republicaciones, con el modelo EdictoAcuse, con fechas siguientes
+        fecha_acuse = fecha
+        for j in range(1, faker.random_int(min=1, max=3 + 1)):
+            fecha_acuse = fecha_acuse + timedelta(days=faker.random_int(min=fecha.day + 1, max=fecha.day + 3))
+            EdictoAcuse(
+                edicto_id=edicto.id,
+                fecha=fecha_acuse,
+            ).save()
+            click.echo(click.style("-", fg="yellow"), nl=False)
+
+    # Poner avance de linea
+    click.echo()
+
+    # Mostrar mensaje final con la cantidad de edictos insertados
+    click.echo(click.style(f"Se insertaron {cantidad} edictos de demostración para {autoridad_clave}", fg="green"))
 
 
 @click.command()
@@ -373,5 +444,6 @@ def refrescar(clave, probar, eliminar, eliminar_recuperar):
 
 
 cli.add_command(actualizar)
+cli.add_command(demo_insertar_edictos)
 cli.add_command(exportar)
 cli.add_command(refrescar)
