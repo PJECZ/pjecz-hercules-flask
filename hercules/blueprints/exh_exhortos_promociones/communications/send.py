@@ -116,7 +116,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         )
 
     # Definir los datos de la promoción a enviar
-    datos_promocion = {
+    payload_for_json = {
         "folioSeguimiento": exh_exhorto_promocion.exh_exhorto.folio_seguimiento,
         "folioOrigenPromocion": exh_exhorto_promocion.folio_origen_promocion,
         "promoventes": promoventes,
@@ -138,7 +138,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
             url=exh_externo.endpoint_recibir_promocion,
             headers={"X-Api-Key": exh_externo.api_key},
             timeout=TIMEOUT,
-            json=datos_promocion,
+            json=payload_for_json,
         )
         respuesta.raise_for_status()
         contenido = respuesta.json()
@@ -178,7 +178,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     folio_seguimiento = generar_identificador()
 
     # Definir los datos que se van a incluir en el envío de los archivos
-    data_archivo = {
+    payload_for_data = {
         "folioOrigenPromocion": exh_exhorto_promocion.exh_exhorto.exhorto_origen_id,
         "folioSeguimiento": folio_seguimiento,
     }
@@ -209,7 +209,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
                 headers={"X-Api-Key": exh_externo.api_key},
                 timeout=TIMEOUT,
                 files={"archivo": (archivo.nombre_archivo, archivo_contenido, "application/pdf")},
-                data=data_archivo,
+                data=payload_for_data,
             )
             respuesta.raise_for_status()
             contenido = respuesta.json()

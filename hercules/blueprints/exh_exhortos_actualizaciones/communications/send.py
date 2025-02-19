@@ -77,7 +77,7 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     actualizacion_origen_id = generar_identificador()
 
     # Definir los datos de la actualización a enviar
-    datos_actualizacion = {
+    payload_for_json = {
         "exhortoId": exh_exhorto_actualizacion.exh_exhorto.exhorto_origen_id,
         "actualizacionOrigenId": actualizacion_origen_id,
         "tipoActualizacion": str(exh_exhorto_actualizacion.tipo_actualizacion),
@@ -97,7 +97,7 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
             url=exh_externo.endpoint_actualizar_exhorto,
             headers={"X-Api-Key": exh_externo.api_key},
             timeout=TIMEOUT,
-            json=datos_actualizacion,
+            json=payload_for_json,
         )
         respuesta.raise_for_status()
         contenido = respuesta.json()

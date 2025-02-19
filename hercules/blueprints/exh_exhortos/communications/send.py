@@ -124,7 +124,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         )
 
     # Definir los datos del exhorto a enviar
-    datos_exhorto = {
+    payload_for_json = {
         "exhortoOrigenId": str(exh_exhorto.exhorto_origen_id),
         "municipioDestinoId": int(municipio_destino.clave),
         "materiaClave": str(exh_exhorto.materia_clave),
@@ -157,7 +157,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
             url=exh_externo.endpoint_recibir_exhorto,
             headers={"X-Api-Key": exh_externo.api_key},
             timeout=TIMEOUT,
-            json=datos_exhorto,
+            json=payload_for_json,
         )
         respuesta.raise_for_status()
         contenido = respuesta.json()
@@ -194,7 +194,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     bitacora.info(mensaje)
 
     # Definir los datos que se van a incluir en el envío de los archivos
-    data_archivo = {"exhortoOrigenId": exh_exhorto.exhorto_origen_id}
+    payload_for_data = {"exhortoOrigenId": exh_exhorto.exhorto_origen_id}
 
     # Mandar los archivos del exhorto con multipart/form-data (ETAPA 3)
     data = None
@@ -225,7 +225,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
                 headers={"X-Api-Key": exh_externo.api_key},
                 timeout=TIMEOUT,
                 files={"archivo": (archivo.nombre_archivo, archivo_contenido, "application/pdf")},
-                data=data_archivo,
+                data=payload_for_data,
             )
             respuesta.raise_for_status()
             contenido = respuesta.json()

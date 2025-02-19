@@ -131,7 +131,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     respuesta_origen_id = generar_identificador()
 
     # Definir los datos de la respuesta del exhorto
-    datos_respuesta = {
+    payload_for_json = {
         "exhortoId": str(exh_exhorto.exhorto_origen_id),
         "respuestaOrigenId": respuesta_origen_id,
         "municipioTurnadoId": int(exh_exhorto.respuesta_municipio_turnado_id),
@@ -156,7 +156,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
             url=exh_externo.endpoint_recibir_respuesta_exhorto,
             headers={"X-Api-Key": exh_externo.api_key},
             timeout=TIMEOUT,
-            json=datos_respuesta,
+            json=payload_for_json,
         )
         respuesta.raise_for_status()
         contenido = respuesta.json()
@@ -193,7 +193,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     bitacora.info(mensaje)
 
     # Definir los datos que se van a incluir en el envío de los archivos
-    data_archivo = {
+    payload_for_data = {
         "exhortoOrigenId": exh_exhorto.exhorto_origen_id,
         "respuestaOrigenId": exh_exhorto.respuesta_origen_id,
     }
@@ -227,7 +227,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
                 headers={"X-Api-Key": exh_externo.api_key},
                 timeout=TIMEOUT,
                 files={"archivo": (archivo.nombre_archivo, archivo_contenido, "application/pdf")},
-                data=data_archivo,
+                data=payload_for_data,
             )
             respuesta.raise_for_status()
             contenido = respuesta.json()
