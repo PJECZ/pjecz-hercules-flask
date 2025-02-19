@@ -192,6 +192,12 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     mensaje = "Comienza el envío de los archivos de la respuesta."
     bitacora.info(mensaje)
 
+    # Definir los datos que se van a incluir en el envío de los archivos
+    data_archivo = {
+        "exhortoOrigenId": exh_exhorto.exhorto_origen_id,
+        "respuestaOrigenId": exh_exhorto.respuesta_origen_id,
+    }
+
     # Mandar los archivos de la respuesta con multipart/form-data (ETAPA 3)
     data = None
     for archivo in exh_exhorto.exh_exhortos_archivos:
@@ -220,8 +226,8 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
                 url=exh_externo.endpoint_recibir_respuesta_exhorto_archivo,
                 headers={"X-Api-Key": exh_externo.api_key},
                 timeout=TIMEOUT,
-                data={"exhortoOrigenId": exh_exhorto.exhorto_origen_id, "respuestaOrigenId": exh_exhorto.respuesta_origen_id},
                 files={"archivo": (archivo.nombre_archivo, archivo_contenido, "application/pdf")},
+                data=data_archivo,
             )
             respuesta.raise_for_status()
             contenido = respuesta.json()

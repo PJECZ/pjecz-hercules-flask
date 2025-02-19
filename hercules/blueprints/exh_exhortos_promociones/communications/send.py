@@ -23,6 +23,7 @@ from lib.exceptions import (
     MyNotValidParamError,
 )
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
+from lib.pwgen import generar_identificador
 
 app = create_app()
 app.app_context().push()
@@ -173,6 +174,15 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     mensaje = "Comienza el envío de los archivos de la promoción."
     bitacora.info(mensaje)
 
+    # Generar identificador para el folio de seguimiento
+    folio_seguimiento = generar_identificador()
+
+    # Definir los datos que se van a incluir en el envío de los archivos
+    data_archivo = {
+        "folioOrigenPromocion": exh_exhorto_promocion.exh_exhorto.exhorto_origen_id,
+        "folioSeguimiento": folio_seguimiento,
+    }
+
     # Mandar los archivos del exhorto con multipart/form-data (ETAPA 3)
     data = None
     for archivo in exh_exhorto_promocion.exh_exhortos_promociones_archivos:
@@ -198,8 +208,8 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
                 url=exh_externo.endpoint_recibir_exhorto_archivo,
                 headers={"X-Api-Key": exh_externo.api_key},
                 timeout=TIMEOUT,
-                data={"exhortoOrigenId": exh_exhorto_promocion.exh_exhorto.exhorto_origen_id},
                 files={"archivo": (archivo.nombre_archivo, archivo_contenido, "application/pdf")},
+                data=data_archivo,
             )
             respuesta.raise_for_status()
             contenido = respuesta.json()
