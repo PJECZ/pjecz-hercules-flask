@@ -3,6 +3,7 @@ Communications, Enviar Promocion
 """
 
 import time
+from datetime import datetime
 
 import requests
 
@@ -229,14 +230,51 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     mensaje = "Termina el envío de los archivos de la promoción."
     bitacora.info(mensaje)
 
-    # Inicializar mensaje_advertencia para acumular fallos si los hubiera
-    mensaje_advertencia = ""
+    # Validar que el ULTIMO data tenga el acuse
+    if "acuse" not in data:
+        mensaje_advertencia = "Falló porque la respuesta NO tiene acuse"
+        bitacora.warning(mensaje_advertencia)
+        raise MyAnyError(mensaje_advertencia)
+    acuse = data["acuse"]
+    if data["acuse"] is None:
+        mensaje_advertencia = "Falló porque la respuesta NO tiene acuse"
+        bitacora.warning(mensaje_advertencia)
+        raise MyAnyError(mensaje_advertencia)
 
-    # Validar que el ULTIMO acuse tenga en el data
+    # Inicializar listado de errores para acumular fallos si los hubiera
+    errores = []
 
-    # Terminar si hubo mensaje_advertencia
+    # Validar que el acuse tenga folioOrigenPromocion
+    try:
+        folio_origen_promocion = str(acuse["folioOrigenPromocion"])
+        bitacora.info("Acuse folioOrigenPromocion: %s", folio_origen_promocion)
+    except KeyError:
+        errores.append("Faltó folioOrigenPromocion en el acuse")
+
+    # Validar que el acuse tenga folioPromocionRecibida
+    try:
+        folio_promocion_recibida = str(acuse["folioPromocionRecibida"])
+        bitacora.info("Acuse folioPromocionRecibida: %s", folio_promocion_recibida)
+    except KeyError:
+        errores.append("Faltó folioPromocionRecibida en el acuse")
+
+    # Validar que el acuse tenga fechaHoraRecepcion
+    try:
+        fecha_hora_recepcion_str = str(acuse["fechaHoraRecepcion"])
+        acuse_fecha_hora_recepcion = datetime.strptime(fecha_hora_recepcion_str, "%Y-%m-%d %H:%M:%S")
+        bitacora.info("Acuse fechaHoraRecepcion: %s", fecha_hora_recepcion_str)
+    except (KeyError, ValueError):
+        errores.append("Faltó o es incorrecta fechaHoraRecepcion en el acuse")
+
+    # Terminar si hubo errores
+    if len(errores) > 0:
+        mensaje_advertencia = ", ".join(errores)
+        bitacora.warning(mensaje_advertencia)
+        raise MyAnyError(mensaje_advertencia)
 
     # Actualizar el estado a ENVIADO
+    exh_exhorto_promocion.estado = "ENVIADO"
+    exh_exhorto_promocion.save()
 
     # Elaborar mensaje final
     mensaje_termino = f"Termina enviar la promoción con ID {exh_exhorto_promocion_id} al PJ externo."

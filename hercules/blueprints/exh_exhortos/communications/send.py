@@ -44,7 +44,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         bitacora.error(mensaje_advertencia)
         raise MyNotExistsError(mensaje_advertencia)
 
-    # Validar que su estado sea POR ENVIAR
+    # Validar que su estado
     if exh_exhorto.estado not in ("PENDIENTE", "POR ENVIAR"):
         mensaje_advertencia = f"El exhorto con ID {exh_exhorto_id} no tiene el estado PENDIENTE o POR ENVIAR"
         bitacora.error(mensaje_advertencia)
@@ -109,9 +109,11 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
             }
         )
 
-    # Bucle para juntar los datos de los archivos exh_exhortos_archivos
+    # Bucle para juntar los datos de los archivos que NO sean respuesta
     archivos = []
     for archivo in exh_exhorto.exh_exhortos_archivos:
+        if archivo.es_respuesta:
+            continue
         archivos.append(
             {
                 "nombreArchivo": str(archivo.nombre_archivo),
@@ -194,6 +196,9 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     # Mandar los archivos del exhorto con multipart/form-data (ETAPA 3)
     data = None
     for archivo in exh_exhorto.exh_exhortos_archivos:
+        # Si el archivo es respuesta, no enviarlo
+        if archivo.es_respuesta:
+            continue
         # Informar al bitácora que se va a enviar el archivo
         bitacora.info(f"Enviando el archivo {archivo.nombre_archivo}.")
         # Pausa de 2 segundos entre envios de archivos
@@ -248,33 +253,29 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     mensaje = "Termina el envío de los archivos."
     bitacora.info(mensaje)
 
-    # Inicializar mensaje_advertencia para acumular fallos si los hubiera
-    mensaje_advertencia = ""
-
-    # Validar que el ULTIMO acuse tenga en el data
-    if "acuse" not in data:
+    # Validar que el ULTIMO data tenga el acuse
+    if "acuse" not in data or data["acuse"] is None:
         mensaje_advertencia = "Falló porque la respuesta NO tiene acuse"
         bitacora.warning(mensaje_advertencia)
         raise MyAnyError(mensaje_advertencia)
     acuse = data["acuse"]
-    if data["acuse"] is None:
-        mensaje_advertencia = "Falló porque la respuesta NO tiene acuse"
-        bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia)
+
+    # Inicializar listado de errores para acumular fallos si los hubiera
+    errores = []
 
     # Validar que el acuse tenga "exhortoOrigenId"
     try:
         acuse_exhorto_origen_id = str(acuse["exhortoOrigenId"])
         bitacora.info("Acuse exhortoOrigenId: %s", acuse_exhorto_origen_id)
     except KeyError:
-        mensaje_advertencia = "Faltó exhortoOrigenId en el acuse"
+        errores.append("Faltó exhortoOrigenId en el acuse")
 
     # Validar que en acuse tenga "folioSeguimiento"
     try:
         acuse_folio_seguimiento = str(acuse["folioSeguimiento"])
         bitacora.info("Acuse folioSeguimiento: %s", acuse_folio_seguimiento)
     except KeyError:
-        mensaje_advertencia = "Faltó folioSeguimiento en el acuse"
+        errores.append("Faltó folioSeguimiento en el acuse")
 
     # Validar que en acuse tenga "fechaHoraRecepcion"
     try:
@@ -282,7 +283,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         acuse_fecha_hora_recepcion = datetime.strptime(acuse_fecha_hora_recepcion_str, "%Y-%m-%d %H:%M:%S")
         bitacora.info("Acuse fechaHoraRecepcion: %s", acuse_fecha_hora_recepcion_str)
     except (KeyError, ValueError):
-        mensaje_advertencia = "Faltó o es incorrecta fechaHoraRecepcion en el acuse"
+        errores.append("Faltó o es incorrecta fechaHoraRecepcion en el acuse")
 
     # Puede venir "municipioAreaRecibeId" en acuse porque es opcional
     acuse_municipio_area_recibe_id = None
@@ -316,10 +317,9 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     except KeyError:
         pass
 
-    # Terminar si hubo mensaje_advertencia
-    if mensaje_advertencia != "":
-        # exh_exhorto.estado = "RECHAZADO"
-        # exh_exhorto.save()
+    # Terminar si hubo errores
+    if len(errores) > 0:
+        mensaje_advertencia = ", ".join(errores)
         bitacora.warning(mensaje_advertencia)
         raise MyAnyError(mensaje_advertencia)
 
