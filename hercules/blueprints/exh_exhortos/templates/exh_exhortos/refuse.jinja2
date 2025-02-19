@@ -69,7 +69,7 @@
     {% endcall %}
     {% call f.card('Subir documento') %}
         {% set form_kwargs = {'exh_exhorto_id': exh_exhorto.id} %}
-        {% call f.form_tag_multipart('exh_exhortos.refuse', fid='exh_exhorto_form', **form_kwargs) %}
+        {% call f.form_tag_multipart('exh_exhortos.change_to_refuse', fid='exh_exhorto_form', **form_kwargs) %}
             {% call f.drop_zone_wrapper() %}
                 {% call f.form_group(form.archivo, class="dropzone") %}{% endcall %}
             {% endcall %}
