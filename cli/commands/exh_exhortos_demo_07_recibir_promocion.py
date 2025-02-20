@@ -1,5 +1,7 @@
 """
 Exh Exhortos Demo 07 Recibir Promoción
+
+Esta es una demostración que va a insertar datos aleatorios en la base de datos para probar la interfaz de usuario.
 """
 
 import random

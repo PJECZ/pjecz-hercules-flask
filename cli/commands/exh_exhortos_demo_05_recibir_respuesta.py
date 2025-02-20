@@ -1,5 +1,7 @@
 """
 Exh Exhortos Demo 05 Recibir Respuesta
+
+Esta es una demostración que va a insertar datos aleatorios en la base de datos para probar la interfaz de usuario.
 """
 
 import random
