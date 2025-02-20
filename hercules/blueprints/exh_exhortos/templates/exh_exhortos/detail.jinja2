@@ -135,7 +135,7 @@
                 <div class="col-md-6 d-grid gap-2">
                 </div>
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalregresar_enviar_btn('{{url_for('exh_exhortos.back_to_by_send', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de querer reiniciar los intentos de envío y regresar el exhorto al estado POR ENVIAR?');">
+                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalregresar_enviar_btn('{{url_for('exh_exhortos.change_to_send', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de querer reiniciar los intentos de envío y regresar el exhorto al estado POR ENVIAR?');">
                         <span class='iconify' data-icon='mdi:refresh'></span> Reiniciar Intentos
                     </a>
                 </div>
@@ -146,7 +146,7 @@
                 <div class="col-md-6 d-grid gap-2">
                 </div>
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-warning text-dark" href="javascript:void(0)" onclick="showModalregresar_pendiente_btn('{{url_for('exh_exhortos.back_to_pending', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de querer regresar el estado a PENDIENTE?');">
+                    <a class="btn btn-lg btn-warning text-dark" href="javascript:void(0)" onclick="showModalregresar_pendiente_btn('{{url_for('exh_exhortos.change_to_pending', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de querer regresar el estado a PENDIENTE?');">
                         <span class='iconify' data-icon='mdi:refresh'></span> Regresar a Pendiente
                     </a>
                 </div>
