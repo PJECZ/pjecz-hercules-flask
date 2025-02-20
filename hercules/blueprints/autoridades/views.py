@@ -406,6 +406,6 @@ def select2_json():
         if clave != "":
             consulta = consulta.filter(Autoridad.clave.contains(clave))
     resultados = []
-    for modulo in consulta.order_by(Autoridad.nombre).limit(10).all():
-        resultados.append({"id": modulo.id, "text": modulo.nombre})
+    for autoridad in consulta.order_by(Autoridad.clave).limit(10).all():
+        resultados.append({"id": autoridad.id, "text": f"{autoridad.clave}: {autoridad.descripcion_corta}"})
     return {"results": resultados, "pagination": {"more": False}}

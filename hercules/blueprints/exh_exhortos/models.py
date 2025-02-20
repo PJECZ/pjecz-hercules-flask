@@ -193,13 +193,12 @@ class ExhExhorto(database.Model, UniversalMixin):
     # Fecha hora local en el que el Poder Judicial exhortante marca la Respuesta del Exhorto como recibida
     respuesta_fecha_hora_recepcion_acuse: Mapped[Optional[datetime]]
 
-    # Hijos: Colección de objetos de tipo Actualizaciones que representan
-    # las diferentes actualizaciones pedidas para el exhorto
+    # Hijo: Actualizaciones
     exh_exhortos_actualizaciones: Mapped[List["ExhExhortoActualizacion"]] = relationship(
         "ExhExhortoActualizacion", back_populates="exh_exhorto"
     )
 
-    # Hijo
+    # Hijo: Promociones
     exh_exhortos_promociones: Mapped[List["ExhExhortoPromocion"]] = relationship(
         "ExhExhortoPromocion", back_populates="exh_exhorto"
     )
