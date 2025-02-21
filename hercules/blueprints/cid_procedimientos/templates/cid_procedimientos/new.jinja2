@@ -162,7 +162,7 @@
                                         </div>
                                         <div class="row">
                                             {{ add_data.btn_datatable('Borrar Datos', 'btn_del_cam', 'danger', '') }}
-                                            {{ add_data.btn_datatable('Editar', 'btn_edit_cam', 'info', 'data-bs-toggle="modal" data-bs-target="#edit_cambio_modal"') }}
+                                            {{ add_data.btn_datatable('Editar', 'btn_edit_cam', 'info') }}
                                         </div>
                                 {% endcall %}
                             {% endcall %}
@@ -246,7 +246,7 @@
                     var codigo = $("#registro_codigo").val().toUpperCase();
                     var nombre = $("#registro_nombre").val().toUpperCase();
                     var responsable = $("#registro_responsable").val().toUpperCase();
-                    var retencion = $("#registro_retencion").val().toUpperCase();
+                    var retencion = $("#registro_retencion").val();
 
                     tabla.row.add(
                         [
@@ -351,11 +351,24 @@
             } );
 
             $('#btn_edit_cam').click( function() {
-                let datos_c = tabla_control.row('.tActive').data();
-                $("#e_control_revision").val(datos_c[0]);
-                $("#e_control_cambio").val(datos_c[1]);
-                $("#e_control_solicitud").val(datos_c[2]);
-                $("#e_control_fecha").val(datos_c[3]);
+                let rowSelected = tabla_control.row('.tActive'); // Selecciona la fila activa
+                let rowIndex = rowSelected.index(); // Obtiene el indice de la fila seleccionada
+                let datosCambio = rowSelected.data(); // Obtener datos
+                console.log(datosCambio)
+
+                // Verificar si hay una fila seleccionada
+                if(rowIndex === undefined || !datosCambio){
+                    alert("Por favor, selecciona una fila antes de editar.");
+                    return;
+                }
+
+                $("#e_control_revision").val(datosCambio[0]);
+                $("#e_control_cambio").val(datosCambio[1]);
+                $("#e_control_solicitud").val(datosCambio[2]);
+                $("#e_control_fecha").val(datosCambio[3]);
+
+                // abrir el modal manualmente
+                $("#edit_cambio_modal").modal('show');
             });
 
             $("#e_updt_control_btn").click( function() {

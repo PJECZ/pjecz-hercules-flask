@@ -4,9 +4,10 @@ CID Formatos, vistas
 
 import json
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
+from werkzeug.exceptions import NotFound
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.cid_areas.models import CIDArea
@@ -18,13 +19,20 @@ from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.exceptions import MyFilenameError, MyMissingConfigurationError, MyNotAllowedExtensionError, MyUnknownExtensionError
+from lib.exceptions import (
+    MyBucketNotFoundError,
+    MyFilenameError,
+    MyFileNotFoundError,
+    MyMissingConfigurationError,
+    MyNotAllowedExtensionError,
+    MyNotValidParamError,
+    MyUnknownExtensionError,
+)
+from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
 from lib.safe_string import safe_clave, safe_message, safe_string
 from lib.storage import GoogleCloudStorage
 
 MODULO = "CID FORMATOS"
-
-cid_formatos = Blueprint("cid_formatos", __name__, template_folder="templates")
 
 SUBDIRECTORIO = "cid_formatos"
 
@@ -35,6 +43,8 @@ ROL_DIRECTOR_JEFE = "SICGD DIRECTOR O JEFE"
 ROL_DUENO_PROCESO = "SICGD DUENO DE PROCESO"
 ROL_INVOLUCRADO = "SICGD INVOLUCRADO"
 ROLES_CON_FORMATOS_PROPIOS = (ROL_COORDINADOR, ROL_DIRECTOR_JEFE, ROL_DUENO_PROCESO)
+
+cid_formatos = Blueprint("cid_formatos", __name__, template_folder="templates")
 
 
 @cid_formatos.before_request
@@ -313,13 +323,14 @@ def new(cid_procedimiento_id):
     if form.validate_on_submit():
         es_valido = True
         # Validar la descripción
-        descripcion = safe_string(form.descripcion.data)
+        descripcion = safe_string(form.descripcion.data, save_enie=True)
         if descripcion == "":
             flash("La descripción es requerida.", "warning")
             es_valido = False
         # Validar archivo
         archivo = request.files["archivo"]
         storage = GoogleCloudStorage(base_directory=SUBDIRECTORIO)
+
         try:
             storage.set_content_type(archivo.filename)
         except MyNotAllowedExtensionError:
@@ -381,7 +392,7 @@ def edit(cid_formato_id):
     form = CIDFormatoEdit()
     if form.validate_on_submit():
         cid_formato.codigo = safe_clave(form.codigo.data)
-        cid_formato.descripcion = safe_string(form.descripcion.data)
+        cid_formato.descripcion = safe_string(form.descripcion.data, save_enie=True)
         cid_formato.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -465,3 +476,34 @@ def dashboard():
         titulo="Tablero de Formatos",
         mostrar_boton_exportar_lista_maestra_xlsx=mostrar_boton_exportar_lista_maestra_xlsx,
     )
+
+
+@cid_formatos.route("/cid_formatos/ver_archivo_pdf/<int:cid_formato_id>")
+def view_file_pdf(cid_formato_id):
+    """Ver archivo PDF de formatos para insertarlo en un iframe en el detalle"""
+
+    # Consultar
+    cid_formato = CIDFormato.query.get_or_404(cid_formato_id)
+
+    # Obtener el contenido del archivo
+    try:
+        # Validar que el archivo es un PDF
+        if not cid_formato.url.lower().endswith(".pdf"):
+            raise ValueError("El archivo no es un PDF. ")
+
+        # Obtener el contenido del archivo
+        archivo = get_file_from_gcs(
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO"],
+            blob_name=get_blob_name_from_url(cid_formato.url),
+        )
+
+    except ValueError as error:
+        return str(error)
+
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        raise NotFound("No se encontró el archivo.") from error
+
+    # Entregar el archivo
+    response = make_response(archivo)
+    response.headers["Content-Type"] = "application/pdf"
+    return response

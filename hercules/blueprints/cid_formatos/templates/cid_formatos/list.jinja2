@@ -58,11 +58,6 @@
             </thead>
         </table>
     {% endcall %}
-    {% if show_lista_maestra %}
-        {% call list.card('Lista Maestra') %}
-                {{ modals.button_modal('Exportar Lista Maestra a XLSX', url_for('cid_formatos.exportar_xlsx'), 'ExportXLSX', 'mdi:download', "¿Quiere exportar la Lista Maestra un archivo XLSX?") }}
-        {% endcall %}
-    {% endif %}
 {% endblock %}
 
 {% block custom_javascript %}
