@@ -205,7 +205,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     bitacora.info(mensaje)
 
     # Definir los datos que se van a incluir en el envío de los archivos
-    payload_for_data = {"exhortoOrigenId": exh_exhorto.exhorto_origen_id}
+    payload_for_data = {"exhortoOrigenId": str(exh_exhorto.exhorto_origen_id)}
 
     # Mandar los archivos del exhorto con multipart/form-data (ETAPA 3)
     data = None

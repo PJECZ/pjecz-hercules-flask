@@ -119,6 +119,9 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         "archivos": archivos,
     }
 
+    # Generar identificador para el folio de seguimiento
+    folio_seguimiento = generar_identificador()
+
     # Informar a la bitácora que se va a enviar la promoción
     mensaje = "Pasan las validaciones y comienza el envío de la promoción."
     bitacora.info(mensaje)
@@ -176,13 +179,10 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     mensaje = "Comienza el envío de los archivos de la promoción."
     bitacora.info(mensaje)
 
-    # Generar identificador para el folio de seguimiento
-    folio_seguimiento = generar_identificador()
-
     # Definir los datos que se van a incluir en el envío de los archivos
     payload_for_data = {
-        "folioOrigenPromocion": exh_exhorto_promocion.exh_exhorto.exhorto_origen_id,
-        "folioSeguimiento": folio_seguimiento,
+        "folioOrigenPromocion": str(exh_exhorto_promocion.exh_exhorto.exhorto_origen_id),
+        "folioSeguimiento": str(folio_seguimiento),
     }
 
     # Mandar los archivos del exhorto con multipart/form-data (ETAPA 3)
