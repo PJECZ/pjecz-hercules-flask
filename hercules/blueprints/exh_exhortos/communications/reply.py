@@ -196,8 +196,8 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
 
     # Definir los datos que se van a incluir en el envío de los archivos
     payload_for_data = {
-        "exhortoOrigenId": exh_exhorto.exhorto_origen_id,
-        "respuestaOrigenId": exh_exhorto.respuesta_origen_id,
+        "exhortoOrigenId": str(exh_exhorto.exhorto_origen_id),
+        "respuestaOrigenId": str(respuesta_origen_id),
     }
 
     # Mandar los archivos de la respuesta con multipart/form-data (ETAPA 3)
@@ -307,8 +307,9 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         bitacora.warning(mensaje_advertencia)
         raise MyAnyError(mensaje_advertencia)
 
-    # Actualizar el estado a CONTESTADO
+    # Actualizar el estado a CONTESTADO y conservar respuesta_origen_id
     exh_exhorto.estado = "CONTESTADO"
+    exh_exhorto.respuesta_origen_id = respuesta_origen_id
     exh_exhorto.save()
 
     # Elaborar mensaje_termino
