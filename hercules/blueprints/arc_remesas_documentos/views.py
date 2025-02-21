@@ -140,7 +140,7 @@ def detail(arc_remesa_documento_id):
         if remesa.estado == "ASIGNADO":
             mostrar_secciones["archivar"] = True
             form = ArcRemesaDocumentoArchiveForm()
-            form.fojas.data = remesa_documento.fojas
+            form.fojas.data = remesa_documento.arc_documento.fojas
             if remesa_documento.anomalia is not None:
                 form.anomalia.data = remesa_documento.anomalia
                 form.observaciones_archivista.data = remesa_documento.observaciones_archivista
