@@ -20,6 +20,7 @@ from lib.exceptions import (
     MyConnectionError,
     MyFileNotFoundError,
     MyNotExistsError,
+    MyNotValidAnswerError,
     MyNotValidParamError,
 )
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
@@ -154,20 +155,29 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         bitacora.warning(mensaje_advertencia)
         raise MyConnectionError(mensaje_advertencia)
 
-    # Terminar si el contenido de la respuesta no es valido
-    if not ("success", "message", "errors", "data") in contenido:
-        mensaje_advertencia = "Falló la validación de success, message, errors y data"
+    # Terminar si NO es correcta estructura de la respuesta
+    mensajes_advertencias = []
+    if "success" not in contenido or not isinstance(contenido["success"], bool):
+        mensajes_advertencias.append("Falta 'success' en la respuesta")
+    if "message" not in contenido or not isinstance(contenido["message"], str):
+        mensajes_advertencias.append("Falta 'message' en la respuesta")
+    if "errors" not in contenido:
+        mensajes_advertencias.append("Falta 'errors' en la respuesta")
+    if "data" not in contenido:
+        mensajes_advertencias.append("Falta 'data' en la respuesta")
+    if len(mensajes_advertencias) > 0:
+        mensaje_advertencia = ", ".join(mensajes_advertencias)
         bitacora.warning(mensaje_advertencia)
-        raise MyConnectionError(mensaje_advertencia)
+        raise MyNotValidAnswerError(mensaje_advertencia)
 
     # Terminar si success es FALSO
     if contenido["success"] is False:
-        mensaje_advertencia = f"Falló el envío del exhorto: {','.join(contenido['errors'])}"
+        mensaje_advertencia = f"Falló el envío de la promoción porque 'success' es falso: {','.join(contenido['errors'])}"
         bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia)
+        raise MyNotValidAnswerError(mensaje_advertencia)
 
-    # Informar a la bitácora que terminó el envío la promoción
-    mensaje = "Termina el envío la promoción."
+    # Informar a la bitácora que terminó el envío de la promoción
+    mensaje = "Termina el envío de la promoción."
     bitacora.info(mensaje)
 
     # Informar a la bitácora que se van a enviar los archivos de la promoción
@@ -223,16 +233,25 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         if mensaje_advertencia != "":
             bitacora.warning(mensaje_advertencia)
             raise MyAnyError(mensaje_advertencia)
-        # Validar el contenido de la respuesta
-        if not ("success", "message", "errors", "data") in contenido:
-            mensaje_advertencia = "Falló la validación de success, message, errors y data"
+        # Terminar si NO es correcta estructura de la respuesta
+        mensajes_advertencias = []
+        if "success" not in contenido or not isinstance(contenido["success"], bool):
+            mensajes_advertencias.append("Falta 'success' en la respuesta")
+        if "message" not in contenido or not isinstance(contenido["message"], str):
+            mensajes_advertencias.append("Falta 'message' en la respuesta")
+        if "errors" not in contenido:
+            mensajes_advertencias.append("Falta 'errors' en la respuesta")
+        if "data" not in contenido:
+            mensajes_advertencias.append("Falta 'data' en la respuesta")
+        if len(mensajes_advertencias) > 0:
+            mensaje_advertencia = ", ".join(mensajes_advertencias)
             bitacora.warning(mensaje_advertencia)
-            raise MyConnectionError(mensaje_advertencia)
-        # Si success es FALSO, mandar a la bitácora el listado de errores y terminar
+            raise MyNotValidAnswerError(mensaje_advertencia)
+        # Terminar si success es FALSO
         if contenido["success"] is False:
-            mensaje_advertencia = f"Falló el envío del archivo: {','.join(contenido['errors'])}"
+            mensaje_advertencia = f"Falló el envío del archivo porque 'success' es falso: {','.join(contenido['errors'])}"
             bitacora.warning(mensaje_advertencia)
-            raise MyAnyError(mensaje_advertencia)
+            raise MyNotValidAnswerError(mensaje_advertencia)
         # Tomar el data que llega por enviar el archivo
         data = contenido["data"]
 
