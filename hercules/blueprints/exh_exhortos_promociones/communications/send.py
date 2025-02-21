@@ -207,7 +207,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         mensaje_advertencia = ""
         try:
             respuesta = requests.post(
-                url=exh_externo.endpoint_recibir_exhorto_archivo,
+                url=exh_externo.endpoint_recibir_promocion_archivo,
                 headers={"X-Api-Key": exh_externo.api_key},
                 timeout=TIMEOUT,
                 files={"archivo": (archivo.nombre_archivo, archivo_contenido, "application/pdf")},
