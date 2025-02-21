@@ -27,6 +27,11 @@
         {{ detail.label_value('Distrito', cid_formato.procedimiento.autoridad.distrito.nombre_corto) }}
         {{ detail.label_value('Autoridad', cid_formato.procedimiento.autoridad.descripcion) }}
     {% endcall %}
+    {% call detail.card() %}
+        <object data="{{ url_for('cid_formatos.view_file_pdf', cid_formato_id=cid_formato.id) }}" type="application/pdf" width="100%" height="600px">
+            <p class="mb-0">El navegador no puede mostrar el archivo PDF o no existe en el depósito.</p>
+        </object>
+    {% endcall %}
 {% endblock %}
 
 {% block custom_javascript %}
