@@ -253,12 +253,13 @@ def new():
             bitacora.save()
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
+    # Consultar el estado de origen por medio de la clave INEGI en la variable de entorno ESTADO_CLAVE
+    estado_origen_id = current_app.config["ESTADO_CLAVE"]
+    # Definir valores por defecto del formulario
     form.exhorto_origen_id.data = "0" * 24  # Read only
-    form.estado_origen.data = "COAHUILA DE ZARAGOZA"
+    form.estado_origen.data = Estado.query.get(estado_origen_id).nombre  # Read only
     form.estado.data = "PENDIENTE"
     form.fecha_origen.data = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    # Consultar el estado de origen por medio de la clave INEGI en las variables de entorno ESTADO_CLAVE
-    estado_origen_id = Estado.query.filter_by(clave=current_app.config["ESTADO_CLAVE"]).first().id
     # Entregar
     return render_template("exh_exhortos/new.jinja2", form=form, estado_origen_id=estado_origen_id)
 
