@@ -10,7 +10,7 @@ from hercules.blueprints.exh_exhortos.models import ExhExhorto
 from hercules.blueprints.exh_externos.models import ExhExterno
 from hercules.blueprints.municipios.models import Municipio
 from hercules.extensions import database
-from lib.exceptions import MyAnyError, MyConnectionError, MyEmptyError, MyNotExistsError
+from lib.exceptions import MyAnyError, MyConnectionError, MyEmptyError, MyNotExistsError, MyNotValidAnswerError
 
 app = create_app()
 app.app_context().push()
@@ -89,17 +89,26 @@ def consultar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         bitacora.warning(mensaje_advertencia)
         raise MyConnectionError(mensaje_advertencia)
 
-    # Validar el contenido de la respuesta
-    if not ("success", "message", "errors", "data") in contenido:
-        mensaje_advertencia = "Falla la validación de success, message, errors y data"
+    # Terminar si NO es correcta estructura de la respuesta
+    mensajes_advertencias = []
+    if "success" not in contenido or not isinstance(contenido["success"], bool):
+        mensajes_advertencias.append("Falta 'success' en la respuesta")
+    if "message" not in contenido or not isinstance(contenido["message"], str):
+        mensajes_advertencias.append("Falta 'message' en la respuesta")
+    if "errors" not in contenido:
+        mensajes_advertencias.append("Falta 'errors' en la respuesta")
+    if "data" not in contenido:
+        mensajes_advertencias.append("Falta 'data' en la respuesta")
+    if len(mensajes_advertencias) > 0:
+        mensaje_advertencia = ", ".join(mensajes_advertencias)
         bitacora.warning(mensaje_advertencia)
-        raise MyConnectionError(mensaje_advertencia)
+        raise MyNotValidAnswerError(mensaje_advertencia)
 
     # Terminar si success es FALSO
     if contenido["success"] is False:
-        mensaje_advertencia = f"Falló la consulta del exhorto: {','.join(contenido['errors'])}"
+        mensaje_advertencia = f"Falló la consulta del exhorto porque 'success' es falso: {','.join(contenido['errors'])}"
         bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia)
+        raise MyNotValidAnswerError(mensaje_advertencia)
 
     # Definir los campos que esperamos vengan en el data
     campos = [
