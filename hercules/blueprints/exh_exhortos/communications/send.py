@@ -51,7 +51,8 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         bitacora.error(mensaje_advertencia)
         raise MyNotExistsError(mensaje_advertencia)
 
-    # Consultar el Estado de destino a partir del ID del Municipio en municipio_destino_id
+    # Consultar el Estado de DESTINO a partir de municipio_destino_id, porque es a quien se le envía el exhorto
+    # La columna municipio_destino_id NO es clave foránea, por eso se tiene que hacer las consultas de esta manera
     municipio = Municipio.query.get(exh_exhorto.municipio_destino_id)
     if municipio is None:
         mensaje_advertencia = f"No existe el municipio con ID {exh_exhorto.municipio_destino_id}"
@@ -63,7 +64,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         bitacora.error(mensaje_advertencia)
         raise MyNotExistsError(mensaje_advertencia)
 
-    # Consultar el ExhExterno con el ID del Estado, tomar el primero porque solo debe haber uno
+    # Consultar el ExhExterno, tomar el primero porque solo debe haber uno
     exh_externo = ExhExterno.query.filter_by(estado_id=estado.id).first()
     if exh_externo is None:
         mensaje_advertencia = f"No hay datos en exh_externos del estado {estado.nombre}"
