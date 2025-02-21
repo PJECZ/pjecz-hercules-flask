@@ -38,27 +38,22 @@ def consultar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         bitacora.error(mensaje_advertencia)
         raise MyNotExistsError(mensaje_advertencia)
 
-    # Consultar el Estado de destino a partir de municipio_destino_id
-    municipio = Municipio.query.get(exh_exhorto.municipio_destino_id)
-
-    # Validar que el municipio exista
-    if municipio is None:
-        mensaje_error = f"No existe el municipio con ID {exh_exhorto.municipio_destino_id}"
-        bitacora.error(mensaje_error)
-        raise MyNotExistsError(mensaje_error)
+    # Tomar el estado de ORIGEN a partir de municipio_origen, porque es a quien se le va a consultar
+    municipio = exh_exhorto.municipio_origen  # Es una columna foránea
+    estado = municipio.estado
 
     # Consultar ExhExterno con el estado
-    exh_externo = ExhExterno.query.filter_by(estado_id=municipio.estado_id).first()
+    exh_externo = ExhExterno.query.filter_by(estado_id=estado.id).first()
 
     # Si ExhExterno no tiene API-key
     if exh_externo.api_key is None or exh_externo.api_key == "":
-        mensaje_error = f"No tiene API-key en exh_externos el estado {exh_externo.estado.nombre}"
+        mensaje_error = f"No tiene API-key en exh_externos el estado {estado.nombre}"
         bitacora.error(mensaje_error)
         raise MyEmptyError(mensaje_error)
 
     # Si exh_externo no tiene endpoint para consultar exhortos
     if exh_externo.endpoint_consultar_exhorto is None or exh_externo.endpoint_consultar_exhorto == "":
-        mensaje_error = f"No tiene endpoint para consultar exhortos el estado {exh_externo.estado.nombre}"
+        mensaje_error = f"No tiene endpoint para consultar exhortos el estado {estado.nombre}"
         bitacora.error(mensaje_error)
         raise MyEmptyError(mensaje_error)
 
