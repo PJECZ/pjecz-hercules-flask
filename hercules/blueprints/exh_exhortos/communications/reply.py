@@ -279,12 +279,12 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     # Inicializar listado de errores para acumular fallos si los hubiera
     errores = []
 
-    # Validar que el acuse tenga "exhortoOrigenId"
+    # Validar que el acuse tenga "exhortoId"
     try:
-        acuse_exhorto_origen_id = str(acuse["exhortoOrigenId"])
-        bitacora.info("Acuse exhortoOrigenId: %s", acuse_exhorto_origen_id)
+        acuse_exhorto_id = str(acuse["exhortoId"])
+        bitacora.info("Acuse exhortoId: %s", acuse_exhorto_id)
     except KeyError:
-        errores.append("Faltó exhortoOrigenId en el acuse")
+        errores.append("Faltó exhortoId en el acuse")
 
     # Validar que el acuse tenga "respuestaOrigenId"
     try:
