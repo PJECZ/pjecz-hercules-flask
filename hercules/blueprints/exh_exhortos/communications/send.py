@@ -271,8 +271,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
             raise MyNotValidAnswerError(mensaje_advertencia)
         # Actualizar el archivo del exhorto al estado RECIBIDO
         archivo.estado = "RECIBIDO"
-        database.add(archivo)
-        database.commit()
+        archivo.save()
         # Tomar el data que llega por enviar el archivo
         data = contenido["data"]
 
