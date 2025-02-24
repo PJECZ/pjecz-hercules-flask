@@ -346,7 +346,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         bitacora.warning(mensaje_advertencia)
         raise MyAnyError(mensaje_advertencia)
 
-    # Actualizar el estado a RECIBIDO CON EXITO
+    # Actualizar el exhorto con los datos del acuse
     exh_exhorto.estado = "RECIBIDO CON EXITO"
     exh_exhorto.folio_seguimiento = acuse_folio_seguimiento
     exh_exhorto.acuse_fecha_hora_recepcion = acuse_fecha_hora_recepcion
