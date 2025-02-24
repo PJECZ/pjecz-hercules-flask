@@ -71,7 +71,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     municipio = exh_exhorto_promocion.exh_exhorto.municipio_origen  # Es una columna foránea
     estado = municipio.estado
     # Si el estado no es el mismo que el de la clave, entonces es de DESTINO a ORIGEN
-    if estado.clave != ESTADO_CLAVE:
+    if estado.clave == ESTADO_CLAVE:
         sentido = "DESTINO A ORIGEN"
         # Consultar el Estado de DESTINO a partir de municipio_destino_id, porque es a quien se le envía el exhorto
         # La columna municipio_destino_id NO es clave foránea, por eso se tiene que hacer las consultas de esta manera
