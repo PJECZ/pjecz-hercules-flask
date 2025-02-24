@@ -194,13 +194,13 @@
                 </div>
                 <!-- TODO: Poner en modal -->
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-success" href="{{url_for('exh_exhortos.launch_task_reply', exh_exhorto_id=exh_exhorto.id)}}">
+                    <a class="btn btn-lg btn-success" href="javascript:void(0)" onclick="showModalcontestar_btn('{{url_for('exh_exhortos.launch_task_reply', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de querer CONTESTAR el exhorto?');">
                         <span class='iconify' data-icon='mdi:check-circle'></span> Contestar
                     </a>
                 </div>
             </div>
         {% endif %}
-        {% if exh_exhorto.estado in ("DILIGENCIADO", "RESPONDIDO") %}
+        {% if exh_exhorto.estado in ("CONTESTADO", "RESPONDIDO") %}
             <div class="row text-center">
                 <div class="col-md-6 d-grid gap-2">
                 </div>
@@ -269,7 +269,7 @@
                         </tr>
                     </thead>
                 </table>
-                {% if exh_exhorto.estado in ('PROCESANDO')  %}
+                {% if exh_exhorto.estado in ('PROCESANDO', 'DILIGENCIADO')  %}
                     <a class="btn btn-success" href="{{url_for('exh_exhortos_archivos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id, es_respuesta=1)}}">Agregar Archivo de Respuesta</a>
                 {% endif %}
             </div>
@@ -612,7 +612,10 @@
     {% if exh_exhorto.estado == 'RECIBIDO' %}
         {{ modals.custom_javascript('Transferir', '', "transferir_btn") }}
     {% endif %}
-    {% if exh_exhorto.estado == 'RESPONDIDO' or exh_exhorto.estado == 'DILIGENCIADO' %}
+    {% if exh_exhorto.estado == 'DILIGENCIADO' %}
+        {{ modals.custom_javascript('Contestar', '¿Está seguro de querer CONTESTAR el exhorto?', "contestar_btn") }}
+    {% endif %}
+    {% if exh_exhorto.estado == 'RESPONDIDO' or exh_exhorto.estado == 'CONTESTADO' %}
         {{ modals.custom_javascript('Archivar', '¿Está seguro de querer ARCHIVAR el exhorto?', "archivar_btn") }}
     {% endif %}
 {% endblock %}
