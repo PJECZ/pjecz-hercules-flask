@@ -41,60 +41,60 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
 
     # Validar que exista el exhorto
     if exh_exhorto is None:
-        mensaje_advertencia = f"No existe el exhorto con ID {exh_exhorto_id}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No existe el exhorto con ID {exh_exhorto_id}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Validar que su estado
     if exh_exhorto.estado not in ("PENDIENTE", "POR ENVIAR"):
-        mensaje_advertencia = f"El exhorto con ID {exh_exhorto_id} no tiene el estado PENDIENTE o POR ENVIAR"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"El exhorto con ID {exh_exhorto_id} no tiene el estado PENDIENTE o POR ENVIAR"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Consultar el Estado de DESTINO a partir de municipio_destino_id, porque es a quien se le envía el exhorto
     # La columna municipio_destino_id NO es clave foránea, por eso se tiene que hacer las consultas de esta manera
     municipio = Municipio.query.get(exh_exhorto.municipio_destino_id)
     if municipio is None:
-        mensaje_advertencia = f"No existe el municipio con ID {exh_exhorto.municipio_destino_id}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No existe el municipio con ID {exh_exhorto.municipio_destino_id}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
     estado = Estado.query.get(municipio.estado_id)
     if estado is None:
-        mensaje_advertencia = f"No existe el estado con ID {municipio.estado_id}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No existe el estado con ID {municipio.estado_id}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Consultar el ExhExterno, tomar el primero porque solo debe haber uno
     exh_externo = ExhExterno.query.filter_by(estado_id=estado.id).first()
     if exh_externo is None:
-        mensaje_advertencia = f"No hay datos en exh_externos del estado {estado.nombre}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No hay datos en exh_externos del estado {estado.nombre}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Si exh_externo no tiene API-key
     if exh_externo.api_key is None or exh_externo.api_key == "":
-        mensaje_advertencia = f"No tiene API-key en exh_externos el estado {estado.nombre}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No tiene API-key en exh_externos el estado {estado.nombre}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Si exh_externo no tiene endpoint para enviar exhortos
     if exh_externo.endpoint_recibir_exhorto is None or exh_externo.endpoint_recibir_exhorto == "":
-        mensaje_advertencia = f"No tiene endpoint para enviar exhortos el estado {estado.nombre}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No tiene endpoint para enviar exhortos el estado {estado.nombre}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Si exh_externo no tiene endpoint para enviar archivos
     if exh_externo.endpoint_recibir_exhorto_archivo is None or exh_externo.endpoint_recibir_exhorto_archivo == "":
-        mensaje_advertencia = f"No tiene endpoint para enviar archivos el estado {estado.nombre}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No tiene endpoint para enviar archivos el estado {estado.nombre}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Consultar el municipio de municipio_destino_id para enviar su clave INEGI
     municipio_destino = Municipio.query.get(exh_exhorto.municipio_destino_id)
     if municipio_destino is None:
-        mensaje_advertencia = f"No existe municipio_destino_id {exh_exhorto.municipio_destino_id}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No existe municipio_destino_id {exh_exhorto.municipio_destino_id}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Bucle para juntar los datos de las partes
     partes = []

@@ -32,15 +32,15 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
 
     # Validar que exista la actualización
     if exh_exhorto_actualizacion is None:
-        mensaje_advertencia = f"No existe la actualización con ID {exh_exhorto_actualizacion_id}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No existe la actualización con ID {exh_exhorto_actualizacion_id}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Validar que su estado sea POR ENVIAR
     if exh_exhorto_actualizacion.estado != "PENDIENTE":
-        mensaje_advertencia = f"La actualización con ID {exh_exhorto_actualizacion_id} no tiene el estado PENDIENTE"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"La actualización con ID {exh_exhorto_actualizacion_id} no tiene el estado PENDIENTE"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Consultar el estado de ORIGEN a partir de municipio_origen_id, porque es a quien se le envía la actualización
     municipio = exh_exhorto_actualizacion.exh_exhorto.municipio_origen  # Es una columna foránea
@@ -49,21 +49,21 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     # Consultar el ExhExterno, tomar el primero porque solo debe haber uno
     exh_externo = ExhExterno.query.filter_by(estado_id=estado.id).first()
     if exh_externo is None:
-        mensaje_advertencia = f"No hay datos en exh_externos del estado {estado.nombre}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No hay datos en exh_externos del estado {estado.nombre}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Si exh_externo no tiene API-key
     if exh_externo.api_key is None or exh_externo.api_key == "":
-        mensaje_advertencia = f"No tiene API-key en exh_externos el estado {estado.nombre}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No tiene API-key en exh_externos el estado {estado.nombre}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Si exh_externo no tiene endpoint para enviar actualizaciones
     if exh_externo.endpoint_actualizar_exhorto is None or exh_externo.endpoint_actualizar_exhorto == "":
-        mensaje_advertencia = f"No tiene endpoint para enviar actualizaciones el estado {estado.nombre}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No tiene endpoint para enviar actualizaciones el estado {estado.nombre}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Generar un identificador único para la actualización
     actualizacion_origen_id = generar_identificador()
