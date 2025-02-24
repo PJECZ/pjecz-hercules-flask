@@ -42,15 +42,15 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
 
     # Validar que exista el exhorto
     if exh_exhorto is None:
-        mensaje_advertencia = f"No existe el exhorto con ID {exh_exhorto_id}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No existe el exhorto con ID {exh_exhorto_id}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Validar que su estado
     if exh_exhorto.estado not in ("TRANSFERIDO", "PROCESANDO", "DILIGENCIADO"):
-        mensaje_advertencia = f"El exhorto con ID {exh_exhorto_id} no tiene el estado TRANSFERIDO, PROCESANDO o DILIGENCIADO"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"El exhorto con ID {exh_exhorto_id} no tiene el estado TRANSFERIDO, PROCESANDO o DILIGENCIADO"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Tomar el estado de ORIGEN a partir de municipio_origen
     municipio = exh_exhorto.municipio_origen  # Es una columna foránea
@@ -59,30 +59,30 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     # Consultar el ExhExterno, tomar el primero porque solo debe haber uno
     exh_externo = ExhExterno.query.filter_by(estado_id=estado.id).first()
     if exh_externo is None:
-        mensaje_advertencia = f"No hay datos en exh_externos del estado {estado.nombre}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No hay datos en exh_externos del estado {estado.nombre}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Si exh_externo no tiene API-key
     if exh_externo.api_key is None or exh_externo.api_key == "":
-        mensaje_advertencia = f"No tiene API-key en exh_externos el estado {estado.nombre}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No tiene API-key en exh_externos el estado {estado.nombre}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Si exh_externo no tiene endpoint para enviar exhortos
     if exh_externo.endpoint_recibir_respuesta_exhorto is None or exh_externo.endpoint_recibir_respuesta_exhorto == "":
-        mensaje_advertencia = f"No tiene endpoint para enviar respuestas el estado {estado.nombre}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No tiene endpoint para enviar respuestas el estado {estado.nombre}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Si exh_externo no tiene endpoint para enviar archivos
     if (
         exh_externo.endpoint_recibir_respuesta_exhorto_archivo is None
         or exh_externo.endpoint_recibir_respuesta_exhorto_archivo == ""
     ):
-        mensaje_advertencia = f"No tiene endpoint para enviar archivos de respuestas el estado {estado.nombre}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No tiene endpoint para enviar archivos de respuestas el estado {estado.nombre}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Bucle para juntar los datos de los archivos que SI sean respuesta
     archivos = []
@@ -100,9 +100,9 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
 
     # Validar que haya archivos
     if len(archivos) == 0:
-        mensaje_advertencia = f"No hay archivos de respuesta en el exhorto con ID {exh_exhorto_id}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No hay archivos de respuesta en el exhorto con ID {exh_exhorto_id}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Bucle para juntar los datos de los videos
     videos = []

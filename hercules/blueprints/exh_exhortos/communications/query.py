@@ -28,15 +28,15 @@ def consultar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
 
     # Validar que exista el exhorto
     if exh_exhorto is None:
-        mensaje_advertencia = f"No existe el exhorto con ID {exh_exhorto_id}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No existe el exhorto con ID {exh_exhorto_id}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Validar que su estado sea POR ENVIAR
     if exh_exhorto.estado != "RECIBIDO CON EXITO":
-        mensaje_advertencia = f"El exhorto con ID {exh_exhorto_id} no tiene el estado RECIBIDO CON EXITO"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"El exhorto con ID {exh_exhorto_id} no tiene el estado RECIBIDO CON EXITO"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Tomar el estado de ORIGEN a partir de municipio_origen, porque es a quien se le va a consultar
     municipio = exh_exhorto.municipio_origen  # Es una columna foránea

@@ -2,10 +2,12 @@
 Communications, Enviar Promocion
 """
 
+import os
 import time
 from datetime import datetime
 
 import requests
+from dotenv import load_dotenv
 
 from hercules.app import create_app
 from hercules.blueprints.estados.models import Estado
@@ -30,6 +32,9 @@ app = create_app()
 app.app_context().push()
 database.app = app
 
+load_dotenv()
+ESTADO_CLAVE = os.getenv("ESTADO_CLAVE", "")
+
 TIMEOUT = 60  # segundos
 
 
@@ -42,44 +47,69 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
 
     # Validar que exista la promoción
     if exh_exhorto_promocion is None:
-        mensaje_advertencia = f"No existe la promoción con ID {exh_exhorto_promocion_id}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No existe la promoción con ID {exh_exhorto_promocion_id}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Validar que su estado sea POR ENVIAR
     if exh_exhorto_promocion.estado != "PENDIENTE":
-        mensaje_advertencia = f"La promoción con ID {exh_exhorto_promocion_id} no tiene el estado PENDIENTE"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"La promoción con ID {exh_exhorto_promocion_id} no tiene el estado PENDIENTE"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
-    # Consultar el estado de ORIGEN a partir de municipio_origen_id, porque es al que se le envía la promoción
+    # Validar que este definida la variable de entorno ESTADO_CLAVE
+    if ESTADO_CLAVE == "":
+        mensaje_error = "No está definida la variable de entorno ESTADO_CLAVE"
+        bitacora.error(mensaje_error)
+        raise MyNotValidParamError(mensaje_error)
+
+    # Las promociones pueden ser de ORIGEN a DESTINO o de DESTINO a ORIGEN
+    # Por lo hay qu determinar si es de ORIGEN a DESTINO o de DESTINO a ORIGEN
+    sentido = "ORIGEN A DESTINO"  # Por defecto, se asume que es de ORIGEN a DESTINO
+
+    # Tomar el estado de ORIGEN a partir de municipio_origen
     municipio = exh_exhorto_promocion.exh_exhorto.municipio_origen  # Es una columna foránea
     estado = municipio.estado
+    # Si el estado no es el mismo que el de la clave, entonces es de DESTINO a ORIGEN
+    if estado.clave != ESTADO_CLAVE:
+        sentido = "DESTINO A ORIGEN"
+        # Consultar el Estado de DESTINO a partir de municipio_destino_id, porque es a quien se le envía el exhorto
+        # La columna municipio_destino_id NO es clave foránea, por eso se tiene que hacer las consultas de esta manera
+        municipio = Municipio.query.get(exh_exhorto_promocion.exh_exhorto.municipio_destino_id)
+        if municipio is None:
+            mensaje_error = f"No existe el municipio con ID {exh_exhorto_promocion.exh_exhorto.municipio_destino_id}"
+            bitacora.error(mensaje_error)
+            raise MyNotExistsError(mensaje_error)
+        estado = Estado.query.get(municipio.estado_id)
+        if estado is None:
+            mensaje_error = f"No existe el estado con ID {municipio.estado_id}"
+            bitacora.error(mensaje_error)
+            raise MyNotExistsError(mensaje_error)
 
     # Consultar el ExhExterno, tomar el primero porque solo debe haber uno
     exh_externo = ExhExterno.query.filter_by(estado_id=estado.id).first()
     if exh_externo is None:
-        mensaje_advertencia = f"No hay datos en exh_externos del estado {estado.nombre}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No hay datos en exh_externos del estado {estado.nombre}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Si exh_externo no tiene API-key
     if exh_externo.api_key is None or exh_externo.api_key == "":
-        mensaje_advertencia = f"No tiene API-key en exh_externos el estado {estado.nombre}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No tiene API-key en exh_externos el estado {estado.nombre}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Si exh_externo no tiene endpoint para enviar promociones
     if exh_externo.endpoint_recibir_promocion is None or exh_externo.endpoint_recibir_promocion == "":
-        mensaje_advertencia = f"No tiene endpoint para enviar promociones el estado {estado.nombre}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No tiene endpoint para enviar promociones el estado {estado.nombre}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Si exh_externo no tiene endpoint para enviar archivos
     if exh_externo.endpoint_recibir_promocion_archivo is None or exh_externo.endpoint_recibir_promocion_archivo == "":
-        mensaje_advertencia = f"No tiene endpoint para enviar archivos de promociones el estado {estado.nombre}"
-        bitacora.error(mensaje_advertencia)
-        raise MyNotExistsError(mensaje_advertencia)
+        mensaje_error = f"No tiene endpoint para enviar archivos de promociones el estado {estado.nombre}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Bucle para juntar los promoventes
     promoventes = []
@@ -121,6 +151,10 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
 
     # Informar a la bitácora que se va a enviar la promoción
     mensaje = "Pasan las validaciones y comienza el envío de la promoción."
+    bitacora.info(mensaje)
+
+    # Informar a la bitácora el sentido de la promoción
+    mensaje = f"Este exhorto es de {sentido}."
     bitacora.info(mensaje)
 
     # Enviar la promoción
