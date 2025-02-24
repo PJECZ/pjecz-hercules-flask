@@ -57,7 +57,7 @@ def datatable_json():
                 },
                 "descripcion": resultado.descripcion,
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
-                "fecha": resultado.fecha.strftime("%Y-%m-%d %H:%M:%S"),
+                "fecha": resultado.fecha.strftime("%Y-%m-%d %H:%M:%S") if resultado.fecha != None else "",
             }
         )
     # Entregar JSON
