@@ -26,7 +26,6 @@ from lib.exceptions import (
     MyNotValidParamError,
 )
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
-from lib.pwgen import generar_identificador
 
 app = create_app()
 app.app_context().push()
@@ -140,8 +139,8 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
 
     # Definir los datos de la promoción a enviar
     payload_for_json = {
-        "folioSeguimiento": exh_exhorto_promocion.exh_exhorto.folio_seguimiento,
-        "folioOrigenPromocion": exh_exhorto_promocion.folio_origen_promocion,
+        "folioSeguimiento": str(exh_exhorto_promocion.exh_exhorto.folio_seguimiento),
+        "folioOrigenPromocion": str(exh_exhorto_promocion.folio_origen_promocion),
         "promoventes": promoventes,
         "fojas": int(exh_exhorto_promocion.fojas),
         "fechaOrigen": exh_exhorto_promocion.fecha_origen.strftime("%Y-%m-%d %H:%M:%S"),
@@ -213,7 +212,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     # Definir los datos que se van a incluir en el envío de los archivos
     payload_for_data = {
         "folioSeguimiento": str(exh_exhorto_promocion.exh_exhorto.folio_seguimiento),
-        "folioOrigenPromocion": str(exh_exhorto_promocion.exh_exhorto.exhorto_origen_id),
+        "folioOrigenPromocion": str(exh_exhorto_promocion.folio_origen_promocion),
     }
 
     # Mandar los archivos del exhorto con multipart/form-data (ETAPA 3)
