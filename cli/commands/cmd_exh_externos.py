@@ -86,7 +86,7 @@ def cambiar_endpoints(url_base, estado_clave=""):
         exh_externo.endpoint_recibir_respuesta_exhorto_archivo = f"{url_base}/api/v5/exh_exhortos_archivos/responder_upload"
         exh_externo.endpoint_actualizar_exhorto = f"{url_base}/api/v5/exh_exhortos_actualizaciones"
         exh_externo.endpoint_recibir_promocion = f"{url_base}/api/v5/exh_exhortos_promociones"
-        exh_externo.endpoint_recibir_promocion_archivo = f"{url_base}/api/v5/exh_exhortos_archivos/upload"
+        exh_externo.endpoint_recibir_promocion_archivo = f"{url_base}/api/v5/exh_exhortos_promociones_archivos/upload"
         # Actualizar
         exh_externo.save()
         click.echo(click.style(f"[{exh_externo.clave}] ", fg="green"), nl=False)
