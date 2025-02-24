@@ -269,6 +269,10 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
             mensaje_advertencia = f"Falló el envío del archivo porque 'success' es falso: {','.join(contenido['errors'])}"
             bitacora.warning(mensaje_advertencia)
             raise MyNotValidAnswerError(mensaje_advertencia)
+        # Actualizar el archivo del exhorto al estado RECIBIDO
+        archivo.estado = "RECIBIDO"
+        database.add(archivo)
+        database.commit()
         # Tomar el data que llega por enviar el archivo
         data = contenido["data"]
 
