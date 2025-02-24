@@ -178,7 +178,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
 
     # Definir los datos que se van a incluir en el envío de los archivos
     payload_for_data = {
-        "folioSeguimiento": str(exh_exhorto_promocion.exh_exhorto.folio_seguimientoo),
+        "folioSeguimiento": str(exh_exhorto_promocion.exh_exhorto.folio_seguimiento),
         "folioOrigenPromocion": str(exh_exhorto_promocion.exh_exhorto.exhorto_origen_id),
     }
 
