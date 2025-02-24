@@ -30,6 +30,9 @@
         {% if exh_exhorto_actualizacion.estado == "PENDIENTE" and exh_exhorto_actualizacion.estatus == 'A' %}
             <div class="row text-center">
                 <div class="col-md-6 d-grid gap-2">
+                    <a class="btn btn-lg btn-danger" href="javascript:void(0)" onclick="showModalcancelar_btn('{{url_for('exh_exhortos_actualizaciones.change_to_cancel', exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id)}}', '¿Desea cancelar la actualización?');">
+                        <span class='iconify' data-icon='mdi:cancel'></span> Cancelar
+                    </a>
                 </div>
                 <div class="col-md-6 d-grid gap-2">
                     <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalsend_btn('{{url_for('exh_exhortos_actualizaciones.launch_task_send', exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id)}}', '¿Está seguro de querer enviar la actualización?');">
@@ -48,6 +51,7 @@
     {% endif %}
     <!-- Modales -->
     {% if exh_exhorto_actualizacion.estado == 'PENDIENTE' %}
+        {{ modals.custom_javascript('Cancelar', '¿Está seguro de querer Cancelar la actualización?', "cancelar_btn") }}
         {{ modals.custom_javascript('Enviar', '¿Está seguro de querer enviar la actualización?', "send_btn") }}
     {% endif %}
 {% endblock %}

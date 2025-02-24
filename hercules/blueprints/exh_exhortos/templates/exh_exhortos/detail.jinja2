@@ -309,7 +309,7 @@
                         </tr>
                     </thead>
                 </table>
-                {% if exh_exhorto.estado in ('DILIGENCIADO', 'PROCESANDO', 'RESPONDIDO') and current_user.can_insert('EXH EXHORTOS ACTUALIZACIONES')  %}
+                {% if exh_exhorto.estado in ('DILIGENCIADO', 'PROCESANDO', 'RESPONDIDO', 'CONTESTADO') and current_user.can_insert('EXH EXHORTOS ACTUALIZACIONES')  %}
                     <a class="btn btn-warning text-dark" href="{{url_for('exh_exhortos_actualizaciones.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Actualización</a>
                 {% endif %}
             </div>
@@ -329,7 +329,7 @@
                         </tr>
                     </thead>
                 </table>
-                {% if exh_exhorto.estado in ('DILIGENCIADO', 'PROCESANDO', 'RESPONDIDO') and current_user.can_insert('EXH EXHORTOS ACTUALIZACIONES')  %}
+                {% if exh_exhorto.estado in ('DILIGENCIADO', 'PROCESANDO', 'RESPONDIDO', 'CONTESTADO') and current_user.can_insert('EXH EXHORTOS ACTUALIZACIONES')  %}
                     <a class="btn btn-primary" href="{{url_for('exh_exhortos_promociones.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Promoción</a>
                 {% endif %}
             </div>
@@ -525,8 +525,9 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     switch(data) {
-                        case "PENDIENTE": bgcolor = 'bg-warning text-dark';     icon="note-edit"; break;
+                        case "CANCELADO": bgcolor = 'bg-danger';                icon="cancel";    break;
                         case "ENVIADO":   bgcolor = 'bg-success';               icon="send";      break;
+                        case "PENDIENTE": bgcolor = 'bg-warning text-dark';     icon="note-edit"; break;
                     }
                     return '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + data + '</span>';
                 }
