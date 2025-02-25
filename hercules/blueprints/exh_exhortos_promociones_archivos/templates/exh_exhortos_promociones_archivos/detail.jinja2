@@ -30,7 +30,10 @@
         {# detail.label_value('URL', exh_exhorto_promocion_archivo.url) #}
         {{ detail.label_value('Tamaño', exh_exhorto_promocion_archivo.tamano) }}
         {{ detail.label_value('Fecha y hora de recepción', moment(exh_exhorto_promocion_archivo.fecha_hora_recepcion).format('llll')) }}
-        {{ detail.label_value_big('Estado', exh_exhorto_promocion_archivo.estado) }}
+        <div class="row">
+            <div class="col-md-3 text-end">Estado</div>
+            <div class="col-md-9"><span id="titulo-estado"> {{ exh_exhorto_promocion_archivo.estado }}</span></div>
+        </div>
         {% if exh_exhorto_promocion_archivo.estado == 'RECIBIDO'%}
             <div class="row">
                 <div class="col">
@@ -53,4 +56,19 @@
         {% if exh_exhorto_promocion_archivo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar?') }}{% endif %}
         {% if exh_exhorto_promocion_archivo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar?') }}{% endif %}
     {% endif %}
+    <!-- Renderizar el campo estado con colores e iconos -->
+    <script>
+        let titulo_estado = document.getElementById("titulo-estado")
+        const valor = "{{ exh_exhorto_promocion_archivo.estado }}";
+        let bgcolor = "bg-dark";
+        let icon = "circle-small";
+        switch (valor)    {
+            case "CANCELADO": bgcolor = 'bg-danger';            icon="cancel";              break;
+            case "ENVIADO":   bgcolor = 'bg-primary';           icon="send";                break;
+            case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit";           break;
+            default:          bgcolor = 'bg-secondary';         icon="circle-outline";      break;
+        }
+        html = '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
+        titulo_estado.innerHTML = html;
+    </script>
 {% endblock %}

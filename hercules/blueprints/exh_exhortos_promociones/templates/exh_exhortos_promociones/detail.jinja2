@@ -191,6 +191,18 @@
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '" download="' + data.nombre_archivo + '"><span class="iconify" data-icon="mdi:file-pdf-box" style="font-size:2.0rem"></span></a>';
                 }
+            },
+            {
+                targets: 3, // estado
+                data: null,
+                render: function(data, type, row, meta) {
+                    switch(data) {
+                        case "CANCELADO": bgcolor = 'bg-danger';                icon="cancel";    break;
+                        case "ENVIADO":   bgcolor = 'bg-success';               icon="send";      break;
+                        case "PENDIENTE": bgcolor = 'bg-warning text-dark';     icon="note-edit"; break;
+                    }
+                    return '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + data + '</span>';
+                }
             }
         ];
         // Filtros Exhortos Archivos
