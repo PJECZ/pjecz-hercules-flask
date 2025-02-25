@@ -227,7 +227,7 @@ def launch_task_send(exh_exhorto_actualizacion_id):
 def change_to_cancel(exh_exhorto_actualizacion_id):
     """Cancelar una actualización al PJ Externo"""
     exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get_or_404(exh_exhorto_actualizacion_id)
-    if exh_exhorto_actualizacion:
+    if exh_exhorto_actualizacion.estado == "PENDIENTE":
         exh_exhorto_actualizacion.estado = "CANCELADO"
         exh_exhorto_actualizacion.save()
         bitacora = Bitacora(

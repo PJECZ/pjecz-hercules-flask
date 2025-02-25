@@ -32,8 +32,11 @@
         </div>
         <!-- Botón de acción -->
         {% if exh_exhorto_promocion.estado == 'PENDIENTE' %}
-            <div class="row text-center">
+            <div class="row text-center mt-3">
                 <div class="col-md-6 d-grid gap-2">
+                    <a class="btn btn-lg btn-danger" href="javascript:void(0)" onclick="showModalcancelar_btn('{{url_for('exh_exhortos_promociones.change_to_cancel', exh_exhorto_promocion_id=exh_exhorto_promocion.id)}}', '¿Desea cancelar la actualización?');">
+                        <span class='iconify' data-icon='mdi:cancel'></span> Cancelar
+                    </a>
                 </div>
                 <div class="col-md-6 d-grid gap-2">
                     <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalenviar_btn('{{url_for('exh_exhortos_promociones.launch_task_send_promotion', exh_exhorto_promocion_id=exh_exhorto_promocion.id)}}', '¿Está seguro de enviar la promoción? Porque una vez enviado ya no podrá ni editarlo ni eliminarlo.');">
@@ -91,8 +94,9 @@
         let bgcolor = "bg-dark";
         let icon = "circle-small";
         switch (valor)    {
-            case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit";           break;
+            case "CANCELADO": bgcolor = 'bg-danger';            icon="cancel";              break;
             case "ENVIADO":   bgcolor = 'bg-primary';           icon="send";                break;
+            case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit";           break;
             default:          bgcolor = 'bg-secondary';         icon="circle-outline";      break;
         }
         html = '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
@@ -101,6 +105,7 @@
     <!-- Modals -->
     {% if exh_exhorto_promocion.estado == 'PENDIENTE' %}
         {{ modals.custom_javascript('Enviar', '', "enviar_btn") }}
+        {{ modals.custom_javascript('Cancelar', '', "cancelar_btn") }}
     {% endif %}
     <!-- Creación de Tablas -->
     <script src="/static/js/datatables-constructor.js"></script>

@@ -234,3 +234,22 @@ def launch_task_send_promotion(exh_exhorto_promocion_id):
     )
     flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
     return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+
+
+@exh_exhortos_promociones.route("/exh_exhortos_promociones/cancelar/<int:exh_exhorto_promocion_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def change_to_cancel(exh_exhorto_promocion_id):
+    """Cancelar una promoción al PJ Externo"""
+    exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
+    if exh_exhorto_promocion.estado == "PENDIENTE":
+        exh_exhorto_promocion.estado = "CANCELADO"
+        exh_exhorto_promocion.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Promoción Cancelada {exh_exhorto_promocion.folio_origen_promocion}"),
+            url=url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id))
