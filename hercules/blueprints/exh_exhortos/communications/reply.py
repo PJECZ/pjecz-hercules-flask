@@ -35,7 +35,10 @@ TIMEOUT = 60  # segundos
 
 def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     """Responder exhortos"""
-    bitacora.info("Inicia responder exhorto al PJ externo.")
+    mensajes = []
+    mensaje_info = "Inicia responder exhorto al PJ externo."
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
 
     # Consultar el exhorto
     exh_exhorto = ExhExhorto.query.get(exh_exhorto_id)
@@ -137,9 +140,14 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         "videos": videos,
     }
 
-    # Informar a la bitácora que se va a responder el exhorto
-    mensaje = "Pasan las validaciones y comienza el envío de la respuesta."
-    bitacora.info(mensaje)
+    # Informar a la bitácora que va a comenzar el envío de la respuesta
+    mensaje_info = "Comienza el envío de la respuesta con los siguientes datos:"
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
+    for key, value in payload_for_json.items():
+        mensaje_info = f"- {key}: {value}"
+        mensajes.append(mensaje_info)
+        bitacora.info(mensaje_info)
 
     # Enviar el exhorto
     contenido = None
@@ -163,7 +171,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     # Terminar si hubo mensaje_advertencia
     if mensaje_advertencia != "":
         bitacora.warning(mensaje_advertencia)
-        raise MyConnectionError(mensaje_advertencia)
+        raise MyConnectionError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
 
     # Terminar si NO es correcta estructura de la respuesta
     mensajes_advertencias = []
@@ -178,27 +186,35 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     if len(mensajes_advertencias) > 0:
         mensaje_advertencia = ", ".join(mensajes_advertencias)
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia)
+        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
 
     # Terminar si success es FALSO
     if contenido["success"] is False:
         mensaje_advertencia = f"Falló el envío de la respuesta porque 'success' es falso: {','.join(contenido['errors'])}"
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia)
+        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
 
     # Informar a la bitácora que terminó el envío de la respuesta
-    mensaje = "Termina el envío de la respuesta."
-    bitacora.info(mensaje)
+    mensaje_info = "Termina el envío de la respuesta."
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
 
     # Informar a la bitácora que se van a enviar los archivos de la respuesta
-    mensaje = "Comienza el envío de los archivos de la respuesta."
-    bitacora.info(mensaje)
+    mensaje_info = "Comienza el envío de los archivos de la respuesta."
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
 
     # Definir los datos que se van a incluir en el envío de los archivos
     payload_for_data = {
         "exhortoOrigenId": str(exh_exhorto.exhorto_origen_id),
         "respuestaOrigenId": str(respuesta_origen_id),
     }
+    mensajes_info = f"- exhortoOrigenId: {payload_for_data['exhortoOrigenId']}"
+    mensajes.append(mensajes_info)
+    bitacora.info(mensajes_info)
+    mensajes_info = f"- respuestaOrigenId: {payload_for_data['respuestaOrigenId']}"
+    mensajes.append(mensajes_info)
+    bitacora.info(mensajes_info)
 
     # Mandar los archivos de la respuesta con multipart/form-data (ETAPA 3)
     data = None
@@ -207,7 +223,9 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         if archivo.es_respuesta is False:
             continue
         # Informar al bitácora que se va a enviar el archivo
-        bitacora.info(f"Enviando el archivo {archivo.nombre_archivo}.")
+        mensaje_info = f"Enviando el archivo {archivo.nombre_archivo}"
+        mensajes.append(mensaje_info)
+        bitacora.info(mensaje_info)
         # Pausa de 2 segundos entre envios de archivos
         time.sleep(2)
         # Obtener el contenido del archivo desde GCStorage
@@ -219,7 +237,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
             mensaje_error = f"Falla al tratar de bajar el archivo del storage {str(error)}"
             bitacora.error(mensaje_error)
-            raise MyFileNotFoundError(mensaje_error)
+            raise MyFileNotFoundError(mensaje_error.upper() + "\n" + "\n".join(mensajes))
         # Enviar el archivo
         contenido = None
         mensaje_advertencia = ""
@@ -242,7 +260,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         # Terminar si hubo mensaje_advertencia
         if mensaje_advertencia != "":
             bitacora.warning(mensaje_advertencia)
-            raise MyAnyError(mensaje_advertencia)
+            raise MyAnyError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
         # Terminar si NO es correcta estructura de la respuesta
         mensajes_advertencias = []
         if "success" not in contenido or not isinstance(contenido["success"], bool):
@@ -256,12 +274,12 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         if len(mensajes_advertencias) > 0:
             mensaje_advertencia = ", ".join(mensajes_advertencias)
             bitacora.warning(mensaje_advertencia)
-            raise MyNotValidAnswerError(mensaje_advertencia)
+            raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
         # Terminar si success es FALSO
         if contenido["success"] is False:
             mensaje_advertencia = f"Falló el envío del archivo porque 'success' es falso: {','.join(contenido['errors'])}"
             bitacora.warning(mensaje_advertencia)
-            raise MyNotValidAnswerError(mensaje_advertencia)
+            raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
         # Actualizar el archivo del exhorto al estado RECIBIDO
         archivo.estado = "RECIBIDO"
         archivo.save()
@@ -269,14 +287,15 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         data = contenido["data"]
 
     # Informar a la bitácora que terminó el envío los archivos
-    mensaje = "Termina el envío de los archivos."
-    bitacora.info(mensaje)
+    mensaje_info = "Termina el envío de los archivos."
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
 
     # Validar que el ULTIMO data tenga el acuse
     if "acuse" not in data or data["acuse"] is None:
         mensaje_advertencia = "Falló porque la respuesta NO tiene acuse"
         bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia)
+        raise MyAnyError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
     acuse = data["acuse"]
 
     # Inicializar listado de errores para acumular fallos si los hubiera
@@ -285,14 +304,18 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     # Validar que el acuse tenga "exhortoId"
     try:
         acuse_exhorto_id = str(acuse["exhortoId"])
-        bitacora.info("Acuse exhortoId: %s", acuse_exhorto_id)
+        mensaje_info = f"- acuse exhortoId: {acuse_exhorto_id}"
+        mensajes.append(mensaje_info)
+        bitacora.info(mensaje_info)
     except KeyError:
         errores.append("Faltó exhortoId en el acuse")
 
     # Validar que el acuse tenga "respuestaOrigenId"
     try:
         acuse_respuesta_origen_id = str(acuse["respuestaOrigenId"])
-        bitacora.info("Acuse respuestaOrigenId: %s", acuse_respuesta_origen_id)
+        mensaje_info = f"- acuse respuestaOrigenId: {acuse_respuesta_origen_id}"
+        mensajes.append(mensaje_info)
+        bitacora.info(mensaje_info)
     except KeyError:
         errores.append("Faltó respuestaOrigenId en el acuse")
 
@@ -300,7 +323,9 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     try:
         acuse_fecha_hora_recepcion_str = str(acuse["fechaHoraRecepcion"])
         acuse_fecha_hora_recepcion = datetime.strptime(acuse_fecha_hora_recepcion_str, "%Y-%m-%d %H:%M:%S")
-        bitacora.info("Acuse fechaHoraRecepcion: %s", acuse_fecha_hora_recepcion_str)
+        mensaje_info = f"- acuse fechaHoraRecepcion: {acuse_fecha_hora_recepcion_str}"
+        mensajes.append(mensaje_info)
+        bitacora.info(mensaje_info)
     except (KeyError, ValueError):
         errores.append("Faltó o es incorrecta fechaHoraRecepcion en el acuse")
 
@@ -308,7 +333,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     if len(errores) > 0:
         mensaje_advertencia = ", ".join(errores)
         bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia)
+        raise MyAnyError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
 
     # Actualizar el estado a CONTESTADO y conservar respuesta_origen_id
     exh_exhorto.estado = "CONTESTADO"
@@ -317,7 +342,8 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
 
     # Elaborar mensaje_termino
     mensaje_termino = f"Termina responder exhorto con ID {exh_exhorto_id} al PJ externo."
+    mensajes.append(mensaje_termino)
     bitacora.info(mensaje_termino)
 
-    # Entregar mensaje_termino, nombre_archivo y url_publica
-    return mensaje_termino, "", ""
+    # Entregar mensajes, nombre_archivo y url_publica
+    return "\n".join(mensajes), "", ""

@@ -21,7 +21,10 @@ TIMEOUT = 60  # segundos
 
 def consultar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     """Consultar exhortos"""
-    bitacora.info("Inicia consultar exhorto al PJ externo.")
+    mensajes = []
+    mensaje_info = "Inicia consultar exhorto al PJ externo."
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
 
     # Consultar el exhorto
     exh_exhorto = ExhExhorto.query.get(exh_exhorto_id)
@@ -58,8 +61,9 @@ def consultar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         raise MyEmptyError(mensaje_error)
 
     # Informar a la bitácora que se va a enviar el exhorto
-    mensaje = "Pasan las validaciones y comienza la consulta del exhorto."
-    bitacora.info(mensaje)
+    mensaje_info = f"Comienza la consulta del exhorto con el folio seguimiento {exh_exhorto.folio_seguimiento}"
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
 
     # Consultar el exhorto
     contenido = None
@@ -82,7 +86,7 @@ def consultar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     # Terminar si hubo mensaje_advertencia
     if mensaje_advertencia != "":
         bitacora.warning(mensaje_advertencia)
-        raise MyConnectionError(mensaje_advertencia)
+        raise MyConnectionError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
 
     # Terminar si NO es correcta estructura de la respuesta
     mensajes_advertencias = []
@@ -97,13 +101,13 @@ def consultar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     if len(mensajes_advertencias) > 0:
         mensaje_advertencia = ", ".join(mensajes_advertencias)
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia)
+        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
 
     # Terminar si success es FALSO
     if contenido["success"] is False:
         mensaje_advertencia = f"Falló la consulta del exhorto porque 'success' es falso: {','.join(contenido['errors'])}"
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia)
+        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
 
     # Definir los campos que esperamos vengan en el data
     campos = [
@@ -157,9 +161,19 @@ def consultar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         bitacora.warning(mensaje_advertencia)
         raise MyAnyError(mensaje_advertencia)
 
-    # Juntar todos los items del listado en un texto para que sea el mensaje_termino
-    mensaje_termino = f"Se consultó el exhorto con ID {exh_exhorto_id} al PJ externo: {', '.join(mensajes_campos_valores)}"
+    # Informar a la bitácora que se terminó la consulta
+    mensaje_info = "Se recibieron los siguientes datos..."
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
+    for campo in campos:
+        mensaje_info = f"- {campo}: {data[campo]}"
+        mensajes.append(mensaje_info)
+        bitacora.info(mensaje_info)
+
+    # Elaborar mensaje_termino
+    mensaje_termino = f"Termina consultar exhorto con ID {exh_exhorto_id} al PJ externo."
+    mensajes.append(mensaje_termino)
     bitacora.info(mensaje_termino)
 
     # Entregar mensaje_termino, nombre_archivo y url_publica
-    return mensaje_termino, "", ""
+    return "\n".join(mensajes), "", ""
