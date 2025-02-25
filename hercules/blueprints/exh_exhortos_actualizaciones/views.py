@@ -220,3 +220,22 @@ def launch_task_send(exh_exhorto_actualizacion_id):
     )
     flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
     return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+
+
+@exh_exhortos_actualizaciones.route("/exh_exhortos_actualizaciones/cancelar/<int:exh_exhorto_actualizacion_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def change_to_cancel(exh_exhorto_actualizacion_id):
+    """Cancelar una actualización al PJ Externo"""
+    exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get_or_404(exh_exhorto_actualizacion_id)
+    if exh_exhorto_actualizacion.estado == "PENDIENTE":
+        exh_exhorto_actualizacion.estado = "CANCELADO"
+        exh_exhorto_actualizacion.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Actualización Cancelada: {exh_exhorto_actualizacion.actualizacion_origen_id}"),
+            url=url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id))

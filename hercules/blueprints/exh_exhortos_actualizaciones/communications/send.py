@@ -11,6 +11,7 @@ from hercules.blueprints.estados.models import Estado
 from hercules.blueprints.exh_exhortos.communications import bitacora
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
 from hercules.blueprints.exh_externos.models import ExhExterno
+from hercules.blueprints.exh_exhortos_actualizaciones.models import ExhExhortoActualizacion
 from hercules.blueprints.municipios.models import Municipio
 from hercules.extensions import database
 from lib.exceptions import MyAnyError, MyConnectionError, MyNotExistsError, MyNotValidAnswerError
@@ -31,7 +32,7 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     bitacora.info(mensaje_info)
 
     # Consultar la actualización
-    exh_exhorto_actualizacion = ExhExhorto.query.get(exh_exhorto_actualizacion_id)
+    exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get(exh_exhorto_actualizacion_id)
 
     # Validar que exista la actualización
     if exh_exhorto_actualizacion is None:

@@ -108,12 +108,12 @@
         {% if exh_exhorto.estado == 'PENDIENTE' or exh_exhorto.estado == "POR ENVIAR" %}
             <div class="row text-center">
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-danger" href="javascript:void(0)" onclick="showModalcancelar_btn('{{url_for('exh_exhortos.change_to_cancel', exh_exhorto_id=exh_exhorto.id)}}', '¿Desea cancelar el exhorto?');">
+                    <a class="btn btn-lg btn-danger" href="javascript:void(0)" onclick="showModalcancelar_btn('{{url_for('exh_exhortos.change_to_cancel', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de CANCELAR el exhorto? Porque una vez cancelado ya no podrá ni editarlo ni enviarlo');">
                         <span class='iconify' data-icon='mdi:cancel'></span> Cancelar
                     </a>
                 </div>
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalenviar_btn('{{url_for('exh_exhortos.launch_task_send', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de enviar el exhorto? Porque una vez enviado ya no podrá ni editarlo ni cancelarlo.');">
+                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalenviar_btn('{{url_for('exh_exhortos.launch_task_send', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de ENVIAR el exhorto? Porque una vez enviado ya no podrá ni editarlo ni cancelarlo.');">
                         <span class='iconify' data-icon='mdi:send'></span> Enviar
                     </a>
                 </div>
@@ -122,7 +122,7 @@
         {% if exh_exhorto.estado == "RECIBIDO CON EXITO" %}
             <div class="row text-center">
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalregresar_enviar_btn('{{url_for('exh_exhortos.launch_task_query', exh_exhorto_id=exh_exhorto.id)}}', '¿Quiere consultar desde el PJ?');">
+                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalregresar_enviar_btn('{{url_for('exh_exhortos.launch_task_query', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de CONSULTAR desde el PJ?');">
                         <span class='iconify' data-icon='mdi:download'></span> Consultar
                     </a>
                 </div>
@@ -135,7 +135,7 @@
                 <div class="col-md-6 d-grid gap-2">
                 </div>
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalregresar_enviar_btn('{{url_for('exh_exhortos.change_to_send', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de querer reiniciar los intentos de envío y regresar el exhorto al estado POR ENVIAR?');">
+                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalregresar_enviar_btn('{{url_for('exh_exhortos.change_to_send', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de REINICIAR los intentos de envío y regresar el exhorto al estado POR ENVIAR?');">
                         <span class='iconify' data-icon='mdi:refresh'></span> Reiniciar Intentos
                     </a>
                 </div>
@@ -146,7 +146,7 @@
                 <div class="col-md-6 d-grid gap-2">
                 </div>
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-warning text-dark" href="javascript:void(0)" onclick="showModalregresar_pendiente_btn('{{url_for('exh_exhortos.change_to_pending', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de querer regresar el estado a PENDIENTE?');">
+                    <a class="btn btn-lg btn-warning text-dark" href="javascript:void(0)" onclick="showModalregresar_pendiente_btn('{{url_for('exh_exhortos.change_to_pending', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de regresar el estado a PENDIENTE?');">
                         <span class='iconify' data-icon='mdi:refresh'></span> Regresar a Pendiente
                     </a>
                 </div>
@@ -194,18 +194,18 @@
                 </div>
                 <!-- TODO: Poner en modal -->
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-success" href="{{url_for('exh_exhortos.launch_task_reply', exh_exhorto_id=exh_exhorto.id)}}">
+                    <a class="btn btn-lg btn-success" href="javascript:void(0)" onclick="showModalcontestar_btn('{{url_for('exh_exhortos.launch_task_reply', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de CONTESTAR el exhorto?');">
                         <span class='iconify' data-icon='mdi:check-circle'></span> Contestar
                     </a>
                 </div>
             </div>
         {% endif %}
-        {% if exh_exhorto.estado in ("DILIGENCIADO", "RESPONDIDO") %}
+        {% if exh_exhorto.estado in ("CONTESTADO", "RESPONDIDO") %}
             <div class="row text-center">
                 <div class="col-md-6 d-grid gap-2">
                 </div>
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-secondary" href="javascript:void(0)" onclick="showModalarchivar_btn('{{url_for('exh_exhortos.change_to_archive', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de querer ARCHIVAR el exhorto?');">
+                    <a class="btn btn-lg btn-secondary" href="javascript:void(0)" onclick="showModalarchivar_btn('{{url_for('exh_exhortos.change_to_archive', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de ARCHIVAR el exhorto?');">
                         <span class='iconify' data-icon='mdi:archive'></span> Archivar
                     </a>
                 </div>
@@ -269,7 +269,7 @@
                         </tr>
                     </thead>
                 </table>
-                {% if exh_exhorto.estado in ('PROCESANDO')  %}
+                {% if exh_exhorto.estado in ('PROCESANDO', 'DILIGENCIADO')  %}
                     <a class="btn btn-success" href="{{url_for('exh_exhortos_archivos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id, es_respuesta=1)}}">Agregar Archivo de Respuesta</a>
                 {% endif %}
             </div>
@@ -309,7 +309,7 @@
                         </tr>
                     </thead>
                 </table>
-                {% if exh_exhorto.estado in ('DILIGENCIADO', 'PROCESANDO', 'RESPONDIDO') and current_user.can_insert('EXH EXHORTOS ACTUALIZACIONES')  %}
+                {% if exh_exhorto.estado in ('DILIGENCIADO', 'PROCESANDO', 'RESPONDIDO', 'CONTESTADO') and current_user.can_insert('EXH EXHORTOS ACTUALIZACIONES')  %}
                     <a class="btn btn-warning text-dark" href="{{url_for('exh_exhortos_actualizaciones.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Actualización</a>
                 {% endif %}
             </div>
@@ -329,7 +329,7 @@
                         </tr>
                     </thead>
                 </table>
-                {% if exh_exhorto.estado in ('DILIGENCIADO', 'PROCESANDO', 'RESPONDIDO') and current_user.can_insert('EXH EXHORTOS ACTUALIZACIONES')  %}
+                {% if exh_exhorto.estado in ('DILIGENCIADO', 'PROCESANDO', 'RESPONDIDO', 'CONTESTADO') and current_user.can_insert('EXH EXHORTOS ACTUALIZACIONES')  %}
                     <a class="btn btn-primary" href="{{url_for('exh_exhortos_promociones.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Promoción</a>
                 {% endif %}
             </div>
@@ -525,8 +525,9 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     switch(data) {
-                        case "PENDIENTE": bgcolor = 'bg-warning text-dark';     icon="note-edit"; break;
+                        case "CANCELADO": bgcolor = 'bg-danger';                icon="cancel";    break;
                         case "ENVIADO":   bgcolor = 'bg-success';               icon="send";      break;
+                        case "PENDIENTE": bgcolor = 'bg-warning text-dark';     icon="note-edit"; break;
                     }
                     return '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + data + '</span>';
                 }
@@ -561,8 +562,9 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     switch(data) {
-                        case "PENDIENTE": bgcolor = 'bg-warning text-dark';     icon="note-edit"; break;
+                        case "CANCELADO": bgcolor = 'bg-danger';                icon="cancel";    break;
                         case "ENVIADO":   bgcolor = 'bg-success';               icon="send";      break;
+                        case "PENDIENTE": bgcolor = 'bg-warning text-dark';     icon="note-edit"; break;
                     }
                     return '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + data + '</span>';
                 }
@@ -600,19 +602,22 @@
     </script>
     <!-- Botones de acción en diferentes estados -->
     {% if exh_exhorto.estado == 'PENDIENTE' or exh_exhorto.estado == 'POR ENVIAR' %}
-        {{ modals.custom_javascript('Cancelar', '¿Desear cancelar el exhorto?', "cancelar_btn") }}
-        {{ modals.custom_javascript('Enviar', '¿Está seguro de enviar el exhorto? Porque una vez enviado ya no podrá ni editarlo ni cancelarlo.', "enviar_btn") }}
+        {{ modals.custom_javascript('Cancelar', '', "cancelar_btn") }}
+        {{ modals.custom_javascript('Enviar', '', "enviar_btn") }}
     {% endif %}
     {% if exh_exhorto.estado == 'INTENTOS AGOTADOS' %}
-        {{ modals.custom_javascript('Reiniciar Intentos', '¿Está seguro de querer reiniciar los intentos de envío y regresar el exhorto al estado POR ENVIAR?', "regresar_enviar_btn") }}
+        {{ modals.custom_javascript('Reiniciar Intentos', '', "regresar_enviar_btn") }}
     {% endif %}
     {% if exh_exhorto.estado == 'RECHAZADO' %}
-        {{ modals.custom_javascript('Regresar a Pendiente', '¿Está seguro de querer regresar el estado a PENDIENTE?', "regresar_pendiente_btn") }}
+        {{ modals.custom_javascript('Regresar a Pendiente', '', "regresar_pendiente_btn") }}
     {% endif %}
     {% if exh_exhorto.estado == 'RECIBIDO' %}
         {{ modals.custom_javascript('Transferir', '', "transferir_btn") }}
     {% endif %}
-    {% if exh_exhorto.estado == 'RESPONDIDO' or exh_exhorto.estado == 'DILIGENCIADO' %}
-        {{ modals.custom_javascript('Archivar', '¿Está seguro de querer ARCHIVAR el exhorto?', "archivar_btn") }}
+    {% if exh_exhorto.estado == 'DILIGENCIADO' %}
+        {{ modals.custom_javascript('Contestar', '', "contestar_btn") }}
+    {% endif %}
+    {% if exh_exhorto.estado == 'RESPONDIDO' or exh_exhorto.estado == 'CONTESTADO' %}
+        {{ modals.custom_javascript('Archivar', '', "archivar_btn") }}
     {% endif %}
 {% endblock %}

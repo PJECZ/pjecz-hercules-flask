@@ -177,7 +177,7 @@ def new_with_exh_exhorto(exh_exhorto_id, es_respuesta):
             hash_sha256="",
             tipo_documento=form.tipo_documento.data,
             url="",
-            estado="PENDIENTE",
+            estado="RECIBIDO",
             tamano=0,
             fecha_hora_recepcion=fecha_hora_recepcion,
             es_respuesta=es_respuesta_bool,
