@@ -25,7 +25,10 @@ TIMEOUT = 60  # segundos
 
 def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, str]:
     """Enviar actualización"""
-    bitacora.info("Inicia enviar la actualización al PJ externo")
+    mensajes = []
+    mensaje_info = "Inicia enviar la actualización al PJ externo"
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
 
     # Consultar la actualización
     exh_exhorto_actualizacion = ExhExhorto.query.get(exh_exhorto_actualizacion_id)
@@ -78,8 +81,13 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     }
 
     # Informar a la bitácora que se va a enviar la actualización
-    mensaje = "Pasan las validaciones y comienza el envío de la actualización."
-    bitacora.info(mensaje)
+    mensaje_info = "Comienza el envío de la actualización."
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
+    for key, value in payload_for_json.items():
+        mensaje_info = f"- {key}: {value}"
+        mensajes.append(mensaje_info)
+        bitacora.info(mensaje_info)
 
     # Enviar la actualización
     contenido = None
@@ -103,7 +111,7 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     # Terminar si hubo mensaje_advertencia
     if mensaje_advertencia != "":
         bitacora.warning(mensaje_advertencia)
-        raise MyConnectionError(mensaje_advertencia)
+        raise MyConnectionError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
 
     # Terminar si NO es correcta estructura de la respuesta
     mensajes_advertencias = []
@@ -118,17 +126,18 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     if len(mensajes_advertencias) > 0:
         mensaje_advertencia = ", ".join(mensajes_advertencias)
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia)
+        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
 
     # Terminar si success es FALSO
     if contenido["success"] is False:
         mensaje_advertencia = f"Falló el envío de la actualización porque 'success' es falso: {','.join(contenido['errors'])}"
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia)
+        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
 
     # Informar a la bitácora que terminó el envío de la actualización
-    mensaje = "Termina el envío la actualización."
-    bitacora.info(mensaje)
+    mensaje_info = "Termina el envío la actualización."
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
 
     # Tomar la confirmación de la actualización
     confirmacion = contenido["data"]
@@ -139,14 +148,18 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     # Validar que la confirmación tenga exhortoId
     try:
         confirmacion_exhorto_id = str(confirmacion["exhortoId"])
-        bitacora.info("Confirmación exhortoId: %s", confirmacion_exhorto_id)
+        mensaje_info = f"- exhortoId: {confirmacion_exhorto_id}"
+        mensajes.append(mensaje_info)
+        bitacora.info(mensaje_info)
     except KeyError:
         errores.append("Faltó exhortoId en la confirmación")
 
     # Validar que la confirmación tenga actualizacionOrigenId
     try:
         confirmacion_actulaizacion_origen_id = str(confirmacion["actualizacionOrigenId"])
-        bitacora.info("Confirmación actualizacionOrigenId: %s", confirmacion_actulaizacion_origen_id)
+        mensaje_info = f"- actualizacionOrigenId: {confirmacion_actulaizacion_origen_id}"
+        mensajes.append(mensaje_info)
+        bitacora.info(mensaje_info)
     except KeyError:
         errores.append("Faltó actualizacionOrigenId en la confirmación")
 
@@ -154,7 +167,9 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     try:
         confirmacion_fecha_hora_str = str(confirmacion["fechaHora"])
         confirmacion_fecha_hora = datetime.strptime(confirmacion_fecha_hora_str, "%Y-%m-%d %H:%M:%S")
-        bitacora.info("Acuse fechaHora: %s", confirmacion_fecha_hora_str)
+        mensaje_info = f"- fechaHora: {confirmacion_fecha_hora_str}"
+        mensajes.append(mensaje_info)
+        bitacora.info(mensaje_info)
     except KeyError:
         errores.append("Faltó o es incorrecta fechaHora en la confirmación")
 
@@ -162,7 +177,7 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     if len(errores) > 0:
         mensaje_advertencia = ", ".join(errores)
         bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia)
+        raise MyAnyError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
 
     # Actualizar el estado a ENVIADO
     exh_exhorto_actualizacion.estado = "ENVIADO"
@@ -170,7 +185,8 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
 
     # Elaborar mensaje_termino
     mensaje_termino = "Termina enviar la actualización al PJ externo"
+    mensajes.append(mensaje_termino)
     bitacora.info(mensaje_termino)
 
     # Entregar mensaje_termino, nombre_archivo y url_publica
-    return mensaje_termino, "", ""
+    return "\n".join(mensajes), "", ""

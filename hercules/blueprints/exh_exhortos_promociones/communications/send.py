@@ -39,7 +39,10 @@ TIMEOUT = 60  # segundos
 
 def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     """Enviar promoción"""
-    bitacora.info("Inicia enviar promoción")
+    mensajes = []
+    mensaje_info = "Inicia enviar promoción"
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
 
     # Consultar la promoción
     exh_exhorto_promocion = ExhExhortoPromocion.query.get(exh_exhorto_promocion_id)
@@ -84,6 +87,11 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
             mensaje_error = f"No existe el estado con ID {municipio.estado_id}"
             bitacora.error(mensaje_error)
             raise MyNotExistsError(mensaje_error)
+
+    # Informar a la bitácora el sentido de la promoción
+    mensaje_info = f"El sentido de esta promoción es {sentido}."
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
 
     # Consultar el ExhExterno, tomar el primero porque solo debe haber uno
     exh_externo = ExhExterno.query.filter_by(estado_id=estado.id).first()
@@ -149,12 +157,13 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     }
 
     # Informar a la bitácora que se va a enviar la promoción
-    mensaje = "Pasan las validaciones y comienza el envío de la promoción."
-    bitacora.info(mensaje)
-
-    # Informar a la bitácora el sentido de la promoción
-    mensaje = f"Este exhorto es de {sentido}."
-    bitacora.info(mensaje)
+    mensaje_info = "Comienza el envío de la promoción con los siguientes datos:"
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
+    for key, value in payload_for_json.items():
+        mensaje_info = f"- {key}: {value}"
+        mensajes.append(mensaje_info)
+        bitacora.info(mensaje_info)
 
     # Enviar la promoción
     contenido = None
@@ -178,7 +187,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     # Terminar si hubo mensaje_advertencia
     if mensaje_advertencia != "":
         bitacora.warning(mensaje_advertencia)
-        raise MyConnectionError(mensaje_advertencia)
+        raise MyConnectionError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
 
     # Terminar si NO es correcta estructura de la respuesta
     mensajes_advertencias = []
@@ -193,35 +202,45 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     if len(mensajes_advertencias) > 0:
         mensaje_advertencia = ", ".join(mensajes_advertencias)
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia)
+        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
 
     # Terminar si success es FALSO
     if contenido["success"] is False:
         mensaje_advertencia = f"Falló el envío de la promoción porque 'success' es falso: {','.join(contenido['errors'])}"
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia)
+        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
 
     # Informar a la bitácora que terminó el envío de la promoción
-    mensaje = "Termina el envío de la promoción."
-    bitacora.info(mensaje)
+    mensaje_info = "Termina el envío de la promoción."
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
 
     # Informar a la bitácora que se van a enviar los archivos de la promoción
-    mensaje = "Comienza el envío de los archivos de la promoción."
-    bitacora.info(mensaje)
+    mensaje_info = "Comienza el envío de los archivos de la promoción."
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
 
     # Definir los datos que se van a incluir en el envío de los archivos
     payload_for_data = {
         "folioSeguimiento": str(exh_exhorto_promocion.exh_exhorto.folio_seguimiento),
         "folioOrigenPromocion": str(exh_exhorto_promocion.folio_origen_promocion),
     }
+    mensaje_info = f"- folioSeguimiento: {payload_for_data['folioSeguimiento']}"
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
+    mensaje_info = f"- folioOrigenPromocion: {payload_for_data['folioOrigenPromocion']}"
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
 
     # Mandar los archivos del exhorto con multipart/form-data (ETAPA 3)
     data = None
     for archivo in exh_exhorto_promocion.exh_exhortos_promociones_archivos:
+        # Pausa de 1 segundo entre envios de archivos
+        time.sleep(1)
         # Informar al bitácora que se va a enviar el archivo
-        bitacora.info(f"Enviando el archivo {archivo.nombre_archivo}.")
-        # Pausa de 2 segundos entre envios de archivos
-        time.sleep(2)
+        mensaje_info = f"Enviando el archivo {archivo.nombre_archivo}"
+        mensajes.append(mensaje_info)
+        bitacora.info(mensaje_info)
         # Obtener el contenido del archivo desde GCStorage
         try:
             archivo_contenido = get_file_from_gcs(
@@ -231,7 +250,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
             mensaje_error = f"Falla al tratar de bajar el archivo del storage {str(error)}"
             bitacora.error(mensaje_error)
-            raise MyFileNotFoundError(mensaje_error)
+            raise MyFileNotFoundError(mensaje_error.upper() + "\n" + "\n".join(mensajes))
         # Enviar el archivo
         contenido = None
         mensaje_advertencia = ""
@@ -254,7 +273,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         # Terminar si hubo mensaje_advertencia
         if mensaje_advertencia != "":
             bitacora.warning(mensaje_advertencia)
-            raise MyAnyError(mensaje_advertencia)
+            raise MyAnyError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
         # Terminar si NO es correcta estructura de la respuesta
         mensajes_advertencias = []
         if "success" not in contenido or not isinstance(contenido["success"], bool):
@@ -268,12 +287,12 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         if len(mensajes_advertencias) > 0:
             mensaje_advertencia = ", ".join(mensajes_advertencias)
             bitacora.warning(mensaje_advertencia)
-            raise MyNotValidAnswerError(mensaje_advertencia)
+            raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
         # Terminar si success es FALSO
         if contenido["success"] is False:
             mensaje_advertencia = f"Falló el envío del archivo porque 'success' es falso: {','.join(contenido['errors'])}"
             bitacora.warning(mensaje_advertencia)
-            raise MyNotValidAnswerError(mensaje_advertencia)
+            raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
         # Actualizar el archivo de la promoción al estado RECIBIDO
         archivo.estado = "RECIBIDO"
         archivo.save()
@@ -281,19 +300,16 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         data = contenido["data"]
 
     # Informar a la bitácora que terminó el envío los archivos
-    mensaje = "Termina el envío de los archivos de la promoción."
-    bitacora.info(mensaje)
+    mensaje_info = "Termina el envío de los archivos de la promoción."
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
 
     # Validar que el ULTIMO data tenga el acuse
-    if "acuse" not in data:
+    if "acuse" not in data or data["acuse"] is None:
         mensaje_advertencia = "Falló porque la respuesta NO tiene acuse"
         bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia)
+        raise MyAnyError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
     acuse = data["acuse"]
-    if data["acuse"] is None:
-        mensaje_advertencia = "Falló porque la respuesta NO tiene acuse"
-        bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia)
 
     # Inicializar listado de errores para acumular fallos si los hubiera
     errores = []
@@ -301,14 +317,18 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     # Validar que el acuse tenga folioOrigenPromocion
     try:
         folio_origen_promocion = str(acuse["folioOrigenPromocion"])
-        bitacora.info("Acuse folioOrigenPromocion: %s", folio_origen_promocion)
+        mensaje_info = f"- acuse folioOrigenPromocion: {folio_origen_promocion}"
+        mensajes.append(mensaje_info)
+        bitacora.info(mensaje_info)
     except KeyError:
         errores.append("Faltó folioOrigenPromocion en el acuse")
 
     # Validar que el acuse tenga folioPromocionRecibida
     try:
         folio_promocion_recibida = str(acuse["folioPromocionRecibida"])
-        bitacora.info("Acuse folioPromocionRecibida: %s", folio_promocion_recibida)
+        mensaje_info = f"- acuse folioPromocionRecibida: {folio_promocion_recibida}"
+        mensajes.append(mensaje_info)
+        bitacora.info(mensaje_info)
     except KeyError:
         errores.append("Faltó folioPromocionRecibida en el acuse")
 
@@ -316,7 +336,9 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     try:
         fecha_hora_recepcion_str = str(acuse["fechaHoraRecepcion"])
         acuse_fecha_hora_recepcion = datetime.strptime(fecha_hora_recepcion_str, "%Y-%m-%d %H:%M:%S")
-        bitacora.info("Acuse fechaHoraRecepcion: %s", fecha_hora_recepcion_str)
+        mensaje_info = f"- acuse fechaHoraRecepcion: {fecha_hora_recepcion_str}"
+        mensajes.append(mensaje_info)
+        bitacora.info(mensaje_info)
     except (KeyError, ValueError):
         errores.append("Faltó o es incorrecta fechaHoraRecepcion en el acuse")
 
@@ -324,7 +346,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     if len(errores) > 0:
         mensaje_advertencia = ", ".join(errores)
         bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia)
+        raise MyAnyError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
 
     # Actualizar la promoción con los datos del acuse
     exh_exhorto_promocion.estado = "ENVIADO"
@@ -332,7 +354,8 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
 
     # Elaborar mensaje final
     mensaje_termino = f"Termina enviar la promoción con ID {exh_exhorto_promocion_id} al PJ externo."
+    mensajes.append(mensaje_termino)
     bitacora.info(mensaje_termino)
 
     # Entregar mensaje_termino, nombre_archivo y url_publica
-    return mensaje_termino, "", ""
+    return "\n".join(mensajes), "", ""
