@@ -34,12 +34,12 @@
         {% if exh_exhorto_promocion.estado == 'PENDIENTE' %}
             <div class="row text-center mt-3">
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-danger" href="javascript:void(0)" onclick="showModalcancelar_btn('{{url_for('exh_exhortos_promociones.change_to_cancel', exh_exhorto_promocion_id=exh_exhorto_promocion.id)}}', '¿Desea cancelar la actualización?');">
+                    <a class="btn btn-lg btn-danger" href="javascript:void(0)" onclick="showModalcancelar_btn('{{url_for('exh_exhortos_promociones.change_to_cancel', exh_exhorto_promocion_id=exh_exhorto_promocion.id)}}', '¿Está seguro de CANCELAR la actualización? Porque una vez cancelado ya no podrá ni editarlo ni enviarlo');">
                         <span class='iconify' data-icon='mdi:cancel'></span> Cancelar
                     </a>
                 </div>
                 <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalenviar_btn('{{url_for('exh_exhortos_promociones.launch_task_send_promotion', exh_exhorto_promocion_id=exh_exhorto_promocion.id)}}', '¿Está seguro de enviar la promoción? Porque una vez enviado ya no podrá ni editarlo ni eliminarlo.');">
+                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalenviar_btn('{{url_for('exh_exhortos_promociones.launch_task_send_promotion', exh_exhorto_promocion_id=exh_exhorto_promocion.id)}}', '¿Está seguro de ENVIAR la promoción? Porque una vez enviado ya no podrá ni editarlo ni cancelarlo.');">
                         <span class='iconify' data-icon='mdi:send'></span> Enviar
                     </a>
                 </div>
