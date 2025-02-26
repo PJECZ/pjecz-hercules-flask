@@ -210,7 +210,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
 
     # Definir los datos que se van a incluir en el envío de los archivos
     payload_for_data = {
-        "exhortoOrigenId": str(exh_exhorto.exhorto_origen_id),
+        "exhortoId": str(exh_exhorto.exhorto_origen_id),
         "respuestaOrigenId": str(respuesta_origen_id),
     }
     mensajes_info = f"- exhortoOrigenId: {payload_for_data['exhortoOrigenId']}"
