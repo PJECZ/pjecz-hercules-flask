@@ -177,7 +177,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     mensajes_advertencias = []
     if "success" not in contenido or not isinstance(contenido["success"], bool):
         mensajes_advertencias.append("Falta 'success' en la respuesta")
-    if "message" not in contenido or not isinstance(contenido["message"], str):
+    if "message" not in contenido:
         mensajes_advertencias.append("Falta 'message' en la respuesta")
     if "errors" not in contenido:
         mensajes_advertencias.append("Falta 'errors' en la respuesta")
@@ -187,6 +187,10 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         mensaje_advertencia = ", ".join(mensajes_advertencias)
         bitacora.warning(mensaje_advertencia)
         raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+    if contenido["message"]:
+        mensaje_info = f"- message: {contenido['message']}"
+        bitacora.info(mensaje_info)
+        mensajes.append(mensaje_info)
 
     # Terminar si success es FALSO
     if contenido["success"] is False:
@@ -265,7 +269,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         mensajes_advertencias = []
         if "success" not in contenido or not isinstance(contenido["success"], bool):
             mensajes_advertencias.append("Falta 'success' en la respuesta")
-        if "message" not in contenido or not isinstance(contenido["message"], str):
+        if "message" not in contenido:
             mensajes_advertencias.append("Falta 'message' en la respuesta")
         if "errors" not in contenido:
             mensajes_advertencias.append("Falta 'errors' en la respuesta")
@@ -275,6 +279,10 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
             mensaje_advertencia = ", ".join(mensajes_advertencias)
             bitacora.warning(mensaje_advertencia)
             raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        if contenido["message"]:
+            mensaje_info = f"- message: {contenido['message']}"
+            bitacora.info(mensaje_info)
+            mensajes.append(mensaje_info)
         # Terminar si success es FALSO
         if contenido["success"] is False:
             mensaje_advertencia = f"Falló el envío del archivo porque 'success' es falso: {','.join(contenido['errors'])}"
