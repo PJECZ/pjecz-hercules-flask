@@ -213,7 +213,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         "exhortoId": str(exh_exhorto.exhorto_origen_id),
         "respuestaOrigenId": str(respuesta_origen_id),
     }
-    mensajes_info = f"- exhortoOrigenId: {payload_for_data['exhortoOrigenId']}"
+    mensajes_info = f"- exhortoOrigenId: {payload_for_data['exhortoId']}"
     mensajes.append(mensajes_info)
     bitacora.info(mensajes_info)
     mensajes_info = f"- respuestaOrigenId: {payload_for_data['respuestaOrigenId']}"
