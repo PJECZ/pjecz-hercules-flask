@@ -5,7 +5,9 @@
 {% block title %}Editar Versión Pública de Sentencia {{ sentencia.sentencia }}{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Editar ' + sentencia.sentencia + ' del ' + sentencia.autoridad.clave) }}
+    {% call topbar.page_buttons('Editar ' + sentencia.sentencia + ' del ' + sentencia.autoridad.clave) %}
+        {{ topbar.button_manual('Manual', 'https://justiciadigital.gob.mx/plataforma_web/version_publica_sentencias') }}
+    {% endcall %}
 {% endblock %}
 
 {% block content %}
