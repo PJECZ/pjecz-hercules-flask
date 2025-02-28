@@ -67,7 +67,7 @@ class ExhExhortoPromocion(database.Model, UniversalMixin):
         Enum(*REMITENTES, name="exh_exhortos_promociones_remitentes", native_enum=False), index=True
     )
 
-    # Estado de la promoción, puede ser PENDIENTE o ENVIADO
+    # Estado de la promoción
     estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="exh_exhortos_promociones_estados", native_enum=False), index=True)
 
     def __repr__(self):

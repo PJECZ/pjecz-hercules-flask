@@ -1,5 +1,5 @@
 """
-Exh Exhorto Promoción Archivo, formularios
+Exh Exhortos Promociones Archivos, formularios
 """
 
 from flask_wtf import FlaskForm

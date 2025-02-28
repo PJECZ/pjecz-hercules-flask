@@ -1,5 +1,5 @@
 """
-Exh Exhortos Promociones Archivos, modelos
+Exh Exhortos Respuestas Archivos, modelos
 """
 
 from datetime import datetime
@@ -13,29 +13,23 @@ from hercules.extensions import database
 from lib.universal_mixin import UniversalMixin
 
 
-class ExhExhortoPromocionArchivo(database.Model, UniversalMixin):
-    """ExhExhortoPromocionArchivo"""
+class ExhExhortoRespuestaArchivo(database.Model, UniversalMixin):
+    """ExhExhortoRespuestaArchivo"""
 
     ESTADOS = {
         "PENDIENTE": "Pendiente",
         "RECIBIDO": "Recibido",
     }
 
-    TIPOS_DOCUMENTOS = {
-        1: "Oficio",
-        2: "Acuerdo",
-        3: "Anexo",
-    }
-
     # Nombre de la tabla
-    __tablename__ = "exh_exhortos_promociones_archivos"
+    __tablename__ = "exh_exhortos_respuestas_archivos"
 
     # Clave primaria
     id: Mapped[int] = mapped_column(primary_key=True)
 
     # Clave foránea
-    exh_exhorto_promocion_id: Mapped[int] = mapped_column(ForeignKey("exh_exhortos_promociones.id"))
-    exh_exhorto_promocion: Mapped["ExhExhortoPromocion"] = relationship(back_populates="exh_exhortos_promociones_archivos")
+    exh_exhorto_respuesta_id: Mapped[int] = mapped_column(ForeignKey("exh_exhortos_respuestas.id"))
+    exh_exhorto_respuesta: Mapped["ExhExhortoRespuesta"] = relationship(back_populates="exh_exhortos_respuestas_archivos")
 
     # Nombre del archivo, como se enviará. Este debe incluir el la extensión del archivo.
     nombre_archivo: Mapped[str] = mapped_column(String(256))
@@ -64,14 +58,6 @@ class ExhExhortoPromocionArchivo(database.Model, UniversalMixin):
     # Fecha y hora de recepción del documento
     fecha_hora_recepcion: Mapped[datetime] = mapped_column(default=now())
 
-    @property
-    def tipo_documento_nombre(self):
-        """Nombre del tipo de documento"""
-        try:
-            return self.TIPOS_DOCUMENTOS[self.tipo_documento]
-        except KeyError:
-            return "No Definido"
-
     def __repr__(self):
         """Representación"""
-        return f"<ExhExhortoPromocionArchivo {self.id}>"
+        return f"<ExhExhortoRespuestaArchivo {self.id}>"
