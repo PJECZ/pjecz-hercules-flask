@@ -5,7 +5,9 @@
 {% block title %}Nuevo Ticket{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Nuevo Ticket') }}
+    {% call topbar.page_buttons('Nuevo Ticket') %}
+        {{ topbar.button_manual('Manual', 'https://justiciadigital.gob.mx/plataforma_web/tickets') }}
+    {% endcall %}
 {% endblock %}
 
 {% block content %}

@@ -24,6 +24,7 @@
             {% if ticket.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('soportes_tickets.delete', soporte_ticket_id=ticket.id)) }}{% endif %}
             {% if ticket.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('soportes_tickets.recover', soporte_ticket_id=ticket.id)) }}{% endif %}
         {% endif %}
+        {{ topbar.button_manual('Manual', 'https://justiciadigital.gob.mx/plataforma_web/tickets') }}
     {% endcall %}
 {% endblock %}
 

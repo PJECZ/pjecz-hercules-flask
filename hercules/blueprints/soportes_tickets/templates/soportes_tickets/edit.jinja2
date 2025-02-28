@@ -5,7 +5,9 @@
 {% block title %}Editar Ticket{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Editar Ticket ' + ticket.id | string) }}
+    {% call topbar.page_buttons('Editar Ticket ' + ticket.id | string) %}
+        {{ topbar.button_manual('Manual', 'https://justiciadigital.gob.mx/plataforma_web/tickets') }}
+    {% endcall %}
 {% endblock %}
 
 {% block content %}
