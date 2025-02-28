@@ -39,7 +39,7 @@ class ExhExhortoRespuesta(database.Model, UniversalMixin):
     # Identificador propio del Poder Judicial exhortado con el que identifica la respuesta del exhorto.
     # Este dato puede ser un número consecutivo (ej "1", "2", "3"...),
     # un GUID/UUID o cualquíer otro valor con que se identifique la respuesta
-    origen_id: Mapped[Optional[str]] = mapped_column(String(48))
+    origen_id: Mapped[Optional[str]] = mapped_column(String(64))
 
     # Identificador del municipio que corresponde al Juzgado/Área al que se turnó el Exhorto y que realiza la respuesta de este
     municipio_turnado_id: Mapped[Optional[int]]

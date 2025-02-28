@@ -42,6 +42,8 @@ from hercules.blueprints.exh_exhortos_partes.views import exh_exhortos_partes
 from hercules.blueprints.exh_exhortos_promociones.views import exh_exhortos_promociones
 from hercules.blueprints.exh_exhortos_promociones_archivos.views import exh_exhortos_promociones_archivos
 from hercules.blueprints.exh_exhortos_promociones_promoventes.views import exh_exhortos_promociones_promoventes
+from hercules.blueprints.exh_exhortos_respuestas.views import exh_exhortos_respuestas
+from hercules.blueprints.exh_exhortos_respuestas_archivos.views import exh_exhortos_respuestas_archivos
 from hercules.blueprints.exh_exhortos_videos.views import exh_exhortos_videos
 from hercules.blueprints.exh_externos.views import exh_externos
 from hercules.blueprints.fin_vales.views import fin_vales
@@ -133,6 +135,8 @@ def create_app():
     app.register_blueprint(exh_exhortos_promociones)
     app.register_blueprint(exh_exhortos_promociones_archivos)
     app.register_blueprint(exh_exhortos_promociones_promoventes)
+    app.register_blueprint(exh_exhortos_respuestas)
+    app.register_blueprint(exh_exhortos_respuestas_archivos)
     app.register_blueprint(exh_exhortos_videos)
     app.register_blueprint(exh_externos)
     app.register_blueprint(edictos)

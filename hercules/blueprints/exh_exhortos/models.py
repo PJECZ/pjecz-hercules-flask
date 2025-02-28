@@ -61,10 +61,10 @@ class ExhExhorto(database.Model, UniversalMixin):
     municipio_origen: Mapped["Municipio"] = relationship(back_populates="exh_exhortos_origenes")
 
     # GUID/UUID... que sea único. Pero es opcional para nosotros cuando el estado es PENDIENTE
-    folio_seguimiento: Mapped[Optional[str]] = mapped_column(String(48))
+    folio_seguimiento: Mapped[Optional[str]] = mapped_column(String(64))
 
     # UUID identificador con el que el PJ exhortante identifica el exhorto que envía
-    exhorto_origen_id: Mapped[str] = mapped_column(String(48))
+    exhorto_origen_id: Mapped[str] = mapped_column(String(64))
 
     # ID de la tabla Municipios: Para el payload es el Identificador INEGI del Municipio del Estado del PJ exhortado
     # al que se quiere enviar el Exhorto
@@ -116,7 +116,7 @@ class ExhExhorto(database.Model, UniversalMixin):
     # Número de Exhorto con el que se radica en el Juzgado/Área que se turnó el exhorto.
     # Este número sirve para que el usuario pueda indentificar su exhorto dentro del Juzgado/Área donde se turnó,
     # opcional
-    numero_exhorto: Mapped[Optional[str]] = mapped_column(String(256))
+    numero_exhorto: Mapped[Optional[str]] = mapped_column(String(64))
 
     # Hijos: PersonaParte[] NO Contiene la definición de las partes del Expediente
     exh_exhortos_partes: Mapped[List["ExhExhortoParte"]] = relationship("ExhExhortoParte", back_populates="exh_exhorto")
@@ -149,7 +149,7 @@ class ExhExhorto(database.Model, UniversalMixin):
     # Acuse Identificador del área o Juzgado turnado en donde se recibe el Exhorto.
     # En caso que todavía no esté turnado o se disponga de una "Oficialía Virtual",
     # este dato puede no ir en la respuesta.
-    acuse_area_recibe_id: Mapped[Optional[str]] = mapped_column(String(256))
+    acuse_area_recibe_id: Mapped[Optional[str]] = mapped_column(String(64))
 
     # Acuse Nombre del área o Juzgado turnado en donde se encuentra el Exhorto.
     # En caso de tener una "Oficialía Virtual", este dato puede omitirse
