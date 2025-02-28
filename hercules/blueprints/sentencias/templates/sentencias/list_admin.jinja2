@@ -27,6 +27,7 @@
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('sentencias.list_active')) }}{% endif %}
             {{ topbar.button_dashboard('Tablero', url_for('sentencias.dashboard')) }}
         {% endif %}
+        {{ topbar.button_manual('Manual', 'https://justiciadigital.gob.mx/plataforma_web/version_publica_sentencias') }}
     {% endcall %}
 {% endblock %}
 

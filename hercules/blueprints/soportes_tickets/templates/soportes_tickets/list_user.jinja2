@@ -16,6 +16,7 @@
         {% if current_user.can_insert('SOPORTES TICKETS') %}
             {{ topbar.button_new('Nuevo Ticket', url_for('soportes_tickets.new')) }}
         {% endif %}
+        {{ topbar.button_manual('Manual', 'https://justiciadigital.gob.mx/plataforma_web/tickets') }}
     {% endcall %}
 {% endblock %}
 
@@ -109,7 +110,7 @@
                     if (texto_corto.length > 16 ) {
                         texto_corto = data.nombre.substr(0, 16) + '…';
                     }
-                    if (data.url != "" ) { 
+                    if (data.url != "" ) {
                         return "<a href='" + data.url + "'><span title='" + data.nombre + "'>" + texto_corto + "</span></a>";
                     } else {
                         return "<span title='" + data.nombre + "'>" + texto_corto + "</span>";

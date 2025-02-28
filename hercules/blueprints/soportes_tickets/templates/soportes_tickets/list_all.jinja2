@@ -19,6 +19,7 @@
         {{ topbar.button('Sin Atender',  url_for("soportes_tickets.list_active"), "mdi:alert-circle") }}
         {{ topbar.button('Trabajando', url_for("soportes_tickets.list_working"), 'mdi:plus-circle') }}
         <a class="btn btn-sm btn-success active"><span class="iconify" data-icon="mdi:star-circle"></span> Todos</a>
+        {{ topbar.button_manual('Manual', 'https://justiciadigital.gob.mx/plataforma_web/tickets') }}
     {% endcall %}
 {% endblock %}
 

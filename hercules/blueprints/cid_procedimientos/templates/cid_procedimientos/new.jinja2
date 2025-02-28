@@ -6,8 +6,6 @@
 
 {% block title %}Subir Procedimiento{% endblock %}
 
-
-
 {% block custom_head %}
     {# {{ f.drop_zone_css() }} #}
     {{ quill.head() }}
@@ -33,7 +31,9 @@
 {% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Nuevo Procedimiento') }}
+    {% call topbar.page_buttons('Nuevo Procedimiento') %}
+        {{ topbar.button_manual('Manual', 'https://justiciadigital.gob.mx/plataforma_web/sicgd') }}
+    {% endcall %}
 {% endblock %}
 
 {% block content %}

@@ -7,6 +7,7 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
         {{ topbar.button_list_active('Listado', url_for('cid_procedimientos.list_active')) }}
+        {{ topbar.button_manual('Manual', 'https://justiciadigital.gob.mx/plataforma_web/sicgd') }}
     {% endcall %}
 {% endblock %}
 

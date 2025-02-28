@@ -16,6 +16,7 @@
             {{ topbar.button_new('Nuevo Procedimiento', url_for('cid_procedimientos.new')) }}
         {% endif %}
         {{ topbar.button_dashboard('Tablero', url_for('cid_procedimientos.dashboard')) }}
+        {{ topbar.button_manual('Manual', 'https://justiciadigital.gob.mx/plataforma_web/sicgd') }}
     {% endcall %}
 {% endblock %}
 
