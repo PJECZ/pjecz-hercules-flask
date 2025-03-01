@@ -1,9 +1,9 @@
 """
-Exhortos Promociones, formularios
+Exh Exhortos Promociones, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, IntegerField, TextAreaField
+from wtforms import IntegerField, StringField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length, Optional
 
 

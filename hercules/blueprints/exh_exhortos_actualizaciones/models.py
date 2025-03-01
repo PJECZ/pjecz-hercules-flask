@@ -1,5 +1,5 @@
 """
-Exhorto - Actualizaciones, modelos
+Exh Exhortos Actualizaciones, modelos
 """
 
 from datetime import datetime

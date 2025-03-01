@@ -1,11 +1,10 @@
 """
-Exhortos Actulizaciones, formularios
+Exh Exhortos Actualizaciones, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, SelectField
+from wtforms import SelectField, StringField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length, Optional
-
 
 TIPOS_ACTUALIZACIONES = [
     ("AreaTurnado", "Área de Turnado"),

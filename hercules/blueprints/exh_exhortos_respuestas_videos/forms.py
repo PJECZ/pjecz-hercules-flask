@@ -1,5 +1,5 @@
 """
-Exh_Exhorto_Videos, formularios
+Exh Exhortos Respuestas Videos, formularios
 """
 
 from flask_wtf import FlaskForm
@@ -7,7 +7,7 @@ from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, Length, Optional
 
 
-class ExhExhortoVideoForm(FlaskForm):
+class ExhExhortoRespuestaVideoForm(FlaskForm):
     """Formulario Nuevo Video"""
 
     titulo = StringField("Título", validators=[DataRequired(), Length(max=256)])

@@ -1,5 +1,5 @@
 """
-Exh Areas, vistas
+Exh Áreas, vistas
 """
 
 import json

@@ -44,7 +44,7 @@ from hercules.blueprints.exh_exhortos_promociones_archivos.views import exh_exho
 from hercules.blueprints.exh_exhortos_promociones_promoventes.views import exh_exhortos_promociones_promoventes
 from hercules.blueprints.exh_exhortos_respuestas.views import exh_exhortos_respuestas
 from hercules.blueprints.exh_exhortos_respuestas_archivos.views import exh_exhortos_respuestas_archivos
-from hercules.blueprints.exh_exhortos_videos.views import exh_exhortos_videos
+from hercules.blueprints.exh_exhortos_respuestas_videos.views import exh_exhortos_respuestas_videos
 from hercules.blueprints.exh_externos.views import exh_externos
 from hercules.blueprints.fin_vales.views import fin_vales
 from hercules.blueprints.funcionarios.views import funcionarios

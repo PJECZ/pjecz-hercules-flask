@@ -1,5 +1,5 @@
 """
-Exh Exhortos Videos, vistas
+Exh Exhortos Respuestas Videos, vistas
 """
 
 from datetime import datetime
@@ -9,8 +9,8 @@ from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
-from hercules.blueprints.exh_exhortos_videos.forms import ExhExhortoVideoForm
-from hercules.blueprints.exh_exhortos_videos.models import ExhExhortoVideo
+from hercules.blueprints.exh_exhortos_respuestas_videos.forms import ExhExhortoRespuestaVideoForm
+from hercules.blueprints.exh_exhortos_respuestas_videos.models import ExhExhortoRespuestaVideo
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
@@ -19,17 +19,17 @@ from lib.safe_string import safe_message, safe_string, safe_url
 
 MODULO = "EXH EXHORTOS VIDEOS"
 
-exh_exhortos_videos = Blueprint("exh_exhortos_videos", __name__, template_folder="templates")
+exh_exhortos_respuestas_videos = Blueprint("exh_exhortos_respuestas_videos", __name__, template_folder="templates")
 
 
-@exh_exhortos_videos.before_request
+@exh_exhortos_respuestas_videos.before_request
 @login_required
 @permission_required(MODULO, Permiso.VER)
 def before_request():
     """Permiso por defecto"""
 
 
-@exh_exhortos_videos.route("/exh_exhortos_videos/datatable_json", methods=["GET", "POST"])
+@exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos/datatable_json", methods=["GET", "POST"])
 def datatable_json():
     """DataTable JSON para listado de Videos"""
     # Tomar parámetros de Datatables
@@ -53,7 +53,7 @@ def datatable_json():
             {
                 "detalle": {
                     "titulo": resultado.titulo,
-                    "url": url_for("exh_exhortos_videos.detail", exh_exhorto_video_id=resultado.id),
+                    "url": url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=resultado.id),
                 },
                 "descripcion": resultado.descripcion,
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
@@ -64,20 +64,22 @@ def datatable_json():
     return output_datatable_json(draw, total, data)
 
 
-@exh_exhortos_videos.route("/exh_exhortos_videos")
+@exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos")
 def list_active():
     """Listado de Videos activos"""
     return "TODO: Listado de Videos activos"
 
 
-@exh_exhortos_videos.route("/exh_exhortos_videos/<int:exh_exhorto_video_id>")
+@exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos/<int:exh_exhorto_video_id>")
 def detail(exh_exhorto_video_id):
     """Detalle de un Video"""
     exh_exhorto_video = ExhExhortoVideo.query.get_or_404(exh_exhorto_video_id)
-    return render_template("exh_exhortos_videos/detail.jinja2", exh_exhorto_video=exh_exhorto_video)
+    return render_template("exh_exhortos_respuestas_videos/detail.jinja2", exh_exhorto_video=exh_exhorto_video)
 
 
-@exh_exhortos_videos.route("/exh_exhortos_videos/nuevo_con_exhorto/<int:exh_exhorto_id>", methods=["GET", "POST"])
+@exh_exhortos_respuestas_videos.route(
+    "/exh_exhortos_respuestas_videos/nuevo_con_exhorto/<int:exh_exhorto_id>", methods=["GET", "POST"]
+)
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_exh_exhorto(exh_exhorto_id):
     """Nuevo Video con un Exhorto"""
@@ -99,7 +101,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
             descripcion=safe_message(f"Nuevo Video {exh_exhorto_video.titulo}"),
-            url=url_for("exh_exhortos_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id),
+            url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id),
         )
         bitacora.save()
 
@@ -108,10 +110,12 @@ def new_with_exh_exhorto(exh_exhorto_id):
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_id))
 
     # Entregar el formulario
-    return render_template("exh_exhortos_videos/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
+    return render_template("exh_exhortos_respuestas_videos/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
 
 
-@exh_exhortos_videos.route("/exh_exhortos_videos/edicion/<int:exh_exhorto_video_id>", methods=["GET", "POST"])
+@exh_exhortos_respuestas_videos.route(
+    "/exh_exhortos_respuestas_videos/edicion/<int:exh_exhorto_video_id>", methods=["GET", "POST"]
+)
 @permission_required(MODULO, Permiso.MODIFICAR)
 def edit(exh_exhorto_video_id):
     """Editar Exhorto Video"""
@@ -126,7 +130,7 @@ def edit(exh_exhorto_video_id):
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
             descripcion=safe_message(f"Editado Exhorto Video {exh_exhorto_video.titulo}"),
-            url=url_for("exh_exhortos_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id),
+            url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
@@ -134,10 +138,10 @@ def edit(exh_exhorto_video_id):
     form.titulo.data = exh_exhorto_video.titulo
     form.descripcion.data = exh_exhorto_video.descripcion
     form.url_acceso.data = exh_exhorto_video.url_acceso
-    return render_template("exh_exhortos_videos/edit.jinja2", form=form, exh_exhorto_video=exh_exhorto_video)
+    return render_template("exh_exhortos_respuestas_videos/edit.jinja2", form=form, exh_exhorto_video=exh_exhorto_video)
 
 
-@exh_exhortos_videos.route("/exh_exhortos_videos/eliminar/<int:exh_exhorto_video_id>")
+@exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos/eliminar/<int:exh_exhorto_video_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def delete(exh_exhorto_video_id):
     """Eliminar Exhorto Video"""
@@ -148,14 +152,14 @@ def delete(exh_exhorto_video_id):
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
             descripcion=safe_message(f"Eliminado Exhorto Video {exh_exhorto_video.titulo}"),
-            url=url_for("exh_exhortos_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id),
+            url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
-    return redirect(url_for("exh_exhortos_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id))
+    return redirect(url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id))
 
 
-@exh_exhortos_videos.route("/exh_exhortos_videos/recuperar/<int:exh_exhorto_video_id>")
+@exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos/recuperar/<int:exh_exhorto_video_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def recover(exh_exhorto_video_id):
     """Recuperar Exhorto Video"""
@@ -166,8 +170,8 @@ def recover(exh_exhorto_video_id):
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
             descripcion=safe_message(f"Recuperado Exhorto Video {exh_exhorto_video.titulo}"),
-            url=url_for("exh_exhortos_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id),
+            url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
-    return redirect(url_for("exh_exhortos_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id))
+    return redirect(url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id))

@@ -1,5 +1,5 @@
 """
-Exhorto Promociones, vistas
+Exh Exhortos Promociones, vistas
 """
 
 import hashlib

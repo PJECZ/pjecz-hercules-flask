@@ -1,5 +1,5 @@
 """
-Exhorto - Actualizaciones, vistas
+Exh Exhortos Actualizaciones, vistas
 """
 
 import json

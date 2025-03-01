@@ -77,8 +77,13 @@ class ExhExhortoRespuesta(database.Model, UniversalMixin):
     # Estado de la respuesta
     estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="exh_exhortos_respuestas_estados", native_enum=False), index=True)
 
-    # Hijo
+    # Hijo: Archivos de la respuesta
     exh_exhortos_respuestas_archivos: Mapped[List["ExhExhortoRespuestaArchivo"]] = relationship(
+        back_populates="exh_exhorto_respuesta"
+    )
+
+    # Hijo: Videos de la respuesta
+    exh_exhortos_respuestas_videos: Mapped[List["ExhExhortoRespuestaVideo"]] = relationship(
         back_populates="exh_exhorto_respuesta"
     )
 

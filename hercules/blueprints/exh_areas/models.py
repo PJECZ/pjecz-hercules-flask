@@ -1,5 +1,5 @@
 """
-Exh Areas, modelos
+Exh Áreas, modelos
 """
 
 from typing import List

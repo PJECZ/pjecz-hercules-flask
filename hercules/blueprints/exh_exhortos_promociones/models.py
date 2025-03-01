@@ -1,5 +1,5 @@
 """
-Exhortos - Promociones, modelos
+Exh Exhortos Promociones, modelos
 """
 
 from datetime import datetime

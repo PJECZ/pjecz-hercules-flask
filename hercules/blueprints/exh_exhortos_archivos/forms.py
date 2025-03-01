@@ -1,5 +1,5 @@
 """
-Exh Exhorto Archivo, formularios
+Exh Exhortos Archivos, formularios
 """
 
 from flask_wtf import FlaskForm

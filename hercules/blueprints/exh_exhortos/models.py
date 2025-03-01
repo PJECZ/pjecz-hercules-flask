@@ -118,17 +118,6 @@ class ExhExhorto(database.Model, UniversalMixin):
     # opcional
     numero_exhorto: Mapped[Optional[str]] = mapped_column(String(64))
 
-    # Hijos: PersonaParte[] NO Contiene la definición de las partes del Expediente
-    exh_exhortos_partes: Mapped[List["ExhExhortoParte"]] = relationship("ExhExhortoParte", back_populates="exh_exhorto")
-
-    # Hijos: ArchivoARecibir[] SI Colección de los datos referentes a los archivos
-    # que se van a recibir el Poder Judicial exhortado en el envío del Exhorto.
-    exh_exhortos_archivos: Mapped[List["ExhExhortoArchivo"]] = relationship("ExhExhortoArchivo", back_populates="exh_exhorto")
-
-    # Hijos: Colección de objetos de tipo VideoAcceso que representan los accesos a
-    # los videos de las audiencias que forman parte de la respuesta.
-    exh_exhortos_videos: Mapped[List["ExhExhortoVideo"]] = relationship("ExhExhortoVideo", back_populates="exh_exhorto")
-
     # Cuando el exhorto está en estado POR ENVIAR
     # Puede tener un tiempo con su anterior intento, si es nulo es que no ha sido enviado aun
     por_enviar_tiempo_anterior: Mapped[Optional[datetime]]
@@ -159,6 +148,13 @@ class ExhExhorto(database.Model, UniversalMixin):
     # Esta página el Juzgado que envió el exhorto la puede imprimir como acuse de recibido y evidencia de que el exhorto
     # fue enviado correctamente al Poder Judicial exhortado o también una página que muestre el estatus del exhorto.
     acuse_url_info: Mapped[Optional[str]] = mapped_column(String(256))
+
+    # Hijo: Definición de las partes del Expediente
+    exh_exhortos_partes: Mapped[List["ExhExhortoParte"]] = relationship("ExhExhortoParte", back_populates="exh_exhorto")
+
+    # Hijo: Colección de los datos referentes a los archivos
+    # que se van a recibir el Poder Judicial exhortado en el envío del Exhorto.
+    exh_exhortos_archivos: Mapped[List["ExhExhortoArchivo"]] = relationship("ExhExhortoArchivo", back_populates="exh_exhorto")
 
     # Hijo: Actualizaciones
     exh_exhortos_actualizaciones: Mapped[List["ExhExhortoActualizacion"]] = relationship(
