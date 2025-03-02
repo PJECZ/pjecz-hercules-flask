@@ -137,7 +137,7 @@ def create_app():
     app.register_blueprint(exh_exhortos_promociones_promoventes)
     app.register_blueprint(exh_exhortos_respuestas)
     app.register_blueprint(exh_exhortos_respuestas_archivos)
-    app.register_blueprint(exh_exhortos_videos)
+    app.register_blueprint(exh_exhortos_respuestas_videos)
     app.register_blueprint(exh_externos)
     app.register_blueprint(edictos)
     app.register_blueprint(edictos_acuses)

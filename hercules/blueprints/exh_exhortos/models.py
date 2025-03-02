@@ -152,7 +152,8 @@ class ExhExhorto(database.Model, UniversalMixin):
     # Hijo: Definición de las partes del Expediente
     exh_exhortos_partes: Mapped[List["ExhExhortoParte"]] = relationship("ExhExhortoParte", back_populates="exh_exhorto")
 
-    # Hijo: Colección de los datos referentes a los archivos
+    # Hijo: Archivos
+    # Colección de los datos referentes a los archivos
     # que se van a recibir el Poder Judicial exhortado en el envío del Exhorto.
     exh_exhortos_archivos: Mapped[List["ExhExhortoArchivo"]] = relationship("ExhExhortoArchivo", back_populates="exh_exhorto")
 

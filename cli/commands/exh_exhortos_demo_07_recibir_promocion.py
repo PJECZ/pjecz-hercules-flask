@@ -24,7 +24,6 @@ from hercules.blueprints.exh_exhortos_partes.models import ExhExhortoParte
 from hercules.blueprints.exh_exhortos_promociones.models import ExhExhortoPromocion
 from hercules.blueprints.exh_exhortos_promociones_archivos.models import ExhExhortoPromocionArchivo
 from hercules.blueprints.exh_exhortos_promociones_promoventes.models import ExhExhortoPromocionPromovente
-from hercules.blueprints.exh_exhortos_videos.models import ExhExhortoVideo
 from hercules.blueprints.materias.models import Materia
 from hercules.blueprints.municipios.models import Municipio
 from hercules.extensions import database

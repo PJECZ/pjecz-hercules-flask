@@ -11,8 +11,9 @@ import click
 
 from hercules.app import create_app
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
-from hercules.blueprints.exh_exhortos_archivos.models import ExhExhortoArchivo
-from hercules.blueprints.exh_exhortos_videos.models import ExhExhortoVideo
+from hercules.blueprints.exh_exhortos_respuestas.models import ExhExhortoRespuesta
+from hercules.blueprints.exh_exhortos_respuestas_archivos.models import ExhExhortoRespuestaArchivo
+from hercules.blueprints.exh_exhortos_respuestas_videos.models import ExhExhortoRespuestaVideo
 from hercules.extensions import database
 from lib.pwgen import generar_identificador
 
@@ -42,10 +43,7 @@ def demo_enviar_respuesta(exhorto_origen_id: str) -> str:
 
     # Consultar los archivos de la respuesta
     exh_exhortos_archivos = (
-        ExhExhortoArchivo.query.filter_by(exh_exhorto_id=exh_exhorto.id)
-        .filter_by(es_respuesta=True)
-        .order_by(ExhExhortoArchivo.id)
-        .all()
+        ExhExhortoRespuestaArchivo.query.filter_by(exh_exhorto_id=exh_exhorto.id).order_by(ExhExhortoRespuestaArchivo.id).all()
     )
 
     # Validar que haya archivos para la respuesta
@@ -65,7 +63,9 @@ def demo_enviar_respuesta(exhorto_origen_id: str) -> str:
         archivos.append(archivo)
 
     # Consultar los videos de la respuesta
-    exh_exhortos_videos = ExhExhortoVideo.query.filter_by(exh_exhorto_id=exh_exhorto.id).order_by(ExhExhortoVideo.id).all()
+    exh_exhortos_videos = (
+        ExhExhortoRespuestaVideo.query.filter_by(exh_exhorto_id=exh_exhorto.id).order_by(ExhExhortoRespuestaVideo.id).all()
+    )
 
     # Preparar el listado con los videos para la respuesta
     videos = []
@@ -129,8 +129,8 @@ def demo_enviar_respuesta(exhorto_origen_id: str) -> str:
     input("Presiona ENTER para DEMOSTRAR que se va a enviar la respuesta...")
 
     # Actualizar el exhorto
-    exh_exhorto.respuesta_origen_id = generar_identificador()
-    exh_exhorto.respuesta_fecha_hora_recepcion = datetime.now()
+    # exh_exhorto.respuesta_origen_id = generar_identificador()
+    # exh_exhorto.respuesta_fecha_hora_recepcion = datetime.now()
     exh_exhorto.estado = "CONTESTADO"
     exh_exhorto.save()
 

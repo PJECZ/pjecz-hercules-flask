@@ -16,7 +16,7 @@ class ExhExhortoRespuestaVideo(database.Model, UniversalMixin):
     """ExhExhortoRespuestaVideo"""
 
     # Nombre de la tabla
-    __tablename__ = "exh_exhortos_videos"
+    __tablename__ = "exh_exhortos_respuestas_videos"
 
     # Clave primaria
     id: Mapped[int] = mapped_column(primary_key=True)

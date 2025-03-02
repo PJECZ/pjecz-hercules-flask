@@ -35,16 +35,16 @@ def datatable_json():
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
-    consulta = ExhExhortoVideo.query
+    consulta = ExhExhortoRespuestaVideo.query
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
         consulta = consulta.filter_by(estatus=request.form["estatus"])
     else:
         consulta = consulta.filter_by(estatus="A")
-    if "exh_exhorto_id" in request.form:
-        consulta = consulta.filter_by(exh_exhorto_id=request.form["exh_exhorto_id"])
-    # registros
-    registros = consulta.order_by(ExhExhortoVideo.id).offset(start).limit(rows_per_page).all()
+    if "exh_exhorto_respuesta_id" in request.form:
+        consulta = consulta.filter_by(exh_exhorto_respuesta_id=request.form["exh_exhorto_respuesta_id"])
+    # Ordenar y paginar
+    registros = consulta.order_by(ExhExhortoRespuestaVideo.descripcion).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -73,7 +73,7 @@ def list_active():
 @exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos/<int:exh_exhorto_video_id>")
 def detail(exh_exhorto_video_id):
     """Detalle de un Video"""
-    exh_exhorto_video = ExhExhortoVideo.query.get_or_404(exh_exhorto_video_id)
+    exh_exhorto_video = ExhExhortoRespuestaVideo.query.get_or_404(exh_exhorto_video_id)
     return render_template("exh_exhortos_respuestas_videos/detail.jinja2", exh_exhorto_video=exh_exhorto_video)
 
 
@@ -82,12 +82,12 @@ def detail(exh_exhorto_video_id):
 )
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_exh_exhorto(exh_exhorto_id):
-    """Nuevo Video con un Exhorto"""
+    """Nuevo video"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
-    form = ExhExhortoVideoForm()
+    form = ExhExhortoRespuestaVideoForm()
     if form.validate_on_submit():
-        # Insertar el registro ExhExhortoVideo
-        exh_exhorto_video = ExhExhortoVideo(
+        # Insertar el registro ExhExhortoRespuestaVideo
+        exh_exhorto_video = ExhExhortoRespuestaVideo(
             exh_exhorto=exh_exhorto,
             titulo=safe_string(form.titulo.data),
             descripcion=safe_message(form.descripcion.data, max_len=1024, default_output_str=None),
@@ -95,7 +95,6 @@ def new_with_exh_exhorto(exh_exhorto_id):
             url_acceso=safe_url(form.url_acceso.data),
         )
         exh_exhorto_video.save()
-
         # Insertar en la Bitácora
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -104,11 +103,9 @@ def new_with_exh_exhorto(exh_exhorto_id):
             url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id),
         )
         bitacora.save()
-
         # Mostrar mensaje de éxito y redirigir a la página del detalle del ExhExhorto
         flash(bitacora.descripcion, "success")
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_id))
-
     # Entregar el formulario
     return render_template("exh_exhortos_respuestas_videos/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
 
@@ -118,9 +115,9 @@ def new_with_exh_exhorto(exh_exhorto_id):
 )
 @permission_required(MODULO, Permiso.MODIFICAR)
 def edit(exh_exhorto_video_id):
-    """Editar Exhorto Video"""
-    exh_exhorto_video = ExhExhortoVideo.query.get_or_404(exh_exhorto_video_id)
-    form = ExhExhortoVideoForm()
+    """Editar Video"""
+    exh_exhorto_video = ExhExhortoRespuestaVideo.query.get_or_404(exh_exhorto_video_id)
+    form = ExhExhortoRespuestaVideoForm()
     if form.validate_on_submit():
         exh_exhorto_video.titulo = safe_string(form.titulo.data)
         exh_exhorto_video.descripcion = safe_message(form.descripcion.data, max_len=1024, default_output_str=None)
@@ -144,8 +141,8 @@ def edit(exh_exhorto_video_id):
 @exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos/eliminar/<int:exh_exhorto_video_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def delete(exh_exhorto_video_id):
-    """Eliminar Exhorto Video"""
-    exh_exhorto_video = ExhExhortoVideo.query.get_or_404(exh_exhorto_video_id)
+    """Eliminar Video"""
+    exh_exhorto_video = ExhExhortoRespuestaVideo.query.get_or_404(exh_exhorto_video_id)
     if exh_exhorto_video.estatus == "A":
         exh_exhorto_video.delete()
         bitacora = Bitacora(
@@ -162,8 +159,8 @@ def delete(exh_exhorto_video_id):
 @exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos/recuperar/<int:exh_exhorto_video_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def recover(exh_exhorto_video_id):
-    """Recuperar Exhorto Video"""
-    exh_exhorto_video = ExhExhortoVideo.query.get_or_404(exh_exhorto_video_id)
+    """Recuperar Video"""
+    exh_exhorto_video = ExhExhortoRespuestaVideo.query.get_or_404(exh_exhorto_video_id)
     if exh_exhorto_video.estatus == "B":
         exh_exhorto_video.recover()
         bitacora = Bitacora(
