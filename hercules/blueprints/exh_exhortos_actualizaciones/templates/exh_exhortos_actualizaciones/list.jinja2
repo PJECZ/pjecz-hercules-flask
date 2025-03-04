@@ -28,6 +28,7 @@
         <table id="exh_exhortos_actualizaciones_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
+                    <th>ID</th>
                     <th>Origen ID</th>
                     <th>Fecha y Hora</th>
                     <th>Tipo de Actualización</th>
@@ -50,6 +51,7 @@
         configDTExhExhortosActualizaciones['ajax']['data'] = {{ filtros }};
         configDTExhExhortosActualizaciones['columns'] = [
             { data: 'detalle' },
+            { data: 'origen_id' },
             { data: 'fecha_hora' },
             { data: 'tipo_actualizacion' },
             { data: 'remitente' },
@@ -60,7 +62,7 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.origen_id + '</a>';
+                    return '<a href="' + data.url + '">' + data.id + '</a>';
                 }
             }
         ];

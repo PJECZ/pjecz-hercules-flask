@@ -65,10 +65,11 @@ def datatable_json():
     for resultado in registros:
         data.append(
             {
-                "origen_id": {
-                    "origen_id": resultado.actualizacion_origen_id,
+                "detalle": {
+                    "id": resultado.id,
                     "url": url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=resultado.id),
                 },
+                "origen_id": resultado.actualizacion_origen_id,
                 "fecha_hora": resultado.fecha_hora.strftime("%Y/%m/%d %H:%M"),
                 "tipo_actualizacion": resultado.tipo_actualizacion,
                 "descripcion": resultado.descripcion,

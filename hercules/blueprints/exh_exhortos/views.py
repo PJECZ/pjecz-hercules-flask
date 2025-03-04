@@ -110,18 +110,17 @@ def datatable_json():
         municipio_destino = Municipio.query.filter_by(id=resultado.municipio_destino_id).first()
         data.append(
             {
-                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
                 "detalle": {
                     "id": resultado.id,
                     "url": url_for("exh_exhortos.detail", exh_exhorto_id=resultado.id),
                 },
+                "estado_origen": resultado.municipio_origen.estado.nombre,
                 "juzgado_origen": {
                     "clave": resultado.juzgado_origen_id,
                     "nombre": resultado.juzgado_origen_nombre,
                 },
-                "numero_expediente_origen": resultado.numero_expediente_origen,
-                "estado_origen": resultado.municipio_origen.estado.nombre,
                 "estado_destino": municipio_destino.estado.nombre,
+                "numero_expediente_origen": resultado.numero_expediente_origen,
                 "remitente": resultado.remitente,
                 "estado": resultado.estado,
             }

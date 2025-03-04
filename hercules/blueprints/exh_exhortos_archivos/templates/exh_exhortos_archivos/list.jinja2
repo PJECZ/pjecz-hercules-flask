@@ -31,9 +31,8 @@
                     <th>Archivo</th>
                     <th>Descargar</th>
                     <th>Tipo Documento</th>
-                    <th>Estado</th>
-                    <th>Recepción</th>
                     <th>Tamaño</th>
+                    <th>Estado</th>
                 </tr>
             </thead>
         </table>
@@ -54,7 +53,6 @@
             { data: 'descargar_pdf' },
             { data: 'tipo_documento_nombre' },
             { data: 'estado' },
-            { data: 'fecha_hora_recepcion' },
             { data: 'tamano' }
         ];
         configDTExhExhortosArchivos['columnDefs'] = [
@@ -64,9 +62,8 @@
                 render: function(data, type, row, meta) {
                     if (data.url != '') {
                         return '<a href="' + data.url + '">' + data.nombre_archivo + '</a>';
-                    } else {
-                        return data.nombre_archivo;
                     }
+                    return data.nombre_archivo;
                 }
             },
             {

@@ -63,10 +63,11 @@ def datatable_json():
     for resultado in registros:
         data.append(
             {
-                "folio_origen_promocion": {
-                    "folio": resultado.folio_origen_promocion,
+                "detalle": {
+                    "id": resultado.id,
                     "url": url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=resultado.id),
                 },
+                "folio_origen_promocion": resultado.folio_origen_promocion,
                 "fecha_origen": resultado.fecha_origen.strftime("%Y-%m-%d %H:%M"),
                 "remitente": resultado.remitente,
                 "fojas": resultado.fojas,

@@ -9,8 +9,8 @@ from datetime import datetime
 from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
-from werkzeug.utils import secure_filename
 from werkzeug.exceptions import NotFound
+from werkzeug.utils import secure_filename
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
@@ -69,11 +69,9 @@ def datatable_json():
                     "nombre_archivo": resultado.nombre_archivo,
                     "url": url_for("exh_exhortos_archivos.download_pdf", exh_exhorto_archivo_id=resultado.id),
                 },
-                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
                 "tipo_documento_nombre": resultado.tipo_documento_nombre,
-                "estado": resultado.estado,
-                "fecha_hora_recepcion": resultado.fecha_hora_recepcion.strftime("%Y-%m-%d %H:%M:%S"),
                 "tamano": f"{round((resultado.tamano / 1024), 2)} MB",
+                "estado": resultado.estado,
             }
         )
     # Entregar JSON

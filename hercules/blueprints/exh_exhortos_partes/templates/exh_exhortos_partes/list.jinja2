@@ -28,13 +28,11 @@
         <table id="exh_exhortos_partes_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>Nombre</th>
-                    <th>Apellido Paterno</th>
-                    <th>Apellido Materno</th>
+                    <th>Nombre Completo</th>
                     <th>Género</th>
                     <th>Es Persona Moral</th>
-                    <th>Tipo Parte</th>
-                    <th>Tipo Parte Nombre</th>
+                    <th>Tipo de Parte</th>
+                    <th>Tipo de Parte Nombre</th>
                 </tr>
             </thead>
         </table>
@@ -51,13 +49,23 @@
         configDTExhExhortosPartes['ajax']['url'] = '/exh_exhortos_partes/datatable_json';
         configDTExhExhortosPartes['ajax']['data'] = {{ filtros }};
         configDTExhExhortosPartes['columns'] = [
-            { data: 'nombre' },
-            { data: 'apellido_paterno' },
-            { data: 'apellido_materno' },
+            { data: 'detalle' },
             { data: 'genero' },
             { data: 'es_persona_moral' },
             { data: 'tipo_parte' },
             { data: 'tipo_parte_nombre' }
+        ];
+        configDTExhExhortosPartes['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.url != '') {
+                        return '<a href="' + data.url + '">' + data.nombre + '</a>';
+                    }
+                    return data.nombre;
+                }
+            }
         ];
         // Filtros exh_exhortos_partes
         const filtrosExhExhortosPartes = new FiltrosDataTable('#exh_exhortos_partes_datatable', configDTExhExhortosPartes);

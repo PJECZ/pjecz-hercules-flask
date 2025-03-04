@@ -83,12 +83,9 @@ def datatable_json():
         data.append(
             {
                 "detalle": {
-                    "url": url_for("exh_exhortos_partes.detail", exh_exhorto_parte_id=resultado.id),
                     "nombre": resultado.nombre_completo,
+                    "url": url_for("exh_exhortos_partes.detail", exh_exhorto_parte_id=resultado.id),
                 },
-                "nombre": resultado.nombre,
-                "apellido_paterno": resultado.apellido_paterno,
-                "apellido_materno": resultado.apellido_materno,
                 "genero": genero_str,
                 "es_persona_moral": resultado.es_persona_moral,
                 "tipo_parte": tipo_parte_str,

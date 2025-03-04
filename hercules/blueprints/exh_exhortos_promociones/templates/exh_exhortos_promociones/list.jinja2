@@ -28,6 +28,7 @@
         <table id="exh_exhortos_promociones_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
+                    <th>ID</th>
                     <th>Folio Origen</th>
                     <th>Fecha Origen</th>
                     <th>Remitente</th>
@@ -49,6 +50,7 @@
         configDTExhExhortosPromociones['ajax']['url'] = '/exh_exhortos_promociones/datatable_json';
         configDTExhExhortosPromociones['ajax']['data'] = {{ filtros }};
         configDTExhExhortosPromociones['columns'] = [
+            { data: 'detalle' },
             { data: 'folio_origen_promocion' },
             { data: 'fecha_origen' },
             { data: 'remitente' },
@@ -57,14 +59,14 @@
         ];
         configDTExhExhortosPromociones['columnDefs'] = [
             {
-                targets: 0, // folio_origen_promocion
+                targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.folio + '</a>';
+                    return '<a href="' + data.url + '">' + data.id + '</a>';
                 }
             },
             {
-                targets: 3, // estado
+                targets: 4, // estado
                 data: null,
                 render: function(data, type, row, meta) {
                     switch(data) {
