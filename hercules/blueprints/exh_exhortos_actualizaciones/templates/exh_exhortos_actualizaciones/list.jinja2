@@ -29,6 +29,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Exhorto ID</th>
                     <th>Origen ID</th>
                     <th>Fecha y Hora</th>
                     <th>Tipo de Actualización</th>
@@ -52,7 +53,8 @@
         configDTExhExhortosActualizaciones['ajax']['data'] = {{ filtros }};
         configDTExhExhortosActualizaciones['columns'] = [
             { data: 'detalle' },
-            { data: 'origen_id' },
+            { data: 'exhorto_id' },
+            { data: 'actualizacion_origen_id' },
             { data: 'fecha_hora' },
             { data: 'tipo_actualizacion' },
             { data: 'remitente' },

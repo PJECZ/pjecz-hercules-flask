@@ -43,22 +43,6 @@ def datatable_json():
         consulta = consulta.filter_by(estatus="A")
     if "exh_exhorto_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_id=request.form["exh_exhorto_id"])
-    # if "columna_clave" in request.form:
-    #     try:
-    #         columna_clave = safe_clave(request.form["columna_clave"])
-    #         if clave != "":
-    #             consulta = consulta.filter(ExhExhortoParte.clave.contains(columna_clave))
-    #     except ValueError:
-    #         pass
-    # if "columna_descripcion" in request.form:
-    #     columna_descripcion = safe_string(request.form["columna_descripcion"], save_enie=True)
-    #     if columna_descripcion != "":
-    #         consulta = consulta.filter(ExhExhortoParte.descripcion.contains(columna_descripcion))
-    # Luego filtrar por columnas de otras tablas
-    # if "otra_columna_descripcion" in request.form:
-    #     otra_columna_descripcion = safe_string(request.form["otra_columna_descripcion"], save_enie=True)
-    #     consulta = consulta.join(OtroModelo)
-    #     consulta = consulta.filter(OtroModelo.rfc.contains(otra_columna_descripcion))
     # Ordenar y paginar
     registros = consulta.order_by(ExhExhortoParte.id).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -90,6 +74,10 @@ def datatable_json():
                 "es_persona_moral": resultado.es_persona_moral,
                 "tipo_parte": tipo_parte_str,
                 "tipo_parte_nombre": resultado.tipo_parte_nombre,
+                "exh_exhorto": {
+                    "exhorto_origen_id": resultado.exh_exhorto.exhorto_origen_id,
+                    "url": url_for("exh_exhortos.detail", exh_exhorto_id=resultado.exh_exhorto_id),
+                },
             }
         )
     # Entregar JSON

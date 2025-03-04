@@ -33,6 +33,7 @@
                     <th>Es Persona Moral</th>
                     <th>Tipo de Parte</th>
                     <th>Tipo de Parte Nombre</th>
+                    <th>Exhorto Origen ID</th>
                 </tr>
             </thead>
         </table>
@@ -53,7 +54,8 @@
             { data: 'genero' },
             { data: 'es_persona_moral' },
             { data: 'tipo_parte' },
-            { data: 'tipo_parte_nombre' }
+            { data: 'tipo_parte_nombre' },
+            { data: 'exh_exhorto' }
         ];
         configDTExhExhortosPartes['columnDefs'] = [
             {
@@ -64,6 +66,16 @@
                         return '<a href="' + data.url + '">' + data.nombre + '</a>';
                     }
                     return data.nombre;
+                }
+            },
+            {
+                targets: 5, // exh_exhorto
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.url != '') {
+                        return '<a href="' + data.url + '">' + data.exhorto_origen_id + '</a>';
+                    }
+                    return data.exhorto_origen_id;
                 }
             }
         ];
