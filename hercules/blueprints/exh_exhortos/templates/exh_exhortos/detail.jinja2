@@ -113,140 +113,121 @@
             </div>
         </div>
         <hr/>
-        <!-- Botones Cancelar y Enviar -->
-        {% if exh_exhorto.estado == 'PENDIENTE' or exh_exhorto.estado == "POR ENVIAR" %}
-            <div class="row">
-                <div class="col-md-6">
-                    {{ detail.button_lg_modal(
-                        label="Cancelar",
-                        onclick="showModalcancelar_btn('{{ url_for('exh_exhortos.change_to_cancel', exh_exhorto_id=exh_exhorto.id) }}', '¿Está seguro de CANCELAR este exhorto?');",
-                        icon='mdi:cancel',
-                        color_class='btn-danger') }}
+        {% if current_user.can_insert('EXH EXHORTOS') %}
+            <!-- Botones Cancelar y Enviar -->
+            {% if exh_exhorto.estado == 'PENDIENTE' or exh_exhorto.estado == "POR ENVIAR" %}
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ detail.button_lg_modal(
+                            label="Cancelar",
+                            onclick="showModalcancelar_btn('{{ url_for('exh_exhortos.change_to_cancel', exh_exhorto_id=exh_exhorto.id) }}', '¿Está seguro de CANCELAR este exhorto?');",
+                            icon='mdi:cancel',
+                            color_class='btn-danger') }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ detail.button_lg_modal(
+                            label="Enviar",
+                            onclick="showModalenviar_btn('{{ url_for('exh_exhortos.launch_task_send', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de ENVIAR el exhorto? Una vez enviado ya no podrá ni editarlo ni cancelarlo.');",
+                            icon='mdi:send',
+                            color_class='btn-primary') }}
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    {{ detail.button_lg_modal(
-                        label="Enviar",
-                        onclick="showModalenviar_btn('{{ url_for('exh_exhortos.launch_task_send', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de ENVIAR el exhorto? Una vez enviado ya no podrá ni editarlo ni cancelarlo.');",
-                        icon='mdi:send',
-                        color_class='btn-primary') }}
+            {% endif %}
+            <!-- Botón Consultar -->
+            {% if exh_exhorto.estado == "RECIBIDO CON EXITO" %}
+                <div class="row">
+                    <div class="col-md-6">
+                    </div>
+                    <div class="col-md-6">
+                        {{ detail.button_lg_modal(
+                            label="Consultar",
+                            onclick="showModalregresar_enviar_btn('{{ url_for('exh_exhortos.launch_task_query', exh_exhorto_id=exh_exhorto.id) }}', '¿Está seguro de CONSULTAR desde el PJ?');",
+                            icon='mdi:download',
+                            color_class='btn-primary',
+                        ) }}
+                    </div>
                 </div>
-            </div>
-        {% endif %}
-        <!-- Botón Consultar -->
-        {% if exh_exhorto.estado == "RECIBIDO CON EXITO" %}
-            <div class="row">
-                <div class="col-md-6">
+            {% endif %}
+            <!-- Botón Transferir a Juzgado -->
+            {% if exh_exhorto.estado == "RECIBIDO" %}
+                <div class="row">
+                    <div class="col-md-6">
+                    </div>
+                    <div class="col-md-6">
+                        {{ detail.button_lg(
+                            label="Transferir a Juzgado",
+                            url=url_for('exh_exhortos.change_to_transfer', exh_exhorto_id=exh_exhorto.id),
+                            icon='mdi:swap-horizontal',
+                            color_class='btn-primary',
+                        ) }}
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    {{ detail.button_lg_modal(
-                        label="Consultar",
-                        onclick="showModalregresar_enviar_btn('{{ url_for('exh_exhortos.launch_task_query', exh_exhorto_id=exh_exhorto.id) }}', '¿Está seguro de CONSULTAR desde el PJ?');",
-                        icon='mdi:download',
-                        color_class='btn-primary',
-                    ) }}
+            {% endif %}
+            <!-- Botón Regresar a Pendiente -->
+            {% if exh_exhorto.estado == "RECHAZADO" %}
+                <div class="row">
+                    <div class="col-md-6">
+                    </div>
+                    <div class="col-md-6">
+                        {{ detail.button_lg_modal(
+                            label="Regresar a Pendiente",
+                            onclick="showModalregresar_pendiente_btn('{{ url_for('exh_exhortos.change_to_pending', exh_exhorto_id=exh_exhorto.id) }}', '¿Está seguro de regresar el estado a PENDIENTE?');",
+                            icon='mdi:refresh',
+                            color_class='btn-warning',
+                        ) }}
+                    </div>
                 </div>
-            </div>
-        {% endif %}
-        <!-- Botón Transferir a Juzgado -->
-        {% if exh_exhorto.estado == "RECIBIDO" %}
-            <div class="row">
-                <div class="col-md-6">
+            {% endif %}
+            <!-- Botón Procesar -->
+            {% if exh_exhorto.estado == "TRANSFIRIENDO" %}
+                <div class="row">
+                    <div class="col-md-6">
+                    </div>
+                    <div class="col-md-6">
+                        {{ detail.button_lg(
+                            label="Procesar",
+                            url=url_for('exh_exhortos.change_to_process', exh_exhorto_id=exh_exhorto.id),
+                            icon='mdi:recycle',
+                            color_class='btn-warning',
+                        ) }}
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    {{ detail.button_lg(
-                        label="Transferir a Juzgado",
-                        url=url_for('exh_exhortos.change_to_transfer', exh_exhorto_id=exh_exhorto.id),
-                        icon='mdi:swap-horizontal',
-                        color_class='btn-primary',
-                    ) }}
+            {% endif %}
+            <!-- Botones Rechazar y Diligenciar -->
+            {% if exh_exhorto.estado == "PROCESANDO" %}
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ detail.button_lg(
+                            label="Rechazar",
+                            url=url_for('exh_exhortos.change_to_refuse', exh_exhorto_id=exh_exhorto.id),
+                            icon='mdi:hand-back-left',
+                            color_class='btn-danger',
+                        ) }}
+                    </div>
+                    <div class="col-md-6">
+                    </div>
                 </div>
-            </div>
-        {% endif %}
-        <!-- Botón Regresar a Pendiente -->
-        {% if exh_exhorto.estado == "RECHAZADO" %}
-            <div class="row">
-                <div class="col-md-6">
+            {% endif %}
+            <!-- Botón Archivar -->
+            {% if exh_exhorto.estado in ("CONTESTADO", "RESPONDIDO") %}
+                <div class="row">
+                    <div class="col-md-6">
+                    </div>
+                    <div class="col-md-6">
+                        {{ detail.button_lg_modal(
+                            label="Archivar",
+                            onclick="showModalarchivar_btn('{{url_for('exh_exhortos.change_to_archive', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de ARCHIVAR el exhorto?');",
+                            icon='mdi:archive',
+                            color_class='btn-secondary',
+                        ) }}
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    {{ detail.button_lg_modal(
-                        label="Regresar a Pendiente",
-                        onclick="showModalregresar_pendiente_btn('{{ url_for('exh_exhortos.change_to_pending', exh_exhorto_id=exh_exhorto.id) }}', '¿Está seguro de regresar el estado a PENDIENTE?');",
-                        icon='mdi:refresh',
-                        color_class='btn-warning',
-                    ) }}
-                </div>
-            </div>
-        {% endif %}
-        <!-- Botón Procesar -->
-        {% if exh_exhorto.estado == "TRANSFIRIENDO" %}
-            <div class="row">
-                <div class="col-md-6">
-                </div>
-                <div class="col-md-6">
-                    {{ detail.button_lg(
-                        label="Procesar",
-                        url=url_for('exh_exhortos.change_to_process', exh_exhorto_id=exh_exhorto.id),
-                        icon='mdi:recycle',
-                        color_class='btn-warning',
-                    ) }}
-                </div>
-            </div>
-        {% endif %}
-        <!-- Botones Rechazar y Diligenciar -->
-        {% if exh_exhorto.estado == "PROCESANDO" %}
-            <div class="row">
-                <div class="col-md-6">
-                    {{ detail.button_lg(
-                        label="Rechazar",
-                        url=url_for('exh_exhortos.change_to_refuse', exh_exhorto_id=exh_exhorto.id),
-                        icon='mdi:hand-back-left',
-                        color_class='btn-danger',
-                    ) }}
-                </div>
-                <div class="col-md-6">
-                    {{ detail.button_lg(
-                        label="Diligenciar",
-                        url=url_for('exh_exhortos.change_to_diligence', exh_exhorto_id=exh_exhorto.id),
-                        icon='mdi:truck-delivery',
-                        color_class='btn-primary',
-                    ) }}
-                </div>
-            </div>
-        {% endif %}
-        <!-- Botón Responder -->
-        {% if exh_exhorto.estado in ("PROCESANDO", "DILIGENCIADO") %}
-            <div class="row">
-                <div class="col-md-6">
-                </div>
-                <div class="col-md-6">
-                    {{ detail.button_lg_modal(
-                        label="Responder",
-                        onclick="showModalcontestar_btn('{{url_for('exh_exhortos.launch_task_reply', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de CONTESTAR el exhorto?');",
-                        icon='mdi:check-circle',
-                        color_class='btn-success',
-                    ) }}
-                </div>
-            </div>
-        {% endif %}
-        <!-- Botón Archivar -->
-        {% if exh_exhorto.estado in ("CONTESTADO", "RESPONDIDO") %}
-            <div class="row">
-                <div class="col-md-6">
-                </div>
-                <div class="col-md-6">
-                    {{ detail.button_lg_modal(
-                        label="Archivar",
-                        onclick="showModalarchivar_btn('{{url_for('exh_exhortos.change_to_archive', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de ARCHIVAR el exhorto?');",
-                        icon='mdi:archive',
-                        color_class='btn-secondary',
-                    ) }}
-                </div>
-            </div>
+            {% endif %}
         {% endif %}
     {% endcall %}
     <!-- En estado PENDIENTE se muestran los DataTables de partes y archivos -->
     {% if exh_exhorto.estado == 'PENDIENTE' %}
-        <!-- DataTable partes -->
+        <!-- DataTable exh_exhortos_partes -->
         {% call detail.card("Partes") %}
             <table id="exh_exhortos_partes_datatable" class="table display nowrap" style="width:100%">
                 <thead>
@@ -262,7 +243,7 @@
                 <a class="btn btn-primary" href="{{url_for('exh_exhortos_partes.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar</a>
             {% endif %}
         {% endcall %}
-        <!-- DataTable archivos -->
+        <!-- DataTable exh_exhortos_archivos -->
         {% call detail.card("Archivos") %}
             <table id="exh_exhortos_archivos_datatable" class="table display nowrap" style="width:100%">
                 <thead>
@@ -281,39 +262,43 @@
             {% endif %}
         {% endcall %}
     {% endif %}
-    <!-- DataTable respuestas -->
+    <!-- DataTable exh_exhortos_respuestas -->
     {% if exh_exhorto.estado in ('PROCESANDO', 'RESPONDIDO', 'CONTESTADO', 'ARCHIVADO') %}
         {% call detail.card("Respuestas") %}
             <table id="exh_exhortos_respuestas_datatable" class="table display nowrap" style="width:100%">
                 <thead>
                     <tr>
-                        <th>Origen ID</th>
-                        <th>Muniipio turnado</th>
+                        <th>ID</th>
+                        <th>Exhorto</th>
+                        <th>Fecha hora recepción</th>
+                        <th>Remitente</th>
+                        <th>Municipio turnado ID</th>
                         <th>Área turnada ID</th>
                         <th>Área turnada nombre</th>
-                        <th>Número de exhorto</th>
-                        <th>Tipo diligenciación</th>
-                        <th>Fecha y hora de recepción</th>
+                        <th>No. exhorto</th>
+                        <th>Tipo diligenciado</th>
+                        <th>Estado</th>
                     </tr>
                 </thead>
             </table>
             {% if exh_exhorto.estado != 'ARCHIVADO' and current_user.can_insert('EXH EXHORTOS RESPUESTAS') %}
-                <a class="btn btn-success" href="{{url_for('exh_exhortos_archivos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id, es_respuesta=1)}}">Agregar Archivo de Respuesta</a>
+                <a class="btn btn-success" href="{{url_for('exh_exhortos_archivos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id, es_respuesta=1)}}">Agregar Respuesta</a>
             {% endif %}
         {% endcall %}
     {% endif %}
-    <!-- DataTable actualizaciones -->
+    <!-- DataTable exh_exhortos_actualizaciones -->
     {% if exh_exhorto.estado in ('RECIBIDO CON EXITO', 'PROCESANDO', 'RESPONDIDO', 'CONTESTADO', 'ARCHIVADO') %}
         {% call detail.card("Actualizaciones") %}
             <table id="exh_exhortos_actualizaciones_datatable" class="table display nowrap" style="width:100%">
                 <thead>
                     <tr>
+                        <th>ID</th>
                         <th>Origen ID</th>
-                        <th>Fecha / Hora</th>
+                        <th>Fecha y Hora</th>
+                        <th>Tipo de Actualización</th>
                         <th>Remitente</th>
-                        <th>Estado</th>
-                        <th>Tipo Actualización</th>
                         <th>Descripción</th>
+                        <th>Estado</th>
                     </tr>
                 </thead>
             </table>
@@ -322,17 +307,17 @@
             {% endif %}
         {% endcall %}
     {% endif %}
-    <!-- DataTable de promociones -->
+    <!-- DataTable de exh_exhortos_promociones -->
     {% if exh_exhorto.estado in ('RECIBIDO CON EXITO', 'PROCESANDO', 'RESPONDIDO', 'CONTESTADO', 'ARCHIVADO') %}
         {% call detail.card("Promociones") %}
             <table id="exh_exhortos_promociones_datatable" class="table display nowrap" style="width:100%">
                 <thead>
                     <tr>
+                        <th>ID</th>
                         <th>Folio Origen</th>
                         <th>Fecha Origen</th>
                         <th>Remitente</th>
                         <th>Estado</th>
-                        <th>Observaciones</th>
                     </tr>
                 </thead>
             </table>
@@ -344,9 +329,32 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    {% if current_user.can_admin('EXH EXHORTOS') %}
+    <!-- Modales para los botones de acción -->
+    {% if current_user.can_insert('EXH EXHORTOS') %}
         {{ modals.custom_javascript('Consultar', '', 'GetFromExterno') }}
         {{ modals.custom_javascript('Enviar', '', 'SendToExterno') }}
+        {% if exh_exhorto.estado == 'PENDIENTE' or exh_exhorto.estado == 'POR ENVIAR' %}
+            {{ modals.custom_javascript('Cancelar', '', "cancelar_btn") }}
+            {{ modals.custom_javascript('Enviar', '', "enviar_btn") }}
+        {% endif %}
+        {% if exh_exhorto.estado == 'INTENTOS AGOTADOS' %}
+            {{ modals.custom_javascript('Reiniciar Intentos', '', "regresar_enviar_btn") }}
+        {% endif %}
+        {% if exh_exhorto.estado == 'RECHAZADO' %}
+            {{ modals.custom_javascript('Regresar a Pendiente', '', "regresar_pendiente_btn") }}
+        {% endif %}
+        {% if exh_exhorto.estado == 'RECIBIDO' %}
+            {{ modals.custom_javascript('Transferir', '', "transferir_btn") }}
+        {% endif %}
+        {% if exh_exhorto.estado == 'DILIGENCIADO' %}
+            {{ modals.custom_javascript('Contestar', '', "contestar_btn") }}
+        {% endif %}
+        {% if exh_exhorto.estado == 'RESPONDIDO' or exh_exhorto.estado == 'CONTESTADO' %}
+            {{ modals.custom_javascript('Archivar', '', "archivar_btn") }}
+        {% endif %}
+    {% endif %}
+    <!-- Modales para eliminar y recuperar -->
+    {% if current_user.can_admin('EXH EXHORTOS') %}
         {% if exh_exhorto.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar este exhorto?') }}{% endif %}
         {% if exh_exhorto.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar este exhorto?') }}{% endif %}
     {% endif %}
@@ -355,9 +363,8 @@
     <script>
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
     </script>
-    <!-- DataTable partes -->
     <script>
-        // DataTable exh_exhortos_partes_datatable
+        // DataTable exh_exhortos_partes
         let configDTPartes = constructorDataTable.config();
         configDTPartes['ajax']['url'] = '/exh_exhortos_partes/datatable_json';
         configDTPartes['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}};
@@ -397,13 +404,12 @@
                 }
             }
         ];
-        // Filtros exh_exhortos_partes_datatable
+        // Filtros exh_exhortos_partes
         const filtrosPartes = new FiltrosDataTable('#exh_exhortos_partes_datatable', configDTPartes);
         filtrosPartes.precargar();
     </script>
-    <!-- DataTable archivos -->
     <script>
-        // DataTable exh_exhortos_archivos_datatable
+        // DataTable exh_exhortos_archivos
         let configDTArchivos = constructorDataTable.config();
         configDTArchivos['ajax']['url'] = '/exh_exhortos_archivos/datatable_json';
         configDTArchivos['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}, "es_respuesta":false};
@@ -435,118 +441,102 @@
                 }
             }
         ];
-        // Filtros exh_exhortos_archivos_datatable
+        // Filtros exh_exhortos_archivos
         const filtrosArchivos = new FiltrosDataTable('#exh_exhortos_archivos_datatable', configDTArchivos);
         filtrosArchivos.precargar();
     </script>
-    <!-- DataTable respuestas -->
     <script>
-        // DataTable exh_exhortos_respuestas_datatable
+        // DataTable exh_exhortos_respuestas
         let configDTRespuestas = constructorDataTable.config();
         configDTRespuestas['ajax']['url'] = '/exh_exhortos_archivos/datatable_json';
         configDTRespuestas['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}, "es_respuesta":true};
         configDTRespuestas['columns'] = [
             { data: 'detalle' },
+            { data: 'exh_exhorto' },
             { data: 'fecha_hora_recepcion' },
             { data: 'remitente' },
-            { data: 'origen_id' },
             { data: 'municipio_turnado_id' },
             { data: 'area_turnado_id' },
             { data: 'area_turnado_nombre' },
             { data: 'numero_exhorto' },
-            { data: '' },
-            { data: '' }
+            { data: 'tipo_diligenciado' },
+            { data: 'estado' }
         ];
         configDTRespuestas['columnDefs'] = [
             {
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data.url != '') {
-                        return '<a href="' + data.url + '">' + data.nombre_archivo + '</a>';
-                    } else {
-                        return data.nombre_archivo;
-                    }
+                    return '<a href="' + data.url + '">' + data.id + '</a>';
                 }
             }
         ];
-        // Filtros exh_exhortos_respuestas_datatable
+        // Filtros exh_exhortos_respuestas
         const filtrosArchivosRespuesta = new FiltrosDataTable('#exh_exhortos_respuestas_datatable', configDTRespuestas);
         filtrosArchivosRespuesta.precargar();
     </script>
     {% if exh_exhorto.estado in ('DILIGENCIADO', 'CONTESTADO', 'PROCESANDO', 'RESPONDIDO', 'ARCHIVADO') %}
-    <!-- Tabla de Actualizaciones -->
     <script>
+        // DataTable exh_exhortos_actualizaciones
         let configDTActualizaciones = constructorDataTable.config();
         configDTActualizaciones['ajax']['url'] = '/exh_exhortos_actualizaciones/datatable_json';
         configDTActualizaciones['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}};
         configDTActualizaciones['columns'] = [
+            { data: 'detalle' },
             { data: 'origen_id' },
             { data: 'fecha_hora' },
-            { data: 'remitente' },
-            { data: 'estado' },
             { data: 'tipo_actualizacion' },
-            { data: 'descripcion' }
+            { data: 'remitente' },
+            { data: 'descripcion' },
+            { data: 'estado' }
         ];
         configDTActualizaciones['columnDefs'] = [
             {
-                targets: 0, // origen_id
+                targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.origen_id + '</a>';
-                }
-            },
-            {
-                targets: 3, // estado
-                data: null,
-                render: function(data, type, row, meta) {
-                    switch(data) {
-                        case "CANCELADO": bgcolor = 'bg-danger';                icon="cancel";    break;
-                        case "ENVIADO":   bgcolor = 'bg-success';               icon="send";      break;
-                        case "PENDIENTE": bgcolor = 'bg-warning text-dark';     icon="note-edit"; break;
-                    }
-                    return '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + data + '</span>';
+                    return '<a href="' + data.url + '">' + data.id + '</a>';
                 }
             }
         ];
-        // Filtros Exhortos Actualizaciones
+        // Filtros exh_exhortos_actualizaciones
         const filtrosActualizaciones = new FiltrosDataTable('#exh_exhortos_actualizaciones_datatable', configDTActualizaciones);
         filtrosActualizaciones.precargar();
     </script>
-    <!-- Tabla de Promociones -->
     <script>
+        // DataTable exh_exhortos_promociones
         let configDTPromociones = constructorDataTable.config();
         configDTPromociones['ajax']['url'] = '/exh_exhortos_promociones/datatable_json';
         configDTPromociones['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}};
         configDTPromociones['columns'] = [
+            { data: 'detalle' },
             { data: 'folio_origen_promocion' },
             { data: 'fecha_origen' },
             { data: 'remitente' },
-            { data: 'estado' },
-            { data: 'observaciones' }
+            { data: 'estado' }
         ];
         configDTPromociones['columnDefs'] = [
             {
-                targets: 0, // folio_origen_promocion
+                targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.folio + '</a>';
+                    return '<a href="' + data.url + '">' + data.id + '</a>';
                 }
             },
             {
-                targets: 3, // estado
+                targets: 4, // estado
                 data: null,
                 render: function(data, type, row, meta) {
                     switch(data) {
-                        case "CANCELADO": bgcolor = 'bg-danger';                icon="cancel";    break;
-                        case "ENVIADO":   bgcolor = 'bg-success';               icon="send";      break;
-                        case "PENDIENTE": bgcolor = 'bg-warning text-dark';     icon="note-edit"; break;
+                        case "CANCELADO": bgcolor = 'bg-danger';            icon="send";      break;
+                        case "ENVIADO":   bgcolor = 'bg-success';           icon="send";      break;
+                        case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit"; break;
                     }
                     return '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + data + '</span>';
                 }
             }
         ];
-        // Filtros Exhortos Promociones
+        // Filtros exh_exhortos_promociones
         const filtrosPromociones = new FiltrosDataTable('#exh_exhortos_promociones_datatable', configDTPromociones);
         filtrosPromociones.precargar();
     </script>
@@ -558,42 +548,22 @@
         let bgcolor = "bg-dark";
         let icon = "circle-small";
         switch (valor)    {
-            case "RECIBIDO":        bgcolor = 'bg-primary';             icon="inbox-arrow-down";    break;
-            case "TRANSFIRIENDO":   bgcolor = 'bg-primary';             icon="email-arrow-right";   break;
-            case "PROCESANDO":      bgcolor = 'bg-warning text-dark';   icon="sync";                break;
-            case "RECHAZADO":       bgcolor = "bg-danger";              icon="hand-back-left";      break;
-            case "DILIGENCIADO":    bgcolor = "bg-primary";             icon="truck-delivery";      break;
-            case "CONTESTADO":      bgcolor = "bg-success";             icon="check-circle";        break;
-            case "PENDIENTE":       bgcolor = 'bg-warning text-dark';   icon="note-edit";           break;
-            case "CANCELADO":       bgcolor = "bg-secondary";           icon="close-circle";        break;
-            case "POR ENVIAR":      bgcolor = 'bg-warning text-dark';   icon="package-up";          break;
-            case "INTENTOS AGOTADOS": bgcolor = 'bg-danger';            icon="alert-decagram";      break;
-            case "RECIBIDO CON EXITO": bgcolor = 'bg-primary';          icon="briefcase-check";     break;
-            case "NO FUE RESPONDIDO": bgcolor = 'bg-danger';            icon="cancel";              break;
-            case "RESPONDIDO":      bgcolor = 'bg-success';             icon="crown-circle";        break;
-            case "ARCHIVADO":       bgcolor = 'bg-secondary';           icon="archive";             break;
+            case "RECIBIDO":           bgcolor = 'bg-primary';           icon="inbox-arrow-down";  break;
+            case "TRANSFIRIENDO":      bgcolor = 'bg-primary';           icon="email-arrow-right"; break;
+            case "PROCESANDO":         bgcolor = 'bg-warning text-dark'; icon="sync";              break;
+            case "RECHAZADO":          bgcolor = "bg-danger";            icon="hand-back-left";    break;
+            case "DILIGENCIADO":       bgcolor = "bg-primary";           icon="truck-delivery";    break;
+            case "CONTESTADO":         bgcolor = "bg-success";           icon="check-circle";      break;
+            case "PENDIENTE":          bgcolor = 'bg-warning text-dark'; icon="note-edit";         break;
+            case "CANCELADO":          bgcolor = "bg-secondary";         icon="close-circle";      break;
+            case "POR ENVIAR":         bgcolor = 'bg-warning text-dark'; icon="package-up";        break;
+            case "INTENTOS AGOTADOS":  bgcolor = 'bg-danger';            icon="alert-decagram";    break;
+            case "RECIBIDO CON EXITO": bgcolor = 'bg-primary';           icon="briefcase-check";   break;
+            case "NO FUE RESPONDIDO":  bgcolor = 'bg-danger';            icon="cancel";            break;
+            case "RESPONDIDO":         bgcolor = 'bg-success';           icon="crown-circle";      break;
+            case "ARCHIVADO":          bgcolor = 'bg-secondary';         icon="archive";           break;
         }
         html = '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
         titulo_estado.innerHTML = html;
     </script>
-    <!-- Botones de acción en diferentes estados -->
-    {% if exh_exhorto.estado == 'PENDIENTE' or exh_exhorto.estado == 'POR ENVIAR' %}
-        {{ modals.custom_javascript('Cancelar', '', "cancelar_btn") }}
-        {{ modals.custom_javascript('Enviar', '', "enviar_btn") }}
-    {% endif %}
-    {% if exh_exhorto.estado == 'INTENTOS AGOTADOS' %}
-        {{ modals.custom_javascript('Reiniciar Intentos', '', "regresar_enviar_btn") }}
-    {% endif %}
-    {% if exh_exhorto.estado == 'RECHAZADO' %}
-        {{ modals.custom_javascript('Regresar a Pendiente', '', "regresar_pendiente_btn") }}
-    {% endif %}
-    {% if exh_exhorto.estado == 'RECIBIDO' %}
-        {{ modals.custom_javascript('Transferir', '', "transferir_btn") }}
-    {% endif %}
-    {% if exh_exhorto.estado == 'DILIGENCIADO' %}
-        {{ modals.custom_javascript('Contestar', '', "contestar_btn") }}
-    {% endif %}
-    {% if exh_exhorto.estado == 'RESPONDIDO' or exh_exhorto.estado == 'CONTESTADO' %}
-        {{ modals.custom_javascript('Archivar', '', "archivar_btn") }}
-    {% endif %}
 {% endblock %}

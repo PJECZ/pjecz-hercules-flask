@@ -72,8 +72,8 @@ def datatable_json():
                 "origen_id": resultado.actualizacion_origen_id,
                 "fecha_hora": resultado.fecha_hora.strftime("%Y/%m/%d %H:%M"),
                 "tipo_actualizacion": resultado.tipo_actualizacion,
-                "descripcion": resultado.descripcion,
                 "remitente": resultado.remitente,
+                "descripcion": resultado.descripcion,
                 "estado": resultado.estado,
             }
         )

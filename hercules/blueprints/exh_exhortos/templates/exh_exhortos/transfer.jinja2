@@ -17,17 +17,15 @@
 {% endblock %}
 
 {% block content %}
-    {% call detail.card(estatus=exh_exhorto.estatus) %}
+    {% call detail.card("Exhorto") %}
         <div class="row">
             <div class="col-md-6">
-                {{ detail.label_value('Exhorto Origen ID', exh_exhorto.exhorto_origen_id) }}
                 {% if current_user.can_view('MUNICIPIOS') %}
-                    {{ detail.label_value('Municipio Origen', exh_exhorto.municipio_origen.nombre, url_for('municipios.detail', municipio_id=exh_exhorto.municipio_origen_id)) }}
-                    {{ detail.label_value('Estado Origen', exh_exhorto.municipio_origen.estado.nombre) }}
+                    {{ detail.label_value('Origen', exh_exhorto.municipio_origen.nombre + ', ' + exh_exhorto.municipio_origen.estado.nombre, url_for('municipios.detail', municipio_id=exh_exhorto.municipio_origen_id)) }}
                 {% else %}
-                    {{ detail.label_value('Municipio Origen', exh_exhorto.municipio_origen.nombre + ', ' + exh_exhorto.municipio_origen.estado.nombre) }}
-                    {{ detail.label_value('Estado Origen', exh_exhorto.municipio_origen.estado.nombre) }}
+                    {{ detail.label_value('Origen', exh_exhorto.municipio_origen.nombre + ', ' + exh_exhorto.municipio_origen.estado.nombre) }}
                 {% endif %}
+                {{ detail.label_value('Exhorto Origen ID', exh_exhorto.exhorto_origen_id) }}
                 {{ detail.label_value('Juzgado Origen ID', exh_exhorto.juzgado_origen_id) }}
                 {{ detail.label_value('Juzgado Origen', exh_exhorto.juzgado_origen_nombre) }}
                 {{ detail.label_value('No. Expediente', exh_exhorto.numero_expediente_origen) }}
@@ -41,25 +39,63 @@
                 {{ detail.label_value('Observaciones', exh_exhorto.observaciones) }}
             </div>
             <div class="col-md-6">
-                {{ detail.label_value('Folio Seguimiento', exh_exhorto.folio_seguimiento) }}
-                {{ detail.label_value('Materia clave', exh_exhorto.materia_clave) }}
-                {{ detail.label_value('Materia nombre', exh_exhorto.materia_nombre) }}
                 {% if municipio_destino %}
                     {% if current_user.can_view('MUNICIPIOS') %}
-                        {{ detail.label_value('Municipio Destino', municipio_destino.nombre, url_for('municipios.detail', municipio_id=municipio_destino.id)) }}
-                        {{ detail.label_value('Estado Destino', municipio_destino.estado.nombre) }}
+                        {{ detail.label_value('Destino', municipio_destino.nombre + ', ' + municipio_destino.estado.nombre, url_for('municipios.detail', municipio_id=municipio_destino.id)) }}
                     {% else %}
-                        {{ detail.label_value('Municipio Destino', municipio_destino.nombre) }}
-                        {{ detail.label_value('Estado Destino', municipio_destino.estado.nombre) }}
+                        {{ detail.label_value('Destino', municipio_destino.nombre + ', ' + municipio_destino.estado.nombre) }}
                     {% endif %}
                 {% else %}
                     {{ detail.label_value('Municipio Destino', 'NO DEFINIDO') }}
                 {% endif %}
+                {{ detail.label_value('Materia clave', exh_exhorto.materia_clave) }}
+                {{ detail.label_value('Materia nombre', exh_exhorto.materia_nombre) }}
+                {{ detail.label_value('Área', exh_exhorto.exh_area.clave + ' - ' + exh_exhorto.exh_area.nombre) }}
                 {{ detail.label_value('Remitente', exh_exhorto.remitente) }}
+                {{ detail.label_value('Autoridad', exh_exhorto.autoridad.clave + ' - ' + exh_exhorto.autoridad.descripcion_corta) }}
+                {{ detail.label_value('Número de Exhorto', exh_exhorto.numero_exhorto) }}
                 <div class="row">
                     <div class="col-md-3 text-end">Estado</div>
-                    <div class="col-md-9" id="estado"><strong>{{ exh_exhorto.estado }}</strong></div>
+                    <div class="col-md-9"><span id="titulo-estado">{{ exh_exhorto.estado }}</span></div>
                 </div>
+                {{ detail.label_value('Folio de Seguimiento', exh_exhorto.folio_seguimiento) }}
+                <hr>
+                {% if exh_exhorto.estado != 'PENDIENTE' %}
+                    <!-- Listado de partes -->
+                    <div class="row">
+                        <div class="col-md-3 text-end">
+                            Partes
+                        </div>
+                        <div class="col-md-9">
+                            <ul class="list-unstyled">
+                                {% for parte in exh_exhorto.exh_exhortos_partes %}
+                                    <li>{{ parte.nombre_completo }} | {% if parte.es_persona_moral %} ES PERSONA MORAL {% else %} {{ parte.genero_descripcion }} {% endif %} | {{ parte.tipo_parte_descripcion }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Listado de archivos -->
+                    <div class="row">
+                        <div class="col-md-3 text-end">
+                            Archivos
+                        </div>
+                        <div class="col-md-9">
+                            <ul class="list-unstyled">
+                                {% for archivo in exh_exhorto.exh_exhortos_archivos %}
+                                    <li>
+                                    <a href="{{ url_for('exh_exhortos_archivos.detail', exh_exhorto_archivo_id=archivo.id) }}">{{ archivo.nombre_archivo }}</a>
+                                    | {{ archivo.tipo_documento_nombre }}
+                                    | {% if archivo.estado == 'PENDIENTE' %}
+                                        <span class="badge rounded-pill bg-warning text-dark">{{ archivo.estado }}</span>
+                                    {% else %}
+                                        <span class="badge rounded-pill bg-primary">{{ archivo.estado }}</span>
+                                    {% endif %}
+                                    | {{ archivo.tamano }} Bytes</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         </div>
     {% endcall %}

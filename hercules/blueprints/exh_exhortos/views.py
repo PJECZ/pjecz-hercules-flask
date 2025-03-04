@@ -660,8 +660,6 @@ def change_to_transfer(exh_exhorto_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    # Buscar el juzgado origen en Autoridades
-    municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
     # Cargar los valores guardados en el formulario
     form.exh_area.data = exh_exhorto.exh_area.id
     # Entregar
@@ -669,5 +667,5 @@ def change_to_transfer(exh_exhorto_id):
         "exh_exhortos/transfer.jinja2",
         form=form,
         exh_exhorto=exh_exhorto,
-        municipio_destino=municipio_destino,
+        municipio_destino=Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first(),
     )

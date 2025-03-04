@@ -33,7 +33,6 @@
                     <th>Fecha Origen</th>
                     <th>Remitente</th>
                     <th>Estado</th>
-                    <th>Observaciones</th>
                 </tr>
             </thead>
         </table>
@@ -54,8 +53,7 @@
             { data: 'folio_origen_promocion' },
             { data: 'fecha_origen' },
             { data: 'remitente' },
-            { data: 'estado' },
-            { data: 'observaciones' }
+            { data: 'estado' }
         ];
         configDTExhExhortosPromociones['columnDefs'] = [
             {
@@ -70,8 +68,9 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     switch(data) {
-                        case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit"; break;
+                        case "CANCELADO": bgcolor = 'bg-danger';            icon="send";      break;
                         case "ENVIADO":   bgcolor = 'bg-success';           icon="send";      break;
+                        case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit"; break;
                     }
                     return '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + data + '</span>';
                 }

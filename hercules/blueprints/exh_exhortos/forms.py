@@ -118,7 +118,7 @@ class ExhExhortoTransferForm(FlaskForm):
 class ExhExhortoProcessForm(FlaskForm):
     """Formulario Procesar Exhorto"""
 
-    numero_exhorto = StringField("Número de Exhorto", validators=[Optional(), Length(max=256)])
+    numero_exhorto = StringField("Número de Exhorto", validators=[DataRequired(), Length(max=64)])
     procesar = SubmitField("Procesar")
 
 
