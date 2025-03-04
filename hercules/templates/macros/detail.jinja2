@@ -235,9 +235,33 @@
     </a>
 {%- endmacro -%}
 
+{# Button large #}
+{%- macro button_lg(label, url, icon='', target='', color_class='btn-outline-primary') -%}
+    <a class="btn btn-block btn-lg {{ color_class }} w-100 my-2" href="{{ url }}" {% if target %}target="{{ target }}"{% endif %}>
+        {% if icon %}<span class="iconify" data-icon="{{ icon }}"></span>{% endif %}
+        {{ label }}
+    </a>
+{%- endmacro -%}
+
+{# Button large modal #}
+{%- macro button_lg_modal(label, onclick, icon='', color_class='btn-outline-primary') -%}
+    <a class="btn btn-block btn-lg {{ color_class }} w-100 my-2" href="javascript:void(0)" onclick="{{ onclick }}">
+        {% if icon %}<span class="iconify" data-icon="{{ icon }}"></span>{% endif %}
+        {{ label }}
+    </a>
+{%- endmacro -%}
+
 {# Button extra large #}
 {%- macro button_xl(label, url, icon='', target='', color_class='btn-outline-primary') -%}
     <a class="btn btn-block btn-xl {{ color_class }} w-100 my-2" href="{{ url }}" {% if target %}target="{{ target }}"{% endif %}>
+        {% if icon %}<span class="iconify" data-icon="{{ icon }}"></span>{% endif %}
+        {{ label }}
+    </a>
+{%- endmacro -%}
+
+{# Button extra large modal #}
+{%- macro button_xl_modal(label, onclick, icon='', color_class='btn-outline-primary') -%}
+    <a class="btn btn-block btn-xl {{ color_class }} w-100 my-2" href="javascript:void(0)" onclick="{{ onclick }}">
         {% if icon %}<span class="iconify" data-icon="{{ icon }}"></span>{% endif %}
         {{ label }}
     </a>

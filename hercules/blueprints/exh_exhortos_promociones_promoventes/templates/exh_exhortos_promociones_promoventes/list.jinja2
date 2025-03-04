@@ -6,6 +6,15 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('EXH AREAS') %}
+            {{ topbar.button('Áreas', url_for('exh_areas.list_active'), 'mdi:office-building-marker') }}
+        {% endif %}
+        {% if current_user.can_view('EXH EXHORTOS') %}
+            {{ topbar.button('Exhortos', url_for('exh_exhortos.list_active'), 'mdi:email-fast') }}
+        {% endif %}
+        {% if current_user.can_view('EXH EXTERNOS') %}
+            {{ topbar.button('Externos', url_for('exh_externos.list_active'), 'mdi:home-map-marker') }}
+        {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES PROMOVENTES') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_exhortos_promociones_promoventes.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('exh_exhortos_promociones_promoventes.list_active')) }}{% endif %}
@@ -15,24 +24,7 @@
 
 {% block content %}
     {% call list.card() %}
-        <!-- Filtros Promoventes -->
-        <div class="row">
-            <div class="col">
-                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosPromoventes.buscar(); return false;">
-                    <div class="col-10">
-                        <div class="form-floating">
-                            <input id="filtroNombreCompleto" type="text" class="form-control" aria-label="NombreCompleto" style="text-transform: uppercase;">
-                            <label for="filtroNombreCompleto">Nombre Completo</label>
-                        </div>
-                    </div>
-                    <div class="col-2 text-end">
-                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosPromoventes.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
-                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosPromoventes.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <!-- DataTable Promoventes -->
+        <!-- DataTable exh_exhortos_promociones_promoventes -->
         <table id="exh_exhortos_promociones_promoventes_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
@@ -50,18 +42,18 @@
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
-        // DataTable Promoventes
+        // DataTable exh_exhortos_promociones_promoventes
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
-        let configDataTable = constructorDataTable.config();
-        configDataTable['ajax']['url'] = '/exh_exhortos_promociones_promoventes/datatable_json';
-        configDataTable['ajax']['data'] = {{ filtros }};
-        configDataTable['columns'] = [
+        let configDTExhExhortosPromocionesPromoventes = constructorDataTable.config();
+        configDTExhExhortosPromocionesPromoventes['ajax']['url'] = '/exh_exhortos_promociones_promoventes/datatable_json';
+        configDTExhExhortosPromocionesPromoventes['ajax']['data'] = {{ filtros }};
+        configDTExhExhortosPromocionesPromoventes['columns'] = [
             { data: 'detalle' },
             { data: 'genero' },
             { data: 'es_persona_moral' },
             { data: 'tipo_parte' },
         ];
-        configDataTable['columnDefs'] = [
+        configDTExhExhortosPromocionesPromoventes['columnDefs'] = [
             {
                 targets: 0, // detalle
                 data: null,
@@ -91,9 +83,8 @@
                 }
             }
         ];
-        // Filtros Promoventes
-        const filtrosPromoventes = new FiltrosDataTable('#exh_exhortos_promociones_promoventes_datatable', configDataTable);
-        filtrosPromoventes.agregarInput('filtroNombreCompleto', 'nombre_completo');
-        filtrosPromoventes.precargar();
+        // Filtros exh_exhortos_promociones_promoventes
+        const filtrosDTExhExhortosPromocionesPromoventes = new FiltrosDataTable('#exh_exhortos_promociones_promoventes_datatable', configDTExhExhortosPromocionesPromoventes);
+        filtrosDTExhExhortosPromocionesPromoventes.precargar();
     </script>
 {% endblock %}

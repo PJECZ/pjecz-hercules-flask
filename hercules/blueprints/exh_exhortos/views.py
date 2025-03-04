@@ -17,10 +17,7 @@ from hercules.blueprints.exh_exhortos.forms import (
     ExhExhortoEditForm,
     ExhExhortoNewForm,
     ExhExhortoProcessForm,
-    ExhExhortoRecibeResponseManuallyForm,
     ExhExhortoRefuseForm,
-    ExhExhortoResponseForm,
-    ExhExhortoSendManuallyForm,
     ExhExhortoTransferForm,
 )
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
@@ -163,18 +160,12 @@ def detail(exh_exhorto_id):
     """Detalle de un Exhorto"""
     # Consultar exhorto
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
-    # Consultar el municipio de origen porque NO es una relacion
+    # Consultar el municipio de destino
     municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
-    # Comprimir partes
-    partes = ExhExhortoParte.query.filter_by(exh_exhorto=exh_exhorto).all()
-    # Comprimir archvios
-    archivos = ExhExhortoArchivo.query.filter_by(exh_exhorto=exh_exhorto).filter_by(es_respuesta=False).all()
     # Entregar
     return render_template(
         "exh_exhortos/detail.jinja2",
         exh_exhorto=exh_exhorto,
-        partes=partes,
-        archivos=archivos,
         municipio_destino=municipio_destino,
     )
 
@@ -247,7 +238,7 @@ def new():
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
-                descripcion=safe_message(f"Nuevo Exhorto {exh_exhorto.exhorto_origen_id}"),
+                descripcion=safe_message(f"Nuevo Exhorto ID {exh_exhorto.id}"),
                 url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
             )
             bitacora.save()
@@ -324,7 +315,7 @@ def edit(exh_exhorto_id):
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
-                descripcion=safe_message(f"Editado Exhorto {exh_exhorto.exhorto_origen_id}"),
+                descripcion=safe_message(f"Editado Exhorto ID {exh_exhorto.id}"),
                 url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
             )
             bitacora.save()
@@ -370,7 +361,7 @@ def delete(exh_exhorto_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Exhorto {exh_exhorto.exhorto_origen_id}"),
+            descripcion=safe_message(f"Eliminado Exhorto ID {exh_exhorto.id}"),
             url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
         )
         bitacora.save()
@@ -388,7 +379,7 @@ def recover(exh_exhorto_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Exhorto {exh_exhorto.exhorto_origen_id}"),
+            descripcion=safe_message(f"Recuperado Exhorto ID {exh_exhorto.id}"),
             url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
         )
         bitacora.save()
@@ -530,7 +521,10 @@ def change_to_diligence(exh_exhorto_id):
     municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
     # Entregar
     return render_template(
-        "exh_exhortos/diligence.jinja2", form=form, exh_exhorto=exh_exhorto, municipio_destino=municipio_destino
+        "exh_exhortos/diligence.jinja2",
+        form=form,
+        exh_exhorto=exh_exhorto,
+        municipio_destino=municipio_destino,
     )
 
 
@@ -584,7 +578,10 @@ def change_to_process(exh_exhorto_id):
     form.numero_exhorto.data = exh_exhorto.numero_exhorto
     # Entregar
     return render_template(
-        "exh_exhortos/process.jinja2", form=form, exh_exhorto=exh_exhorto, municipio_destino=municipio_destino
+        "exh_exhortos/process.jinja2",
+        form=form,
+        exh_exhorto=exh_exhorto,
+        municipio_destino=municipio_destino,
     )
 
 
@@ -611,7 +608,10 @@ def change_to_refuse(exh_exhorto_id):
     municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
     # Entregar
     return render_template(
-        "exh_exhortos/refuse.jinja2", form=form, exh_exhorto=exh_exhorto, municipio_destino=municipio_destino
+        "exh_exhortos/refuse.jinja2",
+        form=form,
+        exh_exhorto=exh_exhorto,
+        municipio_destino=municipio_destino,
     )
 
 
@@ -667,5 +667,8 @@ def change_to_transfer(exh_exhorto_id):
     form.exh_area.data = exh_exhorto.exh_area.id
     # Entregar
     return render_template(
-        "exh_exhortos/transfer.jinja2", form=form, exh_exhorto=exh_exhorto, municipio_destino=municipio_destino
+        "exh_exhortos/transfer.jinja2",
+        form=form,
+        exh_exhorto=exh_exhorto,
+        municipio_destino=municipio_destino,
     )

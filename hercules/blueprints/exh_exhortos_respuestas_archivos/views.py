@@ -76,7 +76,7 @@ def list_active():
     return render_template(
         "exh_exhortos_respuestas_archivos/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
-        titulo="Archivos de las respuestas",
+        titulo="Exhortos Respuestas Archivos",
         estatus="A",
     )
 
@@ -88,7 +88,7 @@ def list_inactive():
     return render_template(
         "exh_exhortos_respuestas_archivos/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Archivos de las respuestas inactivos",
+        titulo="Exhortos Respuestas Archivos inactivos",
         estatus="B",
     )
 

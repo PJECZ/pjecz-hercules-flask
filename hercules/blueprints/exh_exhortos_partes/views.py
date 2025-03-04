@@ -113,11 +113,11 @@ def list_active():
 @exh_exhortos_partes.route("/exh_exhortos_partes/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Partes inactivos"""
+    """Listado de Partes inactivas"""
     return render_template(
         "exh_exhortos_partes/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Exhortos Partes inactivos",
+        titulo="Exhortos Partes inactivas",
         estatus="B",
     )
 

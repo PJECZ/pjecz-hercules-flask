@@ -97,7 +97,7 @@ def list_active():
     return render_template(
         "exh_exhortos_promociones_archivos/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
-        titulo="Archivos de Promociones",
+        titulo="Exhortos Promociones Archivos",
         estatus="A",
     )
 
@@ -109,7 +109,7 @@ def list_inactive():
     return render_template(
         "exh_exhortos_promociones_archivos/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Archivos de Promociones inactivos",
+        titulo="Exhortos Promociones Archivos inactivos",
         estatus="B",
     )
 

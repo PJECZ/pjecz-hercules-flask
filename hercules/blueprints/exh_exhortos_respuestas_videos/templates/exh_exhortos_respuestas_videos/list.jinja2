@@ -1,0 +1,67 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('EXH AREAS') %}
+            {{ topbar.button('Áreas', url_for('exh_areas.list_active'), 'mdi:office-building-marker') }}
+        {% endif %}
+        {% if current_user.can_view('EXH EXHORTOS') %}
+            {{ topbar.button('Exhortos', url_for('exh_exhortos.list_active'), 'mdi:email-fast') }}
+        {% endif %}
+        {% if current_user.can_view('EXH EXTERNOS') %}
+            {{ topbar.button('Externos', url_for('exh_externos.list_active'), 'mdi:home-map-marker') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS VIDEOS') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_exhortos_respuestas_videos.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('exh_exhortos_respuestas_videos.list_active')) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call list.card() %}
+        <!-- DataTable exh_exhortos_respuestas_videos -->
+        <table id="exh_exhortos_respuestas_videos_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Descripción</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable exh_exhortos_respuestas_videos
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDTExhExhortosRespuestasVideos = constructorDataTable.config();
+        configDTExhExhortosRespuestasVideos['ajax']['url'] = '/exh_exhortos_respuestas_videos/datatable_json';
+        configDTExhExhortosRespuestasVideos['ajax']['data'] = {{ filtros }};
+        configDTExhExhortosRespuestasVideos['columns'] = [
+            { data: 'detalle' },
+            { data: 'descripcion' },
+            { data: 'fecha' }
+        ];
+        configDTExhExhortosRespuestasVideos['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.clave + '</a>';
+                }
+            }
+        ];
+        // Filtros exh_exhortos_respuestas_videos
+        const filtrosDTExhExhortosRespuestasVideos = new FiltrosDataTable('#exh_exhortos_respuestas_videos_datatable', configDTExhExhortosRespuestasVideos);
+        filtrosDTExhExhortosRespuestasVideos.precargar();
+    </script>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('EXH AREAS') %}
+            {{ topbar.button('Áreas', url_for('exh_areas.list_active'), 'mdi:office-building-marker') }}
+        {% endif %}
+        {% if current_user.can_view('EXH EXHORTOS') %}
+            {{ topbar.button('Exhortos', url_for('exh_exhortos.list_active'), 'mdi:email-fast') }}
+        {% endif %}
+        {% if current_user.can_view('EXH EXTERNOS') %}
+            {{ topbar.button('Externos', url_for('exh_externos.list_active'), 'mdi:home-map-marker') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_exhortos_respuestas.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('exh_exhortos_respuestas.list_active')) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call list.card() %}
+        <!-- DataTable exh_exhortos_respuestas -->
+        <table id="exh_exhortos_respuestas_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Exhorto</th>
+                    <th>Fecha hora recepción</th>
+                    <th>Remitente</th>
+                    <th>Municipio turnado ID</th>
+                    <th>Área turnada ID</th>
+                    <th>Área turnada nombre</th>
+                    <th>No. exhorto</th>
+                    <th>Tipo diligenciado</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable exh_exhortos_respuestas
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDTExhExhortosRespuestas = constructorDataTable.config();
+        configDTExhExhortosRespuestas['ajax']['url'] = '/exh_exhortos_respuestas/datatable_json';
+        configDTExhExhortosRespuestas['ajax']['data'] = {{ filtros }};
+        configDTExhExhortosRespuestas['columns'] = [
+            { data: 'detalle' },
+            { data: 'exh_exhorto' },
+            { data: 'fecha_hora_recepcion' },
+            { data: 'remitente' },
+            { data: 'municipio_turnado_id' },
+            { data: 'area_turnado_id' },
+            { data: 'area_turnado_nombre' },
+            { data: 'numero_exhorto' },
+            { data: 'tipo_diligenciado' },
+            { data: 'estado' }
+        ];
+        configDTExhExhortosRespuestas['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.id + '</a>';
+                }
+            }
+        ];
+        // Filtros exh_exhortos_respuestas
+        const filtrosDTExhExhortosRespuestas = new FiltrosDataTable('#exh_exhortos_respuestas_datatable', configDTExhExhortosRespuestas);
+        filtrosDTExhExhortosRespuestas.precargar();
+    </script>
+{% endblock %}

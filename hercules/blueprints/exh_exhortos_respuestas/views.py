@@ -55,7 +55,6 @@ def datatable_json():
                 },
                 "fecha_hora_recepcion": resultado.fecha_origen.strftime("%Y-%m-%d %H:%M"),
                 "remitente": resultado.remitente,
-                "origen_id": resultado.origen_id,
                 "municipio_turnado_id": resultado.municipio_turnado_id,
                 "area_turnado_id": resultado.area_turnado_id,
                 "area_turnado_nombre": resultado.area_turnado_nombre,
@@ -74,7 +73,7 @@ def list_active():
     return render_template(
         "exh_exhortos_respuestas/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
-        titulo="Respuestas de los exhortos",
+        titulo="Exhortos Respuestas",
         estatus="A",
     )
 
@@ -86,7 +85,7 @@ def list_inactive():
     return render_template(
         "exh_exhortos_respuestas/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Respuestas de los exhortos inactivas",
+        titulo="Exhortos Respuestas inactivas",
         estatus="B",
     )
 

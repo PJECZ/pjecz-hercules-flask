@@ -2,6 +2,7 @@
 Exh Exhortos Respuestas Videos, vistas
 """
 
+import json
 from datetime import datetime
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
@@ -17,7 +18,7 @@ from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_message, safe_string, safe_url
 
-MODULO = "EXH EXHORTOS VIDEOS"
+MODULO = "EXH EXHORTOS RESPUESTAS VIDEOS"
 
 exh_exhortos_respuestas_videos = Blueprint("exh_exhortos_respuestas_videos", __name__, template_folder="templates")
 
@@ -56,7 +57,6 @@ def datatable_json():
                     "url": url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=resultado.id),
                 },
                 "descripcion": resultado.descripcion,
-                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
                 "fecha": resultado.fecha.strftime("%Y-%m-%d %H:%M:%S") if resultado.fecha != None else "",
             }
         )
@@ -67,14 +67,24 @@ def datatable_json():
 @exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos")
 def list_active():
     """Listado de Videos activos"""
-    return "TODO: Listado de Videos activos"
+    return render_template(
+        "exh_exhortos_respuestas_videos/list.jinja2",
+        filtros=json.dumps({"estatus": "A"}),
+        titulo="Exhortos Respuestas Videos",
+        estatus="A",
+    )
 
 
-@exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos/<int:exh_exhorto_video_id>")
-def detail(exh_exhorto_video_id):
-    """Detalle de un Video"""
-    exh_exhorto_video = ExhExhortoRespuestaVideo.query.get_or_404(exh_exhorto_video_id)
-    return render_template("exh_exhortos_respuestas_videos/detail.jinja2", exh_exhorto_video=exh_exhorto_video)
+@exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos/inactivos")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def list_inactive():
+    """Listado de Videos inactivos"""
+    return render_template(
+        "exh_exhortos_respuestas_videos/list.jinja2",
+        filtros=json.dumps({"estatus": "B"}),
+        titulo="Exhortos Respuestas Videos inactivos",
+        estatus="B",
+    )
 
 
 @exh_exhortos_respuestas_videos.route(

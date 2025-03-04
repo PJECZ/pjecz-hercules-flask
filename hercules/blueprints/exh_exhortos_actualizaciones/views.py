@@ -86,7 +86,7 @@ def list_active():
     return render_template(
         "exh_exhortos_actualizaciones/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
-        titulo="Actualizaciones",
+        titulo="Exhortos Actualizaciones",
         estatus="A",
     )
 
@@ -94,11 +94,11 @@ def list_active():
 @exh_exhortos_actualizaciones.route("/exh_exhortos_actualizaciones/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Actualizaciones inactivos"""
+    """Listado de Actualizaciones inactivas"""
     return render_template(
         "exh_exhortos_actualizaciones/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Actualizaciones inactivos",
+        titulo="Exhortos Actualizaciones inactivas",
         estatus="B",
     )
 

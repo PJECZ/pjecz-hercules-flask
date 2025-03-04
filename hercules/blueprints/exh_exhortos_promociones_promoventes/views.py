@@ -55,10 +55,6 @@ def datatable_json():
                     ExhExhortoPromocionPromovente.apellido_materno.contains(palabra),
                 )
             )
-    # Luego filtrar por columnas de otras tablas
-    # if "persona_rfc" in request.form:
-    #     consulta = consulta.join(Persona)
-    #     consulta = consulta.filter(Persona.rfc.contains(safe_rfc(request.form["persona_rfc"], search_fragment=True)))
     # Ordenar y paginar
     registros = consulta.order_by(ExhExhortoPromocionPromovente.id).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -107,7 +103,7 @@ def list_active():
     return render_template(
         "exh_exhortos_promociones_promoventes/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
-        titulo="Promoventes de promociones",
+        titulo="Exhortos Promociones Promoventes",
         estatus="A",
     )
 
@@ -119,7 +115,7 @@ def list_inactive():
     return render_template(
         "exh_exhortos_promociones_promoventes/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Promoventes de promociones inactivos",
+        titulo="Exhortos Promociones Promoventes inactivos",
         estatus="B",
     )
 

@@ -2,10 +2,19 @@
 {% import 'macros/list.jinja2' as list %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Exhortos Archivos{% endblock %}
+{% block title %}{{ titulo }}{% endblock %}
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('EXH AREAS') %}
+            {{ topbar.button('Áreas', url_for('exh_areas.list_active'), 'mdi:office-building-marker') }}
+        {% endif %}
+        {% if current_user.can_view('EXH EXHORTOS') %}
+            {{ topbar.button('Exhortos', url_for('exh_exhortos.list_active'), 'mdi:email-fast') }}
+        {% endif %}
+        {% if current_user.can_view('EXH EXTERNOS') %}
+            {{ topbar.button('Externos', url_for('exh_externos.list_active'), 'mdi:home-map-marker') }}
+        {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS ARCHIVOS') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_exhortos_archivos.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('exh_exhortos_archivos.list_active')) }}{% endif %}
@@ -15,6 +24,7 @@
 
 {% block content %}
     {% call list.card() %}
+        <!-- DataTable exh_exhortos_archivos -->
         <table id="exh_exhortos_archivos_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
@@ -34,7 +44,7 @@
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
-        // DataTable exh_exhortos_archivos_datatable
+        // DataTable exh_exhortos_archivos
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
         let configDTExhExhortosArchivos = constructorDataTable.config();
         configDTExhExhortosArchivos['ajax']['url'] = '/exh_exhortos_archivos/datatable_json';
@@ -67,7 +77,7 @@
                 }
             }
         ];
-        // Filtros exh_exhortos_archivos_datatable
+        // Filtros exh_exhortos_archivos
         const filtrosExhExhortosArchivos = new FiltrosDataTable('#exh_exhortos_archivos_datatable', configDTExhExhortosArchivos);
         filtrosExhExhortosArchivos.precargar();
     </script>
