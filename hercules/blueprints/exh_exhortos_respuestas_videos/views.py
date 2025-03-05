@@ -88,10 +88,10 @@ def list_inactive():
 
 
 @exh_exhortos_respuestas_videos.route(
-    "/exh_exhortos_respuestas_videos/nuevo_con_exhorto/<int:exh_exhorto_id>", methods=["GET", "POST"]
+    "/exh_exhortos_respuestas_videos/nuevo_con_exhorto_respuesta/<int:exh_exhorto_id>", methods=["GET", "POST"]
 )
 @permission_required(MODULO, Permiso.CREAR)
-def new_with_exh_exhorto(exh_exhorto_id):
+def new_with_exh_exhorto_respuesta(exh_exhorto_id):
     """Nuevo video"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
     form = ExhExhortoRespuestaVideoForm()

@@ -82,15 +82,6 @@ def datatable_json():
     return output_datatable_json(draw, total, data)
 
 
-@exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/<int:exh_exhorto_promocion_archivo_id>")
-def detail(exh_exhorto_promocion_archivo_id):
-    """Detalle de un Promoción Archivo"""
-    exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
-    return render_template(
-        "exh_exhortos_promociones_archivos/detail.jinja2", exh_exhorto_promocion_archivo=exh_exhorto_promocion_archivo
-    )
-
-
 @exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos")
 def list_active():
     """Listado de Archivos activos"""
@@ -114,8 +105,17 @@ def list_inactive():
     )
 
 
+@exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/<int:exh_exhorto_promocion_archivo_id>")
+def detail(exh_exhorto_promocion_archivo_id):
+    """Detalle de un Promoción Archivo"""
+    exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
+    return render_template(
+        "exh_exhortos_promociones_archivos/detail.jinja2", exh_exhorto_promocion_archivo=exh_exhorto_promocion_archivo
+    )
+
+
 @exh_exhortos_promociones_archivos.route(
-    "/exh_exhortos_promociones_archivos/nuevo_con_exhorto_promocion/<int:exh_exhorto_promocion_id>", methods=["GET", "POST"]
+    "/exh_exhortos_promociones_archivos/nuevo/<int:exh_exhorto_promocion_id>", methods=["GET", "POST"]
 )
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_exh_exhorto_promocion(exh_exhorto_promocion_id):
@@ -151,7 +151,7 @@ def new_with_exh_exhorto_promocion(exh_exhorto_promocion_id):
         exh_exhorto_promocion_archivo.save()
 
         # Definir el nombre del archivo a subir a Google Storage
-        archivo_pdf_nombre = f"{exh_exhorto_promocion.folio_origen_promocion}-{exh_exhorto_promocion_archivo.encode_id()}.pdf"
+        archivo_pdf_nombre = f"exh_exhorto_promocion_archivo-{exh_exhorto_promocion_archivo.encode_id()}.pdf"
 
         # Definir la ruta para blob_name con la fecha actual
         year = fecha_hora_recepcion.strftime("%Y")

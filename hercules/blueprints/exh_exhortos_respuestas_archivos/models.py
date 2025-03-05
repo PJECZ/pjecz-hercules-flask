@@ -3,7 +3,7 @@ Exh Exhortos Respuestas Archivos, modelos
 """
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy import Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -19,6 +19,12 @@ class ExhExhortoRespuestaArchivo(database.Model, UniversalMixin):
     ESTADOS = {
         "PENDIENTE": "Pendiente",
         "RECIBIDO": "Recibido",
+    }
+
+    TIPOS_DOCUMENTOS = {
+        1: "Oficio",
+        2: "Acuerdo",
+        3: "Anexo",
     }
 
     # Nombre de la tabla

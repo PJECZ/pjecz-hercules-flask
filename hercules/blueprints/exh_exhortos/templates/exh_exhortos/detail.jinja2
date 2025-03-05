@@ -127,7 +127,7 @@
                     <div class="col-md-6">
                         {{ detail.button_lg_modal(
                             label="Enviar",
-                            onclick="showModalenviar_btn('{{ url_for('exh_exhortos.launch_task_send', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de ENVIAR el exhorto? Una vez enviado ya no podrá ni editarlo ni cancelarlo.');",
+                            onclick="showModalenviar_btn('{{ url_for('exh_exhortos.launch_task_send', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de ENVIAR este exhorto? Una vez enviado ya no podrá ni editarlo ni cancelarlo.');",
                             icon='mdi:send',
                             color_class='btn-primary') }}
                     </div>
@@ -141,7 +141,7 @@
                     <div class="col-md-6">
                         {{ detail.button_lg_modal(
                             label="Consultar",
-                            onclick="showModalregresar_enviar_btn('{{ url_for('exh_exhortos.launch_task_query', exh_exhorto_id=exh_exhorto.id) }}', '¿Está seguro de CONSULTAR desde el PJ?');",
+                            onclick="showModalregresar_enviar_btn('{{ url_for('exh_exhortos.launch_task_query', exh_exhorto_id=exh_exhorto.id) }}', '¿Está seguro de CONSULTAR este exhorto?');",
                             icon='mdi:download',
                             color_class='btn-primary',
                         ) }}
@@ -216,7 +216,7 @@
                     <div class="col-md-6">
                         {{ detail.button_lg_modal(
                             label="Archivar",
-                            onclick="showModalarchivar_btn('{{url_for('exh_exhortos.change_to_archive', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de ARCHIVAR el exhorto?');",
+                            onclick="showModalarchivar_btn('{{url_for('exh_exhortos.change_to_archive', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de ARCHIVAR este exhorto?');",
                             icon='mdi:archive',
                             color_class='btn-secondary',
                         ) }}
@@ -240,7 +240,7 @@
                 </thead>
             </table>
             {% if exh_exhorto.estado == 'PENDIENTE' and current_user.can_insert('EXH EXHORTOS PARTES') %}
-                <a class="btn btn-primary" href="{{url_for('exh_exhortos_partes.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar</a>
+                <a class="btn btn-primary" href="{{url_for('exh_exhortos_partes.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Parte</a>
             {% endif %}
         {% endcall %}
         <!-- DataTable exh_exhortos_archivos -->
@@ -258,7 +258,7 @@
                 </thead>
             </table>
             {% if exh_exhorto.estado == 'PENDIENTE' and current_user.can_insert('EXH EXHORTOS ARCHIVOS') %}
-                <a class="btn btn-primary" href="{{url_for('exh_exhortos_archivos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id, es_respuesta=0)}}">Agregar</a>
+                <a class="btn btn-primary" href="{{url_for('exh_exhortos_archivos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Archivo</a>
             {% endif %}
         {% endcall %}
     {% endif %}
@@ -282,7 +282,7 @@
                 </thead>
             </table>
             {% if exh_exhorto.estado != 'ARCHIVADO' and current_user.can_insert('EXH EXHORTOS RESPUESTAS') %}
-                <a class="btn btn-success" href="{{url_for('exh_exhortos_archivos.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id, es_respuesta=1)}}">Agregar Respuesta</a>
+                <a class="btn btn-success" href="{{url_for('exh_exhortos_respuestas.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id)}}">Agregar Respuesta</a>
             {% endif %}
         {% endcall %}
     {% endif %}

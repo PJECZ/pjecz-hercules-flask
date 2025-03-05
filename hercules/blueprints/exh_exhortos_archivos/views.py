@@ -112,38 +112,6 @@ def detail(exh_exhorto_archivo_id):
     return render_template("exh_exhortos_archivos/detail.jinja2", exh_exhorto_archivo=exh_exhorto_archivo)
 
 
-@exh_exhortos_archivos.route("/exh_exhortos_archivos/<int:exh_exhorto_archivo_id>/pdf")
-def download_pdf(exh_exhorto_archivo_id):
-    """Descargar el archivo PDF de un Archivo"""
-
-    # Consultar el ExhExhortoArchivo
-    exh_exhorto_archivo = ExhExhortoArchivo.query.get_or_404(exh_exhorto_archivo_id)
-
-    # Si el estatus es B, no se puede descargar
-    if exh_exhorto_archivo.estatus == "B":
-        flash("No se puede descargar un archivo inactivo", "warning")
-        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_archivo.exh_exhorto_id))
-
-    # Tomar el nombre del archivo con el que sera descargado
-    descarga_nombre = exh_exhorto_archivo.nombre_archivo
-
-    # Obtener el contenido del archivo desde Google Storage
-    try:
-        descarga_contenido = get_file_from_gcs(
-            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO"],
-            blob_name=get_blob_name_from_url(exh_exhorto_archivo.url),
-        )
-    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
-        flash(str(error), "danger")
-        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_archivo.exh_exhorto_id))
-
-    # Descargar un archivo PDF
-    response = make_response(descarga_contenido)
-    response.headers["Content-Type"] = "application/pdf"
-    response.headers["Content-Disposition"] = f"attachment; filename={descarga_nombre}"
-    return response
-
-
 @exh_exhortos_archivos.route(
     "/exh_exhortos_archivos/nuevo_con_exhorto/<int:es_respuesta>/<int:exh_exhorto_id>", methods=["GET", "POST"]
 )
@@ -187,7 +155,7 @@ def new_with_exh_exhorto(exh_exhorto_id, es_respuesta):
         exh_exhorto_archivo.save()
 
         # Definir el nombre del archivo a subir a Google Storage
-        archivo_pdf_nombre = f"{exh_exhorto.exhorto_origen_id}-{exh_exhorto_archivo.encode_id()}.pdf"
+        archivo_pdf_nombre = f"exh_exhorto_archivo-{exh_exhorto_archivo.encode_id()}.pdf"
 
         # Definir la ruta para blob_name con la fecha actual
         year = fecha_hora_recepcion.strftime("%Y")
@@ -302,6 +270,38 @@ def recover(exh_exhorto_archivo_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(url_for("exh_exhortos_archivos.detail", exh_exhorto_archivo_id=exh_exhorto_archivo.id))
+
+
+@exh_exhortos_archivos.route("/exh_exhortos_archivos/<int:exh_exhorto_archivo_id>/pdf")
+def download_pdf(exh_exhorto_archivo_id):
+    """Descargar el archivo PDF de un Archivo"""
+
+    # Consultar el ExhExhortoArchivo
+    exh_exhorto_archivo = ExhExhortoArchivo.query.get_or_404(exh_exhorto_archivo_id)
+
+    # Si el estatus es B, no se puede descargar
+    if exh_exhorto_archivo.estatus == "B":
+        flash("No se puede descargar un archivo inactivo", "warning")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_archivo.exh_exhorto_id))
+
+    # Tomar el nombre del archivo con el que sera descargado
+    descarga_nombre = exh_exhorto_archivo.nombre_archivo
+
+    # Obtener el contenido del archivo desde Google Storage
+    try:
+        descarga_contenido = get_file_from_gcs(
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO"],
+            blob_name=get_blob_name_from_url(exh_exhorto_archivo.url),
+        )
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        flash(str(error), "danger")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_archivo.exh_exhorto_id))
+
+    # Descargar un archivo PDF
+    response = make_response(descarga_contenido)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = f"attachment; filename={descarga_nombre}"
+    return response
 
 
 @exh_exhortos_archivos.route("/exh_exhortos_archivos/ver_archivo_pdf/<int:exh_exhorto_archivo_id>")
