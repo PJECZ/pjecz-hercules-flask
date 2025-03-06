@@ -114,11 +114,9 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
             }
         )
 
-    # Bucle para juntar los datos de los archivos que NO sean respuesta
+    # Bucle para juntar los datos de los archivos
     archivos = []
     for archivo in exh_exhorto.exh_exhortos_archivos:
-        if archivo.es_respuesta:
-            continue
         archivos.append(
             {
                 "nombreArchivo": str(archivo.nombre_archivo),
@@ -227,9 +225,6 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     # Mandar los archivos del exhorto con multipart/form-data (ETAPA 3)
     data = None
     for archivo in exh_exhorto.exh_exhortos_archivos:
-        # Si el archivo es respuesta, no enviarlo
-        if archivo.es_respuesta:
-            continue
         # Pausa de 1 segundo entre envios de archivos
         time.sleep(1)
         # Informar al bitácora que se va a enviar el archivo

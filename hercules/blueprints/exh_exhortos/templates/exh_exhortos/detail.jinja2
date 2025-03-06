@@ -412,7 +412,7 @@
         // DataTable exh_exhortos_archivos
         let configDTArchivos = constructorDataTable.config();
         configDTArchivos['ajax']['url'] = '/exh_exhortos_archivos/datatable_json';
-        configDTArchivos['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}, "es_respuesta":false};
+        configDTArchivos['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}};
         configDTArchivos['columns'] = [
             { data: 'detalle' },
             { data: 'descargar_pdf' },
@@ -449,7 +449,7 @@
         // DataTable exh_exhortos_respuestas
         let configDTRespuestas = constructorDataTable.config();
         configDTRespuestas['ajax']['url'] = '/exh_exhortos_archivos/datatable_json';
-        configDTRespuestas['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}, "es_respuesta":true};
+        configDTRespuestas['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}};
         configDTRespuestas['columns'] = [
             { data: 'detalle' },
             { data: 'exh_exhorto' },

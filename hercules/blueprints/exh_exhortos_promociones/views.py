@@ -2,7 +2,6 @@
 Exh Exhortos Promociones, vistas
 """
 
-import hashlib
 import json
 from datetime import datetime
 
@@ -11,7 +10,7 @@ from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
-from hercules.blueprints.exh_exhortos_promociones.forms import ExhExhortoPromocionEditForm, ExhExhortoPromocionNewForm
+from hercules.blueprints.exh_exhortos_promociones.forms import ExhExhortoPromocionForm
 from hercules.blueprints.exh_exhortos_promociones.models import ExhExhortoPromocion
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.municipios.models import Municipio
@@ -120,7 +119,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
     """Nueva promoción con el ID de un exhorto"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
 
-    form = ExhExhortoPromocionNewForm()
+    form = ExhExhortoPromocionForm()
     if form.validate_on_submit():
         # Insertar el registro ExhExhortoPromocion
         exh_exhorto_promocion = ExhExhortoPromocion(
@@ -158,7 +157,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
 def edit(exh_exhorto_promocion_id):
     """Editar una promoción"""
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
-    form = ExhExhortoPromocionEditForm()
+    form = ExhExhortoPromocionForm()
     if form.validate_on_submit():
         exh_exhorto_promocion.fojas = form.fojas.data
         exh_exhorto_promocion.observaciones = safe_string(form.observaciones.data, max_len=1024)
@@ -216,7 +215,7 @@ def recover(exh_exhorto_promocion_id):
 
 @exh_exhortos_promociones.route("/exh_exhortos_promociones/enviar/<int:exh_exhorto_promocion_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
-def launch_task_send_promotion(exh_exhorto_promocion_id):
+def launch_task_send(exh_exhorto_promocion_id):
     """Lanzar tarea en el fondo para enviar una promoción al PJ Externo"""
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
     # Validar el estado
@@ -236,7 +235,7 @@ def launch_task_send_promotion(exh_exhorto_promocion_id):
 @exh_exhortos_promociones.route("/exh_exhortos_promociones/cancelar/<int:exh_exhorto_promocion_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def change_to_cancel(exh_exhorto_promocion_id):
-    """Cancelar una promoción al PJ Externo"""
+    """Cancelar una promoción"""
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
     if exh_exhorto_promocion.estado == "PENDIENTE":
         exh_exhorto_promocion.estado = "CANCELADO"

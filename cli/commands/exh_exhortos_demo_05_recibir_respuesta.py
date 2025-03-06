@@ -165,7 +165,6 @@ def demo_recibir_respuesta(exhorto_origen_id: str) -> str:
         exh_exhorto_respuesta_archivo.hash_sha1 = archivo["hashSha1"]
         exh_exhorto_respuesta_archivo.hash_sha256 = archivo["hashSha256"]
         exh_exhorto_respuesta_archivo.tipo_documento = archivo["tipoDocumento"]
-        exh_exhorto_respuesta_archivo.es_respuesta = True
         exh_exhorto_respuesta_archivo.estado = "PENDIENTE"
         exh_exhorto_respuesta_archivo.url = ""
         exh_exhorto_respuesta_archivo.tamano = 0

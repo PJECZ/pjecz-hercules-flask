@@ -2,9 +2,7 @@
 Exh Exhortos Respuestas, vistas
 """
 
-import hashlib
 import json
-from datetime import datetime
 
 from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
@@ -13,7 +11,7 @@ from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.estados.models import Estado
 from hercules.blueprints.exh_areas.models import ExhArea
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
-from hercules.blueprints.exh_exhortos_respuestas.forms import ExhExhortoRespuestaEditForm, ExhExhortoRespuestaNewForm
+from hercules.blueprints.exh_exhortos_respuestas.forms import ExhExhortoRespuestaForm
 from hercules.blueprints.exh_exhortos_respuestas.models import ExhExhortoRespuesta
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.municipios.models import Municipio
@@ -111,7 +109,8 @@ def new_with_exh_exhorto(exh_exhorto_id):
     """Nueva respuesta con el ID de un exhorto"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
 
-    form = ExhExhortoRespuestaNewForm()
+    # Crear el formulario
+    form = ExhExhortoRespuestaForm()
     if form.validate_on_submit():
         # Si no se eligió un área, se usan valores nulos
         area_turnado_id = None
@@ -151,7 +150,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Nueva Respuesta {exh_exhorto_respuesta.id}"),
+            descripcion=safe_message(f"Nueva Respuesta {exh_exhorto_respuesta.origen_id}"),
             url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
         )
         bitacora.save()
@@ -178,7 +177,7 @@ def edit(exh_exhorto_respuesta_id):
     exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
 
     # Crear el formulario
-    form = ExhExhortoRespuestaEditForm()
+    form = ExhExhortoRespuestaForm()
     if form.validate_on_submit():
         # Si no se eligió un área, se usan valores nulos
         area_turnado_id = None
@@ -212,7 +211,7 @@ def edit(exh_exhorto_respuesta_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Editada Respuesta {exh_exhorto_respuesta.id}"),
+            descripcion=safe_message(f"Editada Respuesta {exh_exhorto_respuesta.origen_id}"),
             url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
         )
         bitacora.save()
@@ -259,7 +258,7 @@ def delete(exh_exhorto_respuesta_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado respuesta {exh_exhorto_respuesta.id}"),
+            descripcion=safe_message(f"Eliminado respuesta {exh_exhorto_respuesta.origen_id}"),
             url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
         )
         bitacora.save()
@@ -277,7 +276,7 @@ def recover(exh_exhorto_respuesta_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado respuesta {exh_exhorto_respuesta.id}"),
+            descripcion=safe_message(f"Recuperado respuesta {exh_exhorto_respuesta.origen_id}"),
             url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
         )
         bitacora.save()
@@ -287,12 +286,12 @@ def recover(exh_exhorto_respuesta_id):
 
 @exh_exhortos_respuestas.route("/exh_exhortos_respuestas/enviar/<int:exh_exhorto_respuesta_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
-def launch_task_send_promotion(exh_exhorto_respuesta_id):
-    """Lanzar tarea en el fondo para enviar una promoción al PJ Externo"""
+def launch_task_send(exh_exhorto_respuesta_id):
+    """Lanzar tarea en el fondo para enviar una respuesta al PJ Externo"""
     exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
     # Validar el estado
     if exh_exhorto_respuesta.estado != "PENDIENTE":
-        flash("El estado de la promoción debe ser PENDIENTE.", "warning")
+        flash("El estado de la respuesta debe ser PENDIENTE.", "warning")
         return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
     # Lanzar tarea en el fondo
     tarea = current_user.launch_task(
@@ -302,3 +301,22 @@ def launch_task_send_promotion(exh_exhorto_respuesta_id):
     )
     flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
     return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+
+
+@exh_exhortos_respuestas.route("/exh_exhortos_respuestas/cancelar/<int:exh_exhorto_respuesta_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def change_to_cancel(exh_exhorto_respuesta_id):
+    """Cancelar una respuesta"""
+    exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
+    if exh_exhorto_respuesta.estado == "PENDIENTE":
+        exh_exhorto_respuesta.estado = "CANCELADO"
+        exh_exhorto_respuesta.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Respuesta Cancelada {exh_exhorto_respuesta.origen_id}"),
+            url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
