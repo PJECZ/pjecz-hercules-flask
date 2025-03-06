@@ -164,7 +164,6 @@ def edit(exh_exhorto_actualizacion_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    form.origen_id.data = exh_exhorto_actualizacion.actualizacion_origen_id
     form.tipo_actualizacion.data = exh_exhorto_actualizacion.tipo_actualizacion
     form.descripcion.data = exh_exhorto_actualizacion.descripcion
     return render_template(

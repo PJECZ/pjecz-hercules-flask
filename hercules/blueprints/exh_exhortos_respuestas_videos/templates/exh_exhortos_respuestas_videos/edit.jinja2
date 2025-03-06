@@ -2,10 +2,10 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Editar Exhorto Video {{ exh_exhorto_video.titulo }}{% endblock %}
+{% block title %}Editar Exhorto Video{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Editar Exhorto Video ' + exh_exhorto_video.titulo) %}
+    {% call topbar.page_buttons('Editar Exhorto Video') %}
     {% endcall %}
 {% endblock %}
 

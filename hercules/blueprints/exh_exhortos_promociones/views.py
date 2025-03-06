@@ -129,7 +129,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
             fojas=form.fojas.data,
             remitente="INTERNO",
             estado="PENDIENTE",
-            observaciones=safe_string(form.observaciones.data, max_len=1024),
+            observaciones=safe_string(form.observaciones.data, save_enie=True, max_len=1024),
         )
         exh_exhorto_promocion.save()
 
@@ -147,7 +147,6 @@ def new_with_exh_exhorto(exh_exhorto_id):
         return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id))
 
     # Entregar el formulario
-    # Crear y mostrar el folio de origen
     form.folio_origen.data = generar_identificador()
     return render_template("exh_exhortos_promociones/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
 
@@ -171,7 +170,6 @@ def edit(exh_exhorto_promocion_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    form.fecha_origen.data = exh_exhorto_promocion.fecha_origen.strftime("%Y/%m/%d %H:%M")
     form.fojas.data = exh_exhorto_promocion.fojas
     form.observaciones.data = exh_exhorto_promocion.observaciones
     return render_template("exh_exhortos_promociones/edit.jinja2", form=form, exh_exhorto_promocion=exh_exhorto_promocion)

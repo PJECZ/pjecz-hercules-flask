@@ -5,9 +5,10 @@ Exh Exhortos, formularios
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired
 from wtforms import IntegerField, SelectField, StringField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Length, Optional
+from wtforms.validators import DataRequired, Length, Optional, Regexp
 
 from hercules.blueprints.exh_areas.models import ExhArea
+from lib.safe_string import EXPEDIENTE_REGEXP
 
 
 class ExhExhortoNewForm(FlaskForm):
@@ -30,8 +31,10 @@ class ExhExhortoNewForm(FlaskForm):
     juzgado_origen = SelectField("Juzgado Origen", coerce=int, validate_choice=False, validators=[DataRequired()])
 
     # Campos
-    numero_expediente_origen = StringField("Número de Expediente Origen", validators=[DataRequired(), Length(max=256)])
-    numero_oficio_origen = StringField("Número de Oficio Origen", validators=[Optional(), Length(max=256)])
+    numero_expediente_origen = StringField(
+        "Número de Expediente Origen", validators=[DataRequired(), Regexp(EXPEDIENTE_REGEXP)]
+    )
+    numero_oficio_origen = StringField("Número de Oficio Origen", validators=[Optional(), Regexp(EXPEDIENTE_REGEXP)])
     tipo_juicio_asunto_delitos = StringField("Tipo de Juicio Asunto Delitos", validators=[DataRequired(), Length(max=256)])
     juez_exhortante = StringField("Juez Exhortante", validators=[Optional(), Length(max=256)])
     fojas = IntegerField("Fojas", validators=[DataRequired()])
