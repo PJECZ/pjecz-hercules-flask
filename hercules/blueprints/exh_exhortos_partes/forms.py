@@ -16,12 +16,13 @@ TIPOS_PARTES = [
 
 
 class ExhExhortoParteForm(FlaskForm):
-    """Formulario ExhExhortoParte"""
+    """Formulario para agregar o editar una parte"""
 
+    exh_exhorto_exhorto_origen_id = StringField("Exhorto Origen ID")  # Read only
     nombre = StringField("Nombre", validators=[DataRequired(), Length(max=256)])
     apellido_paterno = StringField("Apellido Paterno", validators=[Optional(), Length(max=256)])
     apellido_materno = StringField("Apellido Materno", validators=[Optional(), Length(max=256)])
-    genero = RadioField("Genero", coerce=str, choices=ExhExhortoParte.GENEROS.items(), validators=[Optional()], default="M")
+    genero = RadioField("Genero", coerce=str, choices=ExhExhortoParte.GENEROS.items(), validators=[Optional()])
     es_persona_moral = BooleanField("Es Persona Moral")
     tipo_parte = SelectField("Tipo de Parte", coerce=int, choices=TIPOS_PARTES, validators=[Optional()])
     tipo_parte_nombre = StringField("Tipo Parte Nombre")

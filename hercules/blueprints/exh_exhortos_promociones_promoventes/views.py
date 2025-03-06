@@ -32,7 +32,7 @@ def before_request():
 
 @exh_exhortos_promociones_promoventes.route("/exh_exhortos_promociones_promoventes/datatable_json", methods=["GET", "POST"])
 def datatable_json():
-    """DataTable JSON para listado de Promoventes"""
+    """DataTable JSON para listado de promoventes"""
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
@@ -99,7 +99,7 @@ def datatable_json():
 
 @exh_exhortos_promociones_promoventes.route("/exh_exhortos_promociones_promoventes")
 def list_active():
-    """Listado de Promoventes activos"""
+    """Listado de promoventes activos"""
     return render_template(
         "exh_exhortos_promociones_promoventes/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
@@ -111,7 +111,7 @@ def list_active():
 @exh_exhortos_promociones_promoventes.route("/exh_exhortos_promociones_promoventes/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Promoventes inactivos"""
+    """Listado de promoventes inactivos"""
     return render_template(
         "exh_exhortos_promociones_promoventes/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
@@ -122,7 +122,7 @@ def list_inactive():
 
 @exh_exhortos_promociones_promoventes.route("/exh_exhortos_promociones_promoventes/<int:exh_exhorto_promocion_promovente_id>")
 def detail(exh_exhorto_promocion_promovente_id):
-    """Detalle de un Parte"""
+    """Detalle de una parte"""
     exh_exhorto_promocion_promovente = ExhExhortoPromocionPromovente.query.get_or_404(exh_exhorto_promocion_promovente_id)
     return render_template(
         "exh_exhortos_promociones_promoventes/detail.jinja2", exh_exhorto_promocion_promovente=exh_exhorto_promocion_promovente
@@ -130,11 +130,11 @@ def detail(exh_exhorto_promocion_promovente_id):
 
 
 @exh_exhortos_promociones_promoventes.route(
-    "/exh_exhortos_promociones_promoventes/nuevo_con_exhorto_promocion/<int:exh_exhorto_promocion_id>", methods=["GET", "POST"]
+    "/exh_exhortos_promociones_promoventes/nuevo/<int:exh_exhorto_promocion_id>", methods=["GET", "POST"]
 )
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_exh_exhorto_promocion(exh_exhorto_promocion_id):
-    """Nueva Parte"""
+    """Nueva parte con el ID de una promoción"""
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
     form = ExhExhortoPromocionPromoventeForm()
     if form.validate_on_submit():
@@ -193,7 +193,7 @@ def new_with_exh_exhorto_promocion(exh_exhorto_promocion_id):
 )
 @permission_required(MODULO, Permiso.MODIFICAR)
 def edit(exh_exhorto_promocion_promovente_id):
-    """Editar Promovente"""
+    """Editar un promovente"""
     exh_exhorto_promocion_promovente = ExhExhortoPromocionPromovente.query.get_or_404(exh_exhorto_promocion_promovente_id)
     form = ExhExhortoPromocionPromoventeForm()
     if form.validate_on_submit():
@@ -255,7 +255,7 @@ def edit(exh_exhorto_promocion_promovente_id):
 )
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def delete(exh_exhorto_promocion_promovente_id):
-    """Eliminar Promovente"""
+    """Eliminar un promovente"""
     exh_exhorto_promocion_promovente = ExhExhortoPromocionPromovente.query.get_or_404(exh_exhorto_promocion_promovente_id)
     if exh_exhorto_promocion_promovente.estatus == "A":
         exh_exhorto_promocion_promovente.delete()
@@ -283,7 +283,7 @@ def delete(exh_exhorto_promocion_promovente_id):
 )
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def recover(exh_exhorto_promocion_promovente_id):
-    """Recuperar Promovente"""
+    """Recuperar un promovente"""
     exh_exhorto_promocion_promovente = ExhExhortoPromocionPromovente.query.get_or_404(exh_exhorto_promocion_promovente_id)
     if exh_exhorto_promocion_promovente.estatus == "B":
         exh_exhorto_promocion_promovente.recover()

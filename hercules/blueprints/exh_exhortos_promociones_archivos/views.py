@@ -41,7 +41,7 @@ def before_request():
 
 @exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/datatable_json", methods=["GET", "POST"])
 def datatable_json():
-    """DataTable JSON para listado de Archivos"""
+    """DataTable JSON para listado de archivos"""
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
@@ -84,7 +84,7 @@ def datatable_json():
 
 @exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos")
 def list_active():
-    """Listado de Archivos activos"""
+    """Listado de archivos activos"""
     return render_template(
         "exh_exhortos_promociones_archivos/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
@@ -96,7 +96,7 @@ def list_active():
 @exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Archivos inactivos"""
+    """Listado de archivos inactivos"""
     return render_template(
         "exh_exhortos_promociones_archivos/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
@@ -107,7 +107,7 @@ def list_inactive():
 
 @exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/<int:exh_exhorto_promocion_archivo_id>")
 def detail(exh_exhorto_promocion_archivo_id):
-    """Detalle de un Promoción Archivo"""
+    """Detalle de un archivo"""
     exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
     return render_template(
         "exh_exhortos_promociones_archivos/detail.jinja2", exh_exhorto_promocion_archivo=exh_exhorto_promocion_archivo
@@ -119,7 +119,7 @@ def detail(exh_exhorto_promocion_archivo_id):
 )
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_exh_exhorto_promocion(exh_exhorto_promocion_id):
-    """Nuevo Archivo con un Exhorto"""
+    """Nuevo archivo con el ID de una promoción"""
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
 
     form = ExhExhortoPromocionArchivoNewForm(CombinedMultiDict((request.files, request.form)))
@@ -211,7 +211,7 @@ def new_with_exh_exhorto_promocion(exh_exhorto_promocion_id):
 )
 @permission_required(MODULO, Permiso.MODIFICAR)
 def edit(exh_exhorto_promocion_archivo_id):
-    """Editar Archivo"""
+    """Editar un archivo"""
     exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
     form = ExhExhortoPromocionArchivoEditForm()
     if form.validate_on_submit():
@@ -245,7 +245,7 @@ def edit(exh_exhorto_promocion_archivo_id):
 @exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/eliminar/<int:exh_exhorto_promocion_archivo_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def delete(exh_exhorto_promocion_archivo_id):
-    """Eliminar Archivo"""
+    """Eliminar un archivo"""
     exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
     if exh_exhorto_promocion_archivo.estatus == "A":
         exh_exhorto_promocion_archivo.delete()
@@ -267,7 +267,7 @@ def delete(exh_exhorto_promocion_archivo_id):
 @exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/recuperar/<int:exh_exhorto_promocion_archivo_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def recover(exh_exhorto_promocion_archivo_id):
-    """Recuperar Archivo"""
+    """Recuperar un archivo"""
     exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
     if exh_exhorto_promocion_archivo.estatus == "B":
         exh_exhorto_promocion_archivo.recover()
@@ -288,7 +288,7 @@ def recover(exh_exhorto_promocion_archivo_id):
 
 @exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/<int:exh_exhorto_promocion_archivo_id>/pdf")
 def download_pdf(exh_exhorto_promocion_archivo_id):
-    """Descargar el archivo PDF de un Archivo"""
+    """Descargar un archivo PDF"""
 
     # Consultar el ExhExhortoArchivo
     exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
@@ -332,7 +332,7 @@ def download_pdf(exh_exhorto_promocion_archivo_id):
     "/exh_exhortos_promociones_archivos/ver_archivo_pdf/<int:exh_exhorto_promocion_archivo_id>"
 )
 def view_file_pdf(exh_exhorto_promocion_archivo_id):
-    """Ver archivo PDF de ExhortosArchivo para insertarlo en un iframe en el detalle"""
+    """Ver un archivo PDF para insertarlo en un iframe en el detalle"""
 
     # Consultar
     exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)

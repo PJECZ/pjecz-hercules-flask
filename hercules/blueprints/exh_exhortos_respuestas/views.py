@@ -2,18 +2,25 @@
 Exh Exhortos Respuestas, vistas
 """
 
+import hashlib
 import json
+from datetime import datetime
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.exh_areas.models import ExhArea
+from hercules.blueprints.exh_exhortos.models import ExhExhorto
+from hercules.blueprints.exh_exhortos_respuestas.forms import ExhExhortoRespuestaEditForm, ExhExhortoRespuestaNewForm
 from hercules.blueprints.exh_exhortos_respuestas.models import ExhExhortoRespuesta
 from hercules.blueprints.modulos.models import Modulo
+from hercules.blueprints.municipios.models import Municipio
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_message, safe_string
+from lib.pwgen import generar_identificador
+from lib.safe_string import safe_expediente, safe_message, safe_string
 
 MODULO = "EXH EXHORTOS RESPUESTAS"
 
@@ -54,12 +61,12 @@ def datatable_json():
                     "url": url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=resultado.id),
                 },
                 "fecha_hora_recepcion": resultado.fecha_origen.strftime("%Y-%m-%d %H:%M"),
+                "municipio_turnado_id": resultado.municipio_turnado_id if resultado.municipio_turnado_id else "",
+                "area_turnado_id": resultado.area_turnado_id if resultado.area_turnado_id else "",
+                "area_turnado_nombre": resultado.area_turnado_nombre if resultado.area_turnado_nombre else "",
+                "numero_exhorto": resultado.numero_exhorto if resultado.numero_exhorto else "",
+                "tipo_diligenciado": resultado.tipo_diligenciado if resultado.tipo_diligenciado else "",
                 "remitente": resultado.remitente,
-                "municipio_turnado_id": resultado.municipio_turnado_id,
-                "area_turnado_id": resultado.area_turnado_id,
-                "area_turnado_nombre": resultado.area_turnado_nombre,
-                "numero_exhorto": resultado.numero_exhorto,
-                "tipo_diligenciado": resultado.tipo_diligenciado,
                 "estado": resultado.estado,
             }
         )
@@ -92,6 +99,72 @@ def list_inactive():
 
 @exh_exhortos_respuestas.route("/exh_exhortos_respuestas/<int:exh_exhorto_respuesta_id>")
 def detail(exh_exhorto_respuesta_id):
-    """Detalle de un respuesta de exhorto"""
+    """Detalle de una respuesta"""
     exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
     return render_template("exh_exhortos_respuestas/detail.jinja2", exh_exhorto_respuesta=exh_exhorto_respuesta)
+
+
+@exh_exhortos_respuestas.route("/exh_exhortos_respuestas/nuevo/<int:exh_exhorto_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.CREAR)
+def new_with_exh_exhorto(exh_exhorto_id):
+    """Nueva respuesta con el ID de un exhorto"""
+    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+
+    form = ExhExhortoRespuestaNewForm()
+    if form.validate_on_submit():
+        # Si no se eligió un área, se usan valores nulos
+        area_turnado_id = None
+        area_turnado_nombre = None
+        exh_area = ExhArea.query.get(form.area_turnado.data)
+        if exh_area:
+            area_turnado_id = exh_area.clave
+            area_turnado_nombre = exh_area.nombre
+
+        # Si no se eligió un municipio, se usa un valor nulo
+        municipio_turnado_id = None
+        municipio = Municipio.query.get(form.municipio_turnado.data)
+        if municipio:
+            municipio_turnado_id = municipio.clave
+
+        # Si no se eligió un tipo_diligenciado, se usa un valor nulo
+        tipo_diligenciado = None
+        if form.tipo_diligenciado.data:
+            tipo_diligenciado = form.tipo_diligenciado.data
+
+        # Insertar el registro ExhExhortoRespuesta
+        exh_exhorto_respuesta = ExhExhortoRespuesta(
+            exh_exhorto=exh_exhorto,
+            origen_id=form.origen_id.data,
+            municipio_turnado_id=municipio_turnado_id,
+            area_turnado_id=area_turnado_id,
+            area_turnado_nombre=area_turnado_nombre,
+            numero_exhorto=safe_expediente(form.numero_exhorto.data),
+            tipo_diligenciado=tipo_diligenciado,
+            observaciones=form.observaciones.data,
+            remitente="INTERNO",
+            estado="PENDIENTE",
+        )
+        exh_exhorto_respuesta.save()
+
+        # Insertar en la Bitácora
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Nueva Respuesta {exh_exhorto_respuesta.id}"),
+            url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
+        )
+        bitacora.save()
+
+        # Mostrar mensaje de éxito y redirigir a la página del detalle del ExhExhorto
+        flash(bitacora.descripcion, "success")
+        return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
+
+    # Cargar valores por defecto al formulario
+    form.exh_exhorto_exhorto_origen_id.data = exh_exhorto.exhorto_origen_id  # Read only
+    form.origen_id.data = generar_identificador()
+    form.municipio_turnado.data = 0  # Cero es un valor nulo
+    form.area_turnado.data = 0  # Cero es un valor nulo
+    form.tipo_diligenciado.data = 0  # Cero es "NO DILIGENCIADO"
+
+    # Entregar el formulario
+    return render_template("exh_exhortos_respuestas/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)

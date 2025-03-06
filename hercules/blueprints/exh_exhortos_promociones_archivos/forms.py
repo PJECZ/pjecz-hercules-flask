@@ -11,8 +11,9 @@ from hercules.blueprints.exh_exhortos_promociones_archivos.models import ExhExho
 
 
 class ExhExhortoPromocionArchivoNewForm(FlaskForm):
-    """Formulario ExhExhortoArchivoNew"""
+    """Formulario para subir un archivo de una promoción"""
 
+    exh_exhorto_promocion_folio_origen_promocion = StringField("Folio Origen")  # ReadOnly
     tipo_documento = SelectField(
         "Tipo", coerce=int, choices=ExhExhortoPromocionArchivo.TIPOS_DOCUMENTOS.items(), validators=[DataRequired()]
     )
@@ -21,8 +22,9 @@ class ExhExhortoPromocionArchivoNewForm(FlaskForm):
 
 
 class ExhExhortoPromocionArchivoEditForm(FlaskForm):
-    """Formulario para Editar"""
+    """Formulario para editar un archivo de una promoción"""
 
+    exh_exhorto_promocion_folio_origen_promocion = StringField("Folio Origen")  # ReadOnly
     nombre_archivo = StringField("Nombre del Archivo", validators=[DataRequired(), Length(max=256)])
     hash_sha1 = StringField("Hash SHA-1")  # Read only
     hash_sha256 = StringField("Hash SHA-256")  # Read only

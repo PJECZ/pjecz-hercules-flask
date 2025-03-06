@@ -13,7 +13,6 @@ from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.estados.models import Estado
 from hercules.blueprints.exh_exhortos.forms import (
-    ExhExhortoDiligenceForm,
     ExhExhortoEditForm,
     ExhExhortoNewForm,
     ExhExhortoProcessForm,
@@ -411,8 +410,8 @@ def launch_task_reply(exh_exhorto_id):
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
     """Lanzar tarea en el fondo para responder un exhorto al PJ Externo"""
     # Validar el estado del exhorto
-    if exh_exhorto.estado not in ["RECIBIDO", "TRANSFERIDO", "PROCESANDO", "DILIGENCIADO"]:
-        flash("El estado del exhorto debe ser RECIBIDO, TRANSFERIDO, PROCESANDO o DILIGENCIADO.", "warning")
+    if exh_exhorto.estado not in ["RECIBIDO", "TRANSFERIDO", "PROCESANDO"]:
+        flash("El estado del exhorto debe ser RECIBIDO, TRANSFERIDO o PROCESANDO.", "warning")
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
     # Lanzar tarea en el fondo
     tarea = current_user.launch_task(
@@ -456,13 +455,13 @@ def launch_task_send(exh_exhorto_id):
 @exh_exhortos.route("/exh_exhortos/archivar/<int:exh_exhorto_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def change_to_archive(exh_exhorto_id):
-    """Regresar el estado del exhorto a ARCHIVAR"""
+    """Cambiar el estado del exhorto a ARCHIVAR"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
     es_valido = True
     # Validar que el estado del Exhorto sea "INTENTOS AGOTADOS"
-    if exh_exhorto.estado not in ("DILIGENCIADO", "RESPONDIDO"):
+    if exh_exhorto.estado != "RESPONDIDO":
         es_valido = False
-        flash("El estado del exhorto debe ser DILIGENCIADO o RESPONDIDO.", "warning")
+        flash("El estado del exhorto debe ser RESPONDIDO.", "warning")
     # Hacer el cambio de estado
     if es_valido:
         exh_exhorto.estado = "ARCHIVADO"
@@ -495,36 +494,6 @@ def change_to_cancel(exh_exhorto_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
-
-
-@exh_exhortos.route("/exh_exhortos/deligenciar/<int:exh_exhorto_id>", methods=["GET", "POST"])
-@permission_required(MODULO, Permiso.MODIFICAR)
-def change_to_diligence(exh_exhorto_id):
-    """Diligenciado exhorto por un juzgado"""
-    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
-    form = ExhExhortoDiligenceForm(CombinedMultiDict((request.files, request.form)))
-    if form.validate_on_submit():
-        exh_exhorto.estado = "DILIGENCIADO"
-        exh_exhorto.respuesta_tipo_diligenciado = 2
-        exh_exhorto.save()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Exhorto Diligenciado {exh_exhorto.exhorto_origen_id}"),
-            url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-        return redirect(bitacora.url)
-    # Buscar el juzgado origen en Autoridades
-    municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
-    # Entregar
-    return render_template(
-        "exh_exhortos/diligence.jinja2",
-        form=form,
-        exh_exhorto=exh_exhorto,
-        municipio_destino=municipio_destino,
-    )
 
 
 @exh_exhortos.route("/exh_exhortos/regresar_a_pendiente/<int:exh_exhorto_id>")

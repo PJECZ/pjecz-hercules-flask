@@ -13,8 +13,9 @@ TIPOS_ACTUALIZACIONES = [
 
 
 class ExhExhortoActualizacionForm(FlaskForm):
-    """Formulario ExhExhortosActualizaciones"""
+    """Formulario para agregar una actualización de un exhorto"""
 
+    exh_exhorto_exhorto_origen_id = StringField("Exhorto Origen ID")  # Read only
     origen_id = StringField("Origen ID", validators=[DataRequired(), Length(max=48)])
     tipo_actualizacion = SelectField("Tipo de Actualización", validators=[DataRequired()], choices=TIPOS_ACTUALIZACIONES)
     descripcion = TextAreaField("Descripción", validators=[DataRequired(), Length(max=256)])

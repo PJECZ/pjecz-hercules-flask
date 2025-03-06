@@ -1,0 +1,83 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Exhorto Respuesta {{ exh_exhorto_respuesta.origen_id }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Exhorto Respuesta ' + exh_exhorto_respuesta.origen_id) %}
+        {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_promocion.exh_exhorto_id)) }}
+        {% if current_user.can_edit('EXH EXHORTOS RESPUESTAS') %}
+            {{ topbar.button_edit('Editar', url_for('exh_exhortos_respuestas.edit', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id)) }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
+            {% if exh_exhorto_respuesta.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('exh_exhortos_respuestas.delete', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id)) }}{% endif %}
+            {% if exh_exhorto_respuesta.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('exh_exhortos_respuestas.recover', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    <!-- Detalle de la respuesta -->
+    {% call detail.card(estatus=exh_exhorto_respuesta.estatus) %}
+        {{ detail.label_value('Exhorto Origen ID', exh_exhorto_respuesta.exh_exhorto.exhorto_origen_id, url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_respuesta.exh_exhorto_id)) }}
+        {{ detail.label_value('Respuesta Origen ID', exh_exhorto_respuesta.origen_id) }}
+        {% if exh_exhorto_respuesta.municipio_turnado_id %}
+            {{ detail.label_value('Municipio turnado', exh_exhorto_respuesta.municipio_turnado_id) }}
+        {% else %}
+            {{ detail.label_value('Municipio turnado', 'NULO') }}
+        {% endif %}
+        {% if exh_exhorto_respuesta.area_turnado_id %}
+            {{ detail.label_value('Área turnado', exh_exhorto_respuesta.area_turnado_id) }}
+        {% else %}
+            {{ detail.label_value('Área turnado', 'NULO') }}
+        {% endif %}
+        {% if exh_exhorto_respuesta.numero_exhorto %}
+            {{ detail.label_value('Número de Exhorto', exh_exhorto_respuesta.numero_exhorto) }}
+        {% else %}
+            {{ detail.label_value('Número de Exhorto', 'NULO') }}
+        {% endif %}
+        {% if exh_exhorto_respuesta.tipo_diligenciado %}
+            {{ detail.label_value('Tipo diligenciado', exh_exhorto_respuesta.tipo_diligenciado) }}
+        {% else %}
+            {{ detail.label_value('Tipo diligenciado', 'NULO') }}
+        {% endif %}
+        {% if exh_exhorto_respuesta.fecha_hora_recepcion %}
+            {{ detail.label_value('Fecha hora recepción', exh_exhorto_respuesta.fecha_hora_recepcion) }}
+        {% endif %}
+        {{ detail.label_value('Observaciones', exh_exhorto_respuesta.observaciones) }}
+        {% if exh_exhorto_respuesta.fecha_hora_recepcion_acuse %}
+            {{ detail.label_value('Fecha hora acuse', exh_exhorto_respuesta.fecha_hora_recepcion_acuse) }}
+        {% endif %}
+        {{ detail.label_value('Remitente', exh_exhorto_respuesta.remitente) }}
+        <div class="row">
+            <div class="col-md-3 text-end">Estado</div>
+            <div class="col-md-9"><span id="titulo-estado">{{ exh_exhorto_respuesta.estado }}</span></div>
+        </div>
+    {% endcall %}
+    <!-- DataTable con archivos -->
+    <!-- DataTable con videos -->
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
+        {% if exh_exhorto_respuesta.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + exh_exhorto_respuesta.id + '?') }}{% endif %}
+        {% if exh_exhorto_respuesta.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + exh_exhorto_respuesta.id + '?') }}{% endif %}
+    {% endif %}
+    <!-- Renderizar el campo estado con colores e iconos -->
+    <script>
+        let titulo_estado = document.getElementById("titulo-estado")
+        const valor = "{{ exh_exhorto_respuesta.estado }}";
+        let bgcolor = "bg-dark";
+        let icon = "circle-small";
+        switch (valor)    {
+            case "CANCELADO": bgcolor = 'bg-danger';            icon="cancel";              break;
+            case "ENVIADO":   bgcolor = 'bg-primary';           icon="send";                break;
+            case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit";           break;
+            default:          bgcolor = 'bg-secondary';         icon="circle-outline";      break;
+        }
+        html = '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
+        titulo_estado.innerHTML = html;
+    </script>
+{% endblock %}

@@ -107,7 +107,14 @@ def list_inactive():
     )
 
 
-@exh_exhortos_partes.route("/exh_exhortos_partes/nuevo_con_exhorto/<int:exh_exhorto_id>", methods=["GET", "POST"])
+@exh_exhortos_partes.route("/exh_exhortos_partes/<int:exh_exhorto_parte_id>")
+def detail(exh_exhorto_parte_id):
+    """Detalle de un Parte"""
+    exh_exhorto_parte = ExhExhortoParte.query.get_or_404(exh_exhorto_parte_id)
+    return render_template("exh_exhortos_partes/detail.jinja2", exh_exhorto_parte=exh_exhorto_parte)
+
+
+@exh_exhortos_partes.route("/exh_exhortos_partes/nuevo/<int:exh_exhorto_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_exh_exhorto(exh_exhorto_id):
     """Nueva Parte"""
@@ -155,13 +162,6 @@ def new_with_exh_exhorto(exh_exhorto_id):
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
     return render_template("exh_exhortos_partes/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
-
-
-@exh_exhortos_partes.route("/exh_exhortos_partes/<int:exh_exhorto_parte_id>")
-def detail(exh_exhorto_parte_id):
-    """Detalle de un Parte"""
-    exh_exhorto_parte = ExhExhortoParte.query.get_or_404(exh_exhorto_parte_id)
-    return render_template("exh_exhortos_partes/detail.jinja2", exh_exhorto_parte=exh_exhorto_parte)
 
 
 @exh_exhortos_partes.route("/exh_exhortos_partes/edicion/<int:exh_exhorto_parte_id>", methods=["GET", "POST"])

@@ -7,19 +7,11 @@ from wtforms import IntegerField, StringField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length, Optional
 
 
-class ExhExhortoPromocionNewForm(FlaskForm):
-    """Formulario ExhExhortoPromocionNew"""
+class ExhExhortoPromocionForm(FlaskForm):
+    """Formulario para agregar o editar una promoción al exhorto"""
 
-    folio_origen = StringField("Folio Origen")  # ReadOnly
-    fojas = IntegerField("Fojas", validators=[DataRequired()])
-    observaciones = TextAreaField("Observaciones", validators=[Optional()])
-    crear = SubmitField("Crear")
-
-
-class ExhExhortoPromocionEditForm(FlaskForm):
-    """Formulario ExhExhortoPromocionEdit"""
-
-    fecha_origen = StringField("Fecha Origen")  # Read-Only
+    exh_exhorto_exhorto_origen_id = StringField("Exhorto Origen ID")  # Read only
+    folio_origen_promocion = StringField("Folio Origen")  # ReadOnly
     fojas = IntegerField("Fojas", validators=[DataRequired()])
     observaciones = TextAreaField("Observaciones", validators=[Optional()])
     guardar = SubmitField("Guardar")

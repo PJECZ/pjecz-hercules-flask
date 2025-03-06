@@ -475,7 +475,7 @@
         const filtrosArchivosRespuesta = new FiltrosDataTable('#exh_exhortos_respuestas_datatable', configDTRespuestas);
         filtrosArchivosRespuesta.precargar();
     </script>
-    {% if exh_exhorto.estado in ('DILIGENCIADO', 'CONTESTADO', 'PROCESANDO', 'RESPONDIDO', 'ARCHIVADO') %}
+    {% if exh_exhorto.estado in ('CONTESTADO', 'PROCESANDO', 'RESPONDIDO', 'ARCHIVADO') %}
     <script>
         // DataTable exh_exhortos_actualizaciones
         let configDTActualizaciones = constructorDataTable.config();
@@ -552,7 +552,6 @@
             case "TRANSFIRIENDO":      bgcolor = 'bg-primary';           icon="email-arrow-right"; break;
             case "PROCESANDO":         bgcolor = 'bg-warning text-dark'; icon="sync";              break;
             case "RECHAZADO":          bgcolor = "bg-danger";            icon="hand-back-left";    break;
-            case "DILIGENCIADO":       bgcolor = "bg-primary";           icon="truck-delivery";    break;
             case "CONTESTADO":         bgcolor = "bg-success";           icon="check-circle";      break;
             case "PENDIENTE":          bgcolor = 'bg-warning text-dark'; icon="note-edit";         break;
             case "CANCELADO":          bgcolor = "bg-secondary";         icon="close-circle";      break;

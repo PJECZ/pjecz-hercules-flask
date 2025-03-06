@@ -112,9 +112,7 @@ def detail(exh_exhorto_archivo_id):
     return render_template("exh_exhortos_archivos/detail.jinja2", exh_exhorto_archivo=exh_exhorto_archivo)
 
 
-@exh_exhortos_archivos.route(
-    "/exh_exhortos_archivos/nuevo_con_exhorto/<int:es_respuesta>/<int:exh_exhorto_id>", methods=["GET", "POST"]
-)
+@exh_exhortos_archivos.route("/exh_exhortos_archivos/nuevo/<int:es_respuesta>/<int:exh_exhorto_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_exh_exhorto(exh_exhorto_id, es_respuesta):
     """Nuevo Archivo con un Exhorto"""

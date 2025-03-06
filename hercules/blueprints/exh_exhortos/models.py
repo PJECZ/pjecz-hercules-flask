@@ -21,7 +21,6 @@ class ExhExhorto(database.Model, UniversalMixin):
         "TRANSFIRIENDO": "Transfiriendo",
         "PROCESANDO": "Procesando",
         "RECHAZADO": "Rechazado",
-        "DILIGENCIADO": "Diligenciado",
         "CONTESTADO": "Contestado",
         "PENDIENTE": "Pendiente",
         "CANCELADO": "Cancelado",
