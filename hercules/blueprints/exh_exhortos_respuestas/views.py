@@ -6,10 +6,11 @@ import hashlib
 import json
 from datetime import datetime
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.estados.models import Estado
 from hercules.blueprints.exh_areas.models import ExhArea
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
 from hercules.blueprints.exh_exhortos_respuestas.forms import ExhExhortoRespuestaEditForm, ExhExhortoRespuestaNewForm
@@ -124,7 +125,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
         municipio_turnado_id = None
         municipio = Municipio.query.get(form.municipio_turnado.data)
         if municipio:
-            municipio_turnado_id = municipio.clave
+            municipio_turnado_id = int(municipio.clave)  # Identificador INEGI del municipio
 
         # Si no se eligió un tipo_diligenciado, se usa un valor nulo
         tipo_diligenciado = None
@@ -168,3 +169,136 @@ def new_with_exh_exhorto(exh_exhorto_id):
 
     # Entregar el formulario
     return render_template("exh_exhortos_respuestas/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
+
+
+@exh_exhortos_respuestas.route("/exh_exhortos_respuestas/edicion/<int:exh_exhorto_respuesta_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def edit(exh_exhorto_respuesta_id):
+    """Editar una respuesta"""
+    exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
+
+    # Crear el formulario
+    form = ExhExhortoRespuestaEditForm()
+    if form.validate_on_submit():
+        # Si no se eligió un área, se usan valores nulos
+        area_turnado_id = None
+        area_turnado_nombre = None
+        exh_area = ExhArea.query.get(form.area_turnado.data)
+        if exh_area:
+            area_turnado_id = exh_area.clave
+            area_turnado_nombre = exh_area.nombre
+
+        # Si no se eligió un municipio, se usa un valor nulo
+        municipio_turnado_id = None
+        municipio = Municipio.query.get(form.municipio_turnado.data)
+        if municipio:
+            municipio_turnado_id = int(municipio.clave)
+
+        # Si no se eligió un tipo_diligenciado, se usa un valor nulo
+        tipo_diligenciado = None
+        if form.tipo_diligenciado.data:
+            tipo_diligenciado = form.tipo_diligenciado.data
+
+        # Actualizar la respuesta
+        exh_exhorto_respuesta.municipio_turnado_id = municipio_turnado_id
+        exh_exhorto_respuesta.area_turnado_id = area_turnado_id
+        exh_exhorto_respuesta.area_turnado_nombre = area_turnado_nombre
+        exh_exhorto_respuesta.numero_exhorto = safe_expediente(form.numero_exhorto.data)
+        exh_exhorto_respuesta.tipo_diligenciado = tipo_diligenciado
+        exh_exhorto_respuesta.observaciones = safe_string(form.observaciones.data, save_enie=True, max_len=1024)
+        exh_exhorto_respuesta.save()
+
+        # Insertar en la Bitácora
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Editada Respuesta {exh_exhorto_respuesta.id}"),
+            url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+
+    # Consultar el municipio a partir del identificador INEGI del mismo
+    municipio_turnado = None
+    if exh_exhorto_respuesta.municipio_turnado_id:
+        municipio_turnado = (
+            Municipio.query.join(Estado)
+            .filter(Estado.clave == current_app.config["ESTADO_CLAVE"])
+            .filter(Municipio.clave == exh_exhorto_respuesta.municipio_turnado_id)
+            .first()
+        )
+
+    # Cargar valores al formulario
+    form.exh_exhorto_exhorto_origen_id.data = exh_exhorto_respuesta.exh_exhorto.exhorto_origen_id  # Read only
+    form.origen_id.data = exh_exhorto_respuesta.origen_id  # Read only
+    if municipio_turnado:
+        form.municipio_turnado.data = municipio_turnado.id
+    else:
+        form.municipio_turnado.data = 0
+    if exh_exhorto_respuesta.area_turnado_id:
+        form.area_turnado.data = exh_exhorto_respuesta.area_turnado_id
+    else:
+        form.area_turnado.data = 0
+    if exh_exhorto_respuesta.tipo_diligenciado:
+        form.tipo_diligenciado.data = exh_exhorto_respuesta.tipo_diligenciado
+    else:
+        form.tipo_diligenciado.data = 0
+
+    # Entregar el formulario
+    return render_template("exh_exhortos_respuestas/edit.jinja2", form=form, exh_exhorto_respuesta=exh_exhorto_respuesta)
+
+
+@exh_exhortos_respuestas.route("/exh_exhortos_respuestas/eliminar/<int:exh_exhorto_respuesta_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def delete(exh_exhorto_respuesta_id):
+    """Eliminar una respuesta"""
+    exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
+    if exh_exhorto_respuesta.estatus == "A":
+        exh_exhorto_respuesta.delete()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Eliminado respuesta {exh_exhorto_respuesta.id}"),
+            url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
+
+
+@exh_exhortos_respuestas.route("/exh_exhortos_respuestas/recuperar/<int:exh_exhorto_respuesta_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def recover(exh_exhorto_respuesta_id):
+    """Recuperar una respuesta"""
+    exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
+    if exh_exhorto_respuesta.estatus == "B":
+        exh_exhorto_respuesta.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Recuperado respuesta {exh_exhorto_respuesta.id}"),
+            url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
+
+
+@exh_exhortos_respuestas.route("/exh_exhortos_respuestas/enviar/<int:exh_exhorto_respuesta_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def launch_task_send_promotion(exh_exhorto_respuesta_id):
+    """Lanzar tarea en el fondo para enviar una promoción al PJ Externo"""
+    exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
+    # Validar el estado
+    if exh_exhorto_respuesta.estado != "PENDIENTE":
+        flash("El estado de la promoción debe ser PENDIENTE.", "warning")
+        return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
+    # Lanzar tarea en el fondo
+    tarea = current_user.launch_task(
+        comando="exh_exhortos_respuestas.tasks.task_enviar_respuesta",
+        mensaje="Enviando la respuesta al PJ externo",
+        exh_exhorto_respuesta_id=exh_exhorto_respuesta_id,
+    )
+    flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
+    return redirect(url_for("tareas.detail", tarea_id=tarea.id))

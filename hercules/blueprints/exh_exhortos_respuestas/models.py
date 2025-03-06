@@ -24,6 +24,7 @@ class ExhExhortoRespuesta(database.Model, UniversalMixin):
         "CANCELADO": "Cancelado",
         "ENVIADO": "Enviado",
         "PENDIENTE": "Pendiente",
+        "RECHAZADO": "Rechazado",
     }
 
     # Nombre de la tabla
