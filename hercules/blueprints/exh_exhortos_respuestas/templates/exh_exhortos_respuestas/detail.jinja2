@@ -3,10 +3,10 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Exhorto Respuesta {{ exh_exhorto_respuesta.origen_id }}{% endblock %}
+{% block title %}Respuesta {{ exh_exhorto_respuesta.origen_id }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Exhorto Respuesta ' + exh_exhorto_respuesta.origen_id) %}
+    {% call topbar.page_buttons('Respuesta ' + exh_exhorto_respuesta.origen_id) %}
         {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_promocion.exh_exhorto_id)) }}
         {% if current_user.can_edit('EXH EXHORTOS RESPUESTAS') %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_respuestas.edit', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id)) }}

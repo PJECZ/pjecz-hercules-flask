@@ -3,15 +3,16 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Exhorto Video {{ exh_exhorto_video.titulo }}{% endblock %}
+{% block title %}Video {{ exh_exhorto_video.titulo }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Exhorto Video ' + exh_exhorto_video.titulo) %}
-        {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_video.exh_exhorto_id)) }}
-        {% if current_user.can_edit('EXH EXHORTOS VIDEOS') %}
+    {% call topbar.page_buttons('Video ' + exh_exhorto_video.titulo) %}
+        {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_respuesta_archivo.exh_exhorto_respuesta.exh_exhorto.id)) }}
+        {{ topbar.button_previous('Respuesta', url_for('exh_exhortos_respuestas.detail', exh_exhorto_respuesta_id=exh_exhorto_respuesta_archivo.exh_exhorto_respuesta_id)) }}
+        {% if current_user.can_edit('EXH EXHORTOS RESPUESTAS VIDEOS') %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_videos.edit', exh_exhorto_video_id=exh_exhorto_video.id)) }}
         {% endif %}
-        {% if current_user.can_admin('EXH EXHORTOS VIDEOS') %}
+        {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS VIDEOS') %}
             {% if exh_exhorto_video.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('exh_exhortos_videos.delete', exh_exhorto_video_id=exh_exhorto_video.id)) }}{% endif %}
             {% if exh_exhorto_video.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('exh_exhortos_videos.recover', exh_exhorto_video_id=exh_exhorto_video.id)) }}{% endif %}
         {% endif %}
@@ -31,7 +32,7 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    {% if current_user.can_admin('EXH EXHORTOS VIDEOS') %}
+    {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS VIDEOS') %}
         {% if exh_exhorto_video.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + exh_exhorto_video.titulo + '?') }}{% endif %}
         {% if exh_exhorto_video.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + exh_exhorto_video.titulo + '?') }}{% endif %}
     {% endif %}

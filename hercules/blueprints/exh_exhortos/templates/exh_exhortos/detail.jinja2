@@ -3,10 +3,10 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Exhorto {{ exh_exhorto.id }}{% endblock %}
+{% block title %}Exhorto {{ exh_exhorto.exhorto_origen_id }} para {{municipio_destino.estado.nombre}}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Exhorto ID ' + exh_exhorto.id | string + ' para ' + municipio_destino.estado.nombre) %}
+    {% call topbar.page_buttons('Exhorto ' + exh_exhorto.exhorto_origen_id + ' para ' + municipio_destino.estado.nombre) %}
         {{ topbar.button_previous('Exhortos', url_for('exh_exhortos.list_active')) }}
         {% if current_user.can_edit('EXH EXHORTOS') %}
             {% if exh_exhorto.estado == "PENDIENTE" %}

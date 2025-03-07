@@ -3,16 +3,16 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Exhorto Promoción Archivo {{ exh_exhorto_promocion_archivo.id }}{% endblock %}
+{% block title %}Archivo {{ exh_exhorto_promocion_archivo.nombre_archivo }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Exhorto Promoción Archivo ' + exh_exhorto_promocion_archivo.id | string) %}
+    {% call topbar.page_buttons('Archivo ' + exh_exhorto_promocion_archivo.nombre_archivo) %}
         {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_promocion_archivo.exh_exhorto_promocion.exh_exhorto.id)) }}
-        {{ topbar.button_previous('Promoción', url_for('exh_exhortos_promociones.detail', exh_exhorto_promocion_id=exh_exhorto_promocion_archivo.exh_exhorto_promocion.id)) }}
-        {% if current_user.can_edit('EXH EXHORTOS ARCHIVOS') %}
+        {{ topbar.button_previous('Promoción', url_for('exh_exhortos_promociones.detail', exh_exhorto_promocion_id=exh_exhorto_promocion_archivo.exh_exhorto_promocion_id)) }}
+        {% if current_user.can_edit('EXH EXHORTOS PROMOCIONES ARCHIVOS') %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_promociones_archivos.edit', exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id)) }}
         {% endif %}
-        {% if current_user.can_admin('EXH EXHORTOS ARCHIVOS') %}
+        {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES ARCHIVOS') %}
             {% if exh_exhorto_promocion_archivo.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('exh_exhortos_promociones_archivos.delete', exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id)) }}{% endif %}
             {% if exh_exhorto_promocion_archivo.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('exh_exhortos_promociones_archivos.recover', exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id)) }}{% endif %}
         {% endif %}
@@ -52,7 +52,7 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    {% if current_user.can_admin('EXH EXHORTOS ARCHIVOS') %}
+    {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES ARCHIVOS') %}
         {% if exh_exhorto_promocion_archivo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar?') }}{% endif %}
         {% if exh_exhorto_promocion_archivo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar?') }}{% endif %}
     {% endif %}
