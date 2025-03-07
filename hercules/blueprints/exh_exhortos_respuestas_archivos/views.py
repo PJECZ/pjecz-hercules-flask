@@ -240,3 +240,111 @@ def edit(exh_exhorto_respuesta_archivo_id):
     return render_template(
         "exh_exhortos_respuestas_archivos/edit.jinja2", form=form, exh_exhorto_respuesta_archivo=exh_exhorto_respuesta_archivo
     )
+
+
+@exh_exhortos_respuestas_archivos.route("/exh_exhortos_respuestas_archivos/eliminar/<int:exh_exhorto_respuesta_archivo_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def delete(exh_exhorto_respuesta_archivo_id):
+    """Eliminar archivo de respuesta"""
+    exh_exhorto_respuesta_archivo = ExhExhortoRespuestaArchivo.query.get_or_404(exh_exhorto_respuesta_archivo_id)
+    if exh_exhorto_respuesta_archivo.estatus == "A":
+        exh_exhorto_respuesta_archivo.delete()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Eliminado archivo de respuesta {exh_exhorto_respuesta_archivo.id}"),
+            url=url_for("exh_exhortos_respuestas_archivos.detail", instance_id=exh_exhorto_respuesta_archivo.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(
+        url_for("exh_exhortos_respuestas_archivos.detail", exh_exhorto_respuesta_archivo_id=exh_exhorto_respuesta_archivo.id)
+    )
+
+
+@exh_exhortos_respuestas_archivos.route("/exh_exhortos_respuestas_archivos/recuperar/<int:exh_exhorto_respuesta_archivo_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def recover(exh_exhorto_respuesta_archivo_id):
+    """Recuperar archivo de respuesta"""
+    exh_exhorto_respuesta_archivo = ExhExhortoRespuestaArchivo.query.get_or_404(exh_exhorto_respuesta_archivo_id)
+    if exh_exhorto_respuesta_archivo.estatus == "B":
+        exh_exhorto_respuesta_archivo.recover()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Recuperado archivo de respuesta {exh_exhorto_respuesta_archivo.id}"),
+            url=url_for(
+                "exh_exhortos_respuestas_archivos.detail", exh_exhorto_respuesta_archivo_id=exh_exhorto_respuesta_archivo.id
+            ),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(
+        url_for("exh_exhortos_respuestas_archivos.detail", exh_exhorto_respuesta_archivo_id=exh_exhorto_respuesta_archivo.id)
+    )
+
+
+@exh_exhortos_respuestas_archivos.route("/exh_exhortos_respuestas_archivos/<int:exh_exhorto_respuesta_archivo_id>/pdf")
+def download_pdf(exh_exhorto_respuesta_archivo_id):
+    """Descargar un archivo PDF"""
+
+    # Consultar
+    exh_exhorto_respuesta_archivo = ExhExhortoRespuestaArchivo.query.get_or_404(exh_exhorto_respuesta_archivo_id)
+
+    # Si el estatus es B, no se puede descargar
+    if exh_exhorto_respuesta_archivo.estatus == "B":
+        flash("No se puede descargar un archivo inactivo", "warning")
+        return redirect(
+            url_for(
+                "exh_exhortos_archivos.detail",
+                exh_exhorto_archivo_id=exh_exhorto_respuesta_archivo.exh_exhorto_archivo_id,
+            )
+        )
+
+    # Tomar el nombre del archivo con el que sera descargado
+    descarga_nombre = exh_exhorto_respuesta_archivo.nombre_archivo
+
+    # Obtener el contenido del archivo desde Google Storage
+    try:
+        descarga_contenido = get_file_from_gcs(
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO"],
+            blob_name=get_blob_name_from_url(exh_exhorto_respuesta_archivo.url),
+        )
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        flash(str(error), "danger")
+        return redirect(
+            url_for(
+                "exh_exhortos_archivos.detail",
+                exh_exhorto_archivo_id=exh_exhorto_respuesta_archivo.exh_exhorto_archivo_id,
+            )
+        )
+
+    # Descargar un archivo PDF
+    response = make_response(descarga_contenido)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = f"attachment; filename={descarga_nombre}"
+    return response
+
+
+@exh_exhortos_respuestas_archivos.route(
+    "/exh_exhortos_respuestas_archivos/ver_archivo_pdf/<int:exh_exhorto_respuesta_archivo_id>"
+)
+def view_file_pdf(exh_exhorto_respuesta_archivo_id):
+    """Ver un archivo PDF para insertarlo en un iframe en el detalle"""
+
+    # Consultar
+    exh_exhorto_respuesta_archivo = ExhExhortoRespuestaArchivo.query.get_or_404(exh_exhorto_respuesta_archivo_id)
+
+    # Obtener el contenido del archivo
+    try:
+        archivo = get_file_from_gcs(
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO"],
+            blob_name=get_blob_name_from_url(exh_exhorto_respuesta_archivo.url),
+        )
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        raise NotFound("No se encontró el archivo.")
+
+    # Entregar el archivo
+    response = make_response(archivo)
+    response.headers["Content-Type"] = "application/pdf"
+    return response

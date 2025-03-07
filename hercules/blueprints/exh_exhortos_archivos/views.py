@@ -263,7 +263,7 @@ def recover(exh_exhorto_archivo_id):
 def download_pdf(exh_exhorto_archivo_id):
     """Descargar el archivo PDF de un Archivo"""
 
-    # Consultar el ExhExhortoArchivo
+    # Consultar
     exh_exhorto_archivo = ExhExhortoArchivo.query.get_or_404(exh_exhorto_archivo_id)
 
     # Si el estatus es B, no se puede descargar
