@@ -18,6 +18,7 @@ TIPOS_PARTES = [
 class ExhExhortoParteForm(FlaskForm):
     """Formulario para agregar o editar una parte"""
 
+    exh_exhorto_exhorto_origen_id = StringField("Exhorto Origen ID")  # Read only
     nombre = StringField("Nombre", validators=[DataRequired(), Length(max=256)])
     apellido_paterno = StringField("Apellido Paterno", validators=[Optional(), Length(max=256)])
     apellido_materno = StringField("Apellido Materno", validators=[Optional(), Length(max=256)])

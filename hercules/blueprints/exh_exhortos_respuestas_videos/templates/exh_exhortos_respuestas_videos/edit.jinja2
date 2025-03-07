@@ -2,17 +2,17 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Editar Exhorto Video{% endblock %}
+{% block title %}Editar Video {{ exh_exhorto_respuesta_video.titulo }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Editar Exhorto Video') %}
-    {% endcall %}
+    {{ topbar.page('Editar Video ' + exh_exhorto_respuesta_video.titulo) }}
 {% endblock %}
 
 {% block content %}
     {% call f.card() %}
-        {% set form_kwargs = {'exh_exhorto_video_id': exh_exhorto_video.id} %}
-        {% call f.form_tag('exh_exhortos_videos.edit', fid='exh_exhorto_video_form', **form_kwargs) %}
+        {% set form_kwargs = {'exh_exhorto_respuesta_video_id': exh_exhorto_respuesta_video.id} %}
+        {% call f.form_tag('exh_exhortos_videos.edit', fid='exh_exhorto_respuesta_video_form', **form_kwargs) %}
+            {% call f.form_group(form.exh_exhorto_respuesta_origen_id, readonly=true) %}{% endcall %}
             {% call f.form_group(form.titulo) %}{% endcall %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
             {% call f.form_group(form.url_acceso) %}{% endcall %}

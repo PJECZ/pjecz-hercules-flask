@@ -2,10 +2,10 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Editar Actualización del Exhorto{% endblock %}
+{% block title %}Editar Actualización {{ exh_exhorto_actualizacion.actualizacion_origen_id }}{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Editar Actualización del Exhorto ' + exh_exhorto_actualizacion.exh_exhorto.exhorto_origen_id) }}
+    {{ topbar.page('Editar Actualización ' + exh_exhorto_actualizacion.actualizacion_origen_id) }}
 {% endblock %}
 
 {% block content %}

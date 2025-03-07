@@ -7,8 +7,8 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons('Archivo ' + exh_exhorto_respuesta_archivo.nombre_archivo) %}
-        {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_respuesta_archivo.exh_exhorto_respuesta.exh_exhorto.id)) }}
-        {{ topbar.button_previous('Respuesta', url_for('exh_exhortos_respuestas.detail', exh_exhorto_respuesta_id=exh_exhorto_respuesta_archivo.exh_exhorto_respuesta_id)) }}
+        {# topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_respuesta_archivo.exh_exhorto_respuesta.exh_exhorto.id)) #}
+        {# topbar.button_previous('Respuesta', url_for('exh_exhortos_respuestas.detail', exh_exhorto_respuesta_id=exh_exhorto_respuesta_archivo.exh_exhorto_respuesta_id)) #}
         {% if current_user.can_edit('EXH EXHORTOS RESPUESTAS ARCHIVOS') %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_respuestas_archivos.edit', exh_exhorto_respuesta_archivo_id=exh_exhorto_respuesta_archivo.id)) }}
         {% endif %}
@@ -20,12 +20,37 @@
 {% endblock %}
 
 {% block content %}
+    <!-- Detalle del archivo -->
     {% call detail.card(estatus=exh_exhorto_respuesta_archivo.estatus) %}
-        {{ detail.label_value_big('Nombre o Descripción', exh_exhorto_respuesta_archivo.id) }}
-        {{ detail.label_value('Columna 1', exh_exhorto_respuesta_archivo.columna_1) }}
-        {{ detail.label_value('Columna 2', exh_exhorto_respuesta_archivo.columna_2) }}
-        {{ detail.label_value('Creado', moment(exh_exhorto_respuesta_archivo.creado, local=False).format('DD MMM YYYY HH:mm')) }}
+        {{ detail.label_value('Exhorto', exh_exhorto_respuesta_archivo.exh_exhorto_respuesta.exh_exhorto.exhorto_origen_id, url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_respuesta_archivo.exh_exhorto_respuesta.exh_exhorto_id)) }}
+        {{ detail.label_value('Respuesta', exh_exhorto_respuesta_archivo.exh_exhorto_respuesta.origen_id, url_for('exh_exhortos_respuestas.detail', exh_exhorto_respuesta_id=exh_exhorto_respuesta_archivo.exh_exhorto_respuesta_id)) }}
+        {{ detail.label_value('Nombre archivo', exh_exhorto_respuesta_archivo.nombre_archivo) }}
+        {{ detail.label_value('Hash SHA-1', exh_exhorto_respuesta_archivo.hash_sha1) }}
+        {{ detail.label_value('Hash SHA-256', exh_exhorto_respuesta_archivo.hash_sha256) }}
+        {{ detail.label_value('Tipo', exh_exhorto_respuesta_archivo.tipo_documento_nombre) }}
+        {# detail.label_value('URL', exh_exhorto_respuesta_archivo.url) #}
+        {{ detail.label_value('Tamaño', exh_exhorto_respuesta_archivo.tamano) }}
+        {{ detail.label_value('Fecha y hora de recepción', moment(exh_exhorto_respuesta_archivo.fecha_hora_recepcion).format('llll')) }}
+        <div class="row">
+            <div class="col-md-3 text-end">Estado</div>
+            <div class="col-md-9"><span id="titulo-estado"> {{ exh_exhorto_respuesta_archivo.estado }}</span></div>
+        </div>
+        {% if exh_exhorto_respuesta_archivo.estado == 'RECIBIDO'%}
+            <div class="row">
+                <div class="col">
+                    {{ detail.button_md(label='Descargar', url=url_for('exh_exhortos_respuestas_archivos.download_pdf', exh_exhorto_respuesta_archivo_id=exh_exhorto_respuesta_archivo.id), icon='mdi:download') }}
+                </div>
+            </div>
+        {% endif %}
     {% endcall %}
+    <!-- Vista previa del archivo PDF -->
+    {% if exh_exhorto_respuesta_archivo.estado == 'RECIBIDO'%}
+        {% call detail.card() %}
+            <object data="{{ url_for('exh_exhortos_respuestas_archivos.view_file_pdf', exh_exhorto_respuesta_archivo_id=exh_exhorto_respuesta_archivo.id) }}" type="application/pdf" width="100%" height="600px">
+                <p class="mb-0">El navegador no puede mostrar el archivo PDF o no existe en el depósito.</p>
+            </object>
+        {% endcall %}
+    {% endif %}
 {% endblock %}
 
 {% block custom_javascript %}
@@ -33,4 +58,19 @@
         {% if exh_exhorto_respuesta_archivo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + exh_exhorto_respuesta_archivo.id + '?') }}{% endif %}
         {% if exh_exhorto_respuesta_archivo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + exh_exhorto_respuesta_archivo.id + '?') }}{% endif %}
     {% endif %}
+    <!-- Renderizar el campo estado con colores e iconos -->
+    <script>
+        let titulo_estado = document.getElementById("titulo-estado")
+        const valor = "{{ exh_exhorto_respuesta_archivo.estado }}";
+        let bgcolor = "bg-dark";
+        let icon = "circle-small";
+        switch (valor)    {
+            case "CANCELADO": bgcolor = 'bg-danger';            icon="cancel";              break;
+            case "ENVIADO":   bgcolor = 'bg-primary';           icon="send";                break;
+            case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit";           break;
+            default:          bgcolor = 'bg-secondary';         icon="circle-outline";      break;
+        }
+        html = '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
+        titulo_estado.innerHTML = html;
+    </script>
 {% endblock %}
