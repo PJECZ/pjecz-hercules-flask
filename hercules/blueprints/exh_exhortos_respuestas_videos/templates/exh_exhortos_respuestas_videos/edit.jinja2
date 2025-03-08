@@ -2,10 +2,10 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Editar Video {{ exh_exhorto_respuesta_video.titulo }}{% endblock %}
+{% block title %}Editar Video de la Respuesta {{ exh_exhorto_respuesta_archivo.exh_exhorto_respuesta.origen_id }}{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Editar Video ' + exh_exhorto_respuesta_video.titulo) }}
+    {{ topbar.page('Editar Video de la Respuesta ' + exh_exhorto_respuesta_archivo.exh_exhorto_respuesta.origen_id) }}
 {% endblock %}
 
 {% block content %}

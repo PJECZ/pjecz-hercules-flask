@@ -22,7 +22,6 @@ TIPOS_DILIGENCIADOS = [
 class ExhExhortoRespuestaForm(FlaskForm):
     """Formulario para agregar o editar una repuesta al exhorto"""
 
-    exh_exhorto_exhorto_origen_id = StringField("Exhorto Origen ID")  # Read only
     origen_id = StringField("Respuesta Origen ID")  # ReadOnly
     municipio_turnado = SelectField(
         "Municipio turnado", coerce=int, choices=None, validate_choice=False, validators=[DataRequired()]

@@ -13,7 +13,6 @@ from hercules.blueprints.exh_exhortos_archivos.models import ExhExhortoArchivo
 class ExhExhortoArchivoNewForm(FlaskForm):
     """Formulario para subir un archivo"""
 
-    exh_exhorto_exhorto_origen_id = StringField("Exhorto Origen ID")  # Read only
     tipo_documento = SelectField(
         "Tipo", coerce=int, choices=ExhExhortoArchivo.TIPOS_DOCUMENTOS.items(), validators=[DataRequired()]
     )
@@ -24,7 +23,6 @@ class ExhExhortoArchivoNewForm(FlaskForm):
 class ExhExhortoArchivoEditForm(FlaskForm):
     """Formulario para editar un archivo"""
 
-    exh_exhorto_exhorto_origen_id = StringField("Exhorto Origen ID")  # Read only
     nombre_archivo = StringField("Nombre del Archivo")  # Read only
     tipo_documento = SelectField(
         "Tipo", coerce=int, choices=ExhExhortoArchivo.TIPOS_DOCUMENTOS.items(), validators=[DataRequired()]

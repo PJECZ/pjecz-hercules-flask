@@ -18,7 +18,6 @@ TIPOS_PARTES = [
 class ExhExhortoPromocionPromoventeForm(FlaskForm):
     """Formulario para agregar o editar un promovente de una promoción"""
 
-    exh_exhorto_promocion_folio_origen_promocion = StringField("Folio Origen Promoción")  # Read only
     nombre = StringField("Nombre", validators=[DataRequired(), Length(max=256)])
     apellido_paterno = StringField("Apellido Paterno", validators=[Optional(), Length(max=256)])
     apellido_materno = StringField("Apellido Materno", validators=[Optional(), Length(max=256)])

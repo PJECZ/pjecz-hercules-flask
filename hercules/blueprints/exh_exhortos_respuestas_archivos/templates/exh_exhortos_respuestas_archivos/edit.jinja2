@@ -2,10 +2,10 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Editar Archivo {{ exh_exhorto_respuesta_archivo.nombre_archivo }}{% endblock %}
+{% block title %}Editar Archivo de la Respuesta {{ exh_exhorto_respuesta_archivo.exh_exhorto_respuesta.origen_id }}{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Editar Archivo ' + exh_exhorto_respuesta_archivo.nombre_archivo) }}
+    {{ topbar.page('Editar Archivo de la Respuesta ' + exh_exhorto_respuesta_archivo.exh_exhorto_respuesta.origen_id) }}
 {% endblock %}
 
 {% block content %}

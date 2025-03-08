@@ -160,7 +160,6 @@ def new_with_exh_exhorto(exh_exhorto_id):
         return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
 
     # Cargar valores por defecto al formulario
-    form.exh_exhorto_exhorto_origen_id.data = exh_exhorto.exhorto_origen_id  # Read only
     form.origen_id.data = generar_identificador()
     form.municipio_turnado.data = 0  # Cero es un valor nulo
     form.area_turnado.data = 0  # Cero es un valor nulo

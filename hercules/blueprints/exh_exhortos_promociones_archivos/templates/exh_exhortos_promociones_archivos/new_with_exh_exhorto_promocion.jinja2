@@ -2,21 +2,20 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Agregar Archivo a la Promoción{% endblock %}
+{% block title %}Agregar Archivo a la Promoción {{ exh_exhorto_promocion.folio_origen_promocion }}{% endblock %}
 
 {% block custom_head %}
     {{ f.drop_zone_css() }}
 {% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Agregar Archivo a la Promoción') }}
+    {{ topbar.page('Agregar Archivo a la Promoción ' + exh_exhorto_promocion.folio_origen_promocion) }}
 {% endblock %}
 
 {% block content %}
     {% call f.card() %}
         {% set form_kwargs = {'exh_exhorto_promocion_id': exh_exhorto_promocion.id} %}
         {% call f.form_tag_multipart('exh_exhortos_promociones_archivos.new_with_exh_exhorto_promocion', fid='registro_form', **form_kwargs) %}
-            {% call f.form_group(form.exh_exhorto_promocion_folio_origen_promocion, readonly=true) %}{% endcall %}
             {% call f.form_group(form.tipo_documento) %}{% endcall %}
             {% call f.drop_zone_wrapper() %}
                 {% call f.form_group(form.archivo, class="dropzone") %}{% endcall %}
