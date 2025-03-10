@@ -232,6 +232,8 @@ def edit(autoridad_id):
             autoridad.materia_id = form.materia.data
             autoridad.municipio_id = form.municipio.data
             autoridad.clave = clave
+            autoridad.datawarehouse_id = form.datawarehouse_id.data
+            autoridad.datawarehouse_id_saji = form.datawarehouse_id_saji.data
             autoridad.descripcion = safe_string(form.descripcion.data, save_enie=True)
             autoridad.descripcion_corta = safe_string(form.descripcion_corta.data, save_enie=True)
             autoridad.es_archivo_solicitante = form.es_archivo_solicitante.data
@@ -263,6 +265,8 @@ def edit(autoridad_id):
     form.materia.data = autoridad.materia_id  # Usa id porque es un SelectField
     form.municipio.data = autoridad.municipio_id  # Usa id porque es un SelectField
     form.clave.data = autoridad.clave
+    form.datawarehouse_id.data = autoridad.datawarehouse_id
+    form.datawarehouse_id_saji.data = autoridad.datawarehouse_id_saji
     form.descripcion.data = autoridad.descripcion
     form.descripcion_corta.data = autoridad.descripcion_corta
     form.es_archivo_solicitante.data = autoridad.es_archivo_solicitante

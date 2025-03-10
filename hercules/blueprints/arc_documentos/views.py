@@ -44,6 +44,7 @@ from hercules.blueprints.arc_archivos.views import (
 )
 
 MODULO = "ARC DOCUMENTOS"
+DATAWAREHOUSE_ANIO_SAJI = 2025
 
 arc_documentos = Blueprint("arc_documentos", __name__, template_folder="templates")
 
@@ -554,7 +555,12 @@ def search():
                 mostrar_secciones["juzgado_id"] = autoridad_id
         if autoridad_id > 0:
             autoridad = Autoridad.query.get_or_404(autoridad_id)
+            # Si la autoridad tienen id en datawarehouse_saji buscar cuando sea mayor a DATAWAREHOUSE_ANIO_SAJI
             juzgado_id = autoridad.datawarehouse_id
+            if autoridad.datawarehouse_id_saji is not None:
+                anio = extract_expediente_anio(num_expediente)
+                if anio >= DATAWAREHOUSE_ANIO_SAJI:
+                    juzgado_id = autoridad.datawarehouse_id_saji
             if juzgado_id:
                 # Armado del cuerpo de petición para la API
                 request_body = {

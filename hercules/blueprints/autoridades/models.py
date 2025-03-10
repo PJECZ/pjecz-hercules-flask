@@ -60,6 +60,7 @@ class Autoridad(database.Model, UniversalMixin):
     # Columnas
     clave: Mapped[str] = mapped_column(String(16), unique=True)
     datawarehouse_id: Mapped[int]  # Columna para comunicación con SAJI
+    datawarehouse_id_saji: Mapped[int]  # Columna para comunicación con SAJI
     descripcion: Mapped[str] = mapped_column(String(256))
     descripcion_corta: Mapped[str] = mapped_column(String(64))
     es_archivo_solicitante: Mapped[bool] = mapped_column(default=False)
