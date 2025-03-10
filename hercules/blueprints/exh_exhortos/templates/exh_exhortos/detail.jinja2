@@ -143,8 +143,7 @@
                             label="Consultar",
                             onclick="showModalregresar_enviar_btn('{{ url_for('exh_exhortos.launch_task_query', exh_exhorto_id=exh_exhorto.id) }}', '¿Está seguro de CONSULTAR este exhorto?');",
                             icon='mdi:download',
-                            color_class='btn-primary',
-                        ) }}
+                            color_class='btn-primary') }}
                     </div>
                 </div>
             {% endif %}
@@ -158,8 +157,7 @@
                             label="Transferir a Juzgado",
                             url=url_for('exh_exhortos.change_to_transfer', exh_exhorto_id=exh_exhorto.id),
                             icon='mdi:swap-horizontal',
-                            color_class='btn-primary',
-                        ) }}
+                            color_class='btn-primary') }}
                     </div>
                 </div>
             {% endif %}
@@ -173,8 +171,7 @@
                             label="Regresar a Pendiente",
                             onclick="showModalregresar_pendiente_btn('{{ url_for('exh_exhortos.change_to_pending', exh_exhorto_id=exh_exhorto.id) }}', '¿Está seguro de regresar el estado a PENDIENTE?');",
                             icon='mdi:refresh',
-                            color_class='btn-warning',
-                        ) }}
+                            color_class='btn-warning') }}
                     </div>
                 </div>
             {% endif %}
@@ -188,8 +185,7 @@
                             label="Procesar",
                             url=url_for('exh_exhortos.change_to_process', exh_exhorto_id=exh_exhorto.id),
                             icon='mdi:recycle',
-                            color_class='btn-warning',
-                        ) }}
+                            color_class='btn-warning') }}
                     </div>
                 </div>
             {% endif %}
@@ -201,8 +197,7 @@
                             label="Rechazar",
                             url=url_for('exh_exhortos.change_to_refuse', exh_exhorto_id=exh_exhorto.id),
                             icon='mdi:hand-back-left',
-                            color_class='btn-danger',
-                        ) }}
+                            color_class='btn-danger') }}
                     </div>
                     <div class="col-md-6">
                     </div>
@@ -218,8 +213,7 @@
                             label="Archivar",
                             onclick="showModalarchivar_btn('{{url_for('exh_exhortos.change_to_archive', exh_exhorto_id=exh_exhorto.id)}}', '¿Está seguro de ARCHIVAR este exhorto?');",
                             icon='mdi:archive',
-                            color_class='btn-secondary',
-                        ) }}
+                            color_class='btn-secondary') }}
                     </div>
                 </div>
             {% endif %}
@@ -371,7 +365,7 @@
             { data: 'detalle' },
             { data: 'genero' },
             { data: 'es_persona_moral' },
-            { data: 'tipo_parte' },
+            { data: 'tipo_parte' }
         ];
         configDTPartes['columnDefs'] = [
             {
