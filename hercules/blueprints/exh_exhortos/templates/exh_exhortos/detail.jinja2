@@ -122,7 +122,7 @@
                             label="Cancelar",
                             onclick="showModalCancelarBtn('" + url_for('exh_exhortos.change_to_cancel', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de CANCELAR este exhorto?');",
                             icon='mdi:cancel',
-                            color_class='btn-danger') }}
+                            color_class='btn-secondary') }}
                     </div>
                     <div class="col-md-6">
                         {{ detail.button_lg_modal(
@@ -154,8 +154,8 @@
                     </div>
                     <div class="col-md-6">
                         {{ detail.button_lg_modal(
-                            label="Consultar",
-                            onclick="showModalRegresarPendienteBtn('" + url_for('exh_exhortos.change_to_pending', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de REGRESAR A PENDIENTE este exhorto?');",
+                            label="Regresar a Pendiente",
+                            onclick=url_for('exh_exhortos.change_to_pending', exh_exhorto_id=exh_exhorto.id),
                             icon='mdi:back',
                             color_class='btn-warning') }}
                     </div>
@@ -332,9 +332,6 @@
         {% endif %}
         {% if exh_exhorto.estado == 'RECIBIDO CON EXITO' %}
             {{ modals.custom_javascript('Consultar con el PJ', '', "ConsultarBtn") }}
-        {% endif %}
-        {% if exh_exhorto.estado == 'RECHAZADO' %}
-            {{ modals.custom_javascript('Regresar a Pendiente', '', "RegresarPendienteBtn") }}
         {% endif %}
         {% if exh_exhorto.estado == 'RESPONDIDO' or exh_exhorto.estado == 'CONTESTADO' %}
             {{ modals.custom_javascript('Archivar', '', "ArchivarBtn") }}
