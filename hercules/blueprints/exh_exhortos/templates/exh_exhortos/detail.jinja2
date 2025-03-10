@@ -329,17 +329,15 @@
 {% block custom_javascript %}
     <!-- Modales para los botones de acción -->
     {% if current_user.can_insert('EXH EXHORTOS') %}
-        {{ modals.custom_javascript('Consultar', '', 'GetFromExterno') }}
-        {{ modals.custom_javascript('Enviar', '', 'SendToExterno') }}
         {% if exh_exhorto.estado == 'PENDIENTE' or exh_exhorto.estado == 'POR ENVIAR' %}
-            {{ modals.custom_javascript('Cancelar en Exhorto', '', "CancelarBtn") }}
-            {{ modals.custom_javascript('Enviar al PJ', '', "EnviarBtn") }}
+            {{ modals.custom_javascript('CANCELAR este Exhorto', '', "CancelarBtn") }}
+            {{ modals.custom_javascript('ENVIAR al P.J.', '', "EnviarBtn") }}
         {% endif %}
         {% if exh_exhorto.estado == 'RECIBIDO CON EXITO' %}
-            {{ modals.custom_javascript('Consultar con el PJ', '', "ConsultarBtn") }}
+            {{ modals.custom_javascript('CONSULTAR con el P.J.', '', "ConsultarBtn") }}
         {% endif %}
         {% if exh_exhorto.estado == 'RESPONDIDO' or exh_exhorto.estado == 'CONTESTADO' %}
-            {{ modals.custom_javascript('Archivar', '', "ArchivarBtn") }}
+            {{ modals.custom_javascript('ARCHIVAR', '', "ArchivarBtn") }}
         {% endif %}
     {% endif %}
     <!-- Modales para eliminar y recuperar -->
