@@ -327,11 +327,11 @@
         {{ modals.custom_javascript('Consultar', '', 'GetFromExterno') }}
         {{ modals.custom_javascript('Enviar', '', 'SendToExterno') }}
         {% if exh_exhorto.estado == 'PENDIENTE' or exh_exhorto.estado == 'POR ENVIAR' %}
-            {{ modals.custom_javascript('Cancelar', '', "CancelarBtn") }}
-            {{ modals.custom_javascript('Enviar', '', "EnviarBtn") }}
+            {{ modals.custom_javascript('Cancelar en Exhorto', '', "CancelarBtn") }}
+            {{ modals.custom_javascript('Enviar al PJ', '', "EnviarBtn") }}
         {% endif %}
         {% if exh_exhorto.estado == 'RECIBIDO CON EXITO' %}
-            {{ modals.custom_javascript('Consultar', '', "ConsultarBtn") }}
+            {{ modals.custom_javascript('Consultar con el PJ', '', "ConsultarBtn") }}
         {% endif %}
         {% if exh_exhorto.estado == 'RECHAZADO' %}
             {{ modals.custom_javascript('Regresar a Pendiente', '', "RegresarPendienteBtn") }}
