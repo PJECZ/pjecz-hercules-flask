@@ -347,37 +347,40 @@ def new():
     """Nuevo Usuario"""
     form = UsuarioForm()
     if form.validate_on_submit():
+        # Validaciones
+        es_valido = True
         # Validar que el email no se repita
         email = safe_email(form.email.data)
         if Usuario.query.filter_by(email=email).first():
             flash("El e-mail ya está en uso. Debe de ser único.", "warning")
-            return render_template("usuarios/new.jinja2", form=form)
-        # Guadar
-        usuario = Usuario(
-            autoridad_id=form.autoridad.data,
-            oficina_id=form.oficina.data,
-            email=email,
-            nombres=safe_string(form.nombres.data, save_enie=True),
-            apellido_paterno=safe_string(form.apellido_paterno.data, save_enie=True),
-            apellido_materno=safe_string(form.apellido_materno.data, save_enie=True),
-            curp=safe_string(form.curp.data),
-            puesto=safe_string(form.puesto.data),
-            workspace=form.workspace.data,
-            efirma_registro_id=form.efirma_registro_id.data,
-            api_key="",
-            api_key_expiracion=datetime(year=2000, month=1, day=1, hour=0, minute=0, second=0),
-            contrasena=generar_contrasena(),
-        )
-        usuario.save()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Nuevo Usuario {usuario.email}"),
-            url=url_for("usuarios.detail", usuario_id=usuario.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-        return redirect(bitacora.url)
+            es_valido = False
+        # Guardar
+        if es_valido:
+            usuario = Usuario(
+                autoridad_id=form.autoridad.data,
+                oficina_id=form.oficina.data,
+                email=email,
+                nombres=safe_string(form.nombres.data, save_enie=True),
+                apellido_paterno=safe_string(form.apellido_paterno.data, save_enie=True),
+                apellido_materno=safe_string(form.apellido_materno.data, save_enie=True),
+                curp=safe_string(form.curp.data),
+                puesto=safe_string(form.puesto.data),
+                workspace=form.workspace.data,
+                efirma_registro_id=form.efirma_registro_id.data,
+                api_key="",
+                api_key_expiracion=datetime(year=2000, month=1, day=1, hour=0, minute=0, second=0),
+                contrasena=generar_contrasena(),
+            )
+            usuario.save()
+            bitacora = Bitacora(
+                modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+                usuario=current_user,
+                descripcion=safe_message(f"Nuevo Usuario {usuario.email}"),
+                url=url_for("usuarios.detail", usuario_id=usuario.id),
+            )
+            bitacora.save()
+            flash(bitacora.descripcion, "success")
+            return redirect(bitacora.url)
     # Consultar el distrito por defecto con clave ND
     distrito_por_defecto_id = 1
     distrito_por_defecto = Distrito.query.filter_by(clave="ND").first()
