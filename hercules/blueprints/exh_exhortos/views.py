@@ -499,13 +499,13 @@ def change_to_cancel(exh_exhorto_id):
 @exh_exhortos.route("/exh_exhortos/regresar_a_pendiente/<int:exh_exhorto_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def change_to_pending(exh_exhorto_id):
-    """Regresar el estado del exhorto a por enviar"""
+    """Regresar el estado del exhorto a PENDIENTE"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
     es_valido = True
-    # Validar que el estado del Exhorto sea "RECHAZADO"
-    if exh_exhorto.estado != "RECHAZADO":
+    # Validar que el estado del Exhorto
+    if exh_exhorto.estado not in ("CANCELADO", "RECHAZADO"):
         es_valido = False
-        flash("El estado del exhorto debe ser RECHAZADO.", "warning")
+        flash("El estado del exhorto debe ser CANCELADO o RECHAZADO.", "warning")
     # Hacer el cambio de estado
     if es_valido:
         exh_exhorto.estado = "PENDIENTE"
