@@ -35,6 +35,8 @@
                 {% endif %}
                 {{ detail.label_value('Descripción', autoridad.descripcion) }}
                 {{ detail.label_value('Descripción corta', autoridad.descripcion_corta) }}
+                {{ detail.label_value('Datawarehouse ID', autoridad.datawarehouse_id) }}
+                {{ detail.label_value('Datawarehouse ID (SAJI 2025)', autoridad.datawarehouse_id_saji) }}
             </div>
             <div class="col-md-6">
                 {{ detail.label_value_boolean('Es Archivo Solicitante', autoridad.es_archivo_solicitante) }}
