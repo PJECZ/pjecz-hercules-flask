@@ -63,6 +63,8 @@ class AutoridadEditForm(FlaskForm):
     distrito = SelectField("Distrito", coerce=int, validators=[DataRequired()])
     materia = SelectField("Materia", coerce=int, validators=[DataRequired()])
     municipio = SelectField("Municipio", coerce=int, validators=[DataRequired()])
+    datawarehouse_id = IntegerField("DataWareHouse ID", validators=[Optional()])
+    datawarehouse_id_saji = IntegerField("DataWareHouse ID SAJI 2025", validators=[Optional()])
     descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=256)])
     descripcion_corta = StringField("Descripción corta (máximo 64 caracteres)", validators=[DataRequired(), Length(max=64)])
     es_archivo_solicitante = BooleanField("Es Archivo Solicitante", validators=[Optional()])
