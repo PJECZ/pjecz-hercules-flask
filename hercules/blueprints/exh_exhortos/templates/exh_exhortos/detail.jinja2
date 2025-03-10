@@ -148,9 +148,14 @@
                 </div>
             {% endif %}
             <!-- Botón Regresar a Pendiente -->
-            {% if exh_exhorto.estado == "RECHAZADO" %}
+            {% if exh_exhorto.estado in ("CANCELADO", "RECHAZADO") %}
                 <div class="row">
                     <div class="col-md-6">
+                        {{ detail.button_lg_modal(
+                            label="Archivar",
+                            onclick="showModalArchivarBtn('" + url_for('exh_exhortos.change_to_archive', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de ARCHIVAR este exhorto?');",
+                            icon='mdi:archive',
+                            color_class='btn-secondary') }}
                     </div>
                     <div class="col-md-6">
                         {{ detail.button_lg(
