@@ -347,7 +347,7 @@ def new():
     """Nuevo Usuario"""
     form = UsuarioForm()
     if form.validate_on_submit():
-        # validaciones
+        # Validaciones
         es_valido = True
         # Validar que el email no se repita
         email = safe_email(form.email.data)
