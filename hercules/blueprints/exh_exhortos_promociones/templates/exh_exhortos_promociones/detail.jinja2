@@ -83,9 +83,10 @@
 {% endblock %}
 
 {% block custom_javascript %}
+    <!-- Modales para eliminar y recuperar -->
     {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') %}
-        {% if exh_exhorto_promocion.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar Promoción: ' + exh_exhorto_promocion.folio_origen_promocion + '?') }}{% endif %}
-        {% if exh_exhorto_promocion.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar Promoción: ' + exh_exhorto_promocion.folio_origen_promocion + '?') }}{% endif %}
+        {% if exh_exhorto_promocion.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar esta Promoción?') }}{% endif %}
+        {% if exh_exhorto_promocion.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar esta Promoción?') }}{% endif %}
     {% endif %}
     <!-- Renderizar el campo estado con colores e iconos -->
     <script>

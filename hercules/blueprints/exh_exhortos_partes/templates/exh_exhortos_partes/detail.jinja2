@@ -35,8 +35,9 @@
 {% endblock %}
 
 {% block custom_javascript %}
+    <!-- Modales para eliminar y recuperar -->
     {% if current_user.can_admin('EXH EXHORTOS PARTES') %}
-        {% if exh_exhorto_parte.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + exh_exhorto_parte.nombre_completo + '?') }}{% endif %}
-        {% if exh_exhorto_parte.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + exh_exhorto_parte.nombre_completo + '?') }}{% endif %}
+        {% if exh_exhorto_parte.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar esta Parte?') }}{% endif %}
+        {% if exh_exhorto_parte.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar esta Parte?') }}{% endif %}
     {% endif %}
 {% endblock %}

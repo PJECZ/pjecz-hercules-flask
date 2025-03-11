@@ -61,9 +61,10 @@
 {% endblock %}
 
 {% block custom_javascript %}
+    <!-- Modales para eliminar y recuperar -->
     {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
-        {% if exh_exhorto_respuesta.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + exh_exhorto_respuesta.id + '?') }}{% endif %}
-        {% if exh_exhorto_respuesta.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + exh_exhorto_respuesta.id + '?') }}{% endif %}
+        {% if exh_exhorto_respuesta.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar esta Respuesta?') }}{% endif %}
+        {% if exh_exhorto_respuesta.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a esta Respuesta?') }}{% endif %}
     {% endif %}
     <!-- Renderizar el campo estado con colores e iconos -->
     <script>

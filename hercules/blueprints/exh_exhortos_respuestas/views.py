@@ -59,7 +59,9 @@ def datatable_json():
                     "origen_id": resultado.origen_id,
                     "url": url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=resultado.id),
                 },
-                "fecha_hora_recepcion": resultado.fecha_origen.strftime("%Y-%m-%d %H:%M"),
+                "fecha_hora_recepcion": resultado.fecha_hora_recepcion.strftime("%Y-%m-%d %H:%M")
+                if resultado.fecha_hora_recepcion
+                else "",
                 "municipio_turnado_id": resultado.municipio_turnado_id if resultado.municipio_turnado_id else "",
                 "area_turnado_id": resultado.area_turnado_id if resultado.area_turnado_id else "",
                 "area_turnado_nombre": resultado.area_turnado_nombre if resultado.area_turnado_nombre else "",

@@ -33,8 +33,9 @@
 {% endblock %}
 
 {% block custom_javascript %}
+    <!-- Modales para eliminar y recuperar -->
     {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS VIDEOS') %}
-        {% if exh_exhorto_respuesta_video.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + exh_exhorto_respuesta_video.titulo + '?') }}{% endif %}
-        {% if exh_exhorto_respuesta_video.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + exh_exhorto_respuesta_video.titulo + '?') }}{% endif %}
+        {% if exh_exhorto_respuesta_video.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar este Video?') }}{% endif %}
+        {% if exh_exhorto_respuesta_video.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar este Video?') }}{% endif %}
     {% endif %}
 {% endblock %}

@@ -37,8 +37,9 @@
 {% endblock %}
 
 {% block custom_javascript %}
+    <!-- Modales para eliminar y recuperar -->
     {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES PROMOVENTES') %}
-        {% if exh_exhorto_promocion_promovente.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + exh_exhorto_promocion_promovente.nombre_completo + '?') }}{% endif %}
-        {% if exh_exhorto_promocion_promovente.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + exh_exhorto_promocion_promovente.nombre_completo + '?') }}{% endif %}
+        {% if exh_exhorto_promocion_promovente.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar este Promovente?') }}{% endif %}
+        {% if exh_exhorto_promocion_promovente.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar este Promovente?') }}{% endif %}
     {% endif %}
 {% endblock %}

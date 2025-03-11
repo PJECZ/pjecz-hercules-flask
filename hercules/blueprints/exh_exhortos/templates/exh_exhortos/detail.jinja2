@@ -266,15 +266,14 @@
             <table id="exh_exhortos_respuestas_datatable" class="table display nowrap" style="width:100%">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Exhorto</th>
+                        <th>Origen ID</th>
                         <th>Fecha hora recepción</th>
-                        <th>Remitente</th>
-                        <th>Municipio turnado ID</th>
-                        <th>Área turnada ID</th>
+                        <th>Municipio turnado</th>
+                        <th>Área turnada</th>
                         <th>Área turnada nombre</th>
                         <th>No. exhorto</th>
                         <th>Tipo diligenciado</th>
+                        <th>Remitente</th>
                         <th>Estado</th>
                     </tr>
                 </thead>
@@ -434,18 +433,17 @@
     <script>
         // DataTable exh_exhortos_respuestas
         let configDTRespuestas = constructorDataTable.config();
-        configDTRespuestas['ajax']['url'] = '/exh_exhortos_archivos/datatable_json';
+        configDTRespuestas['ajax']['url'] = '/exh_exhortos_respuestas/datatable_json';
         configDTRespuestas['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}};
         configDTRespuestas['columns'] = [
             { data: 'detalle' },
-            { data: 'exh_exhorto' },
             { data: 'fecha_hora_recepcion' },
-            { data: 'remitente' },
             { data: 'municipio_turnado_id' },
             { data: 'area_turnado_id' },
             { data: 'area_turnado_nombre' },
             { data: 'numero_exhorto' },
             { data: 'tipo_diligenciado' },
+            { data: 'remitente' },
             { data: 'estado' }
         ];
         configDTRespuestas['columnDefs'] = [
@@ -453,7 +451,7 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.id + '</a>';
+                    return '<a href="' + data.url + '">' + data.origen_id + '</a>';
                 }
             }
         ];

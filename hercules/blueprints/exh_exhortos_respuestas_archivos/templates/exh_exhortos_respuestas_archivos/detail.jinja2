@@ -54,10 +54,6 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS ARCHIVOS') %}
-        {% if exh_exhorto_respuesta_archivo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + exh_exhorto_respuesta_archivo.id + '?') }}{% endif %}
-        {% if exh_exhorto_respuesta_archivo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + exh_exhorto_respuesta_archivo.id + '?') }}{% endif %}
-    {% endif %}
     <!-- Renderizar el campo estado con colores e iconos -->
     <script>
         let titulo_estado = document.getElementById("titulo-estado")
@@ -73,4 +69,9 @@
         html = '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
         titulo_estado.innerHTML = html;
     </script>
+    <!-- Modales para eliminar y recuperar -->
+    {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS ARCHIVOS') %}
+        {% if exh_exhorto_respuesta_archivo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar este Archivo?') }}{% endif %}
+        {% if exh_exhorto_respuesta_archivo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar este Archivo?') }}{% endif %}
+    {% endif %}
 {% endblock %}

@@ -28,8 +28,7 @@
         <table id="exh_exhortos_respuestas_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Exhorto</th>
+                    <th>Origen ID</th>
                     <th>Fecha hora recepción</th>
                     <th>Municipio turnado</th>
                     <th>Área turnada</th>
@@ -55,7 +54,6 @@
         configDTExhExhortosRespuestas['ajax']['data'] = {{ filtros }};
         configDTExhExhortosRespuestas['columns'] = [
             { data: 'detalle' },
-            { data: 'exh_exhorto' },
             { data: 'fecha_hora_recepcion' },
             { data: 'municipio_turnado_id' },
             { data: 'area_turnado_id' },
@@ -70,7 +68,7 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.id + '</a>';
+                    return '<a href="' + data.url + '">' + data.origen_id + '</a>';
                 }
             }
         ];

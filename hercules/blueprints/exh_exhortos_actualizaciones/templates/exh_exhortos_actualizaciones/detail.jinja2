@@ -48,9 +48,10 @@
 {% endblock %}
 
 {% block custom_javascript %}
+    <!-- Modales para eliminar y recuperar -->
     {% if current_user.can_admin('EXH EXHORTOS ACTUALIZACIONES') %}
-        {% if exh_exhorto_actualizacion.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + exh_exhorto_actualizacion.actualizacion_origen_id | string + '?') }}{% endif %}
-        {% if exh_exhorto_actualizacion.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + exh_exhorto_actualizacion.actualizacion_origen_id | string + '?') }}{% endif %}
+        {% if exh_exhorto_actualizacion.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar esta Actualización?') }}{% endif %}
+        {% if exh_exhorto_actualizacion.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar esta Actualización?') }}{% endif %}
     {% endif %}
     <!-- Modales -->
     {% if exh_exhorto_actualizacion.estado == 'PENDIENTE' %}
