@@ -7,7 +7,6 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons('Actualización ' + exh_exhorto_actualizacion.actualizacion_origen_id) %}
-        {# topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_actualizacion.exh_exhorto_id)) #}
         {% if current_user.can_edit('EXH EXHORTOS ACTUALIZACIONES') and exh_exhorto_actualizacion.estado == "PENDIENTE" %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_actualizaciones.edit', exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id)) }}
         {% endif %}

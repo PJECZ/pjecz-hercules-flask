@@ -289,12 +289,11 @@
             <table id="exh_exhortos_actualizaciones_datatable" class="table display nowrap" style="width:100%">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Origen ID</th>
                         <th>Fecha y Hora</th>
                         <th>Tipo de Actualización</th>
-                        <th>Remitente</th>
                         <th>Descripción</th>
+                        <th>Remitente</th>
                         <th>Estado</th>
                     </tr>
                 </thead>
@@ -467,11 +466,10 @@
         configDTActualizaciones['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}};
         configDTActualizaciones['columns'] = [
             { data: 'detalle' },
-            { data: 'origen_id' },
             { data: 'fecha_hora' },
             { data: 'tipo_actualizacion' },
-            { data: 'remitente' },
             { data: 'descripcion' },
+            { data: 'remitente' },
             { data: 'estado' }
         ];
         configDTActualizaciones['columnDefs'] = [
@@ -479,7 +477,7 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.id + '</a>';
+                    return '<a href="' + data.url + '">' + data.actualizacion_origen_id + '</a>';
                 }
             }
         ];

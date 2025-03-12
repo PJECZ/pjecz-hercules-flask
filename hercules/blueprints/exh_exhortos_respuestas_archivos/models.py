@@ -64,6 +64,14 @@ class ExhExhortoRespuestaArchivo(database.Model, UniversalMixin):
     # Fecha y hora de recepción del documento
     fecha_hora_recepcion: Mapped[datetime] = mapped_column(default=now())
 
+    @property
+    def tipo_documento_nombre(self):
+        """Nombre del tipo de documento"""
+        try:
+            return self.TIPOS_DOCUMENTOS[self.tipo_documento]
+        except KeyError:
+            return "No Definido"
+
     def __repr__(self):
         """Representación"""
         return f"<ExhExhortoRespuestaArchivo {self.id}>"

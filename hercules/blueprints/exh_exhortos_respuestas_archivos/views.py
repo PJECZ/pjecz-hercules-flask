@@ -108,9 +108,9 @@ def list_inactive():
 @exh_exhortos_respuestas_archivos.route("/exh_exhortos_respuestas_archivos/<int:exh_exhorto_respuesta_archivo_id>")
 def detail(exh_exhorto_respuesta_archivo_id):
     """Detalle de un archivo de respuesta"""
-    exh_exhorto_respuesta_archivo_id = ExhExhortoRespuestaArchivo.query.get_or_404(exh_exhorto_respuesta_archivo_id)
+    exh_exhorto_respuesta_archivo = ExhExhortoRespuestaArchivo.query.get_or_404(exh_exhorto_respuesta_archivo_id)
     return render_template(
-        "exh_exhortos_respuestas_archivos/detail.jinja2", exh_exhorto_respuesta_archivo_id=exh_exhorto_respuesta_archivo_id
+        "exh_exhortos_respuestas_archivos/detail.jinja2", exh_exhorto_respuesta_archivo=exh_exhorto_respuesta_archivo
     )
 
 

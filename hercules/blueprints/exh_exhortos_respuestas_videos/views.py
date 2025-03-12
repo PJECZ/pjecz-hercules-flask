@@ -54,7 +54,7 @@ def datatable_json():
             {
                 "detalle": {
                     "titulo": resultado.titulo,
-                    "url": url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=resultado.id),
+                    "url": url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_respuesta_video_id=resultado.id),
                 },
                 "descripcion": resultado.descripcion,
                 "fecha": resultado.fecha.strftime("%Y-%m-%d %H:%M:%S") if resultado.fecha != None else "",
@@ -72,6 +72,15 @@ def list_active():
         filtros=json.dumps({"estatus": "A"}),
         titulo="Exhortos Respuestas Videos",
         estatus="A",
+    )
+
+
+@exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos/<int:exh_exhorto_respuesta_video_id>")
+def detail(exh_exhorto_respuesta_video_id):
+    """Detalle de un Video"""
+    exh_exhorto_respuesta_video = ExhExhortoRespuestaVideo.query.get_or_404(exh_exhorto_respuesta_video_id)
+    return render_template(
+        "exh_exhortos_respuestas_videos/detail.jinja2", exh_exhorto_respuesta_video=exh_exhorto_respuesta_video
     )
 
 
@@ -97,20 +106,20 @@ def new_with_exh_exhorto_respuesta(exh_exhorto_id):
     form = ExhExhortoRespuestaVideoForm()
     if form.validate_on_submit():
         # Insertar el registro ExhExhortoRespuestaVideo
-        exh_exhorto_video = ExhExhortoRespuestaVideo(
+        exh_exhorto_respuesta_video = ExhExhortoRespuestaVideo(
             exh_exhorto=exh_exhorto,
             titulo=safe_string(form.titulo.data),
             descripcion=safe_message(form.descripcion.data, max_len=1024, default_output_str=None),
             fecha=datetime.now(),
             url_acceso=safe_url(form.url_acceso.data),
         )
-        exh_exhorto_video.save()
+        exh_exhorto_respuesta_video.save()
         # Insertar en la Bitácora
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Nuevo Video {exh_exhorto_video.titulo}"),
-            url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id),
+            descripcion=safe_message(f"Nuevo Video {exh_exhorto_respuesta_video.titulo}"),
+            url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_respuesta_video_id=exh_exhorto_respuesta_video.id),
         )
         bitacora.save()
         # Mostrar mensaje de éxito y redirigir a la página del detalle del ExhExhorto
@@ -121,64 +130,70 @@ def new_with_exh_exhorto_respuesta(exh_exhorto_id):
 
 
 @exh_exhortos_respuestas_videos.route(
-    "/exh_exhortos_respuestas_videos/edicion/<int:exh_exhorto_video_id>", methods=["GET", "POST"]
+    "/exh_exhortos_respuestas_videos/edicion/<int:exh_exhorto_respuesta_video_id>", methods=["GET", "POST"]
 )
 @permission_required(MODULO, Permiso.MODIFICAR)
-def edit(exh_exhorto_video_id):
+def edit(exh_exhorto_respuesta_video_id):
     """Editar Video"""
-    exh_exhorto_video = ExhExhortoRespuestaVideo.query.get_or_404(exh_exhorto_video_id)
+    exh_exhorto_respuesta_video = ExhExhortoRespuestaVideo.query.get_or_404(exh_exhorto_respuesta_video_id)
     form = ExhExhortoRespuestaVideoForm()
     if form.validate_on_submit():
-        exh_exhorto_video.titulo = safe_string(form.titulo.data)
-        exh_exhorto_video.descripcion = safe_message(form.descripcion.data, max_len=1024, default_output_str=None)
-        exh_exhorto_video.url_acceso = safe_url(form.url_acceso.data)
-        exh_exhorto_video.save()
+        exh_exhorto_respuesta_video.titulo = safe_string(form.titulo.data)
+        exh_exhorto_respuesta_video.descripcion = safe_message(form.descripcion.data, max_len=1024, default_output_str=None)
+        exh_exhorto_respuesta_video.url_acceso = safe_url(form.url_acceso.data)
+        exh_exhorto_respuesta_video.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Editado Exhorto Video {exh_exhorto_video.titulo}"),
-            url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id),
+            descripcion=safe_message(f"Editado Exhorto Video {exh_exhorto_respuesta_video.titulo}"),
+            url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_respuesta_video_id=exh_exhorto_respuesta_video.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    form.titulo.data = exh_exhorto_video.titulo
-    form.descripcion.data = exh_exhorto_video.descripcion
-    form.url_acceso.data = exh_exhorto_video.url_acceso
-    return render_template("exh_exhortos_respuestas_videos/edit.jinja2", form=form, exh_exhorto_video=exh_exhorto_video)
+    form.titulo.data = exh_exhorto_respuesta_video.titulo
+    form.descripcion.data = exh_exhorto_respuesta_video.descripcion
+    form.url_acceso.data = exh_exhorto_respuesta_video.url_acceso
+    return render_template(
+        "exh_exhortos_respuestas_videos/edit.jinja2", form=form, exh_exhorto_video=exh_exhorto_respuesta_video
+    )
 
 
-@exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos/eliminar/<int:exh_exhorto_video_id>")
+@exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos/eliminar/<int:exh_exhorto_respuesta_video_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
-def delete(exh_exhorto_video_id):
+def delete(exh_exhorto_respuesta_video_id):
     """Eliminar Video"""
-    exh_exhorto_video = ExhExhortoRespuestaVideo.query.get_or_404(exh_exhorto_video_id)
-    if exh_exhorto_video.estatus == "A":
-        exh_exhorto_video.delete()
+    exh_exhorto_respuesta_video = ExhExhortoRespuestaVideo.query.get_or_404(exh_exhorto_respuesta_video_id)
+    if exh_exhorto_respuesta_video.estatus == "A":
+        exh_exhorto_respuesta_video.delete()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Exhorto Video {exh_exhorto_video.titulo}"),
-            url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id),
+            descripcion=safe_message(f"Eliminado Exhorto Video {exh_exhorto_respuesta_video.titulo}"),
+            url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_respuesta_video_id=exh_exhorto_respuesta_video.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
-    return redirect(url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id))
+    return redirect(
+        url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_respuesta_video_id=exh_exhorto_respuesta_video.id)
+    )
 
 
-@exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos/recuperar/<int:exh_exhorto_video_id>")
+@exh_exhortos_respuestas_videos.route("/exh_exhortos_respuestas_videos/recuperar/<int:exh_exhorto_respuesta_video_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
-def recover(exh_exhorto_video_id):
+def recover(exh_exhorto_respuesta_video_id):
     """Recuperar Video"""
-    exh_exhorto_video = ExhExhortoRespuestaVideo.query.get_or_404(exh_exhorto_video_id)
-    if exh_exhorto_video.estatus == "B":
-        exh_exhorto_video.recover()
+    exh_exhorto_respuesta_video = ExhExhortoRespuestaVideo.query.get_or_404(exh_exhorto_respuesta_video_id)
+    if exh_exhorto_respuesta_video.estatus == "B":
+        exh_exhorto_respuesta_video.recover()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Exhorto Video {exh_exhorto_video.titulo}"),
-            url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id),
+            descripcion=safe_message(f"Recuperado Exhorto Video {exh_exhorto_respuesta_video.titulo}"),
+            url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_respuesta_video_id=exh_exhorto_respuesta_video.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
-    return redirect(url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_video_id=exh_exhorto_video.id))
+    return redirect(
+        url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_respuesta_video_id=exh_exhorto_respuesta_video.id)
+    )

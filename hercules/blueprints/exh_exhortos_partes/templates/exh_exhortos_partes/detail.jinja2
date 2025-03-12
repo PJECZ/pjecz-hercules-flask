@@ -7,7 +7,7 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons('Parte ' + exh_exhorto_parte.nombre_completo) %}
-        {# topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_parte.exh_exhorto.id)) #}
+        {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_parte.exh_exhorto_id)) }}
         {% if current_user.can_edit('EXH EXHORTOS PARTES') %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_partes.edit', exh_exhorto_parte_id=exh_exhorto_parte.id)) }}
         {% endif %}

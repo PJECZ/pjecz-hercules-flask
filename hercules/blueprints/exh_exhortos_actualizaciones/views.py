@@ -66,15 +66,13 @@ def datatable_json():
         data.append(
             {
                 "detalle": {
-                    "id": resultado.id,
+                    "actualizacion_origen_id": resultado.actualizacion_origen_id,
                     "url": url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=resultado.id),
                 },
-                "exh_exhorto_id": resultado.exh_exhorto_id,
-                "actualizacion_origen_id": resultado.actualizacion_origen_id,
                 "fecha_hora": resultado.fecha_hora.strftime("%Y/%m/%d %H:%M"),
                 "tipo_actualizacion": resultado.tipo_actualizacion,
-                "remitente": resultado.remitente,
                 "descripcion": resultado.descripcion,
+                "remitente": resultado.remitente,
                 "estado": resultado.estado,
             }
         )
