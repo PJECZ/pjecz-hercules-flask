@@ -5,12 +5,12 @@ Soportes Tickets, modelos
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, JSON, Integer, String, Text, Uuid
+from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, Integer, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.functions import now
 
-from lib.universal_mixin import UniversalMixin
 from hercules.extensions import database
+from lib.universal_mixin import UniversalMixin
 
 # Roles necesarios
 ROL_ADMINISTRADOR = "ADMINISTRADOR"
@@ -34,6 +34,8 @@ class SoporteTicket(database.Model, UniversalMixin):
         "SOPORTE TECNICO": "SOPORTE TÉCNICO",
         "PAIIJ": "PAIIJ",
         "SIGE": "SIGE",
+        "SAJI HIPOTECARIO": "SAJI HIPOTECARIO",
+        "SAJI LABORAL": "SAJI LABORAL",
         "INFRAESTRUCTURA": "INFRAESTRUCTURA",
         "OTRO": "Otro",
     }
