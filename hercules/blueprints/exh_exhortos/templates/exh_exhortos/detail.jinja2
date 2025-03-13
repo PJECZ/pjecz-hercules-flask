@@ -125,16 +125,18 @@
                             color_class='btn-secondary') }}
                     </div>
                     <div class="col-md-6">
-                        {{ detail.button_lg_modal(
-                            label="Enviar",
-                            onclick="showModalEnviarBtn('" + url_for('exh_exhortos.launch_task_send', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de ENVIAR este exhorto? Una vez enviado ya no podrá ni editarlo ni cancelarlo.');",
-                            icon='mdi:send',
-                            color_class='btn-primary') }}
+                        {% if exh_exhorto.remitente == "INTERNO" and exh_exhorto.estado == "POR ENVIAR" %}
+                            {{ detail.button_lg_modal(
+                                label="Enviar",
+                                onclick="showModalEnviarBtn('" + url_for('exh_exhortos.launch_task_send', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de ENVIAR este exhorto? Una vez enviado ya no podrá ni editarlo ni cancelarlo.');",
+                                icon='mdi:send',
+                                color_class='btn-primary') }}
+                        {% endif %}
                     </div>
                 </div>
             {% endif %}
             <!-- Botón Consultar -->
-            {% if exh_exhorto.estado == "RECIBIDO CON EXITO" %}
+            {% if exh_exhorto.remitente == "EXTERNO" and exh_exhorto.estado == "RECIBIDO CON EXITO" %}
                 <div class="row">
                     <div class="col-md-6">
                     </div>
@@ -441,7 +443,7 @@
             { data: 'area_turnado_id' },
             { data: 'area_turnado_nombre' },
             { data: 'numero_exhorto' },
-            { data: 'tipo_diligenciado' },
+            { data: 'tipo_diligenciado_nombre' },
             { data: 'remitente' },
             { data: 'estado' }
         ];

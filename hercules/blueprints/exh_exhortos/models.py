@@ -52,7 +52,7 @@ class ExhExhorto(database.Model, UniversalMixin):
     exh_area: Mapped["ExhArea"] = relationship(back_populates="exh_exhortos")
 
     # Materia (el que se obtuvo en la consulta de materias del PJ exhortado) al que el Exhorto hace referencia
-    materia_clave: Mapped[str] = mapped_column(String(24))
+    materia_clave: Mapped[str] = mapped_column(String(32))
     materia_nombre: Mapped[str] = mapped_column(String(256))
 
     # Clave foránea: Municipio de Origen donde está localizado el Juzgado del PJ exhortante

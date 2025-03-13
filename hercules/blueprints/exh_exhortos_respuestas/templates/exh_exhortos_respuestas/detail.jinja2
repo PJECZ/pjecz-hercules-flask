@@ -38,11 +38,7 @@
         {% else %}
             {{ detail.label_value('Número de Exhorto', 'NULO') }}
         {% endif %}
-        {% if exh_exhorto_respuesta.tipo_diligenciado %}
-            {{ detail.label_value('Tipo diligenciado', exh_exhorto_respuesta.tipo_diligenciado) }}
-        {% else %}
-            {{ detail.label_value('Tipo diligenciado', 'NULO') }}
-        {% endif %}
+        {{ detail.label_value('Tipo diligenciado', exh_exhorto_respuesta.tipo_diligenciado_nombre) }}
         {% if exh_exhorto_respuesta.fecha_hora_recepcion %}
             {{ detail.label_value('Fecha hora recepción', moment(exh_exhorto_respuesta.fecha_hora_recepcion).format('llll')) }}
         {% endif %}

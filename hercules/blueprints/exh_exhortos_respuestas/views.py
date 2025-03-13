@@ -66,7 +66,7 @@ def datatable_json():
                 "area_turnado_id": resultado.area_turnado_id if resultado.area_turnado_id else "",
                 "area_turnado_nombre": resultado.area_turnado_nombre if resultado.area_turnado_nombre else "",
                 "numero_exhorto": resultado.numero_exhorto if resultado.numero_exhorto else "",
-                "tipo_diligenciado": resultado.tipo_diligenciado if resultado.tipo_diligenciado else "",
+                "tipo_diligenciado_nombre": resultado.tipo_diligenciado_nombre,
                 "remitente": resultado.remitente,
                 "estado": resultado.estado,
             }

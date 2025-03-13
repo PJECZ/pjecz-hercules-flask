@@ -27,6 +27,12 @@ class ExhExhortoRespuesta(database.Model, UniversalMixin):
         "RECHAZADO": "Rechazado",
     }
 
+    TIPOS_DILIGENCIADOS = {
+        0: "No Diligenciado",
+        1: "Parcialmente Diligenciado",
+        2: "Diligenciado",
+    }
+
     # Nombre de la tabla
     __tablename__ = "exh_exhortos_respuestas"
 
@@ -36,6 +42,10 @@ class ExhExhortoRespuesta(database.Model, UniversalMixin):
     # Clave foránea
     exh_exhorto_id: Mapped[int] = mapped_column(ForeignKey("exh_exhortos.id"))
     exh_exhorto: Mapped["ExhExhorto"] = relationship(back_populates="exh_exhortos_respuestas")
+
+    # Identificador del origen de la promoción;
+    # Puede ser el folio del oficio u otro documento desde donde partió la respuesta
+    folio_origen_respuesta: Mapped[str] = mapped_column(String(64))
 
     # Identificador propio del Poder Judicial exhortado con el que identifica la respuesta del exhorto.
     # Este dato puede ser un número consecutivo (ej "1", "2", "3"...),
@@ -75,6 +85,9 @@ class ExhExhortoRespuesta(database.Model, UniversalMixin):
         Enum(*REMITENTES, name="exh_exhortos_respuestas_remitentes", native_enum=False), index=True
     )
 
+    # Folio de la respuesta recibida, se va a generar cuando se entreguen todos los archivos
+    folio_respuesta_recibida: Mapped[Optional[str]] = mapped_column(String(64))
+
     # Estado de la respuesta
     estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="exh_exhortos_respuestas_estados", native_enum=False), index=True)
 
@@ -87,6 +100,14 @@ class ExhExhortoRespuesta(database.Model, UniversalMixin):
     exh_exhortos_respuestas_videos: Mapped[List["ExhExhortoRespuestaVideo"]] = relationship(
         back_populates="exh_exhorto_respuesta"
     )
+
+    @property
+    def tipo_diligenciado_nombre(self):
+        """Nombre del tipo de diligenciado"""
+        try:
+            return self.TIPOS_DILIGENCIADOS[self.tipo_diligenciado]
+        except KeyError:
+            return "No Diligenciado"
 
     def __repr__(self):
         """Representación"""

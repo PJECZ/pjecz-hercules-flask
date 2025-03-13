@@ -53,7 +53,9 @@ class ExhExhortoRespuestaArchivo(database.Model, UniversalMixin):
     tipo_documento: Mapped[int]
 
     # Estado de recepción del documento
-    estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="exh_exhortos_archivos_estados", native_enum=False), index=True)
+    estado: Mapped[str] = mapped_column(
+        Enum(*ESTADOS, name="exh_exhortos_respuestas_archivos_estados", native_enum=False), index=True
+    )
 
     # URL del archivo en Google Storage. Opcional para guardar, obtener el ID, y crear la ruta con ese ID hasheado.
     url: Mapped[Optional[str]] = mapped_column(String(512))
