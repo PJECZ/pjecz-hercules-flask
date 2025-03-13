@@ -29,7 +29,6 @@ class ExhExhorto(database.Model, UniversalMixin):
         "RECIBIDO CON EXITO": "Recibido con éxito",
         "NO FUE RESPONDIDO": "No fue respondido",
         "RESPONDIDO": "Respondido",
-        "ARCHIVADO": "Archivado",
     }
 
     REMITENTES = {
@@ -108,12 +107,6 @@ class ExhExhorto(database.Model, UniversalMixin):
     # Texto simple que contenga información extra o relevante sobre el exhorto, opcional
     observaciones: Mapped[Optional[str]] = mapped_column(String(1024))
 
-    # Estado de recepción del documento
-    estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="exh_exhortos_estados", native_enum=False), index=True)
-
-    # Campo para saber si es un proceso interno o extorno
-    remitente: Mapped[str] = mapped_column(Enum(*REMITENTES, name="exh_exhortos_remitentes", native_enum=False), index=True)
-
     # Número de Exhorto con el que se radica en el Juzgado/Área que se turnó el exhorto.
     # Este número sirve para que el usuario pueda indentificar su exhorto dentro del Juzgado/Área donde se turnó,
     # opcional
@@ -150,11 +143,16 @@ class ExhExhorto(database.Model, UniversalMixin):
     # fue enviado correctamente al Poder Judicial exhortado o también una página que muestre el estatus del exhorto.
     acuse_url_info: Mapped[Optional[str]] = mapped_column(String(256))
 
+    # Campo para saber si es un proceso interno o extorno
+    remitente: Mapped[str] = mapped_column(Enum(*REMITENTES, name="exh_exhortos_remitentes", native_enum=False), index=True)
+
+    # Estado de recepción del documento
+    estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="exh_exhortos_estados", native_enum=False), index=True)
+
     # Hijo: Definición de las partes del Expediente
     exh_exhortos_partes: Mapped[List["ExhExhortoParte"]] = relationship("ExhExhortoParte", back_populates="exh_exhorto")
 
-    # Hijo: Archivos
-    # Colección de los datos referentes a los archivos
+    # Hijo: Colección de los datos referentes a los archivos
     # que se van a recibir el Poder Judicial exhortado en el envío del Exhorto.
     exh_exhortos_archivos: Mapped[List["ExhExhortoArchivo"]] = relationship("ExhExhortoArchivo", back_populates="exh_exhorto")
 

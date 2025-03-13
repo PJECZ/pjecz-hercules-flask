@@ -52,11 +52,6 @@ class ExhExhortoPromocionArchivo(database.Model, UniversalMixin):
     # 3 = Anexo
     tipo_documento: Mapped[int]
 
-    # Estado de recepción del documento
-    estado: Mapped[str] = mapped_column(
-        Enum(*ESTADOS, name="exh_exhortos_promociones_archivos_estados", native_enum=False), index=True
-    )
-
     # URL del archivo en Google Storage. Opcional para guardar, obtener el ID, y crear la ruta con ese ID hasheado.
     url: Mapped[Optional[str]] = mapped_column(String(512))
 
@@ -65,6 +60,11 @@ class ExhExhortoPromocionArchivo(database.Model, UniversalMixin):
 
     # Fecha y hora de recepción del documento
     fecha_hora_recepcion: Mapped[datetime] = mapped_column(default=now())
+
+    # Estado de recepción del documento
+    estado: Mapped[str] = mapped_column(
+        Enum(*ESTADOS, name="exh_exhortos_promociones_archivos_estados", native_enum=False), index=True
+    )
 
     @property
     def tipo_documento_nombre(self):

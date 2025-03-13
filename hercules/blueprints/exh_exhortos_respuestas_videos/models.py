@@ -39,4 +39,4 @@ class ExhExhortoRespuestaVideo(database.Model, UniversalMixin):
 
     def __repr__(self):
         """Representación"""
-        return f"<ExhExhortoVideo {self.id}>"
+        return f"<ExhExhortoRespuestaVideo {self.id}>"

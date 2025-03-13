@@ -22,9 +22,8 @@ class ExhExhortoActualizacion(database.Model, UniversalMixin):
     }
 
     ESTADOS = {
-        "CANCELADO": "Cancelado",
-        "ENVIADO": "Enviado",
         "PENDIENTE": "Pendiente",
+        "ENVIADO": "Enviado",
     }
 
     # Nombre de la tabla

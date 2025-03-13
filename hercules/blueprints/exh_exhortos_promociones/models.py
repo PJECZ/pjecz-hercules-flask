@@ -22,10 +22,8 @@ class ExhExhortoPromocion(database.Model, UniversalMixin):
     }
 
     ESTADOS = {
-        "CANCELADO": "Cancelado",
-        "ENVIADO": "Enviado",
         "PENDIENTE": "Pendiente",
-        "RECHAZADO": "Rechazado",
+        "ENVIADO": "Enviado",
     }
 
     # Nombre de la tabla
@@ -53,13 +51,13 @@ class ExhExhortoPromocion(database.Model, UniversalMixin):
     # Texto simple que contenga información extra o relevante sobre el exhorto.
     observaciones: Mapped[Optional[str]] = mapped_column(String(1024))
 
+    # Folio de la promoción recibida, se va a generar cuando se entreguen todos los archivos
+    folio_promocion_recibida: Mapped[Optional[str]] = mapped_column(String(64))
+
     # Si el remitente es INTERNO entonces fue creada por nosotros, si es EXTERNO fue creada por otro PJ
     remitente: Mapped[str] = mapped_column(
         Enum(*REMITENTES, name="exh_exhortos_promociones_remitentes", native_enum=False), index=True
     )
-
-    # Folio de la promoción recibida, se va a generar cuando se entreguen todos los archivos
-    folio_promocion_recibida: Mapped[Optional[str]] = mapped_column(String(64))
 
     # Estado de la promoción
     estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="exh_exhortos_promociones_estados", native_enum=False), index=True)
