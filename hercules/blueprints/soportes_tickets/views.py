@@ -350,7 +350,7 @@ def new():
         clasificacion = safe_string(request.form["clasificacion"])
         departamento = safe_string(request.form["departamento"])
         if departamento == "INFORMATICA":
-            if clasificacion not in ("SOPORTE TECNICO", "PAIIJ", "SIGE", "OTRO"):
+            if clasificacion not in ("SOPORTE TECNICO", "PAIIJ", "SIGE", "SAJI HIPOTECARIO", "SAJI LABORAL", "OTRO"):
                 flash(f"El departamento {departamento} no contiene la clasificación {clasificacion}.", "warning")
                 return render_template("soportes_tickets/new.jinja2", form=form, filtros=json.dumps({"estatus": "A"}))
         elif departamento == "INFRAESTRUCTURA":
