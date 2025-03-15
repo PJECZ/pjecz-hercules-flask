@@ -64,6 +64,14 @@ class ExhExhortoArchivo(database.Model, UniversalMixin):
     # Estado de recepción del documento
     estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="exh_exhortos_archivos_estados", native_enum=False), index=True)
 
+    @property
+    def tipo_documento_descripcion(self):
+        """Descripción del tipo de documento"""
+        try:
+            return self.TIPOS_DOCUMENTOS[self.tipo_documento]
+        except KeyError:
+            return "Desconocido"
+
     def __repr__(self):
         """Representación"""
         return f"<ExhExhortoArchivo {self.id}>"

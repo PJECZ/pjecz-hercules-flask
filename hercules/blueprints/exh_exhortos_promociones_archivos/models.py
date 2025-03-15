@@ -67,12 +67,12 @@ class ExhExhortoPromocionArchivo(database.Model, UniversalMixin):
     )
 
     @property
-    def tipo_documento_nombre(self):
-        """Nombre del tipo de documento"""
+    def tipo_documento_descripcion(self):
+        """Descripción del tipo de documento"""
         try:
             return self.TIPOS_DOCUMENTOS[self.tipo_documento]
         except KeyError:
-            return "No Definido"
+            return "Desconocido"
 
     def __repr__(self):
         """Representación"""

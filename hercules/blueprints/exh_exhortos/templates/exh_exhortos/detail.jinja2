@@ -88,7 +88,7 @@
                                 {% for archivo in exh_exhorto.exh_exhortos_archivos %}
                                     <li>
                                     <a href="{{ url_for('exh_exhortos_archivos.detail', exh_exhorto_archivo_id=archivo.id) }}">{{ archivo.nombre_archivo }}</a>
-                                    | {{ archivo.tipo_documento_nombre }}
+                                    | {{ archivo.tipo_documento_descripcion }}
                                     | {% if archivo.estado == 'PENDIENTE' %}
                                         <span class="badge rounded-pill bg-warning text-dark">{{ archivo.estado }}</span>
                                     {% else %}
@@ -357,9 +357,9 @@
         configDTPartes['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}};
         configDTPartes['columns'] = [
             { data: 'detalle' },
-            { data: 'genero' },
+            { data: 'genero_descripcion' },
             { data: 'es_persona_moral' },
-            { data: 'tipo_parte' }
+            { data: 'tipo_parte_descripcion' }
         ];
         configDTPartes['columnDefs'] = [
             {
@@ -367,17 +367,6 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.nombre + '</a>';
-                }
-            },
-            {
-                targets: 1, // genero
-                data: null,
-                render: function(data, type, row, meta) {
-                    switch (data) {
-                        case "M": return "<span title='Masculino'>M <span class='iconify' data-icon='mdi:gender-male'></span></span>";
-                        case "F": return "<span title='Femenino'>F <span class='iconify' data-icon='mdi:gender-female'></span></span>";
-                    }
-                    return "-";
                 }
             },
             {
@@ -403,7 +392,7 @@
         configDTArchivos['columns'] = [
             { data: 'detalle' },
             { data: 'descargar_pdf' },
-            { data: 'tipo_documento_nombre' },
+            { data: 'tipo_documento_descripcion' },
             { data: 'tamano' },
             { data: 'estado' }
         ];

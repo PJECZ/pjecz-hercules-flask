@@ -66,13 +66,9 @@ def datatable_json():
                     "nombre_archivo": resultado.nombre_archivo,
                     "url": url_for("exh_exhortos_archivos.download_pdf", exh_exhorto_archivo_id=resultado.id),
                 },
-                "tipo_documento_nombre": resultado.tipo_documento_nombre,
+                "tipo_documento_descripcion": resultado.tipo_documento_descripcion,
                 "tamano": f"{round((resultado.tamano / 1024), 2)} MB",
                 "estado": resultado.estado,
-                "exh_exhorto": {
-                    "exhorto_origen_id": resultado.exh_exhorto.exhorto_origen_id,
-                    "url": url_for("exh_exhortos.detail", exh_exhorto_id=resultado.exh_exhorto_id),
-                },
             }
         )
     # Entregar JSON

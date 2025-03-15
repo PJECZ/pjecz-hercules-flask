@@ -72,7 +72,7 @@ def datatable_json():
                     ),
                 },
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
-                "tipo_documento_nombre": resultado.tipo_documento_nombre,
+                "tipo_documento_descripcion": resultado.tipo_documento_descripcion,
                 "estado": resultado.estado,
                 "fecha_hora_recepcion": resultado.fecha_hora_recepcion.strftime("%Y-%m-%d %H:%M:%S"),
                 "tamano": f"{round((resultado.tamano / 1024), 2)} MB",

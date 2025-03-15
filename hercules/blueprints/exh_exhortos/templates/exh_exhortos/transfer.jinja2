@@ -84,7 +84,7 @@
                                 {% for archivo in exh_exhorto.exh_exhortos_archivos %}
                                     <li>
                                     <a href="{{ url_for('exh_exhortos_archivos.detail', exh_exhorto_archivo_id=archivo.id) }}">{{ archivo.nombre_archivo }}</a>
-                                    | {{ archivo.tipo_documento_nombre }}
+                                    | {{ archivo.tipo_documento_descripcion }}
                                     | {% if archivo.estado == 'PENDIENTE' %}
                                         <span class="badge rounded-pill bg-warning text-dark">{{ archivo.estado }}</span>
                                     {% else %}

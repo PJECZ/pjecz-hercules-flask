@@ -49,10 +49,6 @@ def datatable_json():
     # Elaborar datos para DataTable
     data = []
     for resultado in registros:
-        # Quitar genero si es persona moral
-        genero_str = resultado.genero
-        if resultado.es_persona_moral == True:
-            genero_str = "-"
         # Si tipo_parte es NO DEFINIDO se remplaza por el tipo_parte_nombre
         tipo_parte_str = resultado.tipo_parte
         if tipo_parte_str == 0:
@@ -70,14 +66,9 @@ def datatable_json():
                     "nombre": resultado.nombre_completo,
                     "url": url_for("exh_exhortos_partes.detail", exh_exhorto_parte_id=resultado.id),
                 },
-                "genero": genero_str,
+                "genero_descripcion": resultado.genero_descripcion,
                 "es_persona_moral": resultado.es_persona_moral,
-                "tipo_parte": tipo_parte_str,
-                "tipo_parte_nombre": resultado.tipo_parte_nombre,
-                "exh_exhorto": {
-                    "exhorto_origen_id": resultado.exh_exhorto.exhorto_origen_id,
-                    "url": url_for("exh_exhortos.detail", exh_exhorto_id=resultado.exh_exhorto_id),
-                },
+                "tipo_parte_descripcion": resultado.tipo_parte_descripcion,
             }
         )
     # Entregar JSON
