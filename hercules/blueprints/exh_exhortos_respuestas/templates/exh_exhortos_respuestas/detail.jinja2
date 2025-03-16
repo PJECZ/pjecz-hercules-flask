@@ -3,10 +3,10 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Respuesta {{ exh_exhorto_respuesta.origen_id }}{% endblock %}
+{% block title %}Respuesta {{ exh_exhorto_respuesta.respuesta_origen_id }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Respuesta ' + exh_exhorto_respuesta.origen_id) %}
+    {% call topbar.page_buttons('Respuesta ' + exh_exhorto_respuesta.respuesta_origen_id) %}
         {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_respuesta.exh_exhorto_id)) }}
         {% if current_user.can_edit('EXH EXHORTOS RESPUESTAS') %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_respuestas.edit', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id)) }}
@@ -22,7 +22,7 @@
     <!-- Detalle de la respuesta -->
     {% call detail.card(estatus=exh_exhorto_respuesta.estatus) %}
         {{ detail.label_value('Exhorto Origen ID', exh_exhorto_respuesta.exh_exhorto.exhorto_origen_id, url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_respuesta.exh_exhorto_id)) }}
-        {{ detail.label_value('Respuesta Origen ID', exh_exhorto_respuesta.origen_id) }}
+        {{ detail.label_value('Respuesta Origen ID', exh_exhorto_respuesta.respuesta_origen_id) }}
         {% if exh_exhorto_respuesta.municipio_turnado_id %}
             {{ detail.label_value('Municipio turnado', exh_exhorto_respuesta.municipio_turnado_id) }}
         {% else %}

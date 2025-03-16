@@ -56,12 +56,9 @@ def datatable_json():
         data.append(
             {
                 "detalle": {
-                    "origen_id": resultado.origen_id,
+                    "respuesta_origen_id": resultado.respuesta_origen_id,
                     "url": url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=resultado.id),
                 },
-                "fecha_hora_recepcion": resultado.fecha_hora_recepcion.strftime("%Y-%m-%d %H:%M")
-                if resultado.fecha_hora_recepcion
-                else "",
                 "municipio_turnado_id": resultado.municipio_turnado_id if resultado.municipio_turnado_id else "",
                 "area_turnado_id": resultado.area_turnado_id if resultado.area_turnado_id else "",
                 "area_turnado_nombre": resultado.area_turnado_nombre if resultado.area_turnado_nombre else "",
@@ -259,7 +256,7 @@ def delete(exh_exhorto_respuesta_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado respuesta {exh_exhorto_respuesta.origen_id}"),
+            descripcion=safe_message(f"Eliminado respuesta {exh_exhorto_respuesta.id}"),
             url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
         )
         bitacora.save()
@@ -277,7 +274,7 @@ def recover(exh_exhorto_respuesta_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado respuesta {exh_exhorto_respuesta.origen_id}"),
+            descripcion=safe_message(f"Recuperado respuesta {exh_exhorto_respuesta.id}"),
             url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
         )
         bitacora.save()

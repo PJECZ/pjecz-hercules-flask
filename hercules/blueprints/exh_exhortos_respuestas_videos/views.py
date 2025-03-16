@@ -169,7 +169,7 @@ def delete(exh_exhorto_respuesta_video_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Exhorto Video {exh_exhorto_respuesta_video.titulo}"),
+            descripcion=safe_message(f"Eliminado Exhorto Video {exh_exhorto_respuesta_video.id}"),
             url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_respuesta_video_id=exh_exhorto_respuesta_video.id),
         )
         bitacora.save()
@@ -189,7 +189,7 @@ def recover(exh_exhorto_respuesta_video_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Exhorto Video {exh_exhorto_respuesta_video.titulo}"),
+            descripcion=safe_message(f"Recuperado Exhorto Video {exh_exhorto_respuesta_video.id}"),
             url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_respuesta_video_id=exh_exhorto_respuesta_video.id),
         )
         bitacora.save()

@@ -257,7 +257,7 @@ def delete(exh_exhorto_promocion_promovente_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Promovente {exh_exhorto_promocion_promovente.nombre_completo}"),
+            descripcion=safe_message(f"Eliminado Promovente {exh_exhorto_promocion_promovente.id}"),
             url=url_for(
                 "exh_exhortos_promociones_promoventes.detail",
                 exh_exhorto_promocion_promovente_id=exh_exhorto_promocion_promovente.id,
@@ -285,7 +285,7 @@ def recover(exh_exhorto_promocion_promovente_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Promovente {exh_exhorto_promocion_promovente.nombre_completo}"),
+            descripcion=safe_message(f"Recuperado Promovente {exh_exhorto_promocion_promovente.id}"),
             url=url_for(
                 "exh_exhortos_promociones_promoventes.detail",
                 exh_exhorto_promocion_promovente_id=exh_exhorto_promocion_promovente.id,

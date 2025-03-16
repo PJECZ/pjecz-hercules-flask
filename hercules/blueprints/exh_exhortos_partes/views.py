@@ -241,7 +241,7 @@ def delete(exh_exhorto_parte_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Parte {exh_exhorto_parte.nombre_completo}"),
+            descripcion=safe_message(f"Eliminado Parte {exh_exhorto_parte.id}"),
             url=url_for("exh_exhortos_partes.detail", exh_exhorto_parte_id=exh_exhorto_parte.id),
         )
         bitacora.save()
@@ -259,7 +259,7 @@ def recover(exh_exhorto_parte_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Parte {exh_exhorto_parte.nombre_completo}"),
+            descripcion=safe_message(f"Recuperado Parte {exh_exhorto_parte.id}"),
             url=url_for("exh_exhortos_partes.detail", exh_exhorto_parte_id=exh_exhorto_parte.id),
         )
         bitacora.save()
