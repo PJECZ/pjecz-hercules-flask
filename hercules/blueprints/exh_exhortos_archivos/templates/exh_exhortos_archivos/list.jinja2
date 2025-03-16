@@ -33,7 +33,6 @@
                     <th>Tipo Documento</th>
                     <th>Tamaño</th>
                     <th>Estado</th>
-                    <th>Exhorto Origen ID</th>
                 </tr>
             </thead>
         </table>
@@ -54,8 +53,7 @@
             { data: 'descargar_pdf' },
             { data: 'tipo_documento_descripcion' },
             { data: 'tamano' },
-            { data: 'estado' },
-            { data: 'exh_exhorto' }
+            { data: 'estado' }
         ];
         configDTExhExhortosArchivos['columnDefs'] = [
             {
@@ -73,16 +71,6 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '" download="' + data.nombre_archivo + '"><span class="iconify" data-icon="mdi:file-pdf-box"></span></a>';
-                }
-            },
-            {
-                targets: 5, // exh_exhorto
-                data: null,
-                render: function(data, type, row, meta) {
-                    if (data.url != '') {
-                        return '<a href="' + data.url + '">' + data.exhorto_origen_id + '</a>';
-                    }
-                    return data.exhorto_origen_id;
                 }
             }
         ];

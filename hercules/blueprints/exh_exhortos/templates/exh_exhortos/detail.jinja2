@@ -310,7 +310,6 @@
             <table id="exh_exhortos_promociones_datatable" class="table display nowrap" style="width:100%">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Folio Origen</th>
                         <th>Fecha Origen</th>
                         <th>Remitente</th>
@@ -481,7 +480,6 @@
         configDTPromociones['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}};
         configDTPromociones['columns'] = [
             { data: 'detalle' },
-            { data: 'folio_origen_promocion' },
             { data: 'fecha_origen' },
             { data: 'remitente' },
             { data: 'estado' }
@@ -491,19 +489,7 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.id + '</a>';
-                }
-            },
-            {
-                targets: 4, // estado
-                data: null,
-                render: function(data, type, row, meta) {
-                    switch(data) {
-                        case "CANCELADO": bgcolor = 'bg-danger';            icon="send";      break;
-                        case "ENVIADO":   bgcolor = 'bg-success';           icon="send";      break;
-                        case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit"; break;
-                    }
-                    return '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + data + '</span>';
+                    return '<a href="' + data.url + '">' + data.folio_origen_promocion + '</a>';
                 }
             }
         ];

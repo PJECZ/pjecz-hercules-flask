@@ -83,7 +83,7 @@ def datatable_json():
                 "nombre": resultado.nombre,
                 "apellido_paterno": resultado.apellido_paterno,
                 "apellido_materno": resultado.apellido_materno,
-                "genero": resultado.genero_descripcion,
+                "genero": resultado.genero,
                 "es_persona_moral": resultado.es_persona_moral,
                 "tipo_parte_descripcion": tipo_parte_str,
             }

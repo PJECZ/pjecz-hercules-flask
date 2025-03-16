@@ -55,7 +55,7 @@ def datatable_json():
         observaciones = safe_string(request.form["observaciones"])
         consulta = consulta.filter(ExhExhortoPromocion.observaciones.contains(observaciones))
     # Ordenar y paginar
-    registros = consulta.order_by(ExhExhortoPromocion.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ExhExhortoPromocion.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -63,10 +63,9 @@ def datatable_json():
         data.append(
             {
                 "detalle": {
-                    "id": resultado.id,
+                    "folio_origen_promocion": resultado.folio_origen_promocion,
                     "url": url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=resultado.id),
                 },
-                "folio_origen_promocion": resultado.folio_origen_promocion,
                 "fecha_origen": resultado.fecha_origen.strftime("%Y-%m-%d %H:%M"),
                 "remitente": resultado.remitente,
                 "fojas": resultado.fojas,

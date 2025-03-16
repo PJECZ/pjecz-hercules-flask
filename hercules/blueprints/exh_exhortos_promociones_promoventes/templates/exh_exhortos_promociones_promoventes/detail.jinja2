@@ -19,7 +19,6 @@
 
 {% block content %}
     {% call detail.card(estatus=exh_exhorto_promocion_promovente.estatus) %}
-        {{ detail.label_value('Exhorto', exh_exhorto_promocion_promovente.exh_exhorto_promocion.exh_exhorto.exhorto_origen_id, url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_promocion_promovente.exh_exhorto_promocion.exh_exhorto_id)) }}
         {{ detail.label_value('Promoción', exh_exhorto_promocion_promovente.exh_exhorto_promocion.folio_origen_promocion, url_for('exh_exhortos_promociones.detail', exh_exhorto_promocion_id=exh_exhorto_promocion_promovente.exh_exhorto_promocion_id)) }}
         {{ detail.label_value('Nombre', exh_exhorto_promocion_promovente.nombre) }}
         {{ detail.label_value('Apellido Paterno', exh_exhorto_promocion_promovente.apellido_paterno) }}
