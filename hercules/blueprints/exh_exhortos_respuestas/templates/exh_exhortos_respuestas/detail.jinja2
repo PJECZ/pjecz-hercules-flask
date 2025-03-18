@@ -8,7 +8,7 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons('Respuesta ' + exh_exhorto_respuesta.respuesta_origen_id) %}
         {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_respuesta.exh_exhorto_id)) }}
-        {% if current_user.can_edit('EXH EXHORTOS RESPUESTAS') %}
+        {% if current_user.can_edit('EXH EXHORTOS RESPUESTAS') and exh_exhorto_respuesta.estado == 'PENDIENTE' %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_respuestas.edit', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id)) }}
         {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
@@ -60,10 +60,10 @@
                 <thead>
                     <tr>
                         <th>Archivo</th>
+                        <th>Descargar</th>
                         <th>Tipo Documento</th>
-                        <th>Estado</th>
-                        <th>Fecha y hora de recepción</th>
                         <th>Tamaño</th>
+                        <th>Estado</th>
                     </tr>
                 </thead>
             </table>
@@ -76,7 +76,7 @@
                 <thead>
                     <tr>
                         <th>Título</th>
-                        <th>Descripción</th>
+                        <th>Descripción con URL de acceso</th>
                         <th>Fecha</th>
                     </tr>
                 </thead>
@@ -121,10 +121,10 @@
             configDTExhExhortoRespuestaArchivo['ajax']['data'] = { estatus: "A", exh_exhorto_respuesta_id: {{ exh_exhorto_respuesta.id}} };
             configDTExhExhortoRespuestaArchivo['columns'] = [
                 { data: 'detalle' },
+                { data: 'descargar_pdf' },
                 { data: 'tipo_documento_descripcion' },
-                { data: 'estado' },
-                { data: 'fecha_hora_recepcion' },
-                { data: 'tamano' }
+                { data: 'tamano' },
+                { data: 'estado' }
             ];
             configDTExhExhortoRespuestaArchivo['columnDefs'] = [
                 {
@@ -136,6 +136,13 @@
                         } else {
                             return data.nombre_archivo;
                         }
+                    }
+                },
+                {
+                    targets: 1, // descargar_pdf
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '" download="' + data.nombre_archivo + '"><span class="iconify" data-icon="mdi:file-pdf-box" style="font-size:2.0rem"></span></a>';
                     }
                 }
             ];
@@ -153,7 +160,7 @@
             configDTExhExhortosRespuestasVideos['ajax']['data'] = { estatus: "A", exh_exhorto_respuesta_id: {{ exh_exhorto_respuesta.id}} };
             configDTExhExhortosRespuestasVideos['columns'] = [
                 { data: 'detalle' },
-                { data: 'descripcion' },
+                { data: 'hipervinculo' },
                 { data: 'fecha' }
             ];
             configDTExhExhortosRespuestasVideos['columnDefs'] = [
@@ -162,6 +169,13 @@
                     data: null,
                     render: function(data, type, row, meta) {
                         return '<a href="' + data.url + '">' + data.titulo + '</a>';
+                    }
+                },
+                {
+                    targets: 1, // hipervinculo
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url_acceso + '" target="_blank">' + data.descripcion + '</a>';
                     }
                 }
             ];

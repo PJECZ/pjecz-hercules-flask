@@ -64,6 +64,7 @@ def datatable_json():
                 "observaciones": resultado.observaciones,
                 "estado": resultado.estado,
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
+                "exhorto_origen_id": resultado.exh_exhorto.exhorto_origen_id,
             }
         )
     # Entregar JSON

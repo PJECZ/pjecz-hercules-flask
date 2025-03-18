@@ -32,6 +32,7 @@
                     <th>Género</th>
                     <th>Es Persona Moral</th>
                     <th>Tipo de Parte</th>
+                    <th>Promoción Folio Origen</th>
                 </tr>
             </thead>
         </table>
@@ -49,37 +50,27 @@
         configDTExhExhortosPromocionesPromoventes['ajax']['data'] = {{ filtros }};
         configDTExhExhortosPromocionesPromoventes['columns'] = [
             { data: 'detalle' },
-            { data: 'genero' },
+            { data: 'genero_descripcion' },
             { data: 'es_persona_moral' },
-            { data: 'tipo_parte_descripcion' }
+            { data: 'tipo_parte_descripcion' },
+            { data: 'folio_origen_promocion' }
         ];
         configDTExhExhortosPromocionesPromoventes['columnDefs'] = [
             {
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.nombre + '</a>';
-                }
-            },
-            {
-                targets: 1, // genero
-                data: null,
-                render: function(data, type, row, meta) {
-                    switch (data) {
-                        case "M": return "<span title='Masculino'>M <span class='iconify' data-icon='mdi:gender-male'></span></span>";
-                        case "F": return "<span title='Femenino'>F <span class='iconify' data-icon='mdi:gender-female'></span></span>";
+                    if (data.url != '') {
+                        return '<a href="' + data.url + '">' + data.nombre + '</a>';
                     }
-                    return "-";
+                    return data.nombre;
                 }
             },
             {
                 targets: 2, // es_persona_moral
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data == true) {
-                        return "SÍ";
-                    }
-                    return "-";
+                    return data.es_persona_moral ? 'Sí' : '';
                 }
             }
         ];

@@ -7,10 +7,11 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons('Promoción ' + exh_exhorto_promocion.folio_origen_promocion) %}
+        {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_promocion.exh_exhorto_id)) }}
         {% if current_user.can_edit('EXH EXHORTOS PROMOCIONES') and exh_exhorto_promocion.estado == 'PENDIENTE' %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_promociones.edit', exh_exhorto_promocion_id=exh_exhorto_promocion.id)) }}
         {% endif %}
-        {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') and exh_exhorto_promocion.estado == 'PENDIENTE' %}
+        {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') %}
             {% if exh_exhorto_promocion.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('exh_exhortos_promociones.delete', exh_exhorto_promocion_id=exh_exhorto_promocion.id)) }}{% endif %}
             {% if exh_exhorto_promocion.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('exh_exhortos_promociones.recover', exh_exhorto_promocion_id=exh_exhorto_promocion.id)) }}{% endif %}
         {% endif %}
@@ -123,7 +124,7 @@
         configDTPromoventes['ajax']['data'] = {'estatus':'A', 'exh_exhorto_promocion_id':{{exh_exhorto_promocion.id}}};
         configDTPromoventes['columns'] = [
             { data: 'detalle' },
-            { data: 'genero' },
+            { data: 'genero_descripcion' },
             { data: 'es_persona_moral' },
             { data: 'tipo_parte_descripcion' }
         ];
@@ -136,24 +137,10 @@
                 }
             },
             {
-                targets: 1, // genero
-                data: null,
-                render: function(data, type, row, meta) {
-                    switch (data) {
-                        case "M": return "<span title='Masculino'>M <span class='iconify' data-icon='mdi:gender-male'></span></span>";
-                        case "F": return "<span title='Femenino'>F <span class='iconify' data-icon='mdi:gender-female'></span></span>";
-                    }
-                    return "-";
-                }
-            },
-            {
                 targets: 2, // es_persona_moral
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data == true) {
-                        return "SÍ";
-                    }
-                    return "-";
+                    return data.es_persona_moral ? 'Sí' : '';
                 }
             }
         ];

@@ -54,7 +54,7 @@ def datatable_json():
     if "exh_exhorto_respuesta_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_respuesta_id=request.form["exh_exhorto_respuesta_id"])
     # Ordenar y paginar
-    registros = consulta.order_by(ExhExhortoRespuestaArchivo.nombre_archivo).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ExhExhortoRespuestaArchivo.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -74,6 +74,7 @@ def datatable_json():
                 "tipo_documento_descripcion": resultado.tipo_documento_descripcion,
                 "tamano": f"{round((resultado.tamano / 1024), 2)} MB",
                 "estado": resultado.estado,
+                "respuesta_origen_id": resultado.exh_exhorto_respuesta.respuesta_origen_id,
             }
         )
     # Entregar JSON

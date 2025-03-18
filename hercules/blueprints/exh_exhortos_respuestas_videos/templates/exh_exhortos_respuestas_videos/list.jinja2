@@ -29,8 +29,9 @@
             <thead>
                 <tr>
                     <th>Título</th>
-                    <th>Descripción</th>
+                    <th>Descripción con URL de acceso</th>
                     <th>Fecha</th>
+                    <th>Respuesta Origen ID</th>
                 </tr>
             </thead>
         </table>
@@ -48,8 +49,9 @@
         configDTExhExhortosRespuestasVideos['ajax']['data'] = {{ filtros }};
         configDTExhExhortosRespuestasVideos['columns'] = [
             { data: 'detalle' },
-            { data: 'descripcion' },
-            { data: 'fecha' }
+            { data: 'hipervinculo' },
+            { data: 'fecha' },
+            { data: 'respuesta_origen_id' }
         ];
         configDTExhExhortosRespuestasVideos['columnDefs'] = [
             {
@@ -57,6 +59,13 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.titulo + '</a>';
+                }
+            },
+            {
+                targets: 1, // hipervinculo
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url_acceso + '" target="_blank">' + data.descripcion + '</a>';
                 }
             }
         ];

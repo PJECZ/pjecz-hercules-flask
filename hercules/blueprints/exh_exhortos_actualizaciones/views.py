@@ -54,7 +54,7 @@ def datatable_json():
         if descripcion:
             consulta = consulta.filter(ExhExhortoActualizacion.descripcion.contains(descripcion))
     # Ordenar y paginar
-    registros = consulta.order_by(ExhExhortoActualizacion.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ExhExhortoActualizacion.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -65,12 +65,12 @@ def datatable_json():
                     "actualizacion_origen_id": resultado.actualizacion_origen_id,
                     "url": url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=resultado.id),
                 },
-                "fecha_hora": resultado.fecha_hora.strftime("%Y/%m/%d %H:%M"),
                 "tipo_actualizacion": resultado.tipo_actualizacion,
                 "descripcion": resultado.descripcion,
                 "remitente": resultado.remitente,
                 "estado": resultado.estado,
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
+                "exhorto_origen_id": resultado.exh_exhorto.exhorto_origen_id,
             }
         )
     # Entregar JSON

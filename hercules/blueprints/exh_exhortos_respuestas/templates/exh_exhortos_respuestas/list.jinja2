@@ -29,14 +29,12 @@
             <thead>
                 <tr>
                     <th>Respuesta Origen ID</th>
-                    <th>Municipio turnado</th>
-                    <th>Área turnada</th>
-                    <th>Área turnada nombre</th>
                     <th>No. exhorto</th>
                     <th>Tipo diligenciado</th>
                     <th>Remitente</th>
                     <th>Estado</th>
-                    <th>Creadp</th>
+                    <th>Creado</th>
+                    <th>Exhorto Origen ID</th>
                 </tr>
             </thead>
         </table>
@@ -54,14 +52,12 @@
         configDTExhExhortosRespuestas['ajax']['data'] = {{ filtros }};
         configDTExhExhortosRespuestas['columns'] = [
             { data: 'detalle' },
-            { data: 'municipio_turnado_id' },
-            { data: 'area_turnado_id' },
-            { data: 'area_turnado_nombre' },
             { data: 'numero_exhorto' },
             { data: 'tipo_diligenciado_nombre' },
             { data: 'remitente' },
             { data: 'estado' },
-            { data: 'creado' }
+            { data: 'creado' },
+            { data: 'exhorto_origen_id' }
         ];
         configDTExhExhortosRespuestas['columnDefs'] = [
             {

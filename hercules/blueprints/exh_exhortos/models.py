@@ -25,10 +25,9 @@ class ExhExhorto(database.Model, UniversalMixin):
         "PENDIENTE": "Pendiente",
         "CANCELADO": "Cancelado",
         "POR ENVIAR": "Por enviar",
-        "INTENTOS AGOTADOS": "Intentos agotados",
         "RECIBIDO CON EXITO": "Recibido con éxito",
-        "NO FUE RESPONDIDO": "No fue respondido",
         "RESPONDIDO": "Respondido",
+        "ARCHIVADO": "Archivado",
     }
 
     REMITENTES = {

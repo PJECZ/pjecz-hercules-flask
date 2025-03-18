@@ -44,34 +44,12 @@ def datatable_json():
         consulta = consulta.filter_by(estatus="A")
     if "exh_exhorto_promocion_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_promocion_id=request.form["exh_exhorto_promocion_id"])
-    if "nombre_completo" in request.form:
-        nombre_completo = safe_string(request.form["nombre_completo"])
-        palabras = nombre_completo.split()
-        for palabra in palabras:
-            consulta = consulta.filter(
-                or_(
-                    ExhExhortoPromocionPromovente.nombre.contains(palabra),
-                    ExhExhortoPromocionPromovente.apellido_paterno.contains(palabra),
-                    ExhExhortoPromocionPromovente.apellido_materno.contains(palabra),
-                )
-            )
     # Ordenar y paginar
-    registros = consulta.order_by(ExhExhortoPromocionPromovente.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ExhExhortoPromocionPromovente.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
     for resultado in registros:
-        # Si tipo_parte es NO DEFINIDO se remplaza por el tipo_parte_nombre
-        tipo_parte_str = resultado.tipo_parte
-        if tipo_parte_str == 0:
-            tipo_parte_str = resultado.tipo_parte_nombre
-        elif tipo_parte_str == 1:
-            tipo_parte_str = "ACTOR"
-        elif tipo_parte_str == 2:
-            tipo_parte_str = "DEMANDADO"
-        else:
-            tipo_parte_str = "-"
-        # Añadir registro al listado
         data.append(
             {
                 "detalle": {
@@ -80,12 +58,10 @@ def datatable_json():
                         "exh_exhortos_promociones_promoventes.detail", exh_exhorto_promocion_promovente_id=resultado.id
                     ),
                 },
-                "nombre": resultado.nombre,
-                "apellido_paterno": resultado.apellido_paterno,
-                "apellido_materno": resultado.apellido_materno,
-                "genero": resultado.genero,
+                "genero_descripcion": resultado.genero_descripcion,
                 "es_persona_moral": resultado.es_persona_moral,
-                "tipo_parte_descripcion": tipo_parte_str,
+                "tipo_parte_descripcion": resultado.tipo_parte_descripcion,
+                "folio_origen_promocion": resultado.exh_exhorto_promocion.folio_origen_promocion,
             }
         )
     # Entregar JSON

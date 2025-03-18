@@ -45,7 +45,7 @@ def datatable_json():
     if "exh_exhorto_respuesta_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_respuesta_id=request.form["exh_exhorto_respuesta_id"])
     # Ordenar y paginar
-    registros = consulta.order_by(ExhExhortoRespuestaVideo.descripcion).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ExhExhortoRespuestaVideo.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -56,8 +56,12 @@ def datatable_json():
                     "titulo": resultado.titulo,
                     "url": url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_respuesta_video_id=resultado.id),
                 },
-                "descripcion": resultado.descripcion,
+                "hipervinculo": {
+                    "descripcion": resultado.descripcion,
+                    "url_acceso": resultado.url_acceso,
+                },
                 "fecha": resultado.fecha.strftime("%Y-%m-%d %H:%M:%S") if resultado.fecha != None else "",
+                "respuesta_origen_id": resultado.exh_exhorto_respuesta.respuesta_origen_id,
             }
         )
     # Entregar JSON

@@ -21,9 +21,9 @@ class ExhExhortoParte(database.Model, UniversalMixin):
     }
 
     TIPOS_PARTES = {
-        0: "No definido o se especifica en tipoParteNombre",
-        1: "Actor, Promovente, Ofendido",
-        2: "Demandado, Inculpado, Imputado",
+        0: "No definido",
+        1: "Actor, Promovente u Ofendido",
+        2: "Demandado, Inculpado o Imputado",
     }
 
     # Nombre de la tabla
@@ -77,7 +77,7 @@ class ExhExhortoParte(database.Model, UniversalMixin):
     @property
     def tipo_parte_descripcion(self):
         """Descripción del tipo de parte"""
-        if self.tipo_parte == 0:
+        if self.tipo_parte == 0 and self.tipo_parte_nombre != "":
             return self.tipo_parte_nombre
         if self.tipo_parte in self.TIPOS_PARTES:
             return self.TIPOS_PARTES[self.tipo_parte]

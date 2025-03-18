@@ -44,22 +44,11 @@ def datatable_json():
     if "exh_exhorto_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_id=request.form["exh_exhorto_id"])
     # Ordenar y paginar
-    registros = consulta.order_by(ExhExhortoParte.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ExhExhortoParte.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
     for resultado in registros:
-        # Si tipo_parte es NO DEFINIDO se remplaza por el tipo_parte_nombre
-        tipo_parte_str = resultado.tipo_parte
-        if tipo_parte_str == 0:
-            tipo_parte_str = resultado.tipo_parte_nombre
-        elif tipo_parte_str == 1:
-            tipo_parte_str = "ACTOR"
-        elif tipo_parte_str == 2:
-            tipo_parte_str = "DEMANDADO"
-        else:
-            tipo_parte_str = "-"
-        # Añadir registro al listado
         data.append(
             {
                 "detalle": {
@@ -69,6 +58,7 @@ def datatable_json():
                 "genero_descripcion": resultado.genero_descripcion,
                 "es_persona_moral": resultado.es_persona_moral,
                 "tipo_parte_descripcion": resultado.tipo_parte_descripcion,
+                "exhorto_origen_id": resultado.exh_exhorto.exhorto_origen_id,
             }
         )
     # Entregar JSON

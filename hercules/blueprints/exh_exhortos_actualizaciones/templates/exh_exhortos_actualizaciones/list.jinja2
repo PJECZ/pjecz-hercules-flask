@@ -29,12 +29,12 @@
             <thead>
                 <tr>
                     <th>Origen ID</th>
-                    <th>Fecha y Hora</th>
                     <th>Tipo de Actualización</th>
                     <th>Descripción</th>
                     <th>Remitente</th>
                     <th>Estado</th>
                     <th>Creado</th>
+                    <th>Exhorto Origen ID</th>
                 </tr>
             </thead>
         </table>
@@ -52,12 +52,12 @@
         configDTExhExhortosActualizaciones['ajax']['data'] = {{ filtros }};
         configDTExhExhortosActualizaciones['columns'] = [
             { data: 'detalle' },
-            { data: 'fecha_hora' },
             { data: 'tipo_actualizacion' },
             { data: 'descripcion' },
             { data: 'remitente' },
             { data: 'estado' },
-            { data: 'creado' }
+            { data: 'creado' },
+            { data: 'exhorto_origen_id' }
         ];
         configDTExhExhortosActualizaciones['columnDefs'] = [
             {

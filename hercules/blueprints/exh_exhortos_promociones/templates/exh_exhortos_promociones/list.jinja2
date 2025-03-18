@@ -29,10 +29,10 @@
             <thead>
                 <tr>
                     <th>Folio Origen</th>
-                    <th>Fecha Origen</th>
                     <th>Remitente</th>
                     <th>Estado</th>
                     <th>Creado</th>
+                    <th>Exhorto Origen ID</th>
                 </tr>
             </thead>
         </table>
@@ -50,10 +50,10 @@
         configDTExhExhortosPromociones['ajax']['data'] = {{ filtros }};
         configDTExhExhortosPromociones['columns'] = [
             { data: 'detalle' },
-            { data: 'fecha_origen' },
             { data: 'remitente' },
             { data: 'estado' },
-            { data: 'creado' }
+            { data: 'creado' },
+            { data: 'exhorto_origen_id' }
         ];
         configDTExhExhortosPromociones['columnDefs'] = [
             {
