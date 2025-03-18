@@ -16,15 +16,15 @@ from lib.universal_mixin import UniversalMixin
 class ExhExhortoPromocion(database.Model, UniversalMixin):
     """ExhExhortoPromocion"""
 
-    REMITENTES = {
-        "INTERNO": "Interno",
-        "EXTERNO": "Externo",
-    }
-
     ESTADOS = {
         "CANCELADO": "Cancelado",
         "PENDIENTE": "Pendiente",
         "ENVIADO": "Enviado",
+    }
+
+    REMITENTES = {
+        "INTERNO": "Interno",
+        "EXTERNO": "Externo",
     }
 
     # Nombre de la tabla

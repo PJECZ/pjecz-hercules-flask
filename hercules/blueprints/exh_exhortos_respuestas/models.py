@@ -15,15 +15,15 @@ from lib.universal_mixin import UniversalMixin
 class ExhExhortoRespuesta(database.Model, UniversalMixin):
     """ExhExhortoRespuesta"""
 
-    REMITENTES = {
-        "INTERNO": "Interno",
-        "EXTERNO": "Externo",
-    }
-
     ESTADOS = {
         "CANCELADO": "Cancelado",
         "PENDIENTE": "Pendiente",
         "ENVIADO": "Enviado",
+    }
+
+    REMITENTES = {
+        "INTERNO": "Interno",
+        "EXTERNO": "Externo",
     }
 
     TIPOS_DILIGENCIADOS = {

@@ -71,7 +71,6 @@ def datatable_json():
                         "exh_exhortos_respuestas_archivos.download_pdf", exh_exhorto_respuesta_archivo_id=resultado.id
                     ),
                 },
-                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
                 "tipo_documento_descripcion": resultado.tipo_documento_descripcion,
                 "tamano": f"{round((resultado.tamano / 1024), 2)} MB",
                 "estado": resultado.estado,

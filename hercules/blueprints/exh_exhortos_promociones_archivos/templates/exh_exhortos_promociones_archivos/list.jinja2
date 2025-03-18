@@ -29,10 +29,10 @@
             <thead>
                 <tr>
                     <th>Archivo</th>
+                    <th>Descargar</th>
                     <th>Tipo Documento</th>
-                    <th>Estado</th>
-                    <th>Fecha y hora de recepción</th>
                     <th>Tamaño</th>
+                    <th>Estado</th>
                 </tr>
                 </tr>
             </thead>
@@ -51,9 +51,9 @@
         configDTExhExhortosPromocionesArchivos['ajax']['data'] = {{ filtros }};
         configDTExhExhortosPromocionesArchivos['columns'] = [
             { data: 'detalle' },
+            { data: 'descargar_pdf' },
             { data: 'tipo_documento_descripcion' },
             { data: 'estado' },
-            { data: 'fecha_hora_recepcion' },
             { data: 'tamano' }
         ];
         configDTExhExhortosPromocionesArchivos['columnDefs'] = [
@@ -68,6 +68,13 @@
                     }
                 }
             },
+            {
+                targets: 1, // descargar_pdf
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '" download="' + data.nombre_archivo + '"><span class="iconify" data-icon="mdi:file-pdf-box" style="font-size:2.0rem"></span></a>';
+                }
+            }
         ];
         // Filtros exh_exhortos_promociones_archivos
         const filtrosPromocionArchivo = new FiltrosDataTable('#exh_exhortos_promociones_archivos_datatable', configDTExhExhortosPromocionesArchivos);

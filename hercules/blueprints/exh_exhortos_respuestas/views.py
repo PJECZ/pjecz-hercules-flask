@@ -66,6 +66,7 @@ def datatable_json():
                 "tipo_diligenciado_nombre": resultado.tipo_diligenciado_nombre,
                 "remitente": resultado.remitente,
                 "estado": resultado.estado,
+                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
             }
         )
     # Entregar JSON

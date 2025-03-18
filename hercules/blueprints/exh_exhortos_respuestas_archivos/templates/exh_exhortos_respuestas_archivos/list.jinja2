@@ -29,6 +29,7 @@
             <thead>
                 <tr>
                     <th>Archivo</th>
+                    <th>Descargar</th>
                     <th>Tipo Documento</th>
                     <th>Tamaño</th>
                     <th>Estado</th>
@@ -49,6 +50,7 @@
         configDTExhExhortosRespuestasArchivos['ajax']['data'] = {{ filtros }};
         configDTExhExhortosRespuestasArchivos['columns'] = [
             { data: 'detalle' },
+            { data: 'descargar_pdf' },
             { data: 'tipo_documento_descripcion' },
             { data: 'tamano' },
             { data: 'estado' }
@@ -63,6 +65,13 @@
                     } else {
                         return data.nombre_archivo;
                     }
+                }
+            },
+            {
+                targets: 1, // descargar_pdf
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '" download="' + data.nombre_archivo + '"><span class="iconify" data-icon="mdi:file-pdf-box" style="font-size:2.0rem"></span></a>';
                 }
             }
         ];

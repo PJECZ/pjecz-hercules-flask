@@ -46,14 +46,6 @@ def datatable_json():
         consulta = consulta.filter_by(estatus="A")
     if "exh_exhorto_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_id=request.form["exh_exhorto_id"])
-    if "folio_origen" in request.form:
-        folio_origen = safe_string(request.form["folio_origen"])
-        consulta = consulta.filter(ExhExhortoPromocion.folio_origen_promocion.contains(folio_origen))
-    if "remitente" in request.form:
-        consulta = consulta.filter_by(remitente=request.form["remitente"])
-    if "observaciones" in request.form:
-        observaciones = safe_string(request.form["observaciones"])
-        consulta = consulta.filter(ExhExhortoPromocion.observaciones.contains(observaciones))
     # Ordenar y paginar
     registros = consulta.order_by(ExhExhortoPromocion.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -71,6 +63,7 @@ def datatable_json():
                 "fojas": resultado.fojas,
                 "observaciones": resultado.observaciones,
                 "estado": resultado.estado,
+                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
             }
         )
     # Entregar JSON

@@ -53,10 +53,6 @@ def datatable_json():
         descripcion = safe_string(request.form["descripcion"])
         if descripcion:
             consulta = consulta.filter(ExhExhortoActualizacion.descripcion.contains(descripcion))
-    # Luego filtrar por columnas de otras tablas
-    # if "persona_rfc" in request.form:
-    #     consulta = consulta.join(Persona)
-    #     consulta = consulta.filter(Persona.rfc.contains(safe_rfc(request.form["persona_rfc"], search_fragment=True)))
     # Ordenar y paginar
     registros = consulta.order_by(ExhExhortoActualizacion.id).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -74,6 +70,7 @@ def datatable_json():
                 "descripcion": resultado.descripcion,
                 "remitente": resultado.remitente,
                 "estado": resultado.estado,
+                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
             }
         )
     # Entregar JSON
