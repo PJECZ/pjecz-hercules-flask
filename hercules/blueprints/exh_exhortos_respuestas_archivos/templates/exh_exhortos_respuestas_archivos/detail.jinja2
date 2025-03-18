@@ -29,10 +29,12 @@
         {# detail.label_value('URL', exh_exhorto_respuesta_archivo.url) #}
         {{ detail.label_value('Tamaño', exh_exhorto_respuesta_archivo.tamano) }}
         {{ detail.label_value('Fecha y hora de recepción', moment(exh_exhorto_respuesta_archivo.fecha_hora_recepcion).format('llll')) }}
+        <!-- Estado -->
         <div class="row">
             <div class="col-md-3 text-end">Estado</div>
             <div class="col-md-9"><span id="titulo-estado"> {{ exh_exhorto_respuesta_archivo.estado }}</span></div>
         </div>
+        <!-- Botones de acciones -->
         {% if exh_exhorto_respuesta_archivo.estado == 'RECIBIDO'%}
             <div class="row">
                 <div class="col">
@@ -69,7 +71,7 @@
             case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit";           break;
             default:          bgcolor = 'bg-secondary';         icon="circle-outline";      break;
         }
-        html = '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
+        html = '<span style="font-size:1.0em" class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
         titulo_estado.innerHTML = html;
     </script>
 {% endblock %}

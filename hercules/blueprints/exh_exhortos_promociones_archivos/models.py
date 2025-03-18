@@ -17,6 +17,7 @@ class ExhExhortoPromocionArchivo(database.Model, UniversalMixin):
     """ExhExhortoPromocionArchivo"""
 
     ESTADOS = {
+        "CANCELADO": "Cancelado",
         "PENDIENTE": "Pendiente",
         "RECIBIDO": "Recibido",
     }

@@ -47,6 +47,7 @@
             {{ detail.label_value('Fecha hora acuse', moment(exh_exhorto_respuesta.fecha_hora_recepcion_acuse).format('llll')) }}
         {% endif %}
         {{ detail.label_value('Remitente', exh_exhorto_respuesta.remitente) }}
+        <!-- Estado -->
         <div class="row">
             <div class="col-md-3 text-end">Estado</div>
             <div class="col-md-9"><span id="titulo-estado">{{ exh_exhorto_respuesta.estado }}</span></div>
@@ -102,7 +103,7 @@
             case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit";           break;
             default:          bgcolor = 'bg-secondary';         icon="circle-outline";      break;
         }
-        html = '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
+        html = '<span style="font-size:1.0em" class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
         titulo_estado.innerHTML = html;
     </script>
     <!-- Constructor de DataTables -->

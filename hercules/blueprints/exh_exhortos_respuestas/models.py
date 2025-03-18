@@ -22,8 +22,8 @@ class ExhExhortoRespuesta(database.Model, UniversalMixin):
 
     ESTADOS = {
         "CANCELADO": "Cancelado",
-        "ENVIADO": "Enviado",
         "PENDIENTE": "Pendiente",
+        "ENVIADO": "Enviado",
     }
 
     TIPOS_DILIGENCIADOS = {

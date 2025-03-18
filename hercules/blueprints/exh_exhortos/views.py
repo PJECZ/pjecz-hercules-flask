@@ -106,22 +106,21 @@ def datatable_json():
     # Elaborar datos para DataTable
     data = []
     for resultado in registros:
+        # El municipio_destino_id NO es una clave foránea, por lo que debe de consultarse de manera independiente
         municipio_destino = Municipio.query.filter_by(id=resultado.municipio_destino_id).first()
+        # Agregar a la lista
         data.append(
             {
                 "detalle": {
-                    "id": resultado.id,
+                    "exhorto_origen_id": resultado.exhorto_origen_id,
                     "url": url_for("exh_exhortos.detail", exh_exhorto_id=resultado.id),
                 },
                 "estado_origen": resultado.municipio_origen.estado.nombre,
-                "juzgado_origen": {
-                    "clave": resultado.juzgado_origen_id,
-                    "nombre": resultado.juzgado_origen_nombre,
-                },
                 "estado_destino": municipio_destino.estado.nombre,
                 "numero_expediente_origen": resultado.numero_expediente_origen,
                 "remitente": resultado.remitente,
                 "estado": resultado.estado,
+                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
             }
         )
     # Entregar JSON
@@ -158,7 +157,7 @@ def detail(exh_exhorto_id):
     """Detalle de un Exhorto"""
     # Consultar exhorto
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
-    # Consultar el municipio de destino
+    # El municipio_destino_id NO es una clave foránea, por lo que debe de consultarse de manera independiente
     municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
     # Entregar
     return render_template(
@@ -334,11 +333,12 @@ def edit(exh_exhorto_id):
     form.fecha_origen.data = exh_exhorto.fecha_origen
     form.observaciones.data = exh_exhorto.observaciones
     form.folio_seguimiento.data = exh_exhorto.folio_seguimiento
-    municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
     form.exh_area.data = exh_exhorto.exh_area.nombre
     form.remitente.data = exh_exhorto.remitente
     form.numero_exhorto.data = exh_exhorto.numero_exhorto
     form.estado.data = exh_exhorto.estado  # Read only
+    # El municipio_destino_id NO es una clave foránea, por lo que debe de consultarse de manera independiente
+    municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
     # Entregar
     return render_template(
         "exh_exhortos/edit.jinja2",
@@ -540,7 +540,7 @@ def change_to_process(exh_exhorto_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    # Buscar el juzgado origen en Autoridades
+    # El municipio_destino_id NO es una clave foránea, por lo que debe de consultarse de manera independiente
     municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
     # Cargar los valores guardados en el formulario
     form.numero_exhorto.data = exh_exhorto.numero_exhorto
@@ -572,7 +572,7 @@ def change_to_refuse(exh_exhorto_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    # Buscar el juzgado origen en Autoridades
+    # El municipio_destino_id NO es una clave foránea, por lo que debe de consultarse de manera independiente
     municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
     # Entregar
     return render_template(
@@ -631,10 +631,12 @@ def change_to_transfer(exh_exhorto_id):
         return redirect(bitacora.url)
     # Cargar los valores guardados en el formulario
     form.exh_area.data = exh_exhorto.exh_area.id
+    # El municipio_destino_id NO es una clave foránea, por lo que debe de consultarse de manera independiente
+    municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
     # Entregar
     return render_template(
         "exh_exhortos/transfer.jinja2",
         form=form,
         exh_exhorto=exh_exhorto,
-        municipio_destino=Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first(),
+        municipio_destino=municipio_destino,
     )

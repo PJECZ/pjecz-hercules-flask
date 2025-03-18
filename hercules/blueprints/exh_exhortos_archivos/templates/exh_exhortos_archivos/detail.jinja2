@@ -29,6 +29,7 @@
         {{ detail.label_value('Tamaño', exh_exhorto_archivo.tamano) }}
         {{ detail.label_value('Fecha y hora de recepción', moment(exh_exhorto_archivo.fecha_hora_recepcion).format('llll')) }}
         {{ detail.label_value_big('Estado', exh_exhorto_archivo.estado) }}
+        <!-- Botones de acciones -->
         {% if exh_exhorto_archivo.estado == 'RECIBIDO'%}
             <div class="row">
                 <div class="col">
