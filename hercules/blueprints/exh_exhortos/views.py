@@ -458,18 +458,18 @@ def change_to_archive(exh_exhorto_id):
     """Cambiar el estado del exhorto a ARCHIVAR"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
     es_valido = True
-    # Validar que el estado del Exhorto sea "INTENTOS AGOTADOS"
-    if exh_exhorto.estado != "RESPONDIDO":
+    # Validar el estado del Exhorto
+    if exh_exhorto.estado == "ARCHIVADO":
         es_valido = False
-        flash("El estado del exhorto debe ser RESPONDIDO.", "warning")
-    # Hacer el cambio de estado
+        flash("Este exhorto ya estaba ARCHIVADO.", "warning")
+    # Cambiar el estado
     if es_valido:
         exh_exhorto.estado = "ARCHIVADO"
         exh_exhorto.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Se paso a ARCHIVADO el exhorto {exh_exhorto.exhorto_origen_id}"),
+            descripcion=safe_message("Se ha ARCHIVADO el exhorto"),
             url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
         )
         bitacora.save()
@@ -480,15 +480,21 @@ def change_to_archive(exh_exhorto_id):
 @exh_exhortos.route("/exh_exhortos/cancelar/<int:exh_exhorto_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def change_to_cancel(exh_exhorto_id):
-    """Cancelar Exhorto"""
+    """Cambiar el estado del exhorto a CANCELADO"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
-    if exh_exhorto.estado == "PENDIENTE":
+    es_valido = True
+    # Validar el estado del Exhorto
+    if exh_exhorto.estado == "CANCELADO":
+        es_valido = False
+        flash("Este exhorto ya estaba CANCELADO.", "warning")
+    # Cambiar el estado
+    if es_valido:
         exh_exhorto.estado = "CANCELADO"
         exh_exhorto.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Exhorto CANCELADO {exh_exhorto.exhorto_origen_id}"),
+            descripcion=safe_message("Se ha CANCELADO el exhorto"),
             url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
         )
         bitacora.save()
@@ -499,21 +505,21 @@ def change_to_cancel(exh_exhorto_id):
 @exh_exhortos.route("/exh_exhortos/regresar_a_pendiente/<int:exh_exhorto_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def change_to_pending(exh_exhorto_id):
-    """Regresar el estado del exhorto a PENDIENTE"""
+    """Cambiar el exhorto a PENDIENTE"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
     es_valido = True
-    # Validar que el estado del Exhorto
-    if exh_exhorto.estado not in ("CANCELADO", "RECHAZADO"):
+    # Validar el estado del Exhorto
+    if exh_exhorto.estado == "PENDIENTE":
         es_valido = False
-        flash("El estado del exhorto debe ser CANCELADO o RECHAZADO.", "warning")
-    # Hacer el cambio de estado
+        flash("Este exhorto ya estaba PENDIENTE.", "warning")
+    # Cambiar el estado
     if es_valido:
         exh_exhorto.estado = "PENDIENTE"
         exh_exhorto.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"El exhorto se regresó al estado PENDIENTE {exh_exhorto.exhorto_origen_id}"),
+            descripcion=safe_message("Se ha cambiado a PENDIENTE el exhorto"),
             url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
         )
         bitacora.save()
@@ -524,8 +530,13 @@ def change_to_pending(exh_exhorto_id):
 @exh_exhortos.route("/exh_exhortos/procesar/<int:exh_exhorto_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.MODIFICAR)
 def change_to_process(exh_exhorto_id):
-    """Procesar un exhorto por un juzgado"""
+    """Procesar un exhorto para cambiar su estado a PROCESANDO"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    # Validar el estado del Exhorto
+    if exh_exhorto.estado == "PROCESANDO":
+        flash("Este exhorto ya estaba PROCESANDO.", "warning")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+    # Recibir el formulario
     form = ExhExhortoProcessForm()
     if form.validate_on_submit():
         exh_exhorto.numero_exhorto = safe_string(form.numero_exhorto.data)
@@ -534,7 +545,7 @@ def change_to_process(exh_exhorto_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Exhorto Procesando {exh_exhorto.exhorto_origen_id}"),
+            descripcion=safe_message("Se ha cambiado a PROCESANDO el exhorto"),
             url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
         )
         bitacora.save()
@@ -556,8 +567,13 @@ def change_to_process(exh_exhorto_id):
 @exh_exhortos.route("/exh_exhortos/rechazar/<int:exh_exhorto_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.MODIFICAR)
 def change_to_refuse(exh_exhorto_id):
-    """Rechazar un exhorto por un juzgado"""
+    """Procesar un exhorto para cambiar su estado a RECHAZADO"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    # Validar el estado del Exhorto
+    if exh_exhorto.estado == "RECHAZADO":
+        flash("Este exhorto ya estaba RECHAZADO.", "warning")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+    # Recibir el formulario
     form = ExhExhortoRefuseForm(CombinedMultiDict((request.files, request.form)))
     if form.validate_on_submit():
         exh_exhorto.estado = "RECHAZADO"
@@ -566,7 +582,7 @@ def change_to_refuse(exh_exhorto_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Exhorto Rechazado {exh_exhorto.exhorto_origen_id}"),
+            descripcion=safe_message("Se ha RECHAZADO el exhorto"),
             url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
         )
         bitacora.save()
@@ -586,14 +602,14 @@ def change_to_refuse(exh_exhorto_id):
 @exh_exhortos.route("/exh_exhortos/regresar_a_por_enviar/<int:exh_exhorto_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def change_to_send(exh_exhorto_id):
-    """Regresar el estado del exhorto a por enviar"""
+    """Cambiar el estado del exhorto a POR ENVIAR"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
     es_valido = True
-    # Validar que el estado del Exhorto sea "INTENTOS AGOTADOS"
-    if exh_exhorto.estado != "INTENTOS AGOTADOS":
+    # Validar el estado del exhorto
+    if exh_exhorto.estado == "POR ENVIAR":
         es_valido = False
-        flash("El estado del exhorto debe ser INTENTOS AGOTADOS.", "warning")
-    # Hacer el cambio de estado
+        flash("Este exhorto ya estaba POR ENVIAR.", "warning")
+    # Cambiar el estado
     if es_valido:
         exh_exhorto.estado = "POR ENVIAR"
         exh_exhorto.por_enviar_intentos = 0
@@ -601,7 +617,7 @@ def change_to_send(exh_exhorto_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Se reiniciaron los intentos de envío del exhorto {exh_exhorto.exhorto_origen_id}"),
+            descripcion=safe_message("Se ha cambiado a POR ENVIAR el exhorto"),
             url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
         )
         bitacora.save()
@@ -614,6 +630,11 @@ def change_to_send(exh_exhorto_id):
 def change_to_transfer(exh_exhorto_id):
     """Transferir un exhorto a un juzgado"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    # Validar el estado del exhorto
+    if exh_exhorto.estado == "TRANSFIRIENDO":
+        flash("Este exhorto ya estaba TRANSFIRIENDO.", "warning")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+    # Cambiar el estado
     form = ExhExhortoTransferForm()
     if form.validate_on_submit():
         exh_exhorto.exh_area_id = form.exh_area.data
@@ -623,7 +644,7 @@ def change_to_transfer(exh_exhorto_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Exhorto Transferido {exh_exhorto.exhorto_origen_id}"),
+            descripcion=safe_message("Se ha cambiado a TRANSFIRIENDO el exhorto"),
             url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
         )
         bitacora.save()

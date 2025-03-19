@@ -72,7 +72,7 @@ class ExhExhortoParte(database.Model, UniversalMixin):
     @property
     def nombre_completo(self):
         """Junta nombres, apellido_paterno y apellido materno"""
-        return self.nombre + " " + self.apellido_paterno + " " + self.apellido_materno
+        return self.nombre + " " + str(self.apellido_paterno) + " " + str(self.apellido_materno)
 
     @property
     def tipo_parte_descripcion(self):
