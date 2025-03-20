@@ -502,7 +502,7 @@ def change_to_cancel(exh_exhorto_id):
     return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
 
 
-@exh_exhortos.route("/exh_exhortos/regresar_a_pendiente/<int:exh_exhorto_id>")
+@exh_exhortos.route("/exh_exhortos/cambiar_a_pendiente/<int:exh_exhorto_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def change_to_pending(exh_exhorto_id):
     """Cambiar el exhorto a PENDIENTE"""
@@ -599,7 +599,7 @@ def change_to_refuse(exh_exhorto_id):
     )
 
 
-@exh_exhortos.route("/exh_exhortos/regresar_a_por_enviar/<int:exh_exhorto_id>")
+@exh_exhortos.route("/exh_exhortos/cambiar_a_por_enviar/<int:exh_exhorto_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def change_to_send(exh_exhorto_id):
     """Cambiar el estado del exhorto a POR ENVIAR"""

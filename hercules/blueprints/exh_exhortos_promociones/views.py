@@ -100,10 +100,7 @@ def list_inactive():
 def detail(exh_exhorto_promocion_id):
     """Detalle de una promoción"""
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
-    # Consultar el municipio de origen porque NO es una relacion
-    municipio_destino = Municipio.query.filter_by(id=exh_exhorto_promocion.exh_exhorto.municipio_destino_id).first()
-    estado = municipio_destino.estado.nombre
-    return render_template("exh_exhortos_promociones/detail.jinja2", exh_exhorto_promocion=exh_exhorto_promocion, estado=estado)
+    return render_template("exh_exhortos_promociones/detail.jinja2", exh_exhorto_promocion=exh_exhorto_promocion)
 
 
 @exh_exhortos_promociones.route("/exh_exhortos_promociones/nuevo/<int:exh_exhorto_id>", methods=["GET", "POST"])
@@ -117,7 +114,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
         # Insertar el registro ExhExhortoPromocion
         exh_exhorto_promocion = ExhExhortoPromocion(
             exh_exhorto=exh_exhorto,
-            folio_origen_promocion=form.folio_origen.data,
+            folio_origen_promocion=form.folio_origen_promocion.data,
             fecha_origen=datetime.now(),
             fojas=form.fojas.data,
             remitente="INTERNO",
@@ -139,8 +136,10 @@ def new_with_exh_exhorto(exh_exhorto_id):
         flash(bitacora.descripcion, "success")
         return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id))
 
+    # Cargar valores por defecto al formulario
+    form.folio_origen_promocion.data = generar_identificador()  # Read only
+
     # Entregar el formulario
-    form.folio_origen.data = generar_identificador()
     return render_template("exh_exhortos_promociones/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
 
 
@@ -209,32 +208,104 @@ def recover(exh_exhorto_promocion_id):
 def launch_task_send(exh_exhorto_promocion_id):
     """Lanzar tarea en el fondo para enviar una promoción al PJ Externo"""
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
+    es_valido = True
     # Validar el estado
-    if exh_exhorto_promocion.estado != "PENDIENTE":
-        flash("El estado de la promoción debe ser PENDIENTE.", "warning")
-        return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id))
+    if exh_exhorto_promocion.estado != "POR ENVIAR":
+        es_valido = False
+        flash("El estado de la promoción debe ser POR ENVIAR.", "warning")
     # Lanzar tarea en el fondo
-    tarea = current_user.launch_task(
-        comando="exh_exhortos_promociones.tasks.task_enviar_promocion",
-        mensaje="Enviando la promoción al PJ externo",
-        exh_exhorto_promocion_id=exh_exhorto_promocion_id,
-    )
-    flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
-    return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+    if es_valido:
+        tarea = current_user.launch_task(
+            comando="exh_exhortos_promociones.tasks.task_enviar_promocion",
+            mensaje="Enviando la promoción al PJ externo",
+            exh_exhorto_promocion_id=exh_exhorto_promocion_id,
+        )
+        flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
+        return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+    # Redirigir al detalle porque NO se lanzó la tarea
+    return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id))
 
 
 @exh_exhortos_promociones.route("/exh_exhortos_promociones/cancelar/<int:exh_exhorto_promocion_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def change_to_cancel(exh_exhorto_promocion_id):
-    """Cancelar una promoción"""
+    """Cambiar el estado de la promoción a CANCELADO"""
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
-    if exh_exhorto_promocion.estado == "PENDIENTE":
+    es_valido = True
+    # Validar el estado
+    if exh_exhorto_promocion.estado == "CANCELADO":
+        es_valido = False
+        flash("Esta promoción ya está CANCELADA.", "warning")
+    if exh_exhorto_promocion.estado == "ENVIADO":
+        es_valido = False
+        flash("Esta promoción ya fue ENVIADA. No puede ser cancelada.", "warning")
+    if exh_exhorto_promocion.estado == "POR ENVIAR":
+        es_valido = False
+        flash("Esta promoción está POR ENVIAR. No puede ser cancelada.", "warning")
+    # Cambiar el estado
+    if es_valido:
         exh_exhorto_promocion.estado = "CANCELADO"
         exh_exhorto_promocion.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Promoción Cancelada {exh_exhorto_promocion.folio_origen_promocion}"),
+            descripcion=safe_message("Se ha cambiado a CANCELADO la promoción"),
+            url=url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id))
+
+
+@exh_exhortos_promociones.route("/exh_exhortos_promociones/cambiar_a_pendiente/<int:exh_exhorto_promocion_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def change_to_pending(exh_exhorto_promocion_id):
+    """Cambiar el estado de la promoción a PENDIENTE"""
+    exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
+    es_valido = True
+    # Validar el estado del Exhorto
+    if exh_exhorto_promocion.estado == "PENDIENTE":
+        es_valido = False
+        flash("Esta promoción ya estaba PENDIENTE.", "warning")
+    if exh_exhorto_promocion.estado == "ENVIADO":
+        es_valido = False
+        flash("Esta promoción ya fue ENVIADA. No puede se puede cambiar su estado.", "warning")
+    # Cambiar el estado
+    if es_valido:
+        exh_exhorto_promocion.estado = "PENDIENTE"
+        exh_exhorto_promocion.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message("Se ha cambiado a PENDIENTE la promoción"),
+            url=url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id))
+
+
+@exh_exhortos_promociones.route("/exh_exhortos_promociones/cambiar_a_por_enviar/<int:exh_exhorto_promocion_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def change_to_send(exh_exhorto_promocion_id):
+    """Cambiar el estado de la promoción a POR ENVIAR"""
+    exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
+    es_valido = True
+    # Validar el estado del Exhorto
+    if exh_exhorto_promocion.estado == "POR ENVIAR":
+        es_valido = False
+        flash("Esta promoción ya estaba POR ENVIAR.", "warning")
+    if exh_exhorto_promocion.estado == "ENVIADO":
+        es_valido = False
+        flash("Esta promoción ya fue ENVIADA. No puede se puede cambiar su estado.", "warning")
+    # Cambiar el estado
+    if es_valido:
+        exh_exhorto_promocion.estado = "POR ENVIAR"
+        exh_exhorto_promocion.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message("Se ha cambiado a POR ENVIAR la promoción"),
             url=url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id),
         )
         bitacora.save()

@@ -135,7 +135,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
         # Insertar el registro ExhExhortoRespuesta
         exh_exhorto_respuesta = ExhExhortoRespuesta(
             exh_exhorto=exh_exhorto,
-            origen_id=form.origen_id.data,
+            respuesta_origen_id=form.respuesta_origen_id.data,
             municipio_turnado_id=municipio_turnado_id,
             area_turnado_id=area_turnado_id,
             area_turnado_nombre=area_turnado_nombre,
@@ -161,7 +161,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
         return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
 
     # Cargar valores por defecto al formulario
-    form.origen_id.data = generar_identificador()
+    form.respuesta_origen_id.data = generar_identificador()  # Read only
     form.municipio_turnado.data = 0  # Cero es un valor nulo
     form.area_turnado.data = 0  # Cero es un valor nulo
     form.tipo_diligenciado.data = 0  # Cero es "NO DILIGENCIADO"
@@ -229,8 +229,7 @@ def edit(exh_exhorto_respuesta_id):
         )
 
     # Cargar valores al formulario
-    form.exh_exhorto_exhorto_origen_id.data = exh_exhorto_respuesta.exh_exhorto.exhorto_origen_id  # Read only
-    form.origen_id.data = exh_exhorto_respuesta.origen_id  # Read only
+    form.respuesta_origen_id.data = exh_exhorto_respuesta.respuesta_origen_id  # Read only
     if municipio_turnado:
         form.municipio_turnado.data = municipio_turnado.id
     else:
@@ -289,32 +288,104 @@ def recover(exh_exhorto_respuesta_id):
 def launch_task_send(exh_exhorto_respuesta_id):
     """Lanzar tarea en el fondo para enviar una respuesta al PJ Externo"""
     exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
+    es_valido = True
     # Validar el estado
-    if exh_exhorto_respuesta.estado != "PENDIENTE":
-        flash("El estado de la respuesta debe ser PENDIENTE.", "warning")
-        return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
+    if exh_exhorto_respuesta.estado != "POR ENVIAR":
+        es_valido = False
+        flash("El estado de la respuesta debe ser POR ENVIAR.", "warning")
     # Lanzar tarea en el fondo
-    tarea = current_user.launch_task(
-        comando="exh_exhortos_respuestas.tasks.task_enviar_respuesta",
-        mensaje="Enviando la respuesta al PJ externo",
-        exh_exhorto_respuesta_id=exh_exhorto_respuesta_id,
-    )
-    flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
-    return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+    if es_valido:
+        tarea = current_user.launch_task(
+            comando="exh_exhortos_respuestas.tasks.task_enviar_respuesta",
+            mensaje="Enviando la respuesta al PJ externo",
+            exh_exhorto_respuesta_id=exh_exhorto_respuesta_id,
+        )
+        flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
+        return redirect(url_for("tareas.detail", tarea_id=tarea.id))
+    # Redirigir al detalle porque NO se lanzó la tarea
+    return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
 
 
 @exh_exhortos_respuestas.route("/exh_exhortos_respuestas/cancelar/<int:exh_exhorto_respuesta_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def change_to_cancel(exh_exhorto_respuesta_id):
-    """Cancelar una respuesta"""
+    """Cambiar el estado de la respuesta a CANCELADO"""
     exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
-    if exh_exhorto_respuesta.estado == "PENDIENTE":
+    es_valido = True
+    # Validar el estado
+    if exh_exhorto_respuesta.estado == "CANCELADO":
+        es_valido = False
+        flash("Esta respuesta ya está CANCELADA.", "warning")
+    if exh_exhorto_respuesta.estado == "ENVIADO":
+        es_valido = False
+        flash("Esta respuesta ya fue ENVIADA. No puede ser cancelada.", "warning")
+    if exh_exhorto_respuesta.estado == "POR ENVIAR":
+        es_valido = False
+        flash("Esta respuesta está POR ENVIAR. No puede ser cancelada.", "warning")
+    # Cambiar el estado
+    if es_valido:
         exh_exhorto_respuesta.estado = "CANCELADO"
         exh_exhorto_respuesta.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Respuesta Cancelada {exh_exhorto_respuesta.origen_id}"),
+            descripcion=safe_message("Se ha cambiado a CANCELADO la respuesta"),
+            url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
+
+
+@exh_exhortos_respuestas.route("/exh_exhortos_respuestas/cambiar_a_pendiente/<int:exh_exhorto_respuesta_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def change_to_pending(exh_exhorto_respuesta_id):
+    """Cambiar el estado de la respuesta a PENDIENTE"""
+    exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
+    es_valido = True
+    # Validar el estado del Exhorto
+    if exh_exhorto_respuesta.estado == "PENDIENTE":
+        es_valido = False
+        flash("Esta respuesta ya estaba PENDIENTE.", "warning")
+    if exh_exhorto_respuesta.estado == "ENVIADO":
+        es_valido = False
+        flash("Esta respuesta ya fue ENVIADA. No puede se puede cambiar su estado.", "warning")
+    # Cambiar el estado
+    if es_valido:
+        exh_exhorto_respuesta.estado = "PENDIENTE"
+        exh_exhorto_respuesta.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message("Se ha cambiado a PENDIENTE la respuesta"),
+            url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
+
+
+@exh_exhortos_respuestas.route("/exh_exhortos_respuestas/cambiar_a_por_enviar/<int:exh_exhorto_respuesta_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def change_to_send(exh_exhorto_respuesta_id):
+    """Cambiar el estado de la respuesta a POR ENVIAR"""
+    exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
+    es_valido = True
+    # Validar el estado del Exhorto
+    if exh_exhorto_respuesta.estado == "POR ENVIAR":
+        es_valido = False
+        flash("Esta respuesta ya estaba POR ENVIAR.", "warning")
+    if exh_exhorto_respuesta.estado == "ENVIADO":
+        es_valido = False
+        flash("Esta respuesta ya fue ENVIADA. No puede se puede cambiar su estado.", "warning")
+    # Cambiar el estado
+    if es_valido:
+        exh_exhorto_respuesta.estado = "POR ENVIAR"
+        exh_exhorto_respuesta.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message("Se ha cambiado a POR ENVIAR la respuesta"),
             url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
         )
         bitacora.save()
