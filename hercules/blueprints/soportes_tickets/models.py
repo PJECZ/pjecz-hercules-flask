@@ -31,13 +31,14 @@ class SoporteTicket(database.Model, UniversalMixin):
     }
 
     CLASIFICACIONES = {
-        "SOPORTE TECNICO": "SOPORTE TÉCNICO",
+        "INFRAESTRUCTURA": "INFRAESTRUCTURA",
         "PAIIJ": "PAIIJ",
         "SIGE": "SIGE",
         "SAJI HIPOTECARIO": "SAJI HIPOTECARIO",
         "SAJI LABORAL": "SAJI LABORAL",
-        "INFRAESTRUCTURA": "INFRAESTRUCTURA",
-        "OTRO": "Otro",
+        "SICCED": "SICCED",
+        "SOPORTE TECNICO": "SOPORTE TÉCNICO",
+        "OTRO": "OTRO",
     }
 
     DEPARTAMENTOS = {
