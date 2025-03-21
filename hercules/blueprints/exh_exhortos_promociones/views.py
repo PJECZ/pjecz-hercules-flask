@@ -213,6 +213,12 @@ def launch_task_send(exh_exhorto_promocion_id):
     if exh_exhorto_promocion.estado != "POR ENVIAR":
         es_valido = False
         flash("El estado de la promoción debe ser POR ENVIAR.", "warning")
+    if exh_exhorto_promocion.exh_exhorto.estado == "ARCHIVADO":
+        es_valido = False
+        flash("El exhorto está ARCHIVADO. No se puede enviar la promoción.", "warning")
+    if exh_exhorto_promocion.exh_exhorto.estado == "CANCELADO":
+        es_valido = False
+        flash("El exhorto está CANCELADO. No se puede enviar la promoción.", "warning")
     # Lanzar tarea en el fondo
     if es_valido:
         tarea = current_user.launch_task(
@@ -242,6 +248,9 @@ def change_to_cancel(exh_exhorto_promocion_id):
     if exh_exhorto_promocion.estado == "POR ENVIAR":
         es_valido = False
         flash("Esta promoción está POR ENVIAR. No puede ser cancelada.", "warning")
+    if exh_exhorto_promocion.exh_exhorto.estado == "ARCHIVADO":
+        es_valido = False
+        flash("El exhorto está ARCHIVADO. No se puede cancelar la promoción.", "warning")
     # Cambiar el estado
     if es_valido:
         exh_exhorto_promocion.estado = "CANCELADO"
@@ -270,6 +279,12 @@ def change_to_pending(exh_exhorto_promocion_id):
     if exh_exhorto_promocion.estado == "ENVIADO":
         es_valido = False
         flash("Esta promoción ya fue ENVIADA. No puede se puede cambiar su estado.", "warning")
+    if exh_exhorto_promocion.exh_exhorto.estado == "ARCHIVADO":
+        es_valido = False
+        flash("El exhorto está ARCHIVADO. No se puede cambiar la promoción.", "warning")
+    if exh_exhorto_promocion.exh_exhorto.estado == "CANCELADO":
+        es_valido = False
+        flash("El exhorto está CANCELADO. No se puede cambiar la promoción.", "warning")
     # Cambiar el estado
     if es_valido:
         exh_exhorto_promocion.estado = "PENDIENTE"
@@ -298,6 +313,12 @@ def change_to_send(exh_exhorto_promocion_id):
     if exh_exhorto_promocion.estado == "ENVIADO":
         es_valido = False
         flash("Esta promoción ya fue ENVIADA. No puede se puede cambiar su estado.", "warning")
+    if exh_exhorto_promocion.exh_exhorto.estado == "ARCHIVADO":
+        es_valido = False
+        flash("El exhorto está ARCHIVADO. No se puede cambiar la promoción.", "warning")
+    if exh_exhorto_promocion.exh_exhorto.estado == "CANCELADO":
+        es_valido = False
+        flash("El exhorto está CANCELADO. No se puede cambiar la promoción.", "warning")
     # Cambiar el estado
     if es_valido:
         exh_exhorto_promocion.estado = "POR ENVIAR"

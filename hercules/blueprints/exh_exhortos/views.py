@@ -390,7 +390,7 @@ def recover(exh_exhorto_id):
 def launch_task_query(exh_exhorto_id):
     """Lanzar tarea en el fondo para consultar un exhorto al PJ Externo"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
-    # Validar el estado del exhorto
+    # Validar el estado
     if exh_exhorto.estado not in ["RECIBIDO CON EXITO", "RESPONDIDO"]:
         flash("El estado del exhorto debe ser RECIBIDO CON EXITO o RESPONDIDO.", "warning")
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
@@ -409,7 +409,7 @@ def launch_task_query(exh_exhorto_id):
 def launch_task_reply(exh_exhorto_id):
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
     """Lanzar tarea en el fondo para responder un exhorto al PJ Externo"""
-    # Validar el estado del exhorto
+    # Validar el estado
     if exh_exhorto.estado not in ["RECIBIDO", "TRANSFERIDO", "PROCESANDO"]:
         flash("El estado del exhorto debe ser RECIBIDO, TRANSFERIDO o PROCESANDO.", "warning")
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
@@ -428,6 +428,10 @@ def launch_task_reply(exh_exhorto_id):
 def launch_task_send(exh_exhorto_id):
     """Lanzar tarea en el fondo para envíar exhorto al PJ Externo"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    # Validar el estado
+    if exh_exhorto.estado != "POR ENVIAR":
+        flash("El estado del exhorto debe ser POR ENVIAR.", "warning")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
     # Validar que tenga partes
     exh_exhorto_partes = ExhExhortoParte.query.filter_by(exh_exhorto_id=exh_exhorto_id).filter_by(estatus="A").first()
     if exh_exhorto_partes is None:
@@ -437,10 +441,6 @@ def launch_task_send(exh_exhorto_id):
     exh_exhorto_archivos = ExhExhortoArchivo.query.filter_by(exh_exhorto_id=exh_exhorto_id).filter_by(estatus="A").first()
     if exh_exhorto_archivos is None:
         flash("No se pudo enviar el exhorto. Debe incluir al menos un archivo.", "warning")
-        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
-    # Validar el estado
-    if exh_exhorto.estado not in ("PENDIENTE", "POR ENVIAR"):
-        flash("El estado del exhorto debe ser PENDIENTE.", "warning")
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
     # Lanzar tarea en el fondo
     tarea = current_user.launch_task(
@@ -487,6 +487,9 @@ def change_to_cancel(exh_exhorto_id):
     if exh_exhorto.estado == "CANCELADO":
         es_valido = False
         flash("Este exhorto ya estaba CANCELADO.", "warning")
+    if exh_exhorto.estado == "ARCHIVADO":
+        es_valido = False
+        flash("Este exhorto ya está ARCHIVADO. No puede cambiar su estado.", "warning")
     # Cambiar el estado
     if es_valido:
         exh_exhorto.estado = "CANCELADO"
@@ -512,6 +515,9 @@ def change_to_pending(exh_exhorto_id):
     if exh_exhorto.estado == "PENDIENTE":
         es_valido = False
         flash("Este exhorto ya estaba PENDIENTE.", "warning")
+    if exh_exhorto.estado == "ARCHIVADO":
+        es_valido = False
+        flash("Este exhorto ya está ARCHIVADO. No puede cambiar su estado.", "warning")
     # Cambiar el estado
     if es_valido:
         exh_exhorto.estado = "PENDIENTE"
@@ -532,9 +538,16 @@ def change_to_pending(exh_exhorto_id):
 def change_to_process(exh_exhorto_id):
     """Procesar un exhorto para cambiar su estado a PROCESANDO"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    es_valido = True
     # Validar el estado del Exhorto
     if exh_exhorto.estado == "PROCESANDO":
+        es_valido = False
         flash("Este exhorto ya estaba PROCESANDO.", "warning")
+    if exh_exhorto.estado == "ARCHIVADO":
+        es_valido = False
+        flash("Este exhorto ya está ARCHIVADO. No puede cambiar su estado.", "warning")
+    # Si NO es válido, redirigir al detalle
+    if es_valido is False:
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
     # Recibir el formulario
     form = ExhExhortoProcessForm()
@@ -569,9 +582,16 @@ def change_to_process(exh_exhorto_id):
 def change_to_refuse(exh_exhorto_id):
     """Procesar un exhorto para cambiar su estado a RECHAZADO"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    es_valido = True
     # Validar el estado del Exhorto
     if exh_exhorto.estado == "RECHAZADO":
+        es_valido = False
         flash("Este exhorto ya estaba RECHAZADO.", "warning")
+    if exh_exhorto.estado == "ARCHIVADO":
+        es_valido = False
+        flash("Este exhorto ya está ARCHIVADO. No puede cambiar su estado.", "warning")
+    # Si NO es válido, redirigir al detalle
+    if es_valido is False:
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
     # Recibir el formulario
     form = ExhExhortoRefuseForm(CombinedMultiDict((request.files, request.form)))
@@ -609,6 +629,9 @@ def change_to_send(exh_exhorto_id):
     if exh_exhorto.estado == "POR ENVIAR":
         es_valido = False
         flash("Este exhorto ya estaba POR ENVIAR.", "warning")
+    if exh_exhorto.estado == "ARCHIVADO":
+        es_valido = False
+        flash("Este exhorto ya está ARCHIVADO. No puede cambiar su estado.", "warning")
     # Cambiar el estado
     if es_valido:
         exh_exhorto.estado = "POR ENVIAR"
@@ -634,6 +657,9 @@ def change_to_transfer(exh_exhorto_id):
     if exh_exhorto.estado == "TRANSFIRIENDO":
         flash("Este exhorto ya estaba TRANSFIRIENDO.", "warning")
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+    if exh_exhorto.estado == "ARCHIVADO":
+        es_valido = False
+        flash("Este exhorto ya está ARCHIVADO. No puede cambiar su estado.", "warning")
     # Cambiar el estado
     form = ExhExhortoTransferForm()
     if form.validate_on_submit():
