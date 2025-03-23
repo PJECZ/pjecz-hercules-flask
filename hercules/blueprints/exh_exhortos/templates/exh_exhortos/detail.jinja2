@@ -112,7 +112,7 @@
                 {% endif %}
             </div>
         </div>
-        <hr/>
+        <hr>
         {% if current_user.can_insert('EXH EXHORTOS') %}
             <!-- Botones de acciones para el estado PENDIENTE -->
             {% if exh_exhorto.estado == 'PENDIENTE' %}
@@ -136,18 +136,11 @@
                 </div>
             {% endif %}
             <!-- Botones de acciones para el estado POR ENVIAR -->
-            {% if exh_exhorto.estado == "POR ENVIAR" %}
+            {% if exh_exhorto.estado == "POR ENVIAR" or exh_exhorto == "RECHAZADO" %}
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-6">
                         {{ detail.button_lg_modal(
-                            label="Cancelar",
-                            onclick="showModalCancelarBtn('" + url_for('exh_exhortos.change_to_cancel', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de CANCELAR este exhorto?');",
-                            icon='mdi:cancel',
-                            color_class='btn-secondary') }}
-                    </div>
-                    <div class="col-md-3">
-                        {{ detail.button_lg_modal(
-                            label="Pendiente",
+                            label="Regresar a Pendiente",
                             onclick="showModalPendienteBtn('" + url_for('exh_exhortos.change_to_pending', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de cambiar a PENDIENTE este exhorto?');",
                             icon='mdi:pencil',
                             color_class='btn-warning') }}
@@ -174,25 +167,6 @@
                             onclick="showModalConsultarBtn('" + url_for('exh_exhortos.launch_task_query', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de CONSULTAR este exhorto?');",
                             icon='mdi:download',
                             color_class='btn-primary') }}
-                    </div>
-                </div>
-            {% endif %}
-            <!-- Botón Regresar a Pendiente -->
-            {% if exh_exhorto.estado in ("CANCELADO", "RECHAZADO") %}
-                <div class="row">
-                    <div class="col-md-6">
-                        {{ detail.button_lg_modal(
-                            label="Archivar",
-                            onclick="showModalArchivarBtn('" + url_for('exh_exhortos.change_to_archive', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de ARCHIVAR este exhorto?');",
-                            icon='mdi:archive',
-                            color_class='btn-secondary') }}
-                    </div>
-                    <div class="col-md-6">
-                        {{ detail.button_lg(
-                            label="Regresar a Pendiente",
-                            url=url_for('exh_exhortos.change_to_pending', exh_exhorto_id=exh_exhorto.id),
-                            icon='mdi:back',
-                            color_class='btn-warning') }}
                     </div>
                 </div>
             {% endif %}
@@ -310,7 +284,7 @@
                 </thead>
             </table>
             {% if exh_exhorto.estado != 'ARCHIVADO' and current_user.can_insert('EXH EXHORTOS RESPUESTAS') %}
-                <a class="btn btn-success" href="{{ url_for('exh_exhortos_respuestas.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id) }}">Agregar Respuesta</a>
+                <a class="btn btn-primary" href="{{ url_for('exh_exhortos_respuestas.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id) }}">Agregar Respuesta</a>
             {% endif %}
         {% endcall %}
     {% endif %}
@@ -330,7 +304,7 @@
                 </thead>
             </table>
             {% if exh_exhorto.estado != 'ARCHIVADO' and current_user.can_insert('EXH EXHORTOS ACTUALIZACIONES')  %}
-                <a class="btn btn-warning text-dark" href="{{ url_for('exh_exhortos_actualizaciones.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id) }}">Agregar Actualización</a>
+                <a class="btn btn-primary" href="{{ url_for('exh_exhortos_actualizaciones.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id) }}">Agregar Actualización</a>
             {% endif %}
         {% endcall %}
     {% endif %}

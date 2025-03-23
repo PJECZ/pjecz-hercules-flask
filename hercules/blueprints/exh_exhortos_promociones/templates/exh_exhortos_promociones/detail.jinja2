@@ -33,20 +33,45 @@
             <div class="col-md-3 text-end">Estado</div>
             <div class="col-md-9"><span id="titulo-estado">{{ exh_exhorto_promocion.estado }}</span></div>
         </div>
+        <hr>
         <!-- Botones de acciones -->
-        {% if exh_exhorto_promocion.estado == 'PENDIENTE' %}
-            <div class="row text-center mt-3">
-                <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-danger" href="javascript:void(0)" onclick="showModalcancelar_btn('{{url_for('exh_exhortos_promociones.change_to_cancel', exh_exhorto_promocion_id=exh_exhorto_promocion.id)}}', '¿Está seguro de CANCELAR la actualización? Porque una vez cancelado ya no podrá ni editarlo ni enviarlo');">
-                        <span class='iconify' data-icon='mdi:cancel'></span> Cancelar
-                    </a>
+        {% if current_user.can_insert('EXH EXHORTOS PROMOCIONES') %}
+            {% if exh_exhorto_promocion.estado == 'PENDIENTE' %}
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ detail.button_lg_modal(
+                            label="Cancelar",
+                            onclick="showModalCancelarBtn('" + url_for('exh_exhortos_promociones.change_to_cancel', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '¿Está seguro de CANCELAR esta promoción?');",
+                            icon='mdi:cancel',
+                            color_class='btn-secondary') }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ detail.button_lg_modal(
+                            label="Por Enviar",
+                            onclick="showModalPorEnviarBtn('" + url_for('exh_exhortos_promociones.change_to_send', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '¿Está seguro cambiar a POR ENVIAR esta promoción? Una vez cambiada ya no podrá editarla.');",
+                            icon='mdi:package-variant-closed',
+                            color_class='btn-primary') }}
+                    </div>
                 </div>
-                <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalenviar_btn('{{url_for('exh_exhortos_promociones.launch_task_send_promotion', exh_exhorto_promocion_id=exh_exhorto_promocion.id)}}', '¿Está seguro de ENVIAR la promoción? Porque una vez enviado ya no podrá ni editarlo ni cancelarlo.');">
-                        <span class='iconify' data-icon='mdi:send'></span> Enviar
-                    </a>
+            {% endif %}
+            {% if exh_exhorto_promocion.estado == 'POR ENVIAR' or exh_exhorto_promocion.estado == 'RECHAZADO' %}
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ detail.button_lg_modal(
+                            label="Regresar a Pendiente",
+                            onclick="showModalPendienteBtn('" + url_for('exh_exhortos_promociones.change_to_pending', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '¿Está seguro de cambiar a PENDIENTE esta promoción?');",
+                            icon='mdi:pencil',
+                            color_class='btn-warning') }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ detail.button_lg_modal(
+                            label="Enviar",
+                            onclick="showModalEnviarBtn('" + url_for('exh_exhortos_promociones.launch_task_send', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '¿Está seguro de ENVIAR esta promoción? Una vez enviada al PJ ya no podrá cancelarla.');",
+                            icon='mdi:send',
+                            color_class='btn-primary') }}
+                    </div>
                 </div>
-            </div>
+            {% endif %}
         {% endif %}
     {% endcall %}
     <!-- DataTable con promoventes -->

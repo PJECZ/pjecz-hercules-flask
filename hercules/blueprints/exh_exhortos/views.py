@@ -235,7 +235,7 @@ def new():
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
-                descripcion=safe_message(f"Nuevo Exhorto ID {exh_exhorto.id}"),
+                descripcion=safe_message(f"Nuevo Exhorto {exh_exhorto.exhorto_origen_id}"),
                 url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
             )
             bitacora.save()
@@ -386,7 +386,7 @@ def recover(exh_exhorto_id):
 
 
 @exh_exhortos.route("/exh_exhortos/consultar/<int:exh_exhorto_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def launch_task_query(exh_exhorto_id):
     """Lanzar tarea en el fondo para consultar un exhorto al PJ Externo"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
@@ -405,7 +405,7 @@ def launch_task_query(exh_exhorto_id):
 
 
 @exh_exhortos.route("/exh_exhortos/responder/<int:exh_exhorto_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def launch_task_reply(exh_exhorto_id):
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
     """Lanzar tarea en el fondo para responder un exhorto al PJ Externo"""
@@ -424,14 +424,14 @@ def launch_task_reply(exh_exhorto_id):
 
 
 @exh_exhortos.route("/exh_exhortos/enviar/<int:exh_exhorto_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def launch_task_send(exh_exhorto_id):
     """Lanzar tarea en el fondo para envíar exhorto al PJ Externo"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
     # Validar el estado
     if exh_exhorto.estado != "POR ENVIAR":
         flash("El estado del exhorto debe ser POR ENVIAR.", "warning")
-        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_id))
     # Validar que tenga partes
     exh_exhorto_partes = ExhExhortoParte.query.filter_by(exh_exhorto_id=exh_exhorto_id).filter_by(estatus="A").first()
     if exh_exhorto_partes is None:
@@ -453,7 +453,7 @@ def launch_task_send(exh_exhorto_id):
 
 
 @exh_exhortos.route("/exh_exhortos/archivar/<int:exh_exhorto_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def change_to_archive(exh_exhorto_id):
     """Cambiar el estado del exhorto a ARCHIVAR"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
@@ -478,7 +478,7 @@ def change_to_archive(exh_exhorto_id):
 
 
 @exh_exhortos.route("/exh_exhortos/cancelar/<int:exh_exhorto_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def change_to_cancel(exh_exhorto_id):
     """Cambiar el estado del exhorto a CANCELADO"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
@@ -506,7 +506,7 @@ def change_to_cancel(exh_exhorto_id):
 
 
 @exh_exhortos.route("/exh_exhortos/cambiar_a_pendiente/<int:exh_exhorto_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def change_to_pending(exh_exhorto_id):
     """Cambiar el exhorto a PENDIENTE"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
@@ -534,7 +534,7 @@ def change_to_pending(exh_exhorto_id):
 
 
 @exh_exhortos.route("/exh_exhortos/procesar/<int:exh_exhorto_id>", methods=["GET", "POST"])
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def change_to_process(exh_exhorto_id):
     """Procesar un exhorto para cambiar su estado a PROCESANDO"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
@@ -578,7 +578,7 @@ def change_to_process(exh_exhorto_id):
 
 
 @exh_exhortos.route("/exh_exhortos/rechazar/<int:exh_exhorto_id>", methods=["GET", "POST"])
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def change_to_refuse(exh_exhorto_id):
     """Procesar un exhorto para cambiar su estado a RECHAZADO"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
@@ -620,7 +620,7 @@ def change_to_refuse(exh_exhorto_id):
 
 
 @exh_exhortos.route("/exh_exhortos/cambiar_a_por_enviar/<int:exh_exhorto_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def change_to_send(exh_exhorto_id):
     """Cambiar el estado del exhorto a POR ENVIAR"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
@@ -649,7 +649,7 @@ def change_to_send(exh_exhorto_id):
 
 
 @exh_exhortos.route("/exh_exhortos/transferir/<int:exh_exhorto_id>", methods=["GET", "POST"])
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def change_to_transfer(exh_exhorto_id):
     """Transferir un exhorto a un juzgado"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)

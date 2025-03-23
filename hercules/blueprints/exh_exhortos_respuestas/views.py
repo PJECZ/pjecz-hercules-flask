@@ -23,6 +23,10 @@ from lib.safe_string import safe_expediente, safe_message, safe_string
 
 MODULO = "EXH EXHORTOS RESPUESTAS"
 
+ESTADO_TURNADO_CLAVE = "05"  # Clave INEGI del estado por defecto, 05 es COAHUILA DE ZARAGOZA
+MUNICIPIO_TURNADO_CLAVE = "030"  # Clave INEGI del municipio por defecto, 030 es SALTILLO
+AREA_TURNADO_CLAVE = "SLT-OCP"  # Clave de Área Turnado por defecto
+
 exh_exhortos_respuestas = Blueprint("exh_exhortos_respuestas", __name__, template_folder="templates")
 
 
@@ -151,7 +155,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Nueva Respuesta {exh_exhorto_respuesta.origen_id}"),
+            descripcion=safe_message(f"Nueva Respuesta {exh_exhorto_respuesta.respuesta_origen_id}"),
             url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
         )
         bitacora.save()
@@ -160,10 +164,21 @@ def new_with_exh_exhorto(exh_exhorto_id):
         flash(bitacora.descripcion, "success")
         return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
 
+    # Consultar el municipio turnado por defecto
+    municipio = (
+        Municipio.query.join(Estado)
+        .filter(Estado.clave == ESTADO_TURNADO_CLAVE)
+        .filter(Municipio.clave == MUNICIPIO_TURNADO_CLAVE)
+        .first()
+    )
+
+    # Consultar el área turnado por defecto
+    area_turnado = ExhArea.query.filter_by(clave=AREA_TURNADO_CLAVE).first()
+
     # Cargar valores por defecto al formulario
     form.respuesta_origen_id.data = generar_identificador()  # Read only
-    form.municipio_turnado.data = 0  # Cero es un valor nulo
-    form.area_turnado.data = 0  # Cero es un valor nulo
+    form.municipio_turnado.data = municipio.id
+    form.area_turnado.data = area_turnado.id
     form.tipo_diligenciado.data = 0  # Cero es "NO DILIGENCIADO"
 
     # Entregar el formulario
@@ -284,7 +299,7 @@ def recover(exh_exhorto_respuesta_id):
 
 
 @exh_exhortos_respuestas.route("/exh_exhortos_respuestas/enviar/<int:exh_exhorto_respuesta_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def launch_task_send(exh_exhorto_respuesta_id):
     """Lanzar tarea en el fondo para enviar una respuesta al PJ Externo"""
     exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
@@ -313,7 +328,7 @@ def launch_task_send(exh_exhorto_respuesta_id):
 
 
 @exh_exhortos_respuestas.route("/exh_exhortos_respuestas/cancelar/<int:exh_exhorto_respuesta_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def change_to_cancel(exh_exhorto_respuesta_id):
     """Cambiar el estado de la respuesta a CANCELADO"""
     exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
@@ -338,7 +353,7 @@ def change_to_cancel(exh_exhorto_respuesta_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message("Se ha cambiado a CANCELADO la respuesta"),
+            descripcion=safe_message("Se ha CANCELADO la respuesta"),
             url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
         )
         bitacora.save()
@@ -347,12 +362,12 @@ def change_to_cancel(exh_exhorto_respuesta_id):
 
 
 @exh_exhortos_respuestas.route("/exh_exhortos_respuestas/cambiar_a_pendiente/<int:exh_exhorto_respuesta_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def change_to_pending(exh_exhorto_respuesta_id):
     """Cambiar el estado de la respuesta a PENDIENTE"""
     exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
     es_valido = True
-    # Validar el estado del Exhorto
+    # Validar el estado
     if exh_exhorto_respuesta.estado == "PENDIENTE":
         es_valido = False
         flash("Esta respuesta ya estaba PENDIENTE.", "warning")
@@ -381,12 +396,12 @@ def change_to_pending(exh_exhorto_respuesta_id):
 
 
 @exh_exhortos_respuestas.route("/exh_exhortos_respuestas/cambiar_a_por_enviar/<int:exh_exhorto_respuesta_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def change_to_send(exh_exhorto_respuesta_id):
     """Cambiar el estado de la respuesta a POR ENVIAR"""
     exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
     es_valido = True
-    # Validar el estado del Exhorto
+    # Validar el estado
     if exh_exhorto_respuesta.estado == "POR ENVIAR":
         es_valido = False
         flash("Esta respuesta ya estaba POR ENVIAR.", "warning")
