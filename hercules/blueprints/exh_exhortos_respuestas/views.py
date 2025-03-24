@@ -175,7 +175,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
     # Consultar el área turnado por defecto
     area_turnado = ExhArea.query.filter_by(clave=AREA_TURNADO_CLAVE).first()
 
-    # Cargar valores por defecto al formulario
+    # Definir los valores por defecto del formulario
     form.respuesta_origen_id.data = generar_identificador()  # Read only
     form.municipio_turnado.data = municipio.id
     form.area_turnado.data = area_turnado.id
@@ -243,7 +243,7 @@ def edit(exh_exhorto_respuesta_id):
             .first()
         )
 
-    # Cargar valores al formulario
+    # Definir los valores del formulario
     form.respuesta_origen_id.data = exh_exhorto_respuesta.respuesta_origen_id  # Read only
     if municipio_turnado:
         form.municipio_turnado.data = municipio_turnado.id

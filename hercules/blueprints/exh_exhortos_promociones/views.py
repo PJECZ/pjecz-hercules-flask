@@ -162,6 +162,7 @@ def edit(exh_exhorto_promocion_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
+    form.folio_origen_promocion.data = exh_exhorto_promocion.folio_origen_promocion  # Read only
     form.fojas.data = exh_exhorto_promocion.fojas
     form.observaciones.data = exh_exhorto_promocion.observaciones
     return render_template("exh_exhortos_promociones/edit.jinja2", form=form, exh_exhorto_promocion=exh_exhorto_promocion)

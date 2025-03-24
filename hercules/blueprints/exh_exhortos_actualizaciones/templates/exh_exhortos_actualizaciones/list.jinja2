@@ -66,6 +66,23 @@
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.actualizacion_origen_id + '</a>';
                 }
+            },
+            {
+                targets: 4, // estado
+                data: null,
+                render: function(data, type, row, meta) {
+                    let bgcolor = "bg-dark";
+                    let icon = "circle-small";
+                    switch (data)    {
+                        case "CANCELADO":  bgcolor = "bg-secondary";         icon="close-circle";    break;
+                        case "ENVIADO":    bgcolor = 'bg-primary';           icon="briefcase-check"; break;
+                        case "PENDIENTE":  bgcolor = 'bg-warning text-dark'; icon="note-edit";       break;
+                        case "POR ENVIAR": bgcolor = 'bg-warning text-dark'; icon="package-up";      break;
+                        case "RECHAZADO":  bgcolor = "bg-danger";            icon="hand-back-left";  break;
+                    }
+                    let iconHTML = '<span class="iconify" data-icon="mdi:' + icon + '"></span>';
+                    return '<span class="badge rounded-pill ' + bgcolor + '">' + iconHTML + data + '</span>';
+                }
             }
         ];
         // Filtros exh_exhortos_actualizaciones

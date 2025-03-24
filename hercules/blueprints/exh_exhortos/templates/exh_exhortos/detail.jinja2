@@ -115,44 +115,47 @@
         <hr>
         {% if current_user.can_insert('EXH EXHORTOS') %}
             <!-- Botones de acciones para el estado PENDIENTE -->
-            {% if exh_exhorto.estado == 'PENDIENTE' %}
+            {% if exh_exhorto.remitente == "INTERNO" and exh_exhorto.estado == 'PENDIENTE' %}
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         {{ detail.button_lg_modal(
                             label="Cancelar",
                             onclick="showModalCancelarBtn('" + url_for('exh_exhortos.change_to_cancel', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de CANCELAR este exhorto?');",
                             icon='mdi:cancel',
                             color_class='btn-secondary') }}
                     </div>
+                    <div class="col-md-3">
+                        {{ detail.button_lg(
+                            label="Editar",
+                            url=url_for('exh_exhortos.edit', exh_exhorto_id=exh_exhorto.id),
+                            icon='mdi:edit',
+                            color_class='btn-info') }}
+                    </div>
                     <div class="col-md-6">
-                        {% if exh_exhorto.remitente == "INTERNO" %}
-                            {{ detail.button_lg_modal(
-                                label="Por Enviar",
-                                onclick="showModalPorEnviarBtn('" + url_for('exh_exhortos.change_to_send', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro cambiar a POR ENVIAR este exhorto? Una vez cambiado ya no podrá editarlo.');",
-                                icon='mdi:package-variant-closed',
-                                color_class='btn-primary') }}
-                        {% endif %}
+                        {{ detail.button_lg_modal(
+                            label="Por Enviar",
+                            onclick="showModalPorEnviarBtn('" + url_for('exh_exhortos.change_to_send', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro cambiar a POR ENVIAR este exhorto? Una vez cambiado ya no podrá editarlo.');",
+                            icon='mdi:package-variant-closed',
+                            color_class='btn-warning') }}
                     </div>
                 </div>
             {% endif %}
-            <!-- Botones de acciones para el estado POR ENVIAR -->
-            {% if exh_exhorto.estado == "POR ENVIAR" or exh_exhorto == "RECHAZADO" %}
+            <!-- Botones de acciones para el estado POR ENVIAR o RECHAZADO -->
+            {% if exh_exhorto.remitente == "INTERNO" and (exh_exhorto.estado == "POR ENVIAR" or exh_exhorto == "RECHAZADO") %}
                 <div class="row">
                     <div class="col-md-6">
                         {{ detail.button_lg_modal(
                             label="Regresar a Pendiente",
                             onclick="showModalPendienteBtn('" + url_for('exh_exhortos.change_to_pending', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de cambiar a PENDIENTE este exhorto?');",
-                            icon='mdi:pencil',
+                            icon='mdi:note-edit',
                             color_class='btn-warning') }}
                     </div>
                     <div class="col-md-6">
-                        {% if exh_exhorto.remitente == "INTERNO" %}
-                            {{ detail.button_lg_modal(
-                                label="Enviar",
-                                onclick="showModalEnviarBtn('" + url_for('exh_exhortos.launch_task_send', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de ENVIAR este exhorto? Una vez enviado al PJ ya no podrá cancelarlo.');",
-                                icon='mdi:send',
-                                color_class='btn-primary') }}
-                        {% endif %}
+                        {{ detail.button_lg_modal(
+                            label="Enviar",
+                            onclick="showModalEnviarBtn('" + url_for('exh_exhortos.launch_task_send', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de ENVIAR este exhorto? Una vez enviado al PJ ya no podrá cancelarlo.');",
+                            icon='mdi:send',
+                            color_class='btn-primary') }}
                     </div>
                 </div>
             {% endif %}
@@ -171,7 +174,7 @@
                 </div>
             {% endif %}
             <!-- Botón Transferir a Juzgado -->
-            {% if exh_exhorto.estado == "RECIBIDO" %}
+            {% if exh_exhorto.remitente == "EXTERNO" and exh_exhorto.estado == "RECIBIDO" %}
                 <div class="row">
                     <div class="col-md-6">
                     </div>
@@ -185,7 +188,7 @@
                 </div>
             {% endif %}
             <!-- Botón Procesar -->
-            {% if exh_exhorto.estado == "TRANSFIRIENDO" %}
+            {% if exh_exhorto.remitente == "EXTERNO" and exh_exhorto.estado == "TRANSFIRIENDO" %}
                 <div class="row">
                     <div class="col-md-6">
                     </div>
@@ -198,8 +201,8 @@
                     </div>
                 </div>
             {% endif %}
-            <!-- Botones Rechazar y Diligenciar -->
-            {% if exh_exhorto.estado == "PROCESANDO" %}
+            <!-- Botones Rechazar -->
+            {% if exh_exhorto.remitente == "EXTERNO" and exh_exhorto.estado == "PROCESANDO" %}
                 <div class="row">
                     <div class="col-md-6">
                         {{ detail.button_lg(
@@ -213,7 +216,7 @@
                 </div>
             {% endif %}
             <!-- Botón Archivar -->
-            {% if exh_exhorto.estado in ("CONTESTADO", "RESPONDIDO") %}
+            {% if exh_exhorto.estado == "CONTESTADO" or exh_exhorto.estado == "RESPONDIDO" %}
                 <div class="row">
                     <div class="col-md-6">
                     </div>
@@ -331,20 +334,19 @@
 {% block custom_javascript %}
     <!-- Modales para los botones de acción -->
     {% if current_user.can_insert('EXH EXHORTOS') %}
-        {% if exh_exhorto.estado == 'PENDIENTE' %}
+        {% if exh_exhorto.remitente == "INTERNO" and exh_exhorto.estado == 'PENDIENTE' %}
             {{ modals.custom_javascript('CANCELAR este Exhorto', '', "CancelarBtn") }}
             {{ modals.custom_javascript('POR ENVIAR este Exhorto', '', "PorEnviarBtn") }}
         {% endif %}
-        {% if exh_exhorto.estado == 'POR ENVIAR' %}
-            {{ modals.custom_javascript('CANCELAR este Exhorto', '', "CancelarBtn") }}
-            {{ modals.custom_javascript('Cambiar a PENDIENTE', '', "PendienteBtn") }}
-            {{ modals.custom_javascript('ENVIAR al P.J.', '', "EnviarBtn") }}
+        {% if exh_exhorto.remitente == "INTERNO" and (exh_exhorto.estado == "POR ENVIAR" or exh_exhorto == "RECHAZADO") %}
+            {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
+            {{ modals.custom_javascript('ENVIAR el Exhorto al P.J.', '', "EnviarBtn") }}
         {% endif %}
-        {% if exh_exhorto.estado == 'RECIBIDO CON EXITO' %}
-            {{ modals.custom_javascript('CONSULTAR con el P.J.', '', "ConsultarBtn") }}
+        {% if exh_exhorto.remitente == "EXTERNO" and exh_exhorto.estado == "RECIBIDO CON EXITO" %}
+            {{ modals.custom_javascript('CONSULTAR el Exhorto con el P.J.', '', "ConsultarBtn") }}
         {% endif %}
-        {% if exh_exhorto.estado == 'RESPONDIDO' or exh_exhorto.estado == 'CONTESTADO' %}
-            {{ modals.custom_javascript('ARCHIVAR', '', "ArchivarBtn") }}
+        {% if exh_exhorto.estado == "CONTESTADO" or exh_exhorto.estado == "RESPONDIDO" %}
+            {{ modals.custom_javascript('ARCHIVAR el Exhorto', '', "ArchivarBtn") }}
         {% endif %}
     {% endif %}
     <!-- Modales para eliminar y recuperar -->
@@ -453,6 +455,23 @@
                     render: function(data, type, row, meta) {
                         return '<a href="' + data.url + '">' + data.respuesta_origen_id + '</a>';
                     }
+                },
+                {
+                    targets: 4, // estado
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        let bgcolor = "bg-dark";
+                        let icon = "circle-small";
+                        switch (data)    {
+                            case "CANCELADO":  bgcolor = "bg-secondary";         icon="close-circle";    break;
+                            case "ENVIADO":    bgcolor = 'bg-primary';           icon="briefcase-check"; break;
+                            case "PENDIENTE":  bgcolor = 'bg-warning text-dark'; icon="note-edit";       break;
+                            case "POR ENVIAR": bgcolor = 'bg-warning text-dark'; icon="package-up";      break;
+                            case "RECHAZADO":  bgcolor = "bg-danger";            icon="hand-back-left";  break;
+                        }
+                        let iconHTML = '<span class="iconify" data-icon="mdi:' + icon + '"></span>';
+                        return '<span class="badge rounded-pill ' + bgcolor + '">' + iconHTML + data + '</span>';
+                    }
                 }
             ];
             // Filtros exh_exhortos_respuestas
@@ -481,6 +500,23 @@
                     render: function(data, type, row, meta) {
                         return '<a href="' + data.url + '">' + data.actualizacion_origen_id + '</a>';
                     }
+                },
+                {
+                    targets: 4, // estado
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        let bgcolor = "bg-dark";
+                        let icon = "circle-small";
+                        switch (data)    {
+                            case "CANCELADO":  bgcolor = "bg-secondary";         icon="close-circle";    break;
+                            case "ENVIADO":    bgcolor = 'bg-primary';           icon="briefcase-check"; break;
+                            case "PENDIENTE":  bgcolor = 'bg-warning text-dark'; icon="note-edit";       break;
+                            case "POR ENVIAR": bgcolor = 'bg-warning text-dark'; icon="package-up";      break;
+                            case "RECHAZADO":  bgcolor = "bg-danger";            icon="hand-back-left";  break;
+                        }
+                        let iconHTML = '<span class="iconify" data-icon="mdi:' + icon + '"></span>';
+                        return '<span class="badge rounded-pill ' + bgcolor + '">' + iconHTML + data + '</span>';
+                    }
                 }
             ];
             // Filtros exh_exhortos_actualizaciones
@@ -506,6 +542,23 @@
                     data: null,
                     render: function(data, type, row, meta) {
                         return '<a href="' + data.url + '">' + data.folio_origen_promocion + '</a>';
+                    }
+                },
+                {
+                    targets: 2, // estado
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        let bgcolor = "bg-dark";
+                        let icon = "circle-small";
+                        switch (data)    {
+                            case "CANCELADO":  bgcolor = "bg-secondary";         icon="close-circle";    break;
+                            case "ENVIADO":    bgcolor = 'bg-primary';           icon="briefcase-check"; break;
+                            case "PENDIENTE":  bgcolor = 'bg-warning text-dark'; icon="note-edit";       break;
+                            case "POR ENVIAR": bgcolor = 'bg-warning text-dark'; icon="package-up";      break;
+                            case "RECHAZADO":  bgcolor = "bg-danger";            icon="hand-back-left";  break;
+                        }
+                        let iconHTML = '<span class="iconify" data-icon="mdi:' + icon + '"></span>';
+                        return '<span class="badge rounded-pill ' + bgcolor + '">' + iconHTML + data + '</span>';
                     }
                 }
             ];

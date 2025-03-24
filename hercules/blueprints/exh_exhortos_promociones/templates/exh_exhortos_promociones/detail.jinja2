@@ -33,35 +33,44 @@
             <div class="col-md-3 text-end">Estado</div>
             <div class="col-md-9"><span id="titulo-estado">{{ exh_exhorto_promocion.estado }}</span></div>
         </div>
-        <hr>
         <!-- Botones de acciones -->
         {% if current_user.can_insert('EXH EXHORTOS PROMOCIONES') %}
+            <hr>
             {% if exh_exhorto_promocion.estado == 'PENDIENTE' %}
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         {{ detail.button_lg_modal(
                             label="Cancelar",
                             onclick="showModalCancelarBtn('" + url_for('exh_exhortos_promociones.change_to_cancel', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '¿Está seguro de CANCELAR esta promoción?');",
                             icon='mdi:cancel',
                             color_class='btn-secondary') }}
                     </div>
+                    <div class="col-md-3">
+                        {{ detail.button_lg(
+                            label="Editar",
+                            url=url_for('exh_exhortos_promociones.edit', exh_exhorto_promocion_id=exh_exhorto_promocion.id),
+                            icon='mdi:edit',
+                            color_class='btn-info') }}
+                    </div>
                     <div class="col-md-6">
                         {{ detail.button_lg_modal(
                             label="Por Enviar",
                             onclick="showModalPorEnviarBtn('" + url_for('exh_exhortos_promociones.change_to_send', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '¿Está seguro cambiar a POR ENVIAR esta promoción? Una vez cambiada ya no podrá editarla.');",
                             icon='mdi:package-variant-closed',
-                            color_class='btn-primary') }}
+                            color_class='btn-warning') }}
                     </div>
                 </div>
             {% endif %}
             {% if exh_exhorto_promocion.estado == 'POR ENVIAR' or exh_exhorto_promocion.estado == 'RECHAZADO' %}
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         {{ detail.button_lg_modal(
                             label="Regresar a Pendiente",
                             onclick="showModalPendienteBtn('" + url_for('exh_exhortos_promociones.change_to_pending', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '¿Está seguro de cambiar a PENDIENTE esta promoción?');",
-                            icon='mdi:pencil',
+                            icon='mdi:note-edit',
                             color_class='btn-warning') }}
+                    </div>
+                    <div class="col-md-3">
                     </div>
                     <div class="col-md-6">
                         {{ detail.button_lg_modal(
@@ -69,6 +78,19 @@
                             onclick="showModalEnviarBtn('" + url_for('exh_exhortos_promociones.launch_task_send', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '¿Está seguro de ENVIAR esta promoción? Una vez enviada al PJ ya no podrá cancelarla.');",
                             icon='mdi:send',
                             color_class='btn-primary') }}
+                    </div>
+                </div>
+            {% endif %}
+            {% if exh_exhorto_promocion.estado == 'CANCELADO' %}
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ detail.button_lg_modal(
+                            label="Regresar a Pendiente",
+                            onclick="showModalPendienteBtn('" + url_for('exh_exhortos_promociones.change_to_pending', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '¿Está seguro de cambiar a PENDIENTE esta promoción?');",
+                            icon='mdi:note-edit',
+                            color_class='btn-warning') }}
+                    </div>
+                    <div class="col-md-9">
                     </div>
                 </div>
             {% endif %}
@@ -110,15 +132,24 @@
 {% endblock %}
 
 {% block custom_javascript %}
+    <!-- Modales para los botones de acción -->
+    {% if current_user.can_insert('EXH EXHORTOS PROMOCIONES') %}
+        {% if exh_exhorto_promocion.estado == 'PENDIENTE' %}
+            {{ modals.custom_javascript('CANCELAR esta Promoción', '', "CancelarBtn") }}
+            {{ modals.custom_javascript('POR ENVIAR esta Promoción', '', "PorEnviarBtn") }}
+        {% endif %}
+        {% if exh_exhorto_promocion.estado == 'POR ENVIAR' or exh_exhorto_promocion.estado == 'RECHAZADO' %}
+            {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
+            {{ modals.custom_javascript('ENVIAR esta Promoción al P.J.', '', "EnviarBtn") }}
+        {% endif %}
+        {% if exh_exhorto_promocion.estado == 'CANCELADO' %}
+            {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
+        {% endif %}
+    {% endif %}
     <!-- Modales para eliminar y recuperar -->
     {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') %}
         {% if exh_exhorto_promocion.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar esta Promoción?') }}{% endif %}
         {% if exh_exhorto_promocion.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar esta Promoción?') }}{% endif %}
-    {% endif %}
-    <!-- Modales para enviar y cancelar -->
-    {% if exh_exhorto_promocion.estado == 'PENDIENTE' %}
-        {{ modals.custom_javascript('Enviar', '', "enviar_btn") }}
-        {{ modals.custom_javascript('Cancelar', '', "cancelar_btn") }}
     {% endif %}
     <!-- Renderizar el campo estado con colores e iconos -->
     <script>
@@ -126,11 +157,12 @@
         const valor = "{{ exh_exhorto_promocion.estado }}";
         let bgcolor = "bg-dark";
         let icon = "circle-small";
-        switch (valor)    {
-            case "CANCELADO": bgcolor = 'bg-danger';            icon="cancel";              break;
-            case "ENVIADO":   bgcolor = 'bg-primary';           icon="send";                break;
-            case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit";           break;
-            default:          bgcolor = 'bg-secondary';         icon="circle-outline";      break;
+        switch (valor) {
+            case "CANCELADO":  bgcolor = 'bg-secondary';         icon="cancel";         break;
+            case "ENVIADO":    bgcolor = 'bg-primary';           icon="send";           break;
+            case "PENDIENTE":  bgcolor = 'bg-warning text-dark'; icon="note-edit";      break;
+            case "POR ENVIAR": bgcolor = 'bg-warning text-dark'; icon="package-up";     break;
+            case "RECHAZADO":  bgcolor = "bg-danger";            icon="hand-back-left"; break;
         }
         html = '<span style="font-size:1.0em" class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
         titulo_estado.innerHTML = html;

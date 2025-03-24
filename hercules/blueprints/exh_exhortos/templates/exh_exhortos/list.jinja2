@@ -38,6 +38,9 @@
                 </tr>
             </thead>
         </table>
+        {% if current_user.can_insert('EXH EXHORTOS') %}
+            <a class="btn btn-primary" href="{{ url_for('exh_exhortos.new') }}">Nuevo Exhorto</a>
+        {% endif %}
     {% endcall %}
 {% endblock %}
 
@@ -65,6 +68,29 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.exhorto_origen_id + '</a>';
+                }
+            },
+            {
+                targets: 5, // estado
+                data: null,
+                render: function(data, type, row, meta) {
+                    let bgcolor = "bg-dark";
+                    let icon = "circle-small";
+                    switch (data)    {
+                        case "RECIBIDO":           bgcolor = 'bg-primary';           icon="inbox-arrow-down";  break;
+                        case "TRANSFIRIENDO":      bgcolor = 'bg-primary';           icon="email-arrow-right"; break;
+                        case "PROCESANDO":         bgcolor = 'bg-warning text-dark'; icon="sync";              break;
+                        case "RECHAZADO":          bgcolor = "bg-danger";            icon="hand-back-left";    break;
+                        case "CONTESTADO":         bgcolor = "bg-success";           icon="check-circle";      break;
+                        case "PENDIENTE":          bgcolor = 'bg-warning text-dark'; icon="note-edit";         break;
+                        case "CANCELADO":          bgcolor = "bg-secondary";         icon="close-circle";      break;
+                        case "POR ENVIAR":         bgcolor = 'bg-warning text-dark'; icon="package-up";        break;
+                        case "RECIBIDO CON EXITO": bgcolor = 'bg-primary';           icon="briefcase-check";   break;
+                        case "RESPONDIDO":         bgcolor = 'bg-success';           icon="crown-circle";      break;
+                        case "ARCHIVADO":          bgcolor = 'bg-secondary';         icon="archive";           break;
+                    }
+                    let iconHTML = '<span class="iconify" data-icon="mdi:' + icon + '"></span>';
+                    return '<span class="badge rounded-pill ' + bgcolor + '">' + iconHTML + data + '</span>';
                 }
             }
         ];

@@ -133,8 +133,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    # Despliega el campo Origen ID generado
-    form.origen_id.data = generar_identificador()
+    form.actualizacion_origen_id.data = generar_identificador()  # Read only
     return render_template("exh_exhortos_actualizaciones/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
 
 

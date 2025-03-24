@@ -54,32 +54,42 @@
         </div>
         <!-- Botones de acciones -->
         {% if current_user.can_insert('EXH EXHORTOS RESPUESTAS') %}
+            <hr>
             {% if exh_exhorto_respuesta.estado == 'PENDIENTE' %}
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         {{ detail.button_lg_modal(
                             label="Cancelar",
                             onclick="showModalCancelarBtn('" + url_for('exh_exhortos_respuestas.change_to_cancel', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) + "', '¿Está seguro de CANCELAR esta respuesta?');",
                             icon='mdi:cancel',
                             color_class='btn-secondary') }}
                     </div>
+                    <div class="col-md-3">
+                        {{ detail.button_lg(
+                            label="Editar",
+                            url=url_for('exh_exhortos_respuestas.edit', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
+                            icon='mdi:edit',
+                            color_class='btn-info') }}
+                    </div>
                     <div class="col-md-6">
                         {{ detail.button_lg_modal(
                             label="Por Enviar",
                             onclick="showModalPorEnviarBtn('" + url_for('exh_exhortos_respuestas.change_to_send', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) + "', '¿Está seguro cambiar a POR ENVIAR esta respuesta? Una vez cambiada ya no podrá editarla.');",
                             icon='mdi:package-variant-closed',
-                            color_class='btn-primary') }}
+                            color_class='btn-warning') }}
                     </div>
                 </div>
             {% endif %}
             {% if exh_exhorto_respuesta.estado == 'POR ENVIAR' or exh_exhorto_respuesta.estado == 'RECHAZADO' %}
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         {{ detail.button_lg_modal(
                             label="Regresar a Pendiente",
                             onclick="showModalPendienteBtn('" + url_for('exh_exhortos_respuestas.change_to_pending', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) + "', '¿Está seguro de cambiar a PENDIENTE esta respuesta?');",
-                            icon='mdi:pencil',
+                            icon='mdi:note-edit',
                             color_class='btn-warning') }}
+                    </div>
+                    <div class="col-md-3">
                     </div>
                     <div class="col-md-6">
                         {{ detail.button_lg_modal(
@@ -87,6 +97,19 @@
                             onclick="showModalEnviarBtn('" + url_for('exh_exhortos_respuestas.launch_task_send', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) + "', '¿Está seguro de ENVIAR esta respuesta? Una vez enviada al PJ ya no podrá cancelarla.');",
                             icon='mdi:send',
                             color_class='btn-primary') }}
+                    </div>
+                </div>
+            {% endif %}
+            {% if exh_exhorto_respuesta.estado == 'CANCELADO' %}
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ detail.button_lg_modal(
+                            label="Regresar a Pendiente",
+                            onclick="showModalPendienteBtn('" + url_for('exh_exhortos_respuestas.change_to_pending', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) + "', '¿Está seguro de cambiar a PENDIENTE esta respuesta?');",
+                            icon='mdi:note-edit',
+                            color_class='btn-warning') }}
+                    </div>
+                    <div class="col-md-9">
                     </div>
                 </div>
             {% endif %}
@@ -125,6 +148,20 @@
 {% endblock %}
 
 {% block custom_javascript %}
+    <!-- Modales para los botones de acción -->
+    {% if current_user.can_insert('EXH EXHORTOS RESPUESTAS') %}
+        {% if exh_exhorto_respuesta.estado == 'PENDIENTE' %}
+            {{ modals.custom_javascript('CANCELAR esta Respuesta', '', "CancelarBtn") }}
+            {{ modals.custom_javascript('POR ENVIAR esta Respuesta', '', "PorEnviarBtn") }}
+        {% endif %}
+        {% if exh_exhorto_respuesta.estado == 'POR ENVIAR' or exh_exhorto_respuesta.estado == 'RECHAZADO' %}
+            {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
+            {{ modals.custom_javascript('ENVIAR esta Respuesta al P.J.', '', "EnviarBtn") }}
+        {% endif %}
+        {% if exh_exhorto_respuesta.estado == 'CANCELADO' %}
+            {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
+        {% endif %}
+    {% endif %}
     <!-- Modales para eliminar y recuperar -->
     {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
         {% if exh_exhorto_respuesta.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar esta Respuesta?') }}{% endif %}
@@ -136,11 +173,12 @@
         const valor = "{{ exh_exhorto_respuesta.estado }}";
         let bgcolor = "bg-dark";
         let icon = "circle-small";
-        switch (valor)    {
-            case "CANCELADO": bgcolor = 'bg-danger';            icon="cancel";              break;
-            case "ENVIADO":   bgcolor = 'bg-primary';           icon="send";                break;
-            case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit";           break;
-            default:          bgcolor = 'bg-secondary';         icon="circle-outline";      break;
+        switch (valor) {
+            case "CANCELADO":  bgcolor = 'bg-secondary';         icon="cancel";         break;
+            case "ENVIADO":    bgcolor = 'bg-primary';           icon="send";           break;
+            case "PENDIENTE":  bgcolor = 'bg-warning text-dark'; icon="note-edit";      break;
+            case "POR ENVIAR": bgcolor = 'bg-warning text-dark'; icon="package-up";     break;
+            case "RECHAZADO":  bgcolor = "bg-danger";            icon="hand-back-left"; break;
         }
         html = '<span style="font-size:1.0em" class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
         titulo_estado.innerHTML = html;
