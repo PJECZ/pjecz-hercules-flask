@@ -9,6 +9,15 @@
         {% if current_user.can_view('EXH AREAS') %}
             {{ topbar.button('Áreas', url_for('exh_areas.list_active'), 'mdi:office-building-marker') }}
         {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS ACTUALIZACIONES') %}
+            {{ topbar.button('E. Actualizaciones', url_for('exh_exhortos_actualizaciones.list_active'), 'mdi:reload') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') %}
+            {{ topbar.button('E. Promociones', url_for('exh_exhortos_promociones.list_active'), 'mdi:receipt-text-plus') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
+            {{ topbar.button('E. Respuestas', url_for('exh_exhortos_respuestas.list_active'), 'mdi:forum') }}
+        {% endif %}
         {% if current_user.can_view('EXH EXHORTOS') %}
             {{ topbar.button('Exhortos', url_for('exh_exhortos.list_active'), 'mdi:email-fast') }}
         {% endif %}

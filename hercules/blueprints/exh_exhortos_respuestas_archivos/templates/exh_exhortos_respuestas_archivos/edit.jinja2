@@ -2,17 +2,16 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Editar Archivo de la Respuesta {{ exh_exhorto_respuesta_archivo.exh_exhorto_respuesta.origen_id }}{% endblock %}
+{% block title %}Editar Archivo de la Respuesta {{ exh_exhorto_respuesta_archivo.exh_exhorto_respuesta.respuesta_origen_id }}{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Editar Archivo de la Respuesta ' + exh_exhorto_respuesta_archivo.exh_exhorto_respuesta.origen_id) }}
+    {{ topbar.page('Editar Archivo de la Respuesta ' + exh_exhorto_respuesta_archivo.exh_exhorto_respuesta.respuesta_origen_id) }}
 {% endblock %}
 
 {% block content %}
     {% call f.card() %}
         {% set form_kwargs = {'exh_exhorto_respuesta_archivo_id': exh_exhorto_respuesta_archivo.id} %}
         {% call f.form_tag('exh_exhortos_respuestas_archivos.edit', fid='exh_exhorto_respuesta_archivo_form', **form_kwargs) %}
-            {% call f.form_group(form.exh_exhorto_respuesta_origen_id, readonly=true) %}{% endcall %}
             {% call f.form_group(form.nombre_archivo, readonly=true) %}{% endcall %}
             {% call f.form_group(form.tipo_documento) %}{% endcall %}
             {% call f.form_group(form.hash_sha1, readonly=true) %}{% endcall %}

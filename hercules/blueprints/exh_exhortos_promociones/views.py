@@ -46,6 +46,12 @@ def datatable_json():
         consulta = consulta.filter_by(estatus="A")
     if "exh_exhorto_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_id=request.form["exh_exhorto_id"])
+    if "folio_origen_promocion" in request.form:
+        folio_origen_promocion = safe_string(
+            request.form["folio_origen_promocion"], max_len=64, do_unidecode=True, to_uppercase=False
+        )
+        if folio_origen_promocion != "":
+            consulta = consulta.filter(ExhExhortoPromocion.folio_origen_promocion.contains(folio_origen_promocion))
     # Ordenar y paginar
     registros = consulta.order_by(ExhExhortoPromocion.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -114,7 +120,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
         # Insertar el registro ExhExhortoPromocion
         exh_exhorto_promocion = ExhExhortoPromocion(
             exh_exhorto=exh_exhorto,
-            folio_origen_promocion=form.folio_origen_promocion.data,
+            folio_origen_promocion=safe_string(form.folio_origen_promocion.data, max_len=64, to_uppercase=False),
             fecha_origen=datetime.now(),
             fojas=form.fojas.data,
             remitente="INTERNO",

@@ -51,6 +51,18 @@ def datatable_json():
         consulta = consulta.filter_by(estatus="A")
     if "exh_exhorto_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_id=request.form["exh_exhorto_id"])
+    if "respuesta_origen_id" in request.form:
+        respuesta_origen_id = safe_string(
+            request.form["respuesta_origen_id"], max_len=64, do_unidecode=True, to_uppercase=False
+        )
+        if respuesta_origen_id != "":
+            consulta = consulta.filter(ExhExhortoRespuesta.respuesta_origen_id.contains(respuesta_origen_id))
+    if "numero_exhorto" in request.form:
+        try:
+            numero_exhorto = safe_expediente(request.form["numero_exhorto"])
+            consulta = consulta.filter(ExhExhortoRespuesta.numero_exhorto == numero_exhorto)
+        except ValueError:
+            pass
     # Ordenar y paginar
     registros = consulta.order_by(ExhExhortoRespuesta.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -139,7 +151,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
         # Insertar el registro ExhExhortoRespuesta
         exh_exhorto_respuesta = ExhExhortoRespuesta(
             exh_exhorto=exh_exhorto,
-            respuesta_origen_id=form.respuesta_origen_id.data,
+            respuesta_origen_id=safe_string(form.respuesta_origen_id.data, max_len=64, to_uppercase=False),
             municipio_turnado_id=municipio_turnado_id,
             area_turnado_id=area_turnado_id,
             area_turnado_nombre=area_turnado_nombre,

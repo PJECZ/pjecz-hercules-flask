@@ -2,18 +2,17 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Agregar Video a la Respuesta {{ exh_exhorto_respuesta.origen_id }}{% endblock %}
+{% block title %}Agregar Video a la Respuesta {{ exh_exhorto_respuesta.respuesta_origen_id }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Agregar Video a la Respuesta ' + exh_exhorto_respuesta.origen_id) %}
+    {% call topbar.page_buttons('Agregar Video a la Respuesta ' + exh_exhorto_respuesta.respuesta_origen_id) %}
     {% endcall %}
 {% endblock %}
 
 {% block content %}
     {% call f.card() %}
-        {% set form_kwargs = {'exh_exhorto_id': exh_exhorto_respuesta.id} %}
+        {% set form_kwargs = {'exh_exhorto_respuesta_id': exh_exhorto_respuesta.id} %}
         {% call f.form_tag('exh_exhortos_respuestas_videos.new_with_exh_exhorto_respuesta', fid='exh_exhorto_respuesta_video_form', **form_kwargs) %}
-            {% call f.form_group(form.exh_exhorto_respuesta_origen_id, readonly=true) %}{% endcall %}
             {% call f.form_group(form.titulo) %}{% endcall %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
             {% call f.form_group(form.url_acceso) %}{% endcall %}

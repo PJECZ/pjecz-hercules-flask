@@ -32,7 +32,21 @@
         </div>
         {% if current_user.can_insert('EXH EXHORTOS ACTUALIZACIONES') %}
             <hr>
-            <!-- Botones de acciones -->
+            <!-- Botones de acciones REGRESAR A PENDIENTE -->
+            {% if exh_exhorto_actualizacion.estado == 'CANCELADO' %}
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ detail.button_lg_modal(
+                            label="Regresar a Pendiente",
+                            onclick="showModalPendienteBtn('" + url_for('exh_exhortos_actualizaciones.change_to_pending', exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id) + "', '¿Está seguro de cambiar a PENDIENTE esta actualización?');",
+                            icon='mdi:note-edit',
+                            color_class='btn-warning') }}
+                    </div>
+                    <div class="col-md-9">
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Botones de acciones CANCELAR, EDITAR y POR ENVIAR -->
             {% if exh_exhorto_actualizacion.estado == 'PENDIENTE' %}
                 <div class="row">
                     <div class="col-md-3">
@@ -58,6 +72,7 @@
                     </div>
                 </div>
             {% endif %}
+            <!-- Botones de acciones REGRESAR A PENDIENTE y ENVIAR -->
             {% if exh_exhorto_actualizacion.estado == 'POR ENVIAR' or exh_exhorto_actualizacion.estado == 'RECHAZADO' %}
                 <div class="row">
                     <div class="col-md-3">
@@ -78,19 +93,6 @@
                     </div>
                 </div>
             {% endif %}
-            {% if exh_exhorto_actualizacion.estado == 'CANCELADO' %}
-                <div class="row">
-                    <div class="col-md-3">
-                        {{ detail.button_lg_modal(
-                            label="Regresar a Pendiente",
-                            onclick="showModalPendienteBtn('" + url_for('exh_exhortos_actualizaciones.change_to_pending', exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id) + "', '¿Está seguro de cambiar a PENDIENTE esta actualización?');",
-                            icon='mdi:note-edit',
-                            color_class='btn-warning') }}
-                    </div>
-                    <div class="col-md-9">
-                    </div>
-                </div>
-            {% endif %}
         {% endif %}
     {% endcall %}
 {% endblock %}
@@ -98,6 +100,9 @@
 {% block custom_javascript %}
     <!-- Modales para los botones de acción -->
     {% if current_user.can_insert('EXH EXHORTOS ACTUALIZACIONES') %}
+        {% if exh_exhorto_actualizacion.estado == 'CANCELADO' %}
+            {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
+        {% endif %}
         {% if exh_exhorto_actualizacion.estado == 'PENDIENTE' %}
             {{ modals.custom_javascript('CANCELAR esta Actualización', '', "CancelarBtn") }}
             {{ modals.custom_javascript('POR ENVIAR esta Actualización', '', "PorEnviarBtn") }}
@@ -105,9 +110,6 @@
         {% if exh_exhorto_actualizacion.estado == 'POR ENVIAR' or exh_exhorto_actualizacion.estado == 'RECHAZADO' %}
             {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
             {{ modals.custom_javascript('ENVIAR esta Actualización al P.J.', '', "EnviarBtn") }}
-        {% endif %}
-        {% if exh_exhorto_actualizacion.estado == 'CANCELADO' %}
-            {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
         {% endif %}
     {% endif %}
     <!-- Modales para eliminar y recuperar -->

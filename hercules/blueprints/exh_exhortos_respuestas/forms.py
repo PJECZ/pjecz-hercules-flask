@@ -22,7 +22,7 @@ class ExhExhortoRespuestaForm(FlaskForm):
     area_turnado = SelectField("Área turnado", coerce=int, validators=[DataRequired()])
     numero_exhorto = StringField("Número de Exhorto", validators=[Optional(), Length(max=64), Regexp(EXPEDIENTE_REGEXP)])
     tipo_diligenciado = RadioField("Tipo diligenciado", coerce=int, choices=ExhExhortoRespuesta.TIPOS_DILIGENCIADOS.items())
-    observaciones = TextAreaField("Observaciones", validators=[Optional()])
+    observaciones = TextAreaField("Observaciones", validators=[Optional(), Length(max=1024)], render_kw={"rows": 5})
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):

@@ -132,9 +132,6 @@ def new_with_exh_exhorto_respuesta(exh_exhorto_respuesta_id):
             flash("El archivo debe ser un PDF", "warning")
             return redirect(url_for("exh_exhortos_respuesta.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta_id))
 
-        # Definir la fecha y hora de recepción
-        fecha_hora_recepcion = datetime.now()
-
         # Insertar el registro ExhExhortoArchivo
         exh_exhorto_respuesta_archivo = ExhExhortoRespuestaArchivo(
             exh_exhorto_respuesta=exh_exhorto_respuesta,
@@ -145,7 +142,6 @@ def new_with_exh_exhorto_respuesta(exh_exhorto_respuesta_id):
             url="",
             estado="PENDIENTE",
             tamano=0,
-            fecha_hora_recepcion=fecha_hora_recepcion,
         )
         exh_exhorto_respuesta_archivo.save()
 
@@ -153,9 +149,9 @@ def new_with_exh_exhorto_respuesta(exh_exhorto_respuesta_id):
         archivo_pdf_nombre = f"exh_exhorto_respuesta_archivo-{exh_exhorto_respuesta_archivo.encode_id()}.pdf"
 
         # Definir la ruta para blob_name con la fecha actual
-        year = fecha_hora_recepcion.strftime("%Y")
-        month = fecha_hora_recepcion.strftime("%m")
-        day = fecha_hora_recepcion.strftime("%d")
+        year = exh_exhorto_respuesta_archivo.fecha_hora_recepcion.strftime("%Y")
+        month = exh_exhorto_respuesta_archivo.fecha_hora_recepcion.strftime("%m")
+        day = exh_exhorto_respuesta_archivo.fecha_hora_recepcion.strftime("%d")
         blob_name = f"exh_exhortos_archivos/{year}/{month}/{day}/{archivo_pdf_nombre}"
 
         # Subir el archivo en Google Storage
@@ -186,7 +182,7 @@ def new_with_exh_exhorto_respuesta(exh_exhorto_respuesta_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Nuevo Archivo {exh_exhorto_respuesta_archivo.nombre_archivo}"),
+            descripcion=safe_message(f"Nuevo Archivo a la Respuesta {exh_exhorto_respuesta_archivo.nombre_archivo}"),
             url=url_for(
                 "exh_exhortos_respuestas_archivos.detail", exh_exhorto_respuesta_archivo_id=exh_exhorto_respuesta_archivo.id
             ),
@@ -214,9 +210,8 @@ def edit(exh_exhorto_respuesta_archivo_id):
     exh_exhorto_respuesta_archivo = ExhExhortoRespuestaArchivo.query.get_or_404(exh_exhorto_respuesta_archivo_id)
     form = ExhExhortoRespuestaArchivoEditForm()
     if form.validate_on_submit():
-        exh_exhorto_respuesta_archivo.nombre_archivo = safe_string(form.nombre_archivo.data)
+        exh_exhorto_respuesta_archivo.nombre_archivo = form.nombre_archivo.data
         exh_exhorto_respuesta_archivo.tipo_documento = form.tipo_documento.data
-        exh_exhorto_respuesta_archivo.fecha_hora_recepcion = datetime.now()
         exh_exhorto_respuesta_archivo.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),

@@ -46,13 +46,11 @@ def datatable_json():
     if "exh_exhorto_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_id=request.form["exh_exhorto_id"])
     if "actualizacion_origen_id" in request.form:
-        actualizacion_origen_id = safe_clave(request.form["actualizacion_origen_id"])
+        actualizacion_origen_id = safe_string(
+            request.form["actualizacion_origen_id"], max_len=64, do_unidecode=True, to_uppercase=False
+        )
         if actualizacion_origen_id:
             consulta = consulta.filter(ExhExhortoActualizacion.actualizacion_origen_id.contains(actualizacion_origen_id))
-    if "descripcion" in request.form:
-        descripcion = safe_string(request.form["descripcion"])
-        if descripcion:
-            consulta = consulta.filter(ExhExhortoActualizacion.descripcion.contains(descripcion))
     # Ordenar y paginar
     registros = consulta.order_by(ExhExhortoActualizacion.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -116,8 +114,8 @@ def new_with_exh_exhorto(exh_exhorto_id):
     if form.validate_on_submit():
         exh_exhorto_actualizacion = ExhExhortoActualizacion(
             exh_exhorto=exh_exhorto,
-            actualizacion_origen_id=safe_string(form.origen_id.data),
-            tipo_actualizacion=safe_string(form.tipo_actualizacion.data),
+            actualizacion_origen_id=safe_string(form.actualizacion_origen_id.data, max_len=64, to_uppercase=False),
+            tipo_actualizacion=safe_string(form.tipo_actualizacion.data, max_len=64, to_uppercase=False),
             descripcion=safe_string(form.descripcion.data),
             fecha_hora=datetime.now(),
             remitente="INTERNO",
@@ -146,7 +144,7 @@ def edit(exh_exhorto_actualizacion_id):
     exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get_or_404(exh_exhorto_actualizacion_id)
     form = ExhExhortoActualizacionForm()
     if form.validate_on_submit():
-        exh_exhorto_actualizacion.tipo_actualizacion = safe_string(form.tipo_actualizacion.data)
+        exh_exhorto_actualizacion.tipo_actualizacion = safe_string(form.tipo_actualizacion.data, max_len=64, to_uppercase=False)
         exh_exhorto_actualizacion.descripcion = safe_string(form.descripcion.data)
         exh_exhorto_actualizacion.save()
         bitacora = Bitacora(

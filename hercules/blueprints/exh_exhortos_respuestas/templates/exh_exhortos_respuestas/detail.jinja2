@@ -55,6 +55,21 @@
         <!-- Botones de acciones -->
         {% if current_user.can_insert('EXH EXHORTOS RESPUESTAS') %}
             <hr>
+            <!-- Botones de acciones REGRESAR A PENDIENTE -->
+            {% if exh_exhorto_respuesta.estado == 'CANCELADO' %}
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ detail.button_lg_modal(
+                            label="Regresar a Pendiente",
+                            onclick="showModalPendienteBtn('" + url_for('exh_exhortos_respuestas.change_to_pending', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) + "', '¿Está seguro de cambiar a PENDIENTE esta respuesta?');",
+                            icon='mdi:note-edit',
+                            color_class='btn-warning') }}
+                    </div>
+                    <div class="col-md-9">
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Botones de acciones CANCELAR, EDITAR y POR ENVIAR -->
             {% if exh_exhorto_respuesta.estado == 'PENDIENTE' %}
                 <div class="row">
                     <div class="col-md-3">
@@ -80,6 +95,7 @@
                     </div>
                 </div>
             {% endif %}
+            <!-- Botones de acciones REGRESAR A PENDIENTE y ENVIAR -->
             {% if exh_exhorto_respuesta.estado == 'POR ENVIAR' or exh_exhorto_respuesta.estado == 'RECHAZADO' %}
                 <div class="row">
                     <div class="col-md-3">
@@ -100,19 +116,6 @@
                     </div>
                 </div>
             {% endif %}
-            {% if exh_exhorto_respuesta.estado == 'CANCELADO' %}
-                <div class="row">
-                    <div class="col-md-3">
-                        {{ detail.button_lg_modal(
-                            label="Regresar a Pendiente",
-                            onclick="showModalPendienteBtn('" + url_for('exh_exhortos_respuestas.change_to_pending', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) + "', '¿Está seguro de cambiar a PENDIENTE esta respuesta?');",
-                            icon='mdi:note-edit',
-                            color_class='btn-warning') }}
-                    </div>
-                    <div class="col-md-9">
-                    </div>
-                </div>
-            {% endif %}
         {% endif %}
     {% endcall %}
     <!-- DataTable Archivos -->
@@ -129,6 +132,9 @@
                     </tr>
                 </thead>
             </table>
+            {% if exh_exhorto_respuesta.estado == 'PENDIENTE' and current_user.can_insert('EXH EXHORTOS RESPUESTAS ARCHIVOS')  %}
+                <a class="btn btn-primary" href="{{ url_for('exh_exhortos_respuestas_archivos.new_with_exh_exhorto_respuesta', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) }}">Agregar Archivo</a>
+            {% endif %}
         {% endcall %}
     {% endif %}
     <!-- DataTable Videos -->
@@ -143,6 +149,9 @@
                     </tr>
                 </thead>
             </table>
+            {% if exh_exhorto_respuesta.estado == 'PENDIENTE' and current_user.can_insert('EXH EXHORTOS RESPUESTAS VIDEOS')  %}
+                <a class="btn btn-primary" href="{{ url_for('exh_exhortos_respuestas_videos.new_with_exh_exhorto_respuesta', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) }}">Agregar Video</a>
+            {% endif %}
         {% endcall %}
     {% endif %}
 {% endblock %}
@@ -150,6 +159,9 @@
 {% block custom_javascript %}
     <!-- Modales para los botones de acción -->
     {% if current_user.can_insert('EXH EXHORTOS RESPUESTAS') %}
+        {% if exh_exhorto_respuesta.estado == 'CANCELADO' %}
+            {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
+        {% endif %}
         {% if exh_exhorto_respuesta.estado == 'PENDIENTE' %}
             {{ modals.custom_javascript('CANCELAR esta Respuesta', '', "CancelarBtn") }}
             {{ modals.custom_javascript('POR ENVIAR esta Respuesta', '', "PorEnviarBtn") }}
@@ -157,9 +169,6 @@
         {% if exh_exhorto_respuesta.estado == 'POR ENVIAR' or exh_exhorto_respuesta.estado == 'RECHAZADO' %}
             {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
             {{ modals.custom_javascript('ENVIAR esta Respuesta al P.J.', '', "EnviarBtn") }}
-        {% endif %}
-        {% if exh_exhorto_respuesta.estado == 'CANCELADO' %}
-            {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
         {% endif %}
     {% endif %}
     <!-- Modales para eliminar y recuperar -->

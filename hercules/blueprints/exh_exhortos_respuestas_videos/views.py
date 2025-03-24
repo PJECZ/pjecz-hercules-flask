@@ -9,7 +9,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
-from hercules.blueprints.exh_exhortos.models import ExhExhorto
+from hercules.blueprints.exh_exhortos_respuestas.models import ExhExhortoRespuesta
 from hercules.blueprints.exh_exhortos_respuestas_videos.forms import ExhExhortoRespuestaVideoForm
 from hercules.blueprints.exh_exhortos_respuestas_videos.models import ExhExhortoRespuestaVideo
 from hercules.blueprints.modulos.models import Modulo
@@ -101,19 +101,19 @@ def list_inactive():
 
 
 @exh_exhortos_respuestas_videos.route(
-    "/exh_exhortos_respuestas_videos/nuevo_con_exhorto_respuesta/<int:exh_exhorto_id>", methods=["GET", "POST"]
+    "/exh_exhortos_respuestas_videos/nuevo_con_exhorto_respuesta/<int:exh_exhorto_respuesta_id>", methods=["GET", "POST"]
 )
 @permission_required(MODULO, Permiso.CREAR)
-def new_with_exh_exhorto_respuesta(exh_exhorto_id):
-    """Nuevo video"""
-    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+def new_with_exh_exhorto_respuesta(exh_exhorto_respuesta_id):
+    """Agregar Video a la Respuesta"""
+    exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
     form = ExhExhortoRespuestaVideoForm()
     if form.validate_on_submit():
         # Insertar el registro ExhExhortoRespuestaVideo
         exh_exhorto_respuesta_video = ExhExhortoRespuestaVideo(
-            exh_exhorto=exh_exhorto,
+            exh_exhorto_respuesta=exh_exhorto_respuesta,
             titulo=safe_string(form.titulo.data),
-            descripcion=safe_message(form.descripcion.data, max_len=1024, default_output_str=None),
+            descripcion=safe_string(form.descripcion.data, max_len=1024),
             fecha=datetime.now(),
             url_acceso=safe_url(form.url_acceso.data),
         )
@@ -122,15 +122,19 @@ def new_with_exh_exhorto_respuesta(exh_exhorto_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Nuevo Video {exh_exhorto_respuesta_video.titulo}"),
+            descripcion=safe_message(f"Nuevo Video a la Respuesta {exh_exhorto_respuesta_video.titulo}"),
             url=url_for("exh_exhortos_respuestas_videos.detail", exh_exhorto_respuesta_video_id=exh_exhorto_respuesta_video.id),
         )
         bitacora.save()
         # Mostrar mensaje de éxito y redirigir a la página del detalle del ExhExhorto
         flash(bitacora.descripcion, "success")
-        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_id))
+        return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta_id))
     # Entregar el formulario
-    return render_template("exh_exhortos_respuestas_videos/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
+    return render_template(
+        "exh_exhortos_respuestas_videos/new_with_exh_exhorto_respuesta.jinja2",
+        form=form,
+        exh_exhorto_respuesta=exh_exhorto_respuesta,
+    )
 
 
 @exh_exhortos_respuestas_videos.route(
@@ -143,7 +147,7 @@ def edit(exh_exhorto_respuesta_video_id):
     form = ExhExhortoRespuestaVideoForm()
     if form.validate_on_submit():
         exh_exhorto_respuesta_video.titulo = safe_string(form.titulo.data)
-        exh_exhorto_respuesta_video.descripcion = safe_message(form.descripcion.data, max_len=1024, default_output_str=None)
+        exh_exhorto_respuesta_video.descripcion = safe_string(form.descripcion.data, max_len=1024)
         exh_exhorto_respuesta_video.url_acceso = safe_url(form.url_acceso.data)
         exh_exhorto_respuesta_video.save()
         bitacora = Bitacora(
@@ -159,7 +163,9 @@ def edit(exh_exhorto_respuesta_video_id):
     form.descripcion.data = exh_exhorto_respuesta_video.descripcion
     form.url_acceso.data = exh_exhorto_respuesta_video.url_acceso
     return render_template(
-        "exh_exhortos_respuestas_videos/edit.jinja2", form=form, exh_exhorto_video=exh_exhorto_respuesta_video
+        "exh_exhortos_respuestas_videos/edit.jinja2",
+        form=form,
+        exh_exhorto_respuesta_video=exh_exhorto_respuesta_video,
     )
 
 

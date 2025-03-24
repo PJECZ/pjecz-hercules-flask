@@ -12,5 +12,5 @@ class ExhExhortoPromocionForm(FlaskForm):
 
     folio_origen_promocion = StringField("Folio Origen Promoción")  # Read only
     fojas = IntegerField("Fojas", validators=[DataRequired()])
-    observaciones = TextAreaField("Observaciones", validators=[Optional()])
+    observaciones = TextAreaField("Observaciones", validators=[Optional(), Length(max=1024)], render_kw={"rows": 5})
     guardar = SubmitField("Guardar")

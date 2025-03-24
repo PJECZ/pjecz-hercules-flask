@@ -86,20 +86,16 @@ def datatable_json():
         consulta = consulta.filter_by(estatus="A")
     if "estado" in request.form:
         consulta = consulta.filter_by(estado=request.form["estado"])
-    if "juzgado_origen_clave" in request.form:
-        juzgado_origen_clave = safe_clave(request.form["juzgado_origen_clave"])
-        if juzgado_origen_clave != "":
-            consulta = consulta.filter(ExhExhorto.juzgado_origen_id.contains(juzgado_origen_clave))
-    if "num_expediente" in request.form:
-        num_expediente = safe_expediente(request.form["num_expediente"])
-        if num_expediente != "":
-            consulta = consulta.filter(ExhExhorto.numero_expediente_origen.contains(num_expediente))
-    # Buscar en otras tablas
-    if "estado_origen" in request.form:
-        estado_origen = safe_string(request.form["estado_origen"], save_enie=True)
-        if estado_origen != "":
-            consulta = consulta.join(Municipio).join(Estado)
-            consulta = consulta.filter(Estado.nombre.contains(estado_origen))
+    if "exhorto_origen_id" in request.form:
+        exhorto_origen_id = safe_string(request.form["exhorto_origen_id"], max_len=64, do_unidecode=True, to_uppercase=False)
+        if exhorto_origen_id:
+            consulta = consulta.filter(ExhExhorto.exhorto_origen_id.contains(exhorto_origen_id))
+    if "numero_expediente_origen" in request.form:
+        try:
+            numero_expediente_origen = safe_expediente(request.form["numero_expediente_origen"])
+            consulta = consulta.filter(ExhExhorto.numero_expediente_origen == numero_expediente_origen)
+        except ValueError:
+            pass
     # Ordenar y paginar
     registros = consulta.order_by(ExhExhorto.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()

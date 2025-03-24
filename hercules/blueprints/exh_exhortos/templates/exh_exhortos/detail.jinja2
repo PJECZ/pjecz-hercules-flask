@@ -112,9 +112,23 @@
                 {% endif %}
             </div>
         </div>
-        <hr>
         {% if current_user.can_insert('EXH EXHORTOS') %}
-            <!-- Botones de acciones para el estado PENDIENTE -->
+            <hr>
+            <!-- Botones de acciones CANCELAR -->
+            {% if exh_exhorto.remitente == "EXTERNO" and exh_exhorto.estado == 'PENDIENTE' %}
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ detail.button_lg_modal(
+                            label="Cancelar",
+                            onclick="showModalCancelarBtn('" + url_for('exh_exhortos.change_to_cancel', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de CANCELAR este exhorto?');",
+                            icon='mdi:cancel',
+                            color_class='btn-secondary') }}
+                    </div>
+                    <div class="col-md-9">
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Botones de acciones CANCELAR, EDITAR y POR ENVIAR -->
             {% if exh_exhorto.remitente == "INTERNO" and exh_exhorto.estado == 'PENDIENTE' %}
                 <div class="row">
                     <div class="col-md-3">
@@ -140,15 +154,17 @@
                     </div>
                 </div>
             {% endif %}
-            <!-- Botones de acciones para el estado POR ENVIAR o RECHAZADO -->
+            <!-- Botones de acciones REGRESAR A PENDIENTE y ENVIAR -->
             {% if exh_exhorto.remitente == "INTERNO" and (exh_exhorto.estado == "POR ENVIAR" or exh_exhorto == "RECHAZADO") %}
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         {{ detail.button_lg_modal(
                             label="Regresar a Pendiente",
                             onclick="showModalPendienteBtn('" + url_for('exh_exhortos.change_to_pending', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de cambiar a PENDIENTE este exhorto?');",
                             icon='mdi:note-edit',
                             color_class='btn-warning') }}
+                    </div>
+                    <div class="col-md-3">
                     </div>
                     <div class="col-md-6">
                         {{ detail.button_lg_modal(
@@ -159,7 +175,21 @@
                     </div>
                 </div>
             {% endif %}
-            <!-- Botón Consultar -->
+            <!-- Botones de acciones REGRESAR A PENDIENTE -->
+            {% if exh_exhorto.estado == 'CANCELADO' %}
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ detail.button_lg_modal(
+                            label="Regresar a Pendiente",
+                            onclick="showModalPendienteBtn('" + url_for('exh_exhortos.change_to_pending', exh_exhorto_id=exh_exhorto.id) + "', '¿Está seguro de cambiar a PENDIENTE este exhorto?');",
+                            icon='mdi:note-edit',
+                            color_class='btn-warning') }}
+                    </div>
+                    <div class="col-md-9">
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Botones de acciones CONSULTAR -->
             {% if exh_exhorto.remitente == "EXTERNO" and exh_exhorto.estado == "RECIBIDO CON EXITO" %}
                 <div class="row">
                     <div class="col-md-6">
@@ -173,7 +203,7 @@
                     </div>
                 </div>
             {% endif %}
-            <!-- Botón Transferir a Juzgado -->
+            <!-- Botones de acciones TRANSFERIR A JUZGADO -->
             {% if exh_exhorto.remitente == "EXTERNO" and exh_exhorto.estado == "RECIBIDO" %}
                 <div class="row">
                     <div class="col-md-6">
@@ -187,7 +217,7 @@
                     </div>
                 </div>
             {% endif %}
-            <!-- Botón Procesar -->
+            <!-- Botones de acciones PROCESAR -->
             {% if exh_exhorto.remitente == "EXTERNO" and exh_exhorto.estado == "TRANSFIRIENDO" %}
                 <div class="row">
                     <div class="col-md-6">
@@ -201,7 +231,7 @@
                     </div>
                 </div>
             {% endif %}
-            <!-- Botones Rechazar -->
+            <!-- Botones de acciones RECHAZAR -->
             {% if exh_exhorto.remitente == "EXTERNO" and exh_exhorto.estado == "PROCESANDO" %}
                 <div class="row">
                     <div class="col-md-6">
@@ -334,6 +364,9 @@
 {% block custom_javascript %}
     <!-- Modales para los botones de acción -->
     {% if current_user.can_insert('EXH EXHORTOS') %}
+        {% if exh_exhorto.remitente == "EXTERNO" and exh_exhorto.estado == 'PENDIENTE' %}
+            {{ modals.custom_javascript('CANCELAR este Exhorto', '', "CancelarBtn") }}
+        {% endif %}
         {% if exh_exhorto.remitente == "INTERNO" and exh_exhorto.estado == 'PENDIENTE' %}
             {{ modals.custom_javascript('CANCELAR este Exhorto', '', "CancelarBtn") }}
             {{ modals.custom_javascript('POR ENVIAR este Exhorto', '', "PorEnviarBtn") }}
@@ -341,6 +374,9 @@
         {% if exh_exhorto.remitente == "INTERNO" and (exh_exhorto.estado == "POR ENVIAR" or exh_exhorto == "RECHAZADO") %}
             {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
             {{ modals.custom_javascript('ENVIAR el Exhorto al P.J.', '', "EnviarBtn") }}
+        {% endif %}
+        {% if exh_exhorto.estado == 'CANCELADO' %}
+            {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
         {% endif %}
         {% if exh_exhorto.remitente == "EXTERNO" and exh_exhorto.estado == "RECIBIDO CON EXITO" %}
             {{ modals.custom_javascript('CONSULTAR el Exhorto con el P.J.', '', "ConsultarBtn") }}

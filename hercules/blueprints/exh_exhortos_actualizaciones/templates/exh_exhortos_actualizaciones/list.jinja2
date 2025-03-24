@@ -12,6 +12,12 @@
         {% if current_user.can_view('EXH EXHORTOS') %}
             {{ topbar.button('Exhortos', url_for('exh_exhortos.list_active'), 'mdi:email-fast') }}
         {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') %}
+            {{ topbar.button('E. Promociones', url_for('exh_exhortos_promociones.list_active'), 'mdi:receipt-text-plus') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
+            {{ topbar.button('E. Respuestas', url_for('exh_exhortos_respuestas.list_active'), 'mdi:forum') }}
+        {% endif %}
         {% if current_user.can_view('EXH EXTERNOS') %}
             {{ topbar.button('Externos', url_for('exh_externos.list_active'), 'mdi:home-map-marker') }}
         {% endif %}
@@ -24,11 +30,28 @@
 
 {% block content %}
     {% call list.card() %}
+        <!-- Filtros exh_exhortos_actualizaciones -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosExhExhortosActualizaciones.buscar(); return false;">
+                    <div class="col-3">
+                        <div class="form-floating">
+                            <input id="filtroActualizacionOrigenId" type="text" class="form-control" aria-label="Actualización Origen ID">
+                            <label for="filtroActualizacionOrigenId">Actualización Origen ID</label>
+                        </div>
+                    </div>
+                    <div class="col-9 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosExhExhortosActualizaciones.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosExhExhortosActualizaciones.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
         <!-- DataTable exh_exhortos_actualizaciones -->
         <table id="exh_exhortos_actualizaciones_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>Origen ID</th>
+                    <th>Actualización Origen ID</th>
                     <th>Tipo de Actualización</th>
                     <th>Descripción</th>
                     <th>Remitente</th>
@@ -86,7 +109,8 @@
             }
         ];
         // Filtros exh_exhortos_actualizaciones
-        const filtrosActualizaciones = new FiltrosDataTable('#exh_exhortos_actualizaciones_datatable', configDTExhExhortosActualizaciones);
-        filtrosActualizaciones.precargar();
+        const filtrosExhExhortosActualizaciones = new FiltrosDataTable('#exh_exhortos_actualizaciones_datatable', configDTExhExhortosActualizaciones);
+        filtrosExhExhortosActualizaciones.agregarInput('filtroActualizacionOrigenId', 'actualizacion_origen_id');
+        filtrosExhExhortosActualizaciones.precargar();
     </script>
 {% endblock %}

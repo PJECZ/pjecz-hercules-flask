@@ -4,7 +4,7 @@ Exh Exhortos Actualizaciones, formularios
 
 from flask_wtf import FlaskForm
 from wtforms import SelectField, StringField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Length, Optional
+from wtforms.validators import DataRequired, Length
 
 from hercules.blueprints.exh_exhortos_actualizaciones.models import ExhExhortoActualizacion
 
@@ -18,5 +18,5 @@ class ExhExhortoActualizacionForm(FlaskForm):
         validators=[DataRequired()],
         choices=ExhExhortoActualizacion.TIPOS_ACTUALIZACIONES.items(),
     )
-    descripcion = TextAreaField("Descripción", validators=[DataRequired(), Length(max=256)])
+    descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=256)])
     guardar = SubmitField("Guardar")

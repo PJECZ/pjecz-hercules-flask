@@ -12,6 +12,12 @@
         {% if current_user.can_view('EXH EXHORTOS') %}
             {{ topbar.button('Exhortos', url_for('exh_exhortos.list_active'), 'mdi:email-fast') }}
         {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS ACTUALIZACIONES') %}
+            {{ topbar.button('E. Actualizaciones', url_for('exh_exhortos_actualizaciones.list_active'), 'mdi:reload') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
+            {{ topbar.button('E. Respuestas', url_for('exh_exhortos_respuestas.list_active'), 'mdi:forum') }}
+        {% endif %}
         {% if current_user.can_view('EXH EXTERNOS') %}
             {{ topbar.button('Externos', url_for('exh_externos.list_active'), 'mdi:home-map-marker') }}
         {% endif %}
@@ -24,11 +30,28 @@
 
 {% block content %}
     {% call list.card() %}
+        <!-- Filtros exh_exhortos_promociones -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosExhExhortosPromociones.buscar(); return false;">
+                    <div class="col-3">
+                        <div class="form-floating">
+                            <input id="filtroFolioOrigenPromocion" type="text" class="form-control" aria-label="Folio Origen Promoción">
+                            <label for="filtroFolioOrigenPromocion">Folio Origen Promoción</label>
+                        </div>
+                    </div>
+                    <div class="col-9 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosExhExhortosPromociones.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosExhExhortosPromociones.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
         <!-- DataTable exh_exhortos_promociones -->
         <table id="exh_exhortos_promociones_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>Folio Origen</th>
+                    <th>Folio Origen Promoción</th>
                     <th>Remitente</th>
                     <th>Estado</th>
                     <th>Creado</th>
@@ -82,7 +105,8 @@
             }
         ];
         // Filtros exh_exhortos_promociones
-        const filtrosPromocion = new FiltrosDataTable('#exh_exhortos_promociones_datatable', configDTExhExhortosPromociones);
-        filtrosPromocion.precargar();
+        const filtrosExhExhortosPromociones = new FiltrosDataTable('#exh_exhortos_promociones_datatable', configDTExhExhortosPromociones);
+        filtrosExhExhortosPromociones.agregarInput('filtroFolioOrigenPromocion', 'folio_origen_promocion');
+        filtrosExhExhortosPromociones.precargar();
     </script>
 {% endblock %}
