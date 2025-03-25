@@ -1,5 +1,5 @@
 """
-Exhortos Promociones Archivos, vistas
+Exh Exhortos Promociones Archivos, vistas
 """
 
 import hashlib
@@ -9,25 +9,23 @@ from datetime import datetime
 from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
-from werkzeug.utils import secure_filename
 from werkzeug.exceptions import NotFound
-
-from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_string, safe_message
+from werkzeug.utils import secure_filename
 
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.exh_exhortos_promociones.models import ExhExhortoPromocion
+from hercules.blueprints.exh_exhortos_promociones_archivos.forms import (
+    ExhExhortoPromocionArchivoEditForm,
+    ExhExhortoPromocionArchivoNewForm,
+)
+from hercules.blueprints.exh_exhortos_promociones_archivos.models import ExhExhortoPromocionArchivo
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
-from hercules.blueprints.exh_exhortos_promociones_archivos.models import ExhExhortoPromocionArchivo
-from hercules.blueprints.exh_exhortos_promociones.models import ExhExhortoPromocion
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.exceptions import MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError, MyUploadError
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs, upload_file_to_gcs
-from hercules.blueprints.exh_exhortos_promociones_archivos.forms import (
-    ExhExhortoPromocionArchivoNewForm,
-    ExhExhortoPromocionArchivoEditForm,
-)
+from lib.safe_string import safe_message, safe_string
 
 MODULO = "EXH EXHORTOS PROMOCIONES ARCHIVOS"
 
@@ -43,7 +41,7 @@ def before_request():
 
 @exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/datatable_json", methods=["GET", "POST"])
 def datatable_json():
-    """DataTable JSON para listado de Archivos"""
+    """DataTable JSON para listado de archivos"""
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
@@ -56,7 +54,7 @@ def datatable_json():
     if "exh_exhorto_promocion_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_promocion_id=request.form["exh_exhorto_promocion_id"])
     # Ordenar y paginar
-    registros = consulta.order_by(ExhExhortoPromocionArchivo.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ExhExhortoPromocionArchivo.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -73,33 +71,23 @@ def datatable_json():
                         "exh_exhortos_promociones_archivos.download_pdf", exh_exhorto_promocion_archivo_id=resultado.id
                     ),
                 },
-                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
-                "tipo_documento_nombre": resultado.tipo_documento_nombre,
-                "estado": resultado.estado,
-                "fecha_hora_recepcion": resultado.fecha_hora_recepcion.strftime("%Y-%m-%d %H:%M:%S"),
+                "tipo_documento_descripcion": resultado.tipo_documento_descripcion,
                 "tamano": f"{round((resultado.tamano / 1024), 2)} MB",
+                "estado": resultado.estado,
+                "folio_origen_promocion": resultado.exh_exhorto_promocion.folio_origen_promocion,
             }
         )
     # Entregar JSON
     return output_datatable_json(draw, total, data)
 
 
-@exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/<int:exh_exhorto_promocion_archivo_id>")
-def detail(exh_exhorto_promocion_archivo_id):
-    """Detalle de un Promoción Archivo"""
-    exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
-    return render_template(
-        "exh_exhortos_promociones_archivos/detail.jinja2", exh_exhorto_promocion_archivo=exh_exhorto_promocion_archivo
-    )
-
-
 @exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos")
 def list_active():
-    """Listado de Archivos activos"""
+    """Listado de archivos activos"""
     return render_template(
         "exh_exhortos_promociones_archivos/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
-        titulo="Archivos de Promociones",
+        titulo="Exhortos Promociones Archivos",
         estatus="A",
     )
 
@@ -107,21 +95,30 @@ def list_active():
 @exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Archivos inactivos"""
+    """Listado de archivos inactivos"""
     return render_template(
         "exh_exhortos_promociones_archivos/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Archivos de Promociones inactivos",
+        titulo="Exhortos Promociones Archivos inactivos",
         estatus="B",
     )
 
 
+@exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/<int:exh_exhorto_promocion_archivo_id>")
+def detail(exh_exhorto_promocion_archivo_id):
+    """Detalle de un archivo"""
+    exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
+    return render_template(
+        "exh_exhortos_promociones_archivos/detail.jinja2", exh_exhorto_promocion_archivo=exh_exhorto_promocion_archivo
+    )
+
+
 @exh_exhortos_promociones_archivos.route(
-    "/exh_exhortos_promociones_archivos/nuevo_con_exhorto_promocion/<int:exh_exhorto_promocion_id>", methods=["GET", "POST"]
+    "/exh_exhortos_promociones_archivos/nuevo/<int:exh_exhorto_promocion_id>", methods=["GET", "POST"]
 )
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_exh_exhorto_promocion(exh_exhorto_promocion_id):
-    """Nuevo Archivo con un Exhorto"""
+    """Nuevo archivo con el ID de una promoción"""
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
 
     form = ExhExhortoPromocionArchivoNewForm(CombinedMultiDict((request.files, request.form)))
@@ -153,7 +150,7 @@ def new_with_exh_exhorto_promocion(exh_exhorto_promocion_id):
         exh_exhorto_promocion_archivo.save()
 
         # Definir el nombre del archivo a subir a Google Storage
-        archivo_pdf_nombre = f"{exh_exhorto_promocion.folio_origen_promocion}-{exh_exhorto_promocion_archivo.encode_id()}.pdf"
+        archivo_pdf_nombre = f"exh_exhorto_promocion_archivo-{exh_exhorto_promocion_archivo.encode_id()}.pdf"
 
         # Definir la ruta para blob_name con la fecha actual
         year = fecha_hora_recepcion.strftime("%Y")
@@ -213,7 +210,7 @@ def new_with_exh_exhorto_promocion(exh_exhorto_promocion_id):
 )
 @permission_required(MODULO, Permiso.MODIFICAR)
 def edit(exh_exhorto_promocion_archivo_id):
-    """Editar Archivo"""
+    """Editar un archivo"""
     exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
     form = ExhExhortoPromocionArchivoEditForm()
     if form.validate_on_submit():
@@ -247,14 +244,14 @@ def edit(exh_exhorto_promocion_archivo_id):
 @exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/eliminar/<int:exh_exhorto_promocion_archivo_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def delete(exh_exhorto_promocion_archivo_id):
-    """Eliminar Archivo"""
+    """Eliminar un archivo"""
     exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
     if exh_exhorto_promocion_archivo.estatus == "A":
         exh_exhorto_promocion_archivo.delete()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Archivo {exh_exhorto_promocion_archivo.nombre_archivo}"),
+            descripcion=safe_message(f"Eliminado Archivo {exh_exhorto_promocion_archivo.id}"),
             url=url_for(
                 "exh_exhortos_promociones_archivos.detail", exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id
             ),
@@ -269,14 +266,14 @@ def delete(exh_exhorto_promocion_archivo_id):
 @exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/recuperar/<int:exh_exhorto_promocion_archivo_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def recover(exh_exhorto_promocion_archivo_id):
-    """Recuperar Archivo"""
+    """Recuperar un archivo"""
     exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
     if exh_exhorto_promocion_archivo.estatus == "B":
         exh_exhorto_promocion_archivo.recover()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Archivo {exh_exhorto_promocion_archivo.nombre_archivo}"),
+            descripcion=safe_message(f"Recuperado Archivo {exh_exhorto_promocion_archivo.id}"),
             url=url_for(
                 "exh_exhortos_promociones_archivos.detail", exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id
             ),
@@ -290,9 +287,9 @@ def recover(exh_exhorto_promocion_archivo_id):
 
 @exh_exhortos_promociones_archivos.route("/exh_exhortos_promociones_archivos/<int:exh_exhorto_promocion_archivo_id>/pdf")
 def download_pdf(exh_exhorto_promocion_archivo_id):
-    """Descargar el archivo PDF de un Archivo"""
+    """Descargar un archivo PDF"""
 
-    # Consultar el ExhExhortoArchivo
+    # Consultar
     exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)
 
     # Si el estatus es B, no se puede descargar
@@ -334,7 +331,7 @@ def download_pdf(exh_exhorto_promocion_archivo_id):
     "/exh_exhortos_promociones_archivos/ver_archivo_pdf/<int:exh_exhorto_promocion_archivo_id>"
 )
 def view_file_pdf(exh_exhorto_promocion_archivo_id):
-    """Ver archivo PDF de ExhortosArchivo para insertarlo en un iframe en el detalle"""
+    """Ver un archivo PDF para insertarlo en un iframe en el detalle"""
 
     # Consultar
     exh_exhorto_promocion_archivo = ExhExhortoPromocionArchivo.query.get_or_404(exh_exhorto_promocion_archivo_id)

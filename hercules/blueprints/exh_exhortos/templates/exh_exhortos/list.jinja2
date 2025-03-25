@@ -2,19 +2,28 @@
 {% import 'macros/list.jinja2' as list %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Exhortos{% endblock %}
+{% block title %}{{ titulo }}{% endblock %}
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('EXH AREAS') %}
+            {{ topbar.button('Áreas', url_for('exh_areas.list_active'), 'mdi:office-building-marker') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS ACTUALIZACIONES') %}
+            {{ topbar.button('E. Actualizaciones', url_for('exh_exhortos_actualizaciones.list_active'), 'mdi:reload') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') %}
+            {{ topbar.button('E. Promociones', url_for('exh_exhortos_promociones.list_active'), 'mdi:receipt-text-plus') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
+            {{ topbar.button('E. Respuestas', url_for('exh_exhortos_respuestas.list_active'), 'mdi:forum') }}
+        {% endif %}
+        {% if current_user.can_view('EXH EXTERNOS') %}
+            {{ topbar.button('Externos', url_for('exh_externos.list_active'), 'mdi:home-map-marker') }}
+        {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_exhortos.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('exh_exhortos.list_active')) }}{% endif %}
-        {% endif %}
-        {% if current_user.can_view('EXH EXTERNOS') %}
-            {{ topbar.button('Externos D.R.', url_for('exh_externos.list_active'), 'mdi:home-map-marker') }}
-        {% endif %}
-        {% if current_user.can_view('EXH AREAS') %}
-            {{ topbar.button('Áreas', url_for('exh_areas.list_active'), 'mdi:office-building-marker') }}
         {% endif %}
         {% if current_user.can_insert('EXH EXHORTOS') %}
             {{ topbar.button_new('Nuevo Exhorto', url_for('exh_exhortos.new')) }}
@@ -24,59 +33,46 @@
 
 {% block content %}
     {% call list.card() %}
-    <!-- Filtros exh exhortos -->
+        <!-- Filtros exh_exhortos -->
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosExhExhortos.buscar(); return false;">
                     <div class="col-3">
                         <div class="form-floating">
-                            <input id="filtroEstadoOrigen" type="text" class="form-control" aria-label="Estado de Origen" style="text-transform: uppercase;">
-                            <label for="filtroEstadoOrigen">Estado de Origen</label>
+                            <input id="filtroExhortoOrigenId" type="text" class="form-control" aria-label="Exhorto Origen ID">
+                            <label for="filtroExhortoOrigenId">Exhorto Origen ID</label>
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="form-floating">
-                            <input id="filtroJuzgadoClave" type="text" class="form-control" aria-label="Juzgado Origen Clave">
-                            <label for="filtroJuzgadoClave">Juzgado Origen Clave</label>
+                            <input id="filtroNumeroExpedienteOrigen" type="text" class="form-control" aria-label="No. Exp.">
+                            <label for="filtroNumeroExpedienteOrigen">No. Exp.</label>
                         </div>
                     </div>
-                    <div class="col-2">
-                        <div class="form-floating">
-                            <select class="form-select" id="filtroEstado" aria-label="Estado"  onchange="filtrosExhExhortos.buscar(); return false;">
-                                <option selected value=""></option>
-                            {% for estado in estados %}
-                                <option value="{{ estado }}">{{ estado }}</option>
-                            {% endfor %}
-                            </select>
-                            <label for="filtroEstado">Estado</label>
-                        </div>
-                    </div>
-                    <div class="col-2">
-                        <div class="form-floating">
-                            <input id="filtroNumExpediente" type="text" class="form-control" aria-label="No. Exp. Origen">
-                            <label for="filtroNumExpediente">No. Exp. Origen</label>
-                        </div>
-                    </div>
-                    <div class="col-2 text-end">
+                    <div class="col-6 text-end">
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosExhExhortos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
                         <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosExhExhortos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
                 </form>
             </div>
         </div>
-        <!-- DataTable exh exhortos -->
+        <!-- DataTable exh_exhortos -->
         <table id="exh_exhortos_datatable" class="table display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Estado de Origen</th>
-                    <th>Juzgado Origen</th>
-                    <th>Estado de Destino</th>
+                    <th>Exhorto Origen ID</th>
+                    <th>Origen</th>
+                    <th>No. Exp.</th>
+                    <th>Destino</th>
+                    <th>Remitente</th>
                     <th>Estado</th>
-                    <th>No. Exp. Origen</th>
+                    <th>Creado</th>
                 </tr>
             </thead>
         </table>
+        {% if current_user.can_insert('EXH EXHORTOS') %}
+            <a class="btn btn-primary" href="{{ url_for('exh_exhortos.new') }}">Nuevo Exhorto</a>
+        {% endif %}
     {% endcall %}
 {% endblock %}
 
@@ -92,58 +88,48 @@
         configDTExhExhortos['columns'] = [
             { data: 'detalle' },
             { data: 'estado_origen' },
-            { data: 'juzgado_origen' },
+            { data: 'numero_expediente_origen' },
             { data: 'estado_destino' },
+            { data: 'remitente' },
             { data: 'estado' },
-            { data: 'numero_expediente_origen' }
+            { data: 'creado' }
         ];
         configDTExhExhortos['columnDefs'] = [
             {
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.id + '</a>';
+                    return '<a href="' + data.url + '">' + data.exhorto_origen_id + '</a>';
                 }
             },
             {
-                targets: 2, // juzgado_origen
-                data: null,
-                render: function(data, type, row, meta) {
-                    return '<span title="' + data.nombre + '">' + data.clave + '</span>';
-                }
-            },
-            {
-                targets: 4, // estado
+                targets: 5, // estado
                 data: null,
                 render: function(data, type, row, meta) {
                     let bgcolor = "bg-dark";
                     let icon = "circle-small";
                     switch (data)    {
-                        case "RECIBIDO":        bgcolor = 'bg-primary';             icon="inbox-arrow-down";    break;
-                        case "TRANSFIRIENDO":   bgcolor = 'bg-primary';             icon="email-arrow-right";   break;
-                        case "PROCESANDO":      bgcolor = 'bg-warning text-dark';   icon="sync";                break;
-                        case "RECHAZADO":       bgcolor = "bg-danger";              icon="hand-back-left";      break;
-                        case "DILIGENCIADO":    bgcolor = "bg-primary";             icon="truck-delivery";      break;
-                        case "CONTESTADO":      bgcolor = "bg-success";             icon="check-circle";        break;
-                        case "PENDIENTE":       bgcolor = 'bg-warning text-dark';   icon="note-edit";           break;
-                        case "CANCELADO":       bgcolor = "bg-secondary";           icon="close-circle";        break;
-                        case "POR ENVIAR":      bgcolor = 'bg-warning text-dark';   icon="package-up";          break;
-                        case "INTENTOS AGOTADOS": bgcolor = 'bg-danger';            icon="alert-decagram";      break;
-                        case "RECIBIDO CON EXITO": bgcolor = 'bg-primary';          icon="briefcase-check";     break;
-                        case "NO FUE RESPONDIDO": bgcolor = 'bg-danger';            icon="cancel";              break;
-                        case "RESPONDIDO":      bgcolor = 'bg-success';             icon="crown-circle";        break;
-                        case "ARCHIVADO":       bgcolor = 'bg-secondary';           icon="archive";             break;
+                        case "RECIBIDO":           bgcolor = 'bg-primary';           icon="inbox-arrow-down";  break;
+                        case "TRANSFIRIENDO":      bgcolor = 'bg-primary';           icon="email-arrow-right"; break;
+                        case "PROCESANDO":         bgcolor = 'bg-warning text-dark'; icon="sync";              break;
+                        case "RECHAZADO":          bgcolor = "bg-danger";            icon="hand-back-left";    break;
+                        case "CONTESTADO":         bgcolor = "bg-success";           icon="check-circle";      break;
+                        case "PENDIENTE":          bgcolor = 'bg-warning text-dark'; icon="note-edit";         break;
+                        case "CANCELADO":          bgcolor = "bg-secondary";         icon="close-circle";      break;
+                        case "POR ENVIAR":         bgcolor = 'bg-warning text-dark'; icon="package-up";        break;
+                        case "RECIBIDO CON EXITO": bgcolor = 'bg-primary';           icon="briefcase-check";   break;
+                        case "RESPONDIDO":         bgcolor = 'bg-success';           icon="crown-circle";      break;
+                        case "ARCHIVADO":          bgcolor = 'bg-secondary';         icon="archive";           break;
                     }
-                    return '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '" style="font-size: 16px"></span> ' + data + '</span>';
+                    let iconHTML = '<span class="iconify" data-icon="mdi:' + icon + '"></span>';
+                    return '<span class="badge rounded-pill ' + bgcolor + '">' + iconHTML + data + '</span>';
                 }
-            },
+            }
         ];
         // Filtros exh_exhortos
         const filtrosExhExhortos = new FiltrosDataTable('#exh_exhortos_datatable', configDTExhExhortos);
-        filtrosExhExhortos.agregarInput('filtroJuzgadoClave', 'juzgado_origen_clave');
-        filtrosExhExhortos.agregarInput('filtroEstadoOrigen', 'estado_origen');
-        filtrosExhExhortos.agregarInput('filtroEstado', 'estado');
-        filtrosExhExhortos.agregarInput('filtroNumExpediente', 'num_expediente');
+        filtrosExhExhortos.agregarInput('filtroExhortoOrigenId', 'exhorto_origen_id');
+        filtrosExhExhortos.agregarInput('filtroNumeroExpedienteOrigen', 'numero_expediente_origen');
         filtrosExhExhortos.precargar();
     </script>
 {% endblock %}

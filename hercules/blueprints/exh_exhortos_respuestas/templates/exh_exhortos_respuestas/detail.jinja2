@@ -1,0 +1,273 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Respuesta {{ exh_exhorto_respuesta.respuesta_origen_id }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Respuesta ' + exh_exhorto_respuesta.respuesta_origen_id) %}
+        {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_respuesta.exh_exhorto_id)) }}
+        {% if current_user.can_edit('EXH EXHORTOS RESPUESTAS') and exh_exhorto_respuesta.estado == 'PENDIENTE' %}
+            {{ topbar.button_edit('Editar', url_for('exh_exhortos_respuestas.edit', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id)) }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
+            {% if exh_exhorto_respuesta.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('exh_exhortos_respuestas.delete', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id)) }}{% endif %}
+            {% if exh_exhorto_respuesta.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('exh_exhortos_respuestas.recover', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    <!-- Detalle de la respuesta -->
+    {% call detail.card(estatus=exh_exhorto_respuesta.estatus) %}
+        {{ detail.label_value('Exhorto Origen ID', exh_exhorto_respuesta.exh_exhorto.exhorto_origen_id, url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_respuesta.exh_exhorto_id)) }}
+        {{ detail.label_value('Respuesta Origen ID', exh_exhorto_respuesta.respuesta_origen_id) }}
+        {% if exh_exhorto_respuesta.municipio_turnado_id %}
+            {{ detail.label_value('Municipio turnado', municipio_turnado.nombre) }}
+        {% else %}
+            {{ detail.label_value('Municipio turnado', 'NULO') }}
+        {% endif %}
+        {% if exh_exhorto_respuesta.area_turnado_id %}
+            {{ detail.label_value('Área turnado', exh_exhorto_respuesta.area_turnado_id) }}
+        {% else %}
+            {{ detail.label_value('Área turnado', 'NULO') }}
+        {% endif %}
+        {% if exh_exhorto_respuesta.numero_exhorto %}
+            {{ detail.label_value('Número de Exhorto', exh_exhorto_respuesta.numero_exhorto) }}
+        {% else %}
+            {{ detail.label_value('Número de Exhorto', 'NULO') }}
+        {% endif %}
+        {{ detail.label_value('Tipo diligenciado', exh_exhorto_respuesta.tipo_diligenciado_nombre) }}
+        {% if exh_exhorto_respuesta.fecha_hora_recepcion %}
+            {{ detail.label_value('Fecha hora recepción', moment(exh_exhorto_respuesta.fecha_hora_recepcion).format('llll')) }}
+        {% endif %}
+        {{ detail.label_value('Observaciones', exh_exhorto_respuesta.observaciones) }}
+        {% if exh_exhorto_respuesta.fecha_hora_recepcion_acuse %}
+            {{ detail.label_value('Fecha hora acuse', moment(exh_exhorto_respuesta.fecha_hora_recepcion_acuse).format('llll')) }}
+        {% endif %}
+        {{ detail.label_value('Remitente', exh_exhorto_respuesta.remitente) }}
+        <!-- Estado -->
+        <div class="row">
+            <div class="col-md-3 text-end">Estado</div>
+            <div class="col-md-9"><span id="titulo-estado">{{ exh_exhorto_respuesta.estado }}</span></div>
+        </div>
+        <!-- Botones de acciones -->
+        {% if current_user.can_insert('EXH EXHORTOS RESPUESTAS') %}
+            <hr>
+            <!-- Botones de acciones REGRESAR A PENDIENTE -->
+            {% if exh_exhorto_respuesta.estado == 'CANCELADO' %}
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ detail.button_lg_modal(
+                            label="Regresar a Pendiente",
+                            onclick="showModalPendienteBtn('" + url_for('exh_exhortos_respuestas.change_to_pending', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) + "', '¿Está seguro de cambiar a PENDIENTE esta respuesta?');",
+                            icon='mdi:note-edit',
+                            color_class='btn-warning') }}
+                    </div>
+                    <div class="col-md-9">
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Botones de acciones CANCELAR, EDITAR y POR ENVIAR -->
+            {% if exh_exhorto_respuesta.estado == 'PENDIENTE' %}
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ detail.button_lg_modal(
+                            label="Cancelar",
+                            onclick="showModalCancelarBtn('" + url_for('exh_exhortos_respuestas.change_to_cancel', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) + "', '¿Está seguro de CANCELAR esta respuesta?');",
+                            icon='mdi:cancel',
+                            color_class='btn-secondary') }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ detail.button_lg(
+                            label="Editar",
+                            url=url_for('exh_exhortos_respuestas.edit', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
+                            icon='mdi:edit',
+                            color_class='btn-info') }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ detail.button_lg_modal(
+                            label="Por Enviar",
+                            onclick="showModalPorEnviarBtn('" + url_for('exh_exhortos_respuestas.change_to_send', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) + "', '¿Está seguro de cambiar a POR ENVIAR esta respuesta? Una vez cambiada ya no podrá editarla.');",
+                            icon='mdi:package-variant-closed',
+                            color_class='btn-warning') }}
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Botones de acciones REGRESAR A PENDIENTE y ENVIAR -->
+            {% if exh_exhorto_respuesta.estado == 'POR ENVIAR' or exh_exhorto_respuesta.estado == 'RECHAZADO' %}
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ detail.button_lg_modal(
+                            label="Regresar a Pendiente",
+                            onclick="showModalPendienteBtn('" + url_for('exh_exhortos_respuestas.change_to_pending', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) + "', '¿Está seguro de cambiar a PENDIENTE esta respuesta?');",
+                            icon='mdi:note-edit',
+                            color_class='btn-warning') }}
+                    </div>
+                    <div class="col-md-3">
+                    </div>
+                    <div class="col-md-6">
+                        {{ detail.button_lg_modal(
+                            label="Enviar",
+                            onclick="showModalEnviarBtn('" + url_for('exh_exhortos_respuestas.launch_task_send', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) + "', '<strong>¿Está seguro de ENVIAR esta respuesta?</strong> Porque una vez enviado ya <strong>NO HAY FORMA</strong> de regresarlo.');",
+                            icon='mdi:send',
+                            color_class='btn-primary') }}
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+    {% endcall %}
+    <!-- DataTable Archivos -->
+    {% if current_user.can_view('EXH EXHORTOS RESPUESTAS ARCHIVOS') %}
+        {% call detail.card('Archivos') %}
+            <table id="exh_exhortos_respuestas_archivos_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Archivo</th>
+                        <th>Descargar</th>
+                        <th>Tipo Documento</th>
+                        <th>Tamaño</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+            </table>
+            {% if exh_exhorto_respuesta.estado == 'PENDIENTE' and current_user.can_insert('EXH EXHORTOS RESPUESTAS ARCHIVOS')  %}
+                <a class="btn btn-primary" href="{{ url_for('exh_exhortos_respuestas_archivos.new_with_exh_exhorto_respuesta', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) }}">Agregar Archivo</a>
+            {% endif %}
+        {% endcall %}
+    {% endif %}
+    <!-- DataTable Videos -->
+    {% if current_user.can_view('EXH EXHORTOS RESPUESTAS VIDEOS') %}
+        {% call detail.card('Videos') %}
+            <table id="exh_exhortos_respuestas_videos_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Descripción con URL de acceso</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+            </table>
+            {% if exh_exhorto_respuesta.estado == 'PENDIENTE' and current_user.can_insert('EXH EXHORTOS RESPUESTAS VIDEOS')  %}
+                <a class="btn btn-primary" href="{{ url_for('exh_exhortos_respuestas_videos.new_with_exh_exhorto_respuesta', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) }}">Agregar Video</a>
+            {% endif %}
+        {% endcall %}
+    {% endif %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <!-- Modales para los botones de acción -->
+    {% if current_user.can_insert('EXH EXHORTOS RESPUESTAS') %}
+        {% if exh_exhorto_respuesta.estado == 'CANCELADO' %}
+            {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
+        {% endif %}
+        {% if exh_exhorto_respuesta.estado == 'PENDIENTE' %}
+            {{ modals.custom_javascript('CANCELAR esta Respuesta', '', "CancelarBtn") }}
+            {{ modals.custom_javascript('POR ENVIAR esta Respuesta', '', "PorEnviarBtn") }}
+        {% endif %}
+        {% if exh_exhorto_respuesta.estado == 'POR ENVIAR' or exh_exhorto_respuesta.estado == 'RECHAZADO' %}
+            {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
+            {{ modals.custom_javascript('ENVIAR esta Respuesta al P.J.', '', "EnviarBtn") }}
+        {% endif %}
+    {% endif %}
+    <!-- Modales para eliminar y recuperar -->
+    {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
+        {% if exh_exhorto_respuesta.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar esta Respuesta?') }}{% endif %}
+        {% if exh_exhorto_respuesta.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a esta Respuesta?') }}{% endif %}
+    {% endif %}
+    <!-- Renderizar el campo estado con colores e iconos -->
+    <script>
+        let titulo_estado = document.getElementById("titulo-estado")
+        const valor = "{{ exh_exhorto_respuesta.estado }}";
+        let bgcolor = "bg-dark";
+        let icon = "circle-small";
+        switch (valor) {
+            case "CANCELADO":  bgcolor = 'bg-secondary';         icon="cancel";         break;
+            case "ENVIADO":    bgcolor = 'bg-primary';           icon="send";           break;
+            case "PENDIENTE":  bgcolor = 'bg-warning text-dark'; icon="note-edit";      break;
+            case "POR ENVIAR": bgcolor = 'bg-warning text-dark'; icon="package-up";     break;
+            case "RECHAZADO":  bgcolor = "bg-danger";            icon="hand-back-left"; break;
+        }
+        html = '<span style="font-size:1.0em" class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
+        titulo_estado.innerHTML = html;
+    </script>
+    <!-- Constructor de DataTables -->
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+    </script>
+    <!-- Listado de Archivos -->
+    {% if current_user.can_view('EXH EXHORTOS RESPUESTAS ARCHIVOS') %}
+        <script>
+            // DataTable Archivos
+            let configDTExhExhortoRespuestaArchivo = constructorDataTable.config();
+            configDTExhExhortoRespuestaArchivo['ajax']['url'] = '/exh_exhortos_respuestas_archivos/datatable_json';
+            configDTExhExhortoRespuestaArchivo['ajax']['data'] = { estatus: "A", exh_exhorto_respuesta_id: {{ exh_exhorto_respuesta.id}} };
+            configDTExhExhortoRespuestaArchivo['columns'] = [
+                { data: 'detalle' },
+                { data: 'descargar_pdf' },
+                { data: 'tipo_documento_descripcion' },
+                { data: 'tamano' },
+                { data: 'estado' }
+            ];
+            configDTExhExhortoRespuestaArchivo['columnDefs'] = [
+                {
+                    targets: 0, // detalle
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        if (data.url != '') {
+                            return '<a href="' + data.url + '">' + data.nombre_archivo + '</a>';
+                        } else {
+                            return data.nombre_archivo;
+                        }
+                    }
+                },
+                {
+                    targets: 1, // descargar_pdf
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '" download="' + data.nombre_archivo + '"><span class="iconify" data-icon="mdi:file-pdf-box" style="font-size:2.0rem"></span></a>';
+                    }
+                }
+            ];
+            // Filtros Archivos
+            const filtrosExhExhortoRespuestaArchivo = new FiltrosDataTable('#exh_exhortos_respuestas_archivos_datatable', configDTExhExhortoRespuestaArchivo);
+            filtrosExhExhortoRespuestaArchivo.precargar();
+        </script>
+    {% endif %}
+    <!-- Listado de Videos -->
+    {% if current_user.can_view('EXH EXHORTOS RESPUESTAS VIDEOS') %}
+        <script>
+            // DataTable Videos
+            let configDTExhExhortosRespuestasVideos = constructorDataTable.config();
+            configDTExhExhortosRespuestasVideos['ajax']['url'] = '/exh_exhortos_respuestas_videos/datatable_json';
+            configDTExhExhortosRespuestasVideos['ajax']['data'] = { estatus: "A", exh_exhorto_respuesta_id: {{ exh_exhorto_respuesta.id}} };
+            configDTExhExhortosRespuestasVideos['columns'] = [
+                { data: 'detalle' },
+                { data: 'hipervinculo' },
+                { data: 'fecha' }
+            ];
+            configDTExhExhortosRespuestasVideos['columnDefs'] = [
+                {
+                    targets: 0, // detalle
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '">' + data.titulo + '</a>';
+                    }
+                },
+                {
+                    targets: 1, // hipervinculo
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url_acceso + '" target="_blank">' + data.descripcion + '</a>';
+                    }
+                }
+            ];
+            // Filtros Videos
+            const filtrosExhExhortosRespuestasVideos = new FiltrosDataTable('#exh_exhortos_respuestas_videos_datatable', configDTExhExhortosRespuestasVideos);
+            filtrosExhExhortosRespuestasVideos.precargar();
+        </script>
+    {% endif %}
+{% endblock %}

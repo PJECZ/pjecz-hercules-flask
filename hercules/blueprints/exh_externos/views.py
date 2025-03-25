@@ -80,7 +80,7 @@ def list_active():
     return render_template(
         "exh_externos/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
-        titulo="Destinatarios-Remitentes",
+        titulo="Externos",
         estatus="A",
     )
 
@@ -92,7 +92,7 @@ def list_inactive():
     return render_template(
         "exh_externos/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Destinatarios-Remitentes inactivos",
+        titulo="Externos inactivos",
         estatus="B",
     )
 

@@ -100,7 +100,7 @@ def safe_expediente(input_str):
         numero = int(elementos[0])
         ano = int(elementos[1])
     except (IndexError, ValueError) as error:
-        raise error
+        raise ValueError
     if ano < 1900 or ano > date.today().year:
         raise ValueError
     extra_1 = ""

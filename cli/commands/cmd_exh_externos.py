@@ -79,14 +79,14 @@ def cambiar_endpoints(url_base, estado_clave=""):
     for exh_externo in exh_externos:
         # Cambiar los endpoints
         exh_externo.endpoint_consultar_materias = f"{url_base}/api/v5/materias"
-        exh_externo.endpoint_recibir_exhorto = f"{url_base}/api/v5/exh_exhortos"
-        exh_externo.endpoint_recibir_exhorto_archivo = f"{url_base}/api/v5/exh_exhortos_archivos/upload"
-        exh_externo.endpoint_consultar_exhorto = f"{url_base}/api/v5/exh_exhortos/"  # Debe terminar en /
-        exh_externo.endpoint_recibir_respuesta_exhorto = f"{url_base}/api/v5/exh_exhortos/responder"
-        exh_externo.endpoint_recibir_respuesta_exhorto_archivo = f"{url_base}/api/v5/exh_exhortos_archivos/responder_upload"
-        exh_externo.endpoint_actualizar_exhorto = f"{url_base}/api/v5/exh_exhortos_actualizaciones"
-        exh_externo.endpoint_recibir_promocion = f"{url_base}/api/v5/exh_exhortos_promociones"
-        exh_externo.endpoint_recibir_promocion_archivo = f"{url_base}/api/v5/exh_exhortos_promociones_archivos/upload"
+        exh_externo.endpoint_recibir_exhorto = f"{url_base}/api/v5/exh_exhortos/recibir"
+        exh_externo.endpoint_recibir_exhorto_archivo = f"{url_base}/api/v5/exh_exhortos/recibir_archivo"
+        exh_externo.endpoint_consultar_exhorto = f"{url_base}/api/v5/exh_exhortos/folio_seguimiento/"  # Debe terminar en /
+        exh_externo.endpoint_recibir_respuesta_exhorto = f"{url_base}/api/v5/exh_exhortos/recibir_respuesta"
+        exh_externo.endpoint_recibir_respuesta_exhorto_archivo = f"{url_base}/api/v5/exh_exhortos/recibir_respuesta_archivo"
+        exh_externo.endpoint_actualizar_exhorto = f"{url_base}/api/v5/exh_exhortos/actualizar"
+        exh_externo.endpoint_recibir_promocion = f"{url_base}/api/v5/exh_exhortos/recibir_promocion"
+        exh_externo.endpoint_recibir_promocion_archivo = f"{url_base}/api/v5/exh_exhortos/recibir_promocion_archivo"
         # Actualizar
         exh_externo.save()
         click.echo(click.style(f"[{exh_externo.clave}] ", fg="green"), nl=False)

@@ -5,14 +5,14 @@
 {% block title %}Editar Promoción {{ exh_exhorto_promocion.folio_origen_promocion }}{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Editar ' + exh_exhorto_promocion.folio_origen_promocion) }}
+    {{ topbar.page('Editar Promoción ' + exh_exhorto_promocion.folio_origen_promocion) }}
 {% endblock %}
 
 {% block content %}
     {% call f.card() %}
         {% set form_kwargs = {'exh_exhorto_promocion_id': exh_exhorto_promocion.id} %}
         {% call f.form_tag('exh_exhortos_promociones.edit', fid='exh_exhorto_promocion_form', **form_kwargs) %}
-            {% call f.form_group(form.fecha_origen, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.folio_origen_promocion, readonly=true) %}{% endcall %}
             {% call f.form_group(form.fojas) %}{% endcall %}
             {% call f.form_group(form.observaciones) %}{% endcall %}
             {% call f.form_group(form.guardar) %}{% endcall %}

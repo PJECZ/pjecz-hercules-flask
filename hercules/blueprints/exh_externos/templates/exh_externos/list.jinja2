@@ -6,15 +6,24 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {% if current_user.can_admin('EXH EXTERNOS') %}
-            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_externos.list_inactive')) }}{% endif %}
-            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('exh_externos.list_active')) }}{% endif %}
+        {% if current_user.can_view('EXH AREAS') %}
+            {{ topbar.button('Áreas', url_for('exh_areas.list_active'), 'mdi:office-building-marker') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS ACTUALIZACIONES') %}
+            {{ topbar.button('E. Actualizaciones', url_for('exh_exhortos_actualizaciones.list_active'), 'mdi:reload') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') %}
+            {{ topbar.button('E. Promociones', url_for('exh_exhortos_promociones.list_active'), 'mdi:receipt-text-plus') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
+            {{ topbar.button('E. Respuestas', url_for('exh_exhortos_respuestas.list_active'), 'mdi:forum') }}
         {% endif %}
         {% if current_user.can_view('EXH EXHORTOS') %}
             {{ topbar.button('Exhortos', url_for('exh_exhortos.list_active'), 'mdi:email-fast') }}
         {% endif %}
-        {% if current_user.can_view('EXH AREAS') %}
-            {{ topbar.button('Áreas', url_for('exh_areas.list_active'), 'mdi:office-building-marker') }}
+        {% if current_user.can_admin('EXH EXTERNOS') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_externos.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('exh_externos.list_active')) }}{% endif %}
         {% endif %}
         {% if current_user.can_insert('EXH EXTERNOS') %}
             {{ topbar.button_new('Nuevo Externo', url_for('exh_externos.new')) }}
@@ -24,7 +33,7 @@
 
 {% block content %}
     {% call list.card() %}
-    <!-- Filtros exh externos -->
+        <!-- Filtros exh_externos -->
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosExhExternos.buscar(); return false;">
@@ -43,7 +52,7 @@
                 </form>
             </div>
         </div>
-        <!-- DataTable exh externos -->
+        <!-- DataTable exh_externos -->
         <table id="exh_externos_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
@@ -68,7 +77,7 @@
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
-        // DataTable exh_externos_datatable
+        // DataTable exh_externos
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
         let configDTExhExternos = constructorDataTable.config();
         configDTExhExternos['ajax']['url'] = '/exh_externos/datatable_json';
@@ -95,7 +104,7 @@
                 }
             }
         ];
-        // Filtros exh_externos_datatable
+        // Filtros exh_externos
         const filtrosExhExternos = new FiltrosDataTable('#exh_externos_datatable', configDTExhExternos);
         filtrosExhExternos.agregarInput('filtroClave', 'clave');
         filtrosExhExternos.precargar();

@@ -14,8 +14,9 @@ import click
 from hercules.app import create_app
 from hercules.blueprints.estados.models import Estado
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
-from hercules.blueprints.exh_exhortos_archivos.models import ExhExhortoArchivo
-from hercules.blueprints.exh_exhortos_videos.models import ExhExhortoVideo
+from hercules.blueprints.exh_exhortos_respuestas.models import ExhExhortoRespuesta
+from hercules.blueprints.exh_exhortos_respuestas_archivos.models import ExhExhortoRespuestaArchivo
+from hercules.blueprints.exh_exhortos_respuestas_videos.models import ExhExhortoRespuestaVideo
 from hercules.blueprints.municipios.models import Municipio
 from hercules.extensions import database
 from lib.pwgen import generar_identificador
@@ -143,45 +144,44 @@ def demo_recibir_respuesta(exhorto_origen_id: str) -> str:
 
     # Actualizar el exhorto
     click.echo(click.style("Actualizando el exhorto...", fg="yellow"))
-    exh_exhorto.respuesta_origen_id = respuesta["respuestaOrigenId"]
-    exh_exhorto.respuesta_municipio_turnado_id = int(respuesta["municipioTurnadoId"])
-    exh_exhorto.respuesta_area_turnado_id = respuesta["areaTurnadoId"]
-    exh_exhorto.respuesta_area_turnado_nombre = respuesta["areaTurnadoNombre"]
-    exh_exhorto.respuesta_numero_exhorto = respuesta["numeroExhorto"]
-    exh_exhorto.respuesta_tipo_diligenciado = respuesta["tipoDiligenciado"]
-    exh_exhorto.respuesta_observaciones = respuesta["observaciones"]
-    exh_exhorto.respuesta_fecha_hora_recepcion = datetime.now()
-    exh_exhorto.respuesta_fecha_hora_recepcion = datetime.now()
+    # exh_exhorto.respuesta_origen_id = respuesta["respuestaOrigenId"]
+    # exh_exhorto.respuesta_municipio_turnado_id = int(respuesta["municipioTurnadoId"])
+    # exh_exhorto.respuesta_area_turnado_id = respuesta["areaTurnadoId"]
+    # exh_exhorto.respuesta_area_turnado_nombre = respuesta["areaTurnadoNombre"]
+    # exh_exhorto.respuesta_numero_exhorto = respuesta["numeroExhorto"]
+    # exh_exhorto.respuesta_tipo_diligenciado = respuesta["tipoDiligenciado"]
+    # exh_exhorto.respuesta_observaciones = respuesta["observaciones"]
+    # exh_exhorto.respuesta_fecha_hora_recepcion = datetime.now()
+    # exh_exhorto.respuesta_fecha_hora_recepcion = datetime.now()
     exh_exhorto.estado = "RESPONDIDO"
     exh_exhorto.save()
 
     # Insertar los archivos de la respuesta
     click.echo(click.style("Insertando los archivos...", fg="yellow"))
     for archivo in respuesta["archivos"]:
-        exh_exhorto_archivo = ExhExhortoArchivo()
-        exh_exhorto_archivo.exh_exhorto_id = exh_exhorto.id
-        exh_exhorto_archivo.nombre_archivo = archivo["nombreArchivo"]
-        exh_exhorto_archivo.hash_sha1 = archivo["hashSha1"]
-        exh_exhorto_archivo.hash_sha256 = archivo["hashSha256"]
-        exh_exhorto_archivo.tipo_documento = archivo["tipoDocumento"]
-        exh_exhorto_archivo.es_respuesta = True
-        exh_exhorto_archivo.estado = "PENDIENTE"
-        exh_exhorto_archivo.url = ""
-        exh_exhorto_archivo.tamano = 0
-        exh_exhorto_archivo.save()
-        click.echo(click.style(f"He insertado el archivo {exh_exhorto_archivo.nombre_archivo}", fg="green"))
+        exh_exhorto_respuesta_archivo = ExhExhortoRespuestaArchivo()
+        exh_exhorto_respuesta_archivo.exh_exhorto_id = exh_exhorto.id
+        exh_exhorto_respuesta_archivo.nombre_archivo = archivo["nombreArchivo"]
+        exh_exhorto_respuesta_archivo.hash_sha1 = archivo["hashSha1"]
+        exh_exhorto_respuesta_archivo.hash_sha256 = archivo["hashSha256"]
+        exh_exhorto_respuesta_archivo.tipo_documento = archivo["tipoDocumento"]
+        exh_exhorto_respuesta_archivo.estado = "PENDIENTE"
+        exh_exhorto_respuesta_archivo.url = ""
+        exh_exhorto_respuesta_archivo.tamano = 0
+        exh_exhorto_respuesta_archivo.save()
+        click.echo(click.style(f"He insertado el archivo {exh_exhorto_respuesta_archivo.nombre_archivo}", fg="green"))
 
     # Insertar los videos con datos aleatorios que vendrían en la respuesta
     click.echo(click.style("Insertando los videos...", fg="yellow"))
     for video in respuesta["videos"]:
-        exh_exhorto_video = ExhExhortoVideo()
-        exh_exhorto_video.exh_exhorto_id = exh_exhorto.id
-        exh_exhorto_video.titulo = video["titulo"]
-        exh_exhorto_video.descripcion = video["descripcion"]
-        exh_exhorto_video.fecha = video["fecha"]
-        exh_exhorto_video.url_acceso = video["urlAcceso"]
-        exh_exhorto_video.save()
-        click.echo(click.style(f"He insertado el video {exh_exhorto_video.titulo}", fg="green"))
+        exh_exhorto_respuesta_video = ExhExhortoRespuestaVideo()
+        exh_exhorto_respuesta_video.exh_exhorto_id = exh_exhorto.id
+        exh_exhorto_respuesta_video.titulo = video["titulo"]
+        exh_exhorto_respuesta_video.descripcion = video["descripcion"]
+        exh_exhorto_respuesta_video.fecha = video["fecha"]
+        exh_exhorto_respuesta_video.url_acceso = video["urlAcceso"]
+        exh_exhorto_respuesta_video.save()
+        click.echo(click.style(f"He insertado el video {exh_exhorto_respuesta_video.titulo}", fg="green"))
 
     # Mensaje final
     return f"DEMO Terminó recibir respuesta del exhorto {exhorto_origen_id}"

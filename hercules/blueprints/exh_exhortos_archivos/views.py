@@ -9,8 +9,8 @@ from datetime import datetime
 from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
-from werkzeug.utils import secure_filename
 from werkzeug.exceptions import NotFound
+from werkzeug.utils import secure_filename
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
@@ -50,11 +50,8 @@ def datatable_json():
         consulta = consulta.filter_by(estatus="A")
     if "exh_exhorto_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_id=request.form["exh_exhorto_id"])
-    if "es_respuesta" in request.form:
-        es_respuesta = True if request.form["es_respuesta"] == "true" else False
-        consulta = consulta.filter_by(es_respuesta=es_respuesta)
     # Ordenar y paginar
-    registros = consulta.order_by(ExhExhortoArchivo.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ExhExhortoArchivo.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -69,11 +66,10 @@ def datatable_json():
                     "nombre_archivo": resultado.nombre_archivo,
                     "url": url_for("exh_exhortos_archivos.download_pdf", exh_exhorto_archivo_id=resultado.id),
                 },
-                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
-                "tipo_documento_nombre": resultado.tipo_documento_nombre,
-                "estado": resultado.estado,
-                "fecha_hora_recepcion": resultado.fecha_hora_recepcion.strftime("%Y-%m-%d %H:%M:%S"),
+                "tipo_documento_descripcion": resultado.tipo_documento_descripcion,
                 "tamano": f"{round((resultado.tamano / 1024), 2)} MB",
+                "estado": resultado.estado,
+                "exhorto_origen_id": resultado.exh_exhorto.exhorto_origen_id,
             }
         )
     # Entregar JSON
@@ -110,50 +106,11 @@ def detail(exh_exhorto_archivo_id):
     return render_template("exh_exhortos_archivos/detail.jinja2", exh_exhorto_archivo=exh_exhorto_archivo)
 
 
-@exh_exhortos_archivos.route("/exh_exhortos_archivos/<int:exh_exhorto_archivo_id>/pdf")
-def download_pdf(exh_exhorto_archivo_id):
-    """Descargar el archivo PDF de un Archivo"""
-
-    # Consultar el ExhExhortoArchivo
-    exh_exhorto_archivo = ExhExhortoArchivo.query.get_or_404(exh_exhorto_archivo_id)
-
-    # Si el estatus es B, no se puede descargar
-    if exh_exhorto_archivo.estatus == "B":
-        flash("No se puede descargar un archivo inactivo", "warning")
-        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_archivo.exh_exhorto_id))
-
-    # Tomar el nombre del archivo con el que sera descargado
-    descarga_nombre = exh_exhorto_archivo.nombre_archivo
-
-    # Obtener el contenido del archivo desde Google Storage
-    try:
-        descarga_contenido = get_file_from_gcs(
-            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO"],
-            blob_name=get_blob_name_from_url(exh_exhorto_archivo.url),
-        )
-    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
-        flash(str(error), "danger")
-        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_archivo.exh_exhorto_id))
-
-    # Descargar un archivo PDF
-    response = make_response(descarga_contenido)
-    response.headers["Content-Type"] = "application/pdf"
-    response.headers["Content-Disposition"] = f"attachment; filename={descarga_nombre}"
-    return response
-
-
-@exh_exhortos_archivos.route(
-    "/exh_exhortos_archivos/nuevo_con_exhorto/<int:es_respuesta>/<int:exh_exhorto_id>", methods=["GET", "POST"]
-)
+@exh_exhortos_archivos.route("/exh_exhortos_archivos/nuevo/<int:exh_exhorto_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
-def new_with_exh_exhorto(exh_exhorto_id, es_respuesta):
+def new_with_exh_exhorto(exh_exhorto_id):
     """Nuevo Archivo con un Exhorto"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
-
-    # Evaluar si es un archivo de respuesta
-    es_respuesta_bool = False
-    if es_respuesta == 1:
-        es_respuesta_bool = True
 
     form = ExhExhortoArchivoNewForm(CombinedMultiDict((request.files, request.form)))
     if form.validate_on_submit():
@@ -180,12 +137,11 @@ def new_with_exh_exhorto(exh_exhorto_id, es_respuesta):
             estado="RECIBIDO",
             tamano=0,
             fecha_hora_recepcion=fecha_hora_recepcion,
-            es_respuesta=es_respuesta_bool,
         )
         exh_exhorto_archivo.save()
 
         # Definir el nombre del archivo a subir a Google Storage
-        archivo_pdf_nombre = f"{exh_exhorto.exhorto_origen_id}-{exh_exhorto_archivo.encode_id()}.pdf"
+        archivo_pdf_nombre = f"exh_exhorto_archivo-{exh_exhorto_archivo.encode_id()}.pdf"
 
         # Definir la ruta para blob_name con la fecha actual
         year = fecha_hora_recepcion.strftime("%Y")
@@ -231,9 +187,7 @@ def new_with_exh_exhorto(exh_exhorto_id, es_respuesta):
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_id))
 
     # Entregar el formulario
-    return render_template(
-        "exh_exhortos_archivos/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto, es_respuesta=es_respuesta_bool
-    )
+    return render_template("exh_exhortos_archivos/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
 
 
 @exh_exhortos_archivos.route("/exh_exhortos_archivos/edicion/<int:exh_exhorto_archivo_id>", methods=["GET", "POST"])
@@ -276,7 +230,7 @@ def delete(exh_exhorto_archivo_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Archivo {exh_exhorto_archivo.nombre_archivo}"),
+            descripcion=safe_message(f"Eliminado Archivo {exh_exhorto_archivo.id}"),
             url=url_for("exh_exhortos_archivos.detail", exh_exhorto_archivo_id=exh_exhorto_archivo.id),
         )
         bitacora.save()
@@ -294,12 +248,44 @@ def recover(exh_exhorto_archivo_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Archivo {exh_exhorto_archivo.nombre_archivo}"),
+            descripcion=safe_message(f"Recuperado Archivo {exh_exhorto_archivo.id}"),
             url=url_for("exh_exhortos_archivos.detail", exh_exhorto_archivo_id=exh_exhorto_archivo.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(url_for("exh_exhortos_archivos.detail", exh_exhorto_archivo_id=exh_exhorto_archivo.id))
+
+
+@exh_exhortos_archivos.route("/exh_exhortos_archivos/<int:exh_exhorto_archivo_id>/pdf")
+def download_pdf(exh_exhorto_archivo_id):
+    """Descargar el archivo PDF de un Archivo"""
+
+    # Consultar
+    exh_exhorto_archivo = ExhExhortoArchivo.query.get_or_404(exh_exhorto_archivo_id)
+
+    # Si el estatus es B, no se puede descargar
+    if exh_exhorto_archivo.estatus == "B":
+        flash("No se puede descargar un archivo inactivo", "warning")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_archivo.exh_exhorto_id))
+
+    # Tomar el nombre del archivo con el que sera descargado
+    descarga_nombre = exh_exhorto_archivo.nombre_archivo
+
+    # Obtener el contenido del archivo desde Google Storage
+    try:
+        descarga_contenido = get_file_from_gcs(
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO"],
+            blob_name=get_blob_name_from_url(exh_exhorto_archivo.url),
+        )
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        flash(str(error), "danger")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_archivo.exh_exhorto_id))
+
+    # Descargar un archivo PDF
+    response = make_response(descarga_contenido)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = f"attachment; filename={descarga_nombre}"
+    return response
 
 
 @exh_exhortos_archivos.route("/exh_exhortos_archivos/ver_archivo_pdf/<int:exh_exhorto_archivo_id>")

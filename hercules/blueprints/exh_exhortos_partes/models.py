@@ -15,9 +15,15 @@ class ExhExhortoParte(database.Model, UniversalMixin):
     """ExhExhortoParte"""
 
     GENEROS = {
-        "M": "MASCULINO",
-        "F": "FEMENINO",
-        "-": "SIN SEXO",
+        "M": "Masculino",
+        "F": "Femenino",
+        "-": "No aplica",
+    }
+
+    TIPOS_PARTES = {
+        0: "No definido",
+        1: "Actor, Promovente u Ofendido",
+        2: "Demandado, Inculpado o Imputado",
     }
 
     # Nombre de la tabla
@@ -57,30 +63,29 @@ class ExhExhortoParte(database.Model, UniversalMixin):
     tipo_parte_nombre: Mapped[Optional[str]] = mapped_column(String(256))
 
     @property
-    def nombre_completo(self):
-        """Junta nombres, apellido_paterno y apellido materno"""
-        if self.apellido_paterno is None:
-            return self.nombre
-        return self.nombre + " " + self.apellido_paterno + " " + self.apellido_materno
+    def genero_descripcion(self):
+        """Descripción del género"""
+        if self.genero in self.GENEROS:
+            return self.GENEROS[self.genero]
+        return "Desconocido"
 
     @property
-    def genero_descripcion(self):
-        """Descripción del genero de la persona"""
-        if self.genero == "M":
-            return "M) Masculino"
-        return "F) Femenino"
+    def nombre_completo(self):
+        """Junta nombres, apellido_paterno y apellido materno"""
+        if self.apellido_materno is not None and self.apellido_paterno is not None:
+            return f"{self.nombre} {self.apellido_paterno} {self.apellido_materno}"
+        elif self.apellido_paterno is not None:
+            return f"{self.nombre} {self.apellido_paterno}"
+        return self.nombre
 
     @property
     def tipo_parte_descripcion(self):
         """Descripción del tipo de parte"""
-        if self.tipo_parte == 0:
-            return "0) NO DEFINIDO"
-        elif self.tipo_parte == 1:
-            return "1) Actor"
-        elif self.tipo_parte == 2:
-            return "2) Demandado"
-        else:
-            return "-"
+        if self.tipo_parte == 0 and self.tipo_parte_nombre != "":
+            return self.tipo_parte_nombre
+        if self.tipo_parte in self.TIPOS_PARTES:
+            return self.TIPOS_PARTES[self.tipo_parte]
+        return "Desconocido"
 
     def __repr__(self):
         """Representación"""

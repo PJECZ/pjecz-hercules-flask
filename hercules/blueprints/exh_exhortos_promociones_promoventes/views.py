@@ -1,22 +1,22 @@
 """
-Exhortos Promociones Promoventes, vistas
+Exh Exhortos Promociones Promoventes, vistas
 """
 
 import json
+
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import or_
 
-from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_string, safe_message
-
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.exh_exhortos_promociones.models import ExhExhortoPromocion
+from hercules.blueprints.exh_exhortos_promociones_promoventes.forms import ExhExhortoPromocionPromoventeForm
+from hercules.blueprints.exh_exhortos_promociones_promoventes.models import ExhExhortoPromocionPromovente
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
-from hercules.blueprints.exh_exhortos_promociones_promoventes.models import ExhExhortoPromocionPromovente
-from hercules.blueprints.exh_exhortos_promociones.models import ExhExhortoPromocion
-from hercules.blueprints.exh_exhortos_promociones_promoventes.forms import ExhExhortoPromocionPromoventeForm
+from lib.datatables import get_datatable_parameters, output_datatable_json
+from lib.safe_string import safe_message, safe_string
 
 MODULO = "EXH EXHORTOS PROMOCIONES PROMOVENTES"
 
@@ -32,7 +32,7 @@ def before_request():
 
 @exh_exhortos_promociones_promoventes.route("/exh_exhortos_promociones_promoventes/datatable_json", methods=["GET", "POST"])
 def datatable_json():
-    """DataTable JSON para listado de Promoventes"""
+    """DataTable JSON para listado de promoventes"""
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
@@ -44,42 +44,12 @@ def datatable_json():
         consulta = consulta.filter_by(estatus="A")
     if "exh_exhorto_promocion_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_promocion_id=request.form["exh_exhorto_promocion_id"])
-    if "nombre_completo" in request.form:
-        nombre_completo = safe_string(request.form["nombre_completo"])
-        palabras = nombre_completo.split()
-        for palabra in palabras:
-            consulta = consulta.filter(
-                or_(
-                    ExhExhortoPromocionPromovente.nombre.contains(palabra),
-                    ExhExhortoPromocionPromovente.apellido_paterno.contains(palabra),
-                    ExhExhortoPromocionPromovente.apellido_materno.contains(palabra),
-                )
-            )
-    # Luego filtrar por columnas de otras tablas
-    # if "persona_rfc" in request.form:
-    #     consulta = consulta.join(Persona)
-    #     consulta = consulta.filter(Persona.rfc.contains(safe_rfc(request.form["persona_rfc"], search_fragment=True)))
     # Ordenar y paginar
-    registros = consulta.order_by(ExhExhortoPromocionPromovente.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ExhExhortoPromocionPromovente.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
     for resultado in registros:
-        # Quitar genero si es persona moral
-        genero_str = resultado.genero
-        if resultado.es_persona_moral == True:
-            genero_str = "-"
-        # Si tipo_parte es NO DEFINIDO se remplaza por el tipo_parte_nombre
-        tipo_parte_str = resultado.tipo_parte
-        if tipo_parte_str == 0:
-            tipo_parte_str = resultado.tipo_parte_nombre
-        elif tipo_parte_str == 1:
-            tipo_parte_str = "ACTOR"
-        elif tipo_parte_str == 2:
-            tipo_parte_str = "DEMANDADO"
-        else:
-            tipo_parte_str = "-"
-        # Añadir registro al listado
         data.append(
             {
                 "detalle": {
@@ -88,13 +58,10 @@ def datatable_json():
                         "exh_exhortos_promociones_promoventes.detail", exh_exhorto_promocion_promovente_id=resultado.id
                     ),
                 },
-                "nombre": resultado.nombre,
-                "apellido_paterno": resultado.apellido_paterno,
-                "apellido_materno": resultado.apellido_materno,
-                "genero": genero_str,
+                "genero_descripcion": resultado.genero_descripcion,
                 "es_persona_moral": resultado.es_persona_moral,
-                "tipo_parte": tipo_parte_str,
-                "tipo_parte_nombre": resultado.tipo_parte_nombre,
+                "tipo_parte_descripcion": resultado.tipo_parte_descripcion,
+                "folio_origen_promocion": resultado.exh_exhorto_promocion.folio_origen_promocion,
             }
         )
     # Entregar JSON
@@ -103,11 +70,11 @@ def datatable_json():
 
 @exh_exhortos_promociones_promoventes.route("/exh_exhortos_promociones_promoventes")
 def list_active():
-    """Listado de Promoventes activos"""
+    """Listado de promoventes activos"""
     return render_template(
         "exh_exhortos_promociones_promoventes/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
-        titulo="Promoventes de promociones",
+        titulo="Exhortos Promociones Promoventes",
         estatus="A",
     )
 
@@ -115,18 +82,18 @@ def list_active():
 @exh_exhortos_promociones_promoventes.route("/exh_exhortos_promociones_promoventes/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Promoventes inactivos"""
+    """Listado de promoventes inactivos"""
     return render_template(
         "exh_exhortos_promociones_promoventes/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Promoventes de promociones inactivos",
+        titulo="Exhortos Promociones Promoventes inactivos",
         estatus="B",
     )
 
 
 @exh_exhortos_promociones_promoventes.route("/exh_exhortos_promociones_promoventes/<int:exh_exhorto_promocion_promovente_id>")
 def detail(exh_exhorto_promocion_promovente_id):
-    """Detalle de un Parte"""
+    """Detalle de una parte"""
     exh_exhorto_promocion_promovente = ExhExhortoPromocionPromovente.query.get_or_404(exh_exhorto_promocion_promovente_id)
     return render_template(
         "exh_exhortos_promociones_promoventes/detail.jinja2", exh_exhorto_promocion_promovente=exh_exhorto_promocion_promovente
@@ -134,11 +101,11 @@ def detail(exh_exhorto_promocion_promovente_id):
 
 
 @exh_exhortos_promociones_promoventes.route(
-    "/exh_exhortos_promociones_promoventes/nuevo_con_exhorto_promocion/<int:exh_exhorto_promocion_id>", methods=["GET", "POST"]
+    "/exh_exhortos_promociones_promoventes/nuevo/<int:exh_exhorto_promocion_id>", methods=["GET", "POST"]
 )
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_exh_exhorto_promocion(exh_exhorto_promocion_id):
-    """Nueva Parte"""
+    """Nueva parte con el ID de una promoción"""
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
     form = ExhExhortoPromocionPromoventeForm()
     if form.validate_on_submit():
@@ -197,7 +164,7 @@ def new_with_exh_exhorto_promocion(exh_exhorto_promocion_id):
 )
 @permission_required(MODULO, Permiso.MODIFICAR)
 def edit(exh_exhorto_promocion_promovente_id):
-    """Editar Promovente"""
+    """Editar un promovente"""
     exh_exhorto_promocion_promovente = ExhExhortoPromocionPromovente.query.get_or_404(exh_exhorto_promocion_promovente_id)
     form = ExhExhortoPromocionPromoventeForm()
     if form.validate_on_submit():
@@ -259,14 +226,14 @@ def edit(exh_exhorto_promocion_promovente_id):
 )
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def delete(exh_exhorto_promocion_promovente_id):
-    """Eliminar Promovente"""
+    """Eliminar un promovente"""
     exh_exhorto_promocion_promovente = ExhExhortoPromocionPromovente.query.get_or_404(exh_exhorto_promocion_promovente_id)
     if exh_exhorto_promocion_promovente.estatus == "A":
         exh_exhorto_promocion_promovente.delete()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Promovente {exh_exhorto_promocion_promovente.nombre_completo}"),
+            descripcion=safe_message(f"Eliminado Promovente {exh_exhorto_promocion_promovente.id}"),
             url=url_for(
                 "exh_exhortos_promociones_promoventes.detail",
                 exh_exhorto_promocion_promovente_id=exh_exhorto_promocion_promovente.id,
@@ -287,14 +254,14 @@ def delete(exh_exhorto_promocion_promovente_id):
 )
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def recover(exh_exhorto_promocion_promovente_id):
-    """Recuperar Promovente"""
+    """Recuperar un promovente"""
     exh_exhorto_promocion_promovente = ExhExhortoPromocionPromovente.query.get_or_404(exh_exhorto_promocion_promovente_id)
     if exh_exhorto_promocion_promovente.estatus == "B":
         exh_exhorto_promocion_promovente.recover()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Promovente {exh_exhorto_promocion_promovente.nombre_completo}"),
+            descripcion=safe_message(f"Recuperado Promovente {exh_exhorto_promocion_promovente.id}"),
             url=url_for(
                 "exh_exhortos_promociones_promoventes.detail",
                 exh_exhorto_promocion_promovente_id=exh_exhorto_promocion_promovente.id,

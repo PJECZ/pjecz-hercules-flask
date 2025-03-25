@@ -2,19 +2,28 @@
 {% import 'macros/list.jinja2' as list %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Exhortos Áreas{% endblock %}
+{% block title %}{{ titulo }}{% endblock %}
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {% if current_user.can_admin('EXH AREAS') %}
-            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_areas.list_inactive')) }}{% endif %}
-            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('exh_areas.list_active')) }}{% endif %}
-        {% endif %}
         {% if current_user.can_view('EXH EXHORTOS') %}
             {{ topbar.button('Exhortos', url_for('exh_exhortos.list_active'), 'mdi:email-fast') }}
         {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS ACTUALIZACIONES') %}
+            {{ topbar.button('E. Actualizaciones', url_for('exh_exhortos_actualizaciones.list_active'), 'mdi:reload') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') %}
+            {{ topbar.button('E. Promociones', url_for('exh_exhortos_promociones.list_active'), 'mdi:receipt-text-plus') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
+            {{ topbar.button('E. Respuestas', url_for('exh_exhortos_respuestas.list_active'), 'mdi:forum') }}
+        {% endif %}
         {% if current_user.can_view('EXH EXTERNOS') %}
-            {{ topbar.button('Externos D.R.', url_for('exh_externos.list_active'), 'mdi:home-map-marker') }}
+            {{ topbar.button('Externos', url_for('exh_externos.list_active'), 'mdi:home-map-marker') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH AREAS') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_areas.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('exh_areas.list_active')) }}{% endif %}
         {% endif %}
         {% if current_user.can_insert('EXH AREAS') %}
             {{ topbar.button_new('Nueva Área', url_for('exh_areas.new')) }}
@@ -24,6 +33,7 @@
 
 {% block content %}
     {% call list.card() %}
+        <!-- DataTable exh_areas -->
         <table id="exh_areas_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
@@ -62,4 +72,3 @@
         filtrosExhAreas.precargar();
     </script>
 {% endblock %}
-

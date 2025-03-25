@@ -16,14 +16,12 @@ TIPOS_PARTES = [
 
 
 class ExhExhortoPromocionPromoventeForm(FlaskForm):
-    """Formulario ExhExhortoPromocionPromovente"""
+    """Formulario para agregar o editar un promovente de una promoción"""
 
     nombre = StringField("Nombre", validators=[DataRequired(), Length(max=256)])
     apellido_paterno = StringField("Apellido Paterno", validators=[Optional(), Length(max=256)])
     apellido_materno = StringField("Apellido Materno", validators=[Optional(), Length(max=256)])
-    genero = RadioField(
-        "Genero", coerce=str, choices=ExhExhortoPromocionPromovente.GENEROS.items(), validators=[Optional()], default="M"
-    )
+    genero = RadioField("Genero", coerce=str, choices=ExhExhortoPromocionPromovente.GENEROS.items(), validators=[Optional()])
     es_persona_moral = BooleanField("Es Persona Moral")
     tipo_parte = SelectField("Tipo de Parte", coerce=int, choices=TIPOS_PARTES, validators=[Optional()])
     tipo_parte_nombre = StringField("Tipo Parte Nombre")

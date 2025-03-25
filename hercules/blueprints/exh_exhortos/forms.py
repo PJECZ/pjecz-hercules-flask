@@ -4,14 +4,15 @@ Exh Exhortos, formularios
 
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired
-from wtforms import DateTimeField, IntegerField, SelectField, StringField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Length, Optional
+from wtforms import IntegerField, SelectField, StringField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, Length, Optional, Regexp
 
 from hercules.blueprints.exh_areas.models import ExhArea
+from lib.safe_string import EXPEDIENTE_REGEXP
 
 
 class ExhExhortoNewForm(FlaskForm):
-    """Formulario New Exhorto"""
+    """Formulario para crear un nuevo exhorto"""
 
     # Campos solo lectura
     exhorto_origen_id = StringField("Exhorto Origen ID", validators=[Optional()])
@@ -30,8 +31,10 @@ class ExhExhortoNewForm(FlaskForm):
     juzgado_origen = SelectField("Juzgado Origen", coerce=int, validate_choice=False, validators=[DataRequired()])
 
     # Campos
-    numero_expediente_origen = StringField("Número de Expediente Origen", validators=[DataRequired(), Length(max=256)])
-    numero_oficio_origen = StringField("Número de Oficio Origen", validators=[Optional(), Length(max=256)])
+    numero_expediente_origen = StringField(
+        "Número de Expediente Origen", validators=[DataRequired(), Regexp(EXPEDIENTE_REGEXP)]
+    )
+    numero_oficio_origen = StringField("Número de Oficio Origen", validators=[Optional(), Regexp(EXPEDIENTE_REGEXP)])
     tipo_juicio_asunto_delitos = StringField("Tipo de Juicio Asunto Delitos", validators=[DataRequired(), Length(max=256)])
     juez_exhortante = StringField("Juez Exhortante", validators=[Optional(), Length(max=256)])
     fojas = IntegerField("Fojas", validators=[DataRequired()])
@@ -42,7 +45,7 @@ class ExhExhortoNewForm(FlaskForm):
 
 
 class ExhExhortoEditForm(FlaskForm):
-    """Formulario Edit Exhorto"""
+    """Formulario para editar un exhorto"""
 
     # Campos solo lectura
     exhorto_origen_id = StringField("Exhorto Origen ID", validators=[Optional()])
@@ -77,30 +80,8 @@ class ExhExhortoEditForm(FlaskForm):
     guardar = SubmitField("Guardar")
 
 
-class ExhExhortoSendManuallyForm(FlaskForm):
-    """Formulario Enviar Manualmente Exhorto"""
-
-    folio_seguimiento = StringField("Folio de Seguimiento", validators=[DataRequired()])
-    acuse_fecha_hora_recepcion = DateTimeField("Fecha Hora de Recepción", validators=[DataRequired()])
-    # acuse_municipio_area_recibe_id
-    acuse_area_recibe_id = StringField("Área ID", validators=[DataRequired(), Length(max=256)])
-    acuse_area_recibe_nombre = StringField("Área Nombre", validators=[DataRequired(), Length(max=256)])
-    acuse_url_info = StringField("URL info", validators=[Optional(), Length(max=256)])
-    recibir = SubmitField("Recibir")
-
-
-class ExhExhortoRecibeResponseManuallyForm(FlaskForm):
-    """Formulario Recibir respuesta Manualmente Exhorto"""
-
-    respuesta_respuesta_origen_id = StringField("Respuesta Origen ID", validators=[DataRequired()])
-    respuesta_observaciones = TextAreaField("Observaciones", validators=[Optional(), Length(max=1024)])
-    respuesta_fecha_hora_recepcion = DateTimeField("Fecha Hora de Recepción", validators=[DataRequired()])
-    archivo = FileField("Archivo PDF", validators=[FileRequired()])
-    recibir = SubmitField("Recibir")
-
-
 class ExhExhortoTransferForm(FlaskForm):
-    """Formulario Transferir Exhorto"""
+    """Formulario para transferir un exhorto"""
 
     exh_area = SelectField("Área", coerce=int, validators=[DataRequired()])
     distrito = SelectField("Distrito", choices=None, validate_choice=False, validators=[DataRequired()])
@@ -111,33 +92,19 @@ class ExhExhortoTransferForm(FlaskForm):
         """Inicializar y cargar opciones para materia y exh_area"""
         super().__init__(*args, **kwargs)
         self.exh_area.choices = [
-            (m.id, m.clave + " - " + m.nombre) for m in ExhArea.query.filter_by(estatus="A").order_by(ExhArea.clave).all()
+            (a.id, a.clave + " - " + a.nombre) for a in ExhArea.query.filter_by(estatus="A").order_by(ExhArea.clave).all()
         ]
 
 
 class ExhExhortoProcessForm(FlaskForm):
-    """Formulario Procesar Exhorto"""
+    """Formulario para procesar un exhorto"""
 
-    numero_exhorto = StringField("Número de Exhorto", validators=[Optional(), Length(max=256)])
+    numero_exhorto = StringField("Número de Exhorto", validators=[DataRequired(), Length(max=64)])
     procesar = SubmitField("Procesar")
 
 
 class ExhExhortoRefuseForm(FlaskForm):
-    """Formulario Rechazar Exhorto"""
+    """Formulario rechazar un exhorto"""
 
     archivo = FileField("Archivo PDF", validators=[FileRequired()])
     rechazar = SubmitField("Rechazar")
-
-
-class ExhExhortoDiligenceForm(FlaskForm):
-    """Formulario Diligenciar Exhorto"""
-
-    archivo = FileField("Archivo PDF", validators=[FileRequired()])
-    diligenciar = SubmitField("Diligenciar")
-
-
-class ExhExhortoResponseForm(FlaskForm):
-    """Formulario Contestar Exhorto"""
-
-    archivo = FileField("Archivo PDF", validators=[FileRequired()])
-    contestar = SubmitField("Contestar")

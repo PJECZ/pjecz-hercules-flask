@@ -1,0 +1,30 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Agregar Archivo a la Respuesta {{ exh_exhorto_respuesta.respuesta_origen_id }}{% endblock %}
+
+{% block custom_head %}
+    {{ f.drop_zone_css() }}
+{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Agregar Archivo a la Respuesta ' + exh_exhorto_respuesta.respuesta_origen_id) }}
+{% endblock %}
+
+{% block content %}
+    {% call f.card() %}
+        {% set form_kwargs = {'exh_exhorto_respuesta_id': exh_exhorto_respuesta.id} %}
+        {% call f.form_tag_multipart('exh_exhortos_respuestas_archivos.new_with_exh_exhorto_respuesta', fid='exh_exhorto_respuesta_archivo_form', **form_kwargs) %}
+            {% call f.form_group(form.tipo_documento) %}{% endcall %}
+            {% call f.drop_zone_wrapper() %}
+                {% call f.form_group(form.archivo, class='dropzone') %}{% endcall %}
+            {% endcall %}
+            {% call f.form_group(form.subir) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {{ f.drop_zone_js() }}
+{% endblock %}

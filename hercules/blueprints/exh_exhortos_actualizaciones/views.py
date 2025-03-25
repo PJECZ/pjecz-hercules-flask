@@ -1,5 +1,5 @@
 """
-Exhorto - Actualizaciones, vistas
+Exh Exhortos Actualizaciones, vistas
 """
 
 import json
@@ -46,34 +46,29 @@ def datatable_json():
     if "exh_exhorto_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_id=request.form["exh_exhorto_id"])
     if "actualizacion_origen_id" in request.form:
-        actualizacion_origen_id = safe_clave(request.form["actualizacion_origen_id"])
+        actualizacion_origen_id = safe_string(
+            request.form["actualizacion_origen_id"], max_len=64, do_unidecode=True, to_uppercase=False
+        )
         if actualizacion_origen_id:
             consulta = consulta.filter(ExhExhortoActualizacion.actualizacion_origen_id.contains(actualizacion_origen_id))
-    if "descripcion" in request.form:
-        descripcion = safe_string(request.form["descripcion"])
-        if descripcion:
-            consulta = consulta.filter(ExhExhortoActualizacion.descripcion.contains(descripcion))
-    # Luego filtrar por columnas de otras tablas
-    # if "persona_rfc" in request.form:
-    #     consulta = consulta.join(Persona)
-    #     consulta = consulta.filter(Persona.rfc.contains(safe_rfc(request.form["persona_rfc"], search_fragment=True)))
     # Ordenar y paginar
-    registros = consulta.order_by(ExhExhortoActualizacion.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ExhExhortoActualizacion.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
     for resultado in registros:
         data.append(
             {
-                "origen_id": {
-                    "origen_id": resultado.actualizacion_origen_id,
+                "detalle": {
+                    "actualizacion_origen_id": resultado.actualizacion_origen_id,
                     "url": url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=resultado.id),
                 },
-                "fecha_hora": resultado.fecha_hora.strftime("%Y/%m/%d %H:%M"),
                 "tipo_actualizacion": resultado.tipo_actualizacion,
                 "descripcion": resultado.descripcion,
                 "remitente": resultado.remitente,
                 "estado": resultado.estado,
+                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M:%S"),
+                "exhorto_origen_id": resultado.exh_exhorto.exhorto_origen_id,
             }
         )
     # Entregar JSON
@@ -86,7 +81,7 @@ def list_active():
     return render_template(
         "exh_exhortos_actualizaciones/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
-        titulo="Actualizaciones",
+        titulo="Exhortos Actualizaciones",
         estatus="A",
     )
 
@@ -94,11 +89,11 @@ def list_active():
 @exh_exhortos_actualizaciones.route("/exh_exhortos_actualizaciones/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Actualizaciones inactivos"""
+    """Listado de Actualizaciones inactivas"""
     return render_template(
         "exh_exhortos_actualizaciones/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Actualizaciones inactivos",
+        titulo="Exhortos Actualizaciones inactivas",
         estatus="B",
     )
 
@@ -115,12 +110,24 @@ def detail(exh_exhorto_actualizacion_id):
 def new_with_exh_exhorto(exh_exhorto_id):
     """Nuevo Actualización"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+
+    # Validar el estatus del exhorto
+    if exh_exhorto.estatus != "A":
+        flash("El exhorto debe estar ACTIVO para responder.", "warning")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_id))
+
+    # Validar el estado del exhorto
+    if exh_exhorto.estado not in ("RECIBIDO", "RECIBIDO CON EXITO", "PROCESANDO", "RESPONDIDO", "CONTESTADO"):
+        flash(f"El exhorto tiene el estado {exh_exhorto.estado}. No se puede responder.", "warning")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_id))
+
+    # Crear el formulario
     form = ExhExhortoActualizacionForm()
     if form.validate_on_submit():
         exh_exhorto_actualizacion = ExhExhortoActualizacion(
             exh_exhorto=exh_exhorto,
-            actualizacion_origen_id=safe_string(form.origen_id.data),
-            tipo_actualizacion=safe_string(form.tipo_actualizacion.data),
+            actualizacion_origen_id=safe_string(form.actualizacion_origen_id.data, max_len=64, to_uppercase=False),
+            tipo_actualizacion=safe_string(form.tipo_actualizacion.data, max_len=64, to_uppercase=False),
             descripcion=safe_string(form.descripcion.data),
             fecha_hora=datetime.now(),
             remitente="INTERNO",
@@ -136,8 +143,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    # Despliega el campo Origen ID generado
-    form.origen_id.data = generar_identificador()
+    form.actualizacion_origen_id.data = generar_identificador()  # Read only
     return render_template("exh_exhortos_actualizaciones/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
 
 
@@ -150,7 +156,7 @@ def edit(exh_exhorto_actualizacion_id):
     exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get_or_404(exh_exhorto_actualizacion_id)
     form = ExhExhortoActualizacionForm()
     if form.validate_on_submit():
-        exh_exhorto_actualizacion.tipo_actualizacion = safe_string(form.tipo_actualizacion.data)
+        exh_exhorto_actualizacion.tipo_actualizacion = safe_string(form.tipo_actualizacion.data, max_len=64, to_uppercase=False)
         exh_exhorto_actualizacion.descripcion = safe_string(form.descripcion.data)
         exh_exhorto_actualizacion.save()
         bitacora = Bitacora(
@@ -162,7 +168,6 @@ def edit(exh_exhorto_actualizacion_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    form.origen_id.data = exh_exhorto_actualizacion.actualizacion_origen_id
     form.tipo_actualizacion.data = exh_exhorto_actualizacion.tipo_actualizacion
     form.descripcion.data = exh_exhorto_actualizacion.descripcion
     return render_template(
@@ -180,7 +185,7 @@ def delete(exh_exhorto_actualizacion_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Actualización {exh_exhorto_actualizacion.actualizacion_origen_id}"),
+            descripcion=safe_message(f"Eliminado Actualización {exh_exhorto_actualizacion.id}"),
             url=url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id),
         )
         bitacora.save()
@@ -198,7 +203,7 @@ def recover(exh_exhorto_actualizacion_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Actualización {exh_exhorto_actualizacion.actualizacion_origen_id}"),
+            descripcion=safe_message(f"Recuperado Actualización {exh_exhorto_actualizacion.id}"),
             url=url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id),
         )
         bitacora.save()
@@ -207,11 +212,22 @@ def recover(exh_exhorto_actualizacion_id):
 
 
 @exh_exhortos_actualizaciones.route("/exh_exhortos_actualizaciones/enviar/<int:exh_exhorto_actualizacion_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def launch_task_send(exh_exhorto_actualizacion_id):
     """Lanzar tarea en el fondo para enviar una actualización al PJ Externo"""
-    # exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get_or_404(exh_exhorto_actualizacion_id)
-    # TODO: Validar el estado de la actualizacion
+    exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get_or_404(exh_exhorto_actualizacion_id)
+    # Validar el estado
+    if exh_exhorto_actualizacion.estado != "POR ENVIAR":
+        flash("El estado de la actualización debe ser POR ENVIAR.", "warning")
+        return redirect(
+            url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion_id)
+        )
+    if exh_exhorto_actualizacion.exh_exhorto.estado == "ARCHIVADO":
+        es_valido = False
+        flash("El exhorto está ARCHIVADO. No se puede enviar la actualización.", "warning")
+    if exh_exhorto_actualizacion.exh_exhorto.estado == "CANCELADO":
+        es_valido = False
+        flash("El exhorto está CANCELADO. No se puede enviar la actualización.", "warning")
     # Lanzar tarea en el fondo
     tarea = current_user.launch_task(
         comando="exh_exhortos_actualizaciones.tasks.task_enviar_actualizacion",
@@ -223,17 +239,100 @@ def launch_task_send(exh_exhorto_actualizacion_id):
 
 
 @exh_exhortos_actualizaciones.route("/exh_exhortos_actualizaciones/cancelar/<int:exh_exhorto_actualizacion_id>")
-@permission_required(MODULO, Permiso.MODIFICAR)
+@permission_required(MODULO, Permiso.CREAR)
 def change_to_cancel(exh_exhorto_actualizacion_id):
     """Cancelar una actualización al PJ Externo"""
     exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get_or_404(exh_exhorto_actualizacion_id)
-    if exh_exhorto_actualizacion.estado == "PENDIENTE":
+    es_valido = True
+    # Validar el estado
+    if exh_exhorto_actualizacion.estado == "CANCELADO":
+        es_valido = False
+        flash("Esta actualización ya está CANCELADA.", "warning")
+    if exh_exhorto_actualizacion.estado == "ENVIADO":
+        es_valido = False
+        flash("Esta actualización ya fue ENVIADA. No puede ser cancelada.", "warning")
+    if exh_exhorto_actualizacion.estado == "POR ENVIAR":
+        es_valido = False
+        flash("Esta actualización está POR ENVIAR. No puede ser cancelada.", "warning")
+    if exh_exhorto_actualizacion.exh_exhorto.estado == "ARCHIVADO":
+        es_valido = False
+        flash("El exhorto está ARCHIVADO. No se puede cancelar la actualización.", "warning")
+    # Cambiar el estado
+    if es_valido:
         exh_exhorto_actualizacion.estado = "CANCELADO"
         exh_exhorto_actualizacion.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Actualización Cancelada: {exh_exhorto_actualizacion.actualizacion_origen_id}"),
+            descripcion=safe_message("Se ha CANCELADO la actualización"),
+            url=url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id))
+
+
+@exh_exhortos_actualizaciones.route("/exh_exhortos_actualizaciones/cambiar_a_pendiente/<int:exh_exhorto_actualizacion_id>")
+@permission_required(MODULO, Permiso.CREAR)
+def change_to_pending(exh_exhorto_actualizacion_id):
+    """Cambiar el estado de la actualización a PENDIENTE"""
+    exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get_or_404(exh_exhorto_actualizacion_id)
+    es_valido = True
+    # Validar el estado
+    if exh_exhorto_actualizacion.estado == "PENDIENTE":
+        es_valido = False
+        flash("Esta actualización ya estaba PENDIENTE.", "warning")
+    if exh_exhorto_actualizacion.estado == "ENVIADO":
+        es_valido = False
+        flash("Esta actualización ya fue ENVIADA. No puede se puede cambiar su estado.", "warning")
+    if exh_exhorto_actualizacion.exh_exhorto.estado == "ARCHIVADO":
+        es_valido = False
+        flash("El exhorto está ARCHIVADO. No se puede cambiar la actualización.", "warning")
+    if exh_exhorto_actualizacion.exh_exhorto.estado == "CANCELADO":
+        es_valido = False
+        flash("El exhorto está CANCELADO. No se puede cambiar la actualización.", "warning")
+    # Cambiar el estado
+    if es_valido:
+        exh_exhorto_actualizacion.estado = "PENDIENTE"
+        exh_exhorto_actualizacion.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message("Se ha cambiado a PENDIENTE la actualización"),
+            url=url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id))
+
+
+@exh_exhortos_actualizaciones.route("/exh_exhortos_actualizaciones/cambiar_a_por_enviar/<int:exh_exhorto_actualizacion_id>")
+@permission_required(MODULO, Permiso.CREAR)
+def change_to_send(exh_exhorto_actualizacion_id):
+    """Cambiar el estado de la actualización a POR ENVIAR"""
+    exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get_or_404(exh_exhorto_actualizacion_id)
+    es_valido = True
+    # Validar el estado
+    if exh_exhorto_actualizacion.estado == "POR ENVIAR":
+        es_valido = False
+        flash("Esta actualización ya estaba POR ENVIAR.", "warning")
+    if exh_exhorto_actualizacion.estado == "ENVIADO":
+        es_valido = False
+        flash("Esta actualización ya fue ENVIADA. No puede se puede cambiar su estado.", "warning")
+    if exh_exhorto_actualizacion.exh_exhorto.estado == "ARCHIVADO":
+        es_valido = False
+        flash("El exhorto está ARCHIVADO. No se puede cambiar la actualización.", "warning")
+    if exh_exhorto_actualizacion.exh_exhorto.estado == "CANCELADO":
+        es_valido = False
+        flash("El exhorto está CANCELADO. No se puede cambiar la actualización.", "warning")
+    # Cambiar el estado
+    if es_valido:
+        exh_exhorto_actualizacion.estado = "POR ENVIAR"
+        exh_exhorto_actualizacion.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message("Se ha cambiado a POR ENVIAR la actualización"),
             url=url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id),
         )
         bitacora.save()

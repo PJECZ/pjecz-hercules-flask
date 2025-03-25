@@ -1,22 +1,22 @@
 """
-Exhortos Actulizaciones, formularios
+Exh Exhortos Actualizaciones, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, SelectField
-from wtforms.validators import DataRequired, Length, Optional
+from wtforms import SelectField, StringField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, Length
 
-
-TIPOS_ACTUALIZACIONES = [
-    ("AreaTurnado", "Área de Turnado"),
-    ("NumeroExhorto", "Número de Exhorto"),
-]
+from hercules.blueprints.exh_exhortos_actualizaciones.models import ExhExhortoActualizacion
 
 
 class ExhExhortoActualizacionForm(FlaskForm):
-    """Formulario ExhExhortosActualizaciones"""
+    """Formulario para agregar una actualización de un exhorto"""
 
-    origen_id = StringField("Origen ID", validators=[DataRequired(), Length(max=48)])
-    tipo_actualizacion = SelectField("Tipo de Actualización", validators=[DataRequired()], choices=TIPOS_ACTUALIZACIONES)
-    descripcion = TextAreaField("Descripción", validators=[DataRequired(), Length(max=256)])
+    actualizacion_origen_id = StringField("Actualización Origen ID")  # Read only
+    tipo_actualizacion = SelectField(
+        "Tipo de Actualización",
+        validators=[DataRequired()],
+        choices=ExhExhortoActualizacion.TIPOS_ACTUALIZACIONES.items(),
+    )
+    descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=256)])
     guardar = SubmitField("Guardar")

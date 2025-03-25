@@ -1,5 +1,5 @@
 """
-Exh Exhorto Promoción Archivo, formularios
+Exh Exhortos Promociones Archivos, formularios
 """
 
 from flask_wtf import FlaskForm
@@ -11,7 +11,7 @@ from hercules.blueprints.exh_exhortos_promociones_archivos.models import ExhExho
 
 
 class ExhExhortoPromocionArchivoNewForm(FlaskForm):
-    """Formulario ExhExhortoArchivoNew"""
+    """Formulario para subir un archivo de una promoción"""
 
     tipo_documento = SelectField(
         "Tipo", coerce=int, choices=ExhExhortoPromocionArchivo.TIPOS_DOCUMENTOS.items(), validators=[DataRequired()]
@@ -21,7 +21,7 @@ class ExhExhortoPromocionArchivoNewForm(FlaskForm):
 
 
 class ExhExhortoPromocionArchivoEditForm(FlaskForm):
-    """Formulario para Editar"""
+    """Formulario para editar un archivo de una promoción"""
 
     nombre_archivo = StringField("Nombre del Archivo", validators=[DataRequired(), Length(max=256)])
     hash_sha1 = StringField("Hash SHA-1")  # Read only

@@ -3,15 +3,15 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Exhorto Promoción {{ exh_exhorto_promocion.folio_origen_promocion }}{% endblock %}
+{% block title %}Promoción {{ exh_exhorto_promocion.folio_origen_promocion }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Promoción para el Exhorto ' + exh_exhorto_promocion.exh_exhorto.id | string + ' del estado ' + estado) %}
+    {% call topbar.page_buttons('Promoción ' + exh_exhorto_promocion.folio_origen_promocion) %}
         {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_promocion.exh_exhorto_id)) }}
         {% if current_user.can_edit('EXH EXHORTOS PROMOCIONES') and exh_exhorto_promocion.estado == 'PENDIENTE' %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_promociones.edit', exh_exhorto_promocion_id=exh_exhorto_promocion.id)) }}
         {% endif %}
-        {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') and exh_exhorto_promocion.estado == 'PENDIENTE' %}
+        {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') %}
             {% if exh_exhorto_promocion.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('exh_exhortos_promociones.delete', exh_exhorto_promocion_id=exh_exhorto_promocion.id)) }}{% endif %}
             {% if exh_exhorto_promocion.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('exh_exhortos_promociones.recover', exh_exhorto_promocion_id=exh_exhorto_promocion.id)) }}{% endif %}
         {% endif %}
@@ -19,73 +19,144 @@
 {% endblock %}
 
 {% block content %}
-    {# Detalle de la promocion #}
+    <!-- Detalle de la promoción -->
     {% call detail.card(estatus=exh_exhorto_promocion.estatus) %}
         {{ detail.label_value('Exhorto Origen ID', exh_exhorto_promocion.exh_exhorto.exhorto_origen_id, url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_promocion.exh_exhorto_id)) }}
         {{ detail.label_value('Folio Origen', exh_exhorto_promocion.folio_origen_promocion) }}
         {{ detail.label_value('Fojas', exh_exhorto_promocion.fojas) }}
         {{ detail.label_value('Fecha Origen', moment(exh_exhorto_promocion.fecha_origen, local=False).format('DD MMM YYYY HH:mm')) }}
         {{ detail.label_value('Observaciones', exh_exhorto_promocion.observaciones) }}
+        {{ detail.label_value('Folio', exh_exhorto_promocion.folio_promocion_recibida) }}
+        {{ detail.label_value('Remitente', exh_exhorto_promocion.remitente) }}
+        <!-- Estado -->
         <div class="row">
             <div class="col-md-3 text-end">Estado</div>
-            <div class="col-md-9"><span id="titulo-estado"> {{ exh_exhorto_promocion.estado }}</span></div>
+            <div class="col-md-9"><span id="titulo-estado">{{ exh_exhorto_promocion.estado }}</span></div>
         </div>
-        <!-- Botón de acción -->
-        {% if exh_exhorto_promocion.estado == 'PENDIENTE' %}
-            <div class="row text-center mt-3">
-                <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-danger" href="javascript:void(0)" onclick="showModalcancelar_btn('{{url_for('exh_exhortos_promociones.change_to_cancel', exh_exhorto_promocion_id=exh_exhorto_promocion.id)}}', '¿Está seguro de CANCELAR la actualización? Porque una vez cancelado ya no podrá ni editarlo ni enviarlo');">
-                        <span class='iconify' data-icon='mdi:cancel'></span> Cancelar
-                    </a>
+        <!-- Botones de acciones -->
+        {% if current_user.can_insert('EXH EXHORTOS PROMOCIONES') %}
+            <hr>
+            <!-- Botones de acciones REGRESAR A PENDIENTE -->
+            {% if exh_exhorto_promocion.estado == 'CANCELADO' %}
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ detail.button_lg_modal(
+                            label="Regresar a Pendiente",
+                            onclick="showModalPendienteBtn('" + url_for('exh_exhortos_promociones.change_to_pending', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '¿Está seguro de cambiar a PENDIENTE esta promoción?');",
+                            icon='mdi:note-edit',
+                            color_class='btn-warning') }}
+                    </div>
+                    <div class="col-md-9">
+                    </div>
                 </div>
-                <div class="col-md-6 d-grid gap-2">
-                    <a class="btn btn-lg btn-primary" href="javascript:void(0)" onclick="showModalenviar_btn('{{url_for('exh_exhortos_promociones.launch_task_send_promotion', exh_exhorto_promocion_id=exh_exhorto_promocion.id)}}', '¿Está seguro de ENVIAR la promoción? Porque una vez enviado ya no podrá ni editarlo ni cancelarlo.');">
-                        <span class='iconify' data-icon='mdi:send'></span> Enviar
-                    </a>
+            {% endif %}
+            <!-- Botones de acciones CANCELAR, EDITAR y POR ENVIAR -->
+            {% if exh_exhorto_promocion.estado == 'PENDIENTE' %}
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ detail.button_lg_modal(
+                            label="Cancelar",
+                            onclick="showModalCancelarBtn('" + url_for('exh_exhortos_promociones.change_to_cancel', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '¿Está seguro de CANCELAR esta promoción?');",
+                            icon='mdi:cancel',
+                            color_class='btn-secondary') }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ detail.button_lg(
+                            label="Editar",
+                            url=url_for('exh_exhortos_promociones.edit', exh_exhorto_promocion_id=exh_exhorto_promocion.id),
+                            icon='mdi:edit',
+                            color_class='btn-info') }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ detail.button_lg_modal(
+                            label="Por Enviar",
+                            onclick="showModalPorEnviarBtn('" + url_for('exh_exhortos_promociones.change_to_send', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '¿Está seguro de cambiar a POR ENVIAR esta promoción? Una vez cambiada ya no podrá editarla.');",
+                            icon='mdi:package-variant-closed',
+                            color_class='btn-warning') }}
+                    </div>
                 </div>
-            </div>
+            {% endif %}
+            <!-- Botones de acciones REGRESAR A PENDIENTE y ENVIAR -->
+            {% if exh_exhorto_promocion.estado == 'POR ENVIAR' or exh_exhorto_promocion.estado == 'RECHAZADO' %}
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ detail.button_lg_modal(
+                            label="Regresar a Pendiente",
+                            onclick="showModalPendienteBtn('" + url_for('exh_exhortos_promociones.change_to_pending', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '¿Está seguro de cambiar a PENDIENTE esta promoción?');",
+                            icon='mdi:note-edit',
+                            color_class='btn-warning') }}
+                    </div>
+                    <div class="col-md-3">
+                    </div>
+                    <div class="col-md-6">
+                        {{ detail.button_lg_modal(
+                            label="Enviar",
+                            onclick="showModalEnviarBtn('" + url_for('exh_exhortos_promociones.launch_task_send', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '<strong>¿Está seguro de ENVIAR esta promoción?</strong> Porque una vez enviado ya <strong>NO HAY FORMA</strong> de regresarlo.');",
+                            icon='mdi:send',
+                            color_class='btn-primary') }}
+                    </div>
+                </div>
+            {% endif %}
         {% endif %}
     {% endcall %}
-    {# DataTable con promoventes #}
-    {% call detail.card('Promoventes') %}
-        <table id="exh_exhortos_promociones_promoventes_datatable" class="table display nowrap" style="width:100%">
-            <thead>
-                <tr>
-                    <th>Nombre Completo</th>
-                    <th>Género</th>
-                    <th>Es Persona Moral</th>
-                    <th>Tipo de Parte</th>
-                </tr>
-            </thead>
-        </table>
-        {% if exh_exhorto_promocion.estado == 'PENDIENTE' and current_user.can_insert('EXH EXHORTOS PROMOCIONES PROMOVENTES')  %}
-            <a class="btn btn-primary" href="{{ url_for('exh_exhortos_promociones_promoventes.new_with_exh_exhorto_promocion', exh_exhorto_promocion_id=exh_exhorto_promocion.id) }}">Agregar Promovente</a>
-        {% endif %}
-    {% endcall %}
-    {# DataTable con archivos #}
-    {% call detail.card('Archivos') %}
-        <table id="exh_exhortos_promociones_archivos_datatable" class="table display nowrap" style="width:100%">
-            <thead>
-                <tr>
-                    <th>Archivo</th>
-                    <th>Descargar</th>
-                    <th>Tipo Documento</th>
-                    <th>Estado</th>
-                    <th>Recepción</th>
-                    <th>Tamaño</th>
-                </tr>
-            </thead>
-        </table>
-        {% if exh_exhorto_promocion.estado == 'PENDIENTE' and current_user.can_insert('EXH EXHORTOS PROMOCIONES ARCHIVOS')  %}
-            <a class="btn btn-primary" href="{{ url_for('exh_exhortos_promociones_archivos.new_with_exh_exhorto_promocion', exh_exhorto_promocion_id=exh_exhorto_promocion.id) }}">Agregar Archivo</a>
-        {% endif %}
-    {% endcall %}
+    <!-- DataTable con promoventes -->
+    {% if current_user.can_view('EXH EXHORTOS PROMOCIONES PROMOVENTES') %}
+        {% call detail.card('Promoventes') %}
+            <table id="exh_exhortos_promociones_promoventes_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Nombre Completo</th>
+                        <th>Género</th>
+                        <th>Es Persona Moral</th>
+                        <th>Tipo de Parte</th>
+                    </tr>
+                </thead>
+            </table>
+            {% if exh_exhorto_promocion.estado == 'PENDIENTE' and current_user.can_insert('EXH EXHORTOS PROMOCIONES ARCHIVOS')  %}
+                <a class="btn btn-primary" href="{{ url_for('exh_exhortos_promociones_promoventes.new_with_exh_exhorto_promocion', exh_exhorto_promocion_id=exh_exhorto_promocion.id) }}">Agregar Promovente</a>
+            {% endif %}
+        {% endcall %}
+    {% endif %}
+    <!-- DataTable con archivos -->
+    {% if current_user.can_view('EXH EXHORTOS PROMOCIONES ARCHIVOS') %}
+        {% call detail.card('Archivos') %}
+            <table id="exh_exhortos_promociones_archivos_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Archivo</th>
+                        <th>Descargar</th>
+                        <th>Tipo Documento</th>
+                        <th>Estado</th>
+                        <th>Tamaño</th>
+                    </tr>
+                </thead>
+            </table>
+            {% if exh_exhorto_promocion.estado == 'PENDIENTE' and current_user.can_insert('EXH EXHORTOS PROMOCIONES ARCHIVOS')  %}
+                <a class="btn btn-primary" href="{{ url_for('exh_exhortos_promociones_archivos.new_with_exh_exhorto_promocion', exh_exhorto_promocion_id=exh_exhorto_promocion.id) }}">Agregar Archivo</a>
+            {% endif %}
+        {% endcall %}
+    {% endif %}
 {% endblock %}
 
 {% block custom_javascript %}
+    <!-- Modales para los botones de acción -->
+    {% if current_user.can_insert('EXH EXHORTOS PROMOCIONES') %}
+        {% if exh_exhorto_promocion.estado == 'CANCELADO' %}
+            {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
+        {% endif %}
+        {% if exh_exhorto_promocion.estado == 'PENDIENTE' %}
+            {{ modals.custom_javascript('CANCELAR esta Promoción', '', "CancelarBtn") }}
+            {{ modals.custom_javascript('POR ENVIAR esta Promoción', '', "PorEnviarBtn") }}
+        {% endif %}
+        {% if exh_exhorto_promocion.estado == 'POR ENVIAR' or exh_exhorto_promocion.estado == 'RECHAZADO' %}
+            {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
+            {{ modals.custom_javascript('ENVIAR esta Promoción al P.J.', '', "EnviarBtn") }}
+        {% endif %}
+    {% endif %}
+    <!-- Modales para eliminar y recuperar -->
     {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') %}
-        {% if exh_exhorto_promocion.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar Promoción: ' + exh_exhorto_promocion.folio_origen_promocion + '?') }}{% endif %}
-        {% if exh_exhorto_promocion.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar Promoción: ' + exh_exhorto_promocion.folio_origen_promocion + '?') }}{% endif %}
+        {% if exh_exhorto_promocion.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar esta Promoción?') }}{% endif %}
+        {% if exh_exhorto_promocion.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar esta Promoción?') }}{% endif %}
     {% endif %}
     <!-- Renderizar el campo estado con colores e iconos -->
     <script>
@@ -93,20 +164,16 @@
         const valor = "{{ exh_exhorto_promocion.estado }}";
         let bgcolor = "bg-dark";
         let icon = "circle-small";
-        switch (valor)    {
-            case "CANCELADO": bgcolor = 'bg-danger';            icon="cancel";              break;
-            case "ENVIADO":   bgcolor = 'bg-primary';           icon="send";                break;
-            case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit";           break;
-            default:          bgcolor = 'bg-secondary';         icon="circle-outline";      break;
+        switch (valor) {
+            case "CANCELADO":  bgcolor = 'bg-secondary';         icon="cancel";         break;
+            case "ENVIADO":    bgcolor = 'bg-primary';           icon="send";           break;
+            case "PENDIENTE":  bgcolor = 'bg-warning text-dark'; icon="note-edit";      break;
+            case "POR ENVIAR": bgcolor = 'bg-warning text-dark'; icon="package-up";     break;
+            case "RECHAZADO":  bgcolor = "bg-danger";            icon="hand-back-left"; break;
         }
-        html = '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
+        html = '<span style="font-size:1.0em" class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
         titulo_estado.innerHTML = html;
     </script>
-    <!-- Modals -->
-    {% if exh_exhorto_promocion.estado == 'PENDIENTE' %}
-        {{ modals.custom_javascript('Enviar', '', "enviar_btn") }}
-        {{ modals.custom_javascript('Cancelar', '', "cancelar_btn") }}
-    {% endif %}
     <!-- Creación de Tablas -->
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
@@ -121,9 +188,9 @@
         configDTPromoventes['ajax']['data'] = {'estatus':'A', 'exh_exhorto_promocion_id':{{exh_exhorto_promocion.id}}};
         configDTPromoventes['columns'] = [
             { data: 'detalle' },
-            { data: 'genero' },
+            { data: 'genero_descripcion' },
             { data: 'es_persona_moral' },
-            { data: 'tipo_parte' },
+            { data: 'tipo_parte_descripcion' }
         ];
         configDTPromoventes['columnDefs'] = [
             {
@@ -134,24 +201,10 @@
                 }
             },
             {
-                targets: 1, // genero
-                data: null,
-                render: function(data, type, row, meta) {
-                    switch (data) {
-                        case "M": return "<span title='Masculino'>M <span class='iconify' data-icon='mdi:gender-male'></span></span>";
-                        case "F": return "<span title='Femenino'>F <span class='iconify' data-icon='mdi:gender-female'></span></span>";
-                    }
-                    return "-";
-                }
-            },
-            {
                 targets: 2, // es_persona_moral
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data == true) {
-                        return "SÍ";
-                    }
-                    return "-";
+                    return data.es_persona_moral ? 'Sí' : '';
                 }
             }
         ];
@@ -168,9 +221,8 @@
         configDTArchivos['columns'] = [
             { data: 'detalle' },
             { data: 'descargar_pdf' },
-            { data: 'tipo_documento_nombre' },
+            { data: 'tipo_documento_descripcion' },
             { data: 'estado' },
-            { data: 'fecha_hora_recepcion' },
             { data: 'tamano' }
         ];
         configDTArchivos['columnDefs'] = [
@@ -190,18 +242,6 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '" download="' + data.nombre_archivo + '"><span class="iconify" data-icon="mdi:file-pdf-box" style="font-size:2.0rem"></span></a>';
-                }
-            },
-            {
-                targets: 3, // estado
-                data: null,
-                render: function(data, type, row, meta) {
-                    switch(data) {
-                        case "CANCELADO": bgcolor = 'bg-danger';                icon="cancel";    break;
-                        case "ENVIADO":   bgcolor = 'bg-success';               icon="send";      break;
-                        case "PENDIENTE": bgcolor = 'bg-warning text-dark';     icon="note-edit"; break;
-                    }
-                    return '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + data + '</span>';
                 }
             }
         ];

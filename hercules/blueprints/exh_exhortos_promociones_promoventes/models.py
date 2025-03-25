@@ -1,31 +1,31 @@
 """
-Exhorto Promociones Promoventes, modelos
+Exh Exhortos Promociones Promoventes, modelos
 """
 
 from datetime import datetime
 from typing import List, Optional
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, JSON, Integer, String, Text, Uuid
+from sqlalchemy import JSON, Boolean, DateTime, Enum, ForeignKey, Integer, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.functions import now
 
-from lib.universal_mixin import UniversalMixin
 from hercules.extensions import database
+from lib.universal_mixin import UniversalMixin
 
 
 class ExhExhortoPromocionPromovente(database.Model, UniversalMixin):
     """ExhExhortoPromocionPromovente"""
 
     GENEROS = {
-        "M": "MASCULINO",
-        "F": "FEMENINO",
-        "-": "SIN SEXO",
+        "M": "Masculino",
+        "F": "Femenino",
+        "-": "No aplica",
     }
 
     TIPOS_PARTES = {
-        0: "No definido o se especifica en tipoParteNombre",
-        1: "Actor, Promovente, Ofendido",
-        2: "Demandado, Inculpado, Imputado",
+        0: "No definido",
+        1: "Actor, Promovente u Ofendido",
+        2: "Demandado, Inculpado o Imputado",
     }
 
     # Nombre de la tabla
@@ -65,30 +65,25 @@ class ExhExhortoPromocionPromovente(database.Model, UniversalMixin):
     tipo_parte_nombre: Mapped[Optional[str]] = mapped_column(String(256))
 
     @property
-    def nombre_completo(self):
-        """Junta nombres, apellido_paterno y apellido materno"""
-        if self.es_persona_moral:
-            return self.nombre
-        return self.nombre + " " + self.apellido_paterno + " " + self.apellido_materno
+    def genero_descripcion(self):
+        """Descripción del género"""
+        if self.genero in self.GENEROS:
+            return self.GENEROS[self.genero]
+        return "Desconocido"
 
     @property
-    def genero_descripcion(self):
-        """Descripción del genero de la persona"""
-        if self.genero == "M":
-            return "M) Masculino"
-        return "F) Femenino"
+    def nombre_completo(self):
+        """Junta nombres, apellido_paterno y apellido materno"""
+        return self.nombre + " " + str(self.apellido_paterno) + " " + str(self.apellido_materno)
 
     @property
     def tipo_parte_descripcion(self):
         """Descripción del tipo de parte"""
-        if self.tipo_parte == 0:
-            return "0) NO DEFINIDO"
-        elif self.tipo_parte == 1:
-            return "1) Promovente"
-        elif self.tipo_parte == 2:
-            return "2) Inculpado"
-        else:
-            return "-"
+        if self.tipo_parte == 0 and self.tipo_parte_nombre != "":
+            return self.tipo_parte_nombre
+        if self.tipo_parte in self.TIPOS_PARTES:
+            return self.TIPOS_PARTES[self.tipo_parte]
+        return "No definido"
 
     def __repr__(self):
         """Representación"""

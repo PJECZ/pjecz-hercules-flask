@@ -6,6 +6,21 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('EXH AREAS') %}
+            {{ topbar.button('Áreas', url_for('exh_areas.list_active'), 'mdi:office-building-marker') }}
+        {% endif %}
+        {% if current_user.can_view('EXH EXHORTOS') %}
+            {{ topbar.button('Exhortos', url_for('exh_exhortos.list_active'), 'mdi:email-fast') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') %}
+            {{ topbar.button('E. Promociones', url_for('exh_exhortos_promociones.list_active'), 'mdi:receipt-text-plus') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
+            {{ topbar.button('E. Respuestas', url_for('exh_exhortos_respuestas.list_active'), 'mdi:forum') }}
+        {% endif %}
+        {% if current_user.can_view('EXH EXTERNOS') %}
+            {{ topbar.button('Externos', url_for('exh_externos.list_active'), 'mdi:home-map-marker') }}
+        {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS ACTUALIZACIONES') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_exhortos_actualizaciones.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('exh_exhortos_actualizaciones.list_active')) }}{% endif %}
@@ -15,38 +30,34 @@
 
 {% block content %}
     {% call list.card() %}
-        <!-- Filtros Actualizaciones -->
+        <!-- Filtros exh_exhortos_actualizaciones -->
         <div class="row">
             <div class="col">
-                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosActualizaciones.buscar(); return false;">
-                    <div class="col-4">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosExhExhortosActualizaciones.buscar(); return false;">
+                    <div class="col-3">
                         <div class="form-floating">
-                            <input id="filtroOrigenId" type="text" class="form-control" aria-label="OrigenId" style="text-transform: uppercase;">
-                            <label for="filtroOrigenId">Origen ID</label>
+                            <input id="filtroActualizacionOrigenId" type="text" class="form-control" aria-label="Actualización Origen ID">
+                            <label for="filtroActualizacionOrigenId">Actualización Origen ID</label>
                         </div>
                     </div>
-                    <div class="col-6">
-                        <div class="form-floating">
-                            <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
-                            <label for="filtroDescripcion">Descripción</label>
-                        </div>
-                    </div>
-                    <div class="col-2 text-end">
-                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosActualizaciones.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
-                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosActualizaciones.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                    <div class="col-9 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosExhExhortosActualizaciones.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosExhExhortosActualizaciones.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
                 </form>
             </div>
         </div>
-        <!-- DataTable Actualizaciones -->
+        <!-- DataTable exh_exhortos_actualizaciones -->
         <table id="exh_exhortos_actualizaciones_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>Origen ID</th>
-                    <th>Fecha y Hora</th>
+                    <th>Actualización Origen ID</th>
                     <th>Tipo de Actualización</th>
-                    <th>Remitente</th>
                     <th>Descripción</th>
+                    <th>Remitente</th>
+                    <th>Estado</th>
+                    <th>Creado</th>
+                    <th>Exhorto Origen ID</th>
                 </tr>
             </thead>
         </table>
@@ -57,31 +68,49 @@
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
-        // DataTable Actualizaciones
+        // DataTable exh_exhortos_actualizaciones
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
-        let configDataTable = constructorDataTable.config();
-        configDataTable['ajax']['url'] = '/exh_exhortos_actualizaciones/datatable_json';
-        configDataTable['ajax']['data'] = {{ filtros }};
-        configDataTable['columns'] = [
-            { data: 'origen_id' },
-            { data: 'fecha_hora' },
+        let configDTExhExhortosActualizaciones = constructorDataTable.config();
+        configDTExhExhortosActualizaciones['ajax']['url'] = '/exh_exhortos_actualizaciones/datatable_json';
+        configDTExhExhortosActualizaciones['ajax']['data'] = {{ filtros }};
+        configDTExhExhortosActualizaciones['columns'] = [
+            { data: 'detalle' },
             { data: 'tipo_actualizacion' },
+            { data: 'descripcion' },
             { data: 'remitente' },
-            { data: 'descripcion' }
+            { data: 'estado' },
+            { data: 'creado' },
+            { data: 'exhorto_origen_id' }
         ];
-        configDataTable['columnDefs'] = [
+        configDTExhExhortosActualizaciones['columnDefs'] = [
             {
-                targets: 0, // origen_id
+                targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.origen_id + '</a>';
+                    return '<a href="' + data.url + '">' + data.actualizacion_origen_id + '</a>';
+                }
+            },
+            {
+                targets: 4, // estado
+                data: null,
+                render: function(data, type, row, meta) {
+                    let bgcolor = "bg-dark";
+                    let icon = "circle-small";
+                    switch (data)    {
+                        case "CANCELADO":  bgcolor = "bg-secondary";         icon="close-circle";    break;
+                        case "ENVIADO":    bgcolor = 'bg-primary';           icon="send";            break;
+                        case "PENDIENTE":  bgcolor = 'bg-warning text-dark'; icon="note-edit";       break;
+                        case "POR ENVIAR": bgcolor = 'bg-warning text-dark'; icon="package-up";      break;
+                        case "RECHAZADO":  bgcolor = "bg-danger";            icon="hand-back-left";  break;
+                    }
+                    let iconHTML = '<span class="iconify" data-icon="mdi:' + icon + '"></span>';
+                    return '<span class="badge rounded-pill ' + bgcolor + '">' + iconHTML + data + '</span>';
                 }
             }
         ];
-        // Filtros Actualizaciones
-        const filtrosActualizaciones = new FiltrosDataTable('#exh_exhortos_actualizaciones_datatable', configDataTable);
-        filtrosActualizaciones.agregarInput('filtroOrigenId', 'actualizacion_origen_id');
-        filtrosActualizaciones.agregarInput('filtroDescripcion', 'descripcion');
-        filtrosActualizaciones.precargar();
+        // Filtros exh_exhortos_actualizaciones
+        const filtrosExhExhortosActualizaciones = new FiltrosDataTable('#exh_exhortos_actualizaciones_datatable', configDTExhExhortosActualizaciones);
+        filtrosExhExhortosActualizaciones.agregarInput('filtroActualizacionOrigenId', 'actualizacion_origen_id');
+        filtrosExhExhortosActualizaciones.precargar();
     </script>
 {% endblock %}

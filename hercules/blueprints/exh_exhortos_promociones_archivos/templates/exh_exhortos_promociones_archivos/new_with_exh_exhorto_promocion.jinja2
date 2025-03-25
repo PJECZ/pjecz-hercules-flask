@@ -2,15 +2,14 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Agregar Archivo a la Promoción{% endblock %}
+{% block title %}Agregar Archivo a la Promoción {{ exh_exhorto_promocion.folio_origen_promocion }}{% endblock %}
 
 {% block custom_head %}
     {{ f.drop_zone_css() }}
 {% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Agregar Archivo a la Promoción') %}
-    {% endcall %}
+    {{ topbar.page('Agregar Archivo a la Promoción ' + exh_exhorto_promocion.folio_origen_promocion) }}
 {% endblock %}
 
 {% block content %}

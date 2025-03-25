@@ -50,8 +50,8 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         raise MyNotExistsError(mensaje_error)
 
     # Validar que su estado
-    if exh_exhorto.estado not in ("TRANSFERIDO", "PROCESANDO", "DILIGENCIADO"):
-        mensaje_error = f"El exhorto con ID {exh_exhorto_id} no tiene el estado TRANSFERIDO, PROCESANDO o DILIGENCIADO"
+    if exh_exhorto.estado not in ("TRANSFERIDO", "PROCESANDO"):
+        mensaje_error = f"El exhorto con ID {exh_exhorto_id} no tiene el estado TRANSFERIDO o PROCESANDO"
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 
@@ -87,11 +87,9 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 
-    # Bucle para juntar los datos de los archivos que SI sean respuesta
+    # Bucle para juntar los datos de los archivos
     archivos = []
     for archivo in exh_exhorto.exh_exhortos_archivos:
-        if archivo.es_respuesta is False:
-            continue
         archivos.append(
             {
                 "nombreArchivo": str(archivo.nombre_archivo),
@@ -223,9 +221,6 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     # Mandar los archivos de la respuesta con multipart/form-data (ETAPA 3)
     data = None
     for archivo in exh_exhorto.exh_exhortos_archivos:
-        # Si el archivo no es respuesta, entonces continuar
-        if archivo.es_respuesta is False:
-            continue
         # Informar al bitácora que se va a enviar el archivo
         mensaje_info = f"Enviando el archivo {archivo.nombre_archivo}"
         mensajes.append(mensaje_info)

@@ -1,5 +1,5 @@
 """
-Exhorto - Actualizaciones, modelos
+Exh Exhortos Actualizaciones, modelos
 """
 
 from datetime import datetime
@@ -16,15 +16,22 @@ from lib.universal_mixin import UniversalMixin
 class ExhExhortoActualizacion(database.Model, UniversalMixin):
     """ExhExhortoActualizacion"""
 
+    ESTADOS = {
+        "PENDIENTE": "Pendiente",
+        "POR ENVIAR": "Por enviar",
+        "ENVIADO": "Enviado",
+        "RECHAZADO": "Rechazado",
+        "CANCELADO": "Cancelado",
+    }
+
     REMITENTES = {
         "INTERNO": "Interno",
         "EXTERNO": "Externo",
     }
 
-    ESTADOS = {
-        "CANCELADO": "Cancelado",
-        "ENVIADO": "Enviado",
-        "PENDIENTE": "Pendiente",
+    TIPOS_ACTUALIZACIONES = {
+        "AreaTurnado": "Área de Turnado",
+        "NumeroExhorto": "Número de Exhorto",
     }
 
     # Nombre de la tabla
@@ -41,14 +48,14 @@ class ExhExhortoActualizacion(database.Model, UniversalMixin):
     # Identificador que el Poder Judicial exhortado (quien envía la actualización) genera.
     # Este puede ser un consecutivo (ej. "1", "2", ... "45545"), un GUID/UUID, código (ej. "EX-00001-2024update55" ...)
     # o cualquier dato que no se pueda repetir.
-    actualizacion_origen_id: Mapped[str] = mapped_column(String(48))
+    actualizacion_origen_id: Mapped[str] = mapped_column(String(64))
 
     # Tipo de actualización del exhorto, que está relacionado con el dato o proceso de actualización que sufrió el exhorto.
     # Estos pueden ser:
     # - "AreaTurnado" => Cuando se cambia o se turna el Exhorto al Juzgado/Área que hará la diligenciación.
     # - "NumeroExhorto" => En el Juzgado/Área que va a hacer la diligenciación del exhorto, este ya se radicó y
     #    se le asignó un Número de Exhorto (local) con el que identifican.
-    tipo_actualizacion: Mapped[str] = mapped_column(String(48))
+    tipo_actualizacion: Mapped[str] = mapped_column(String(64))
 
     # Fecha hora local en que se registró la actualización
     fecha_hora: Mapped[datetime] = mapped_column(DateTime, default=now())

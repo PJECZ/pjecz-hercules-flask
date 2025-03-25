@@ -1,25 +1,16 @@
 """
-Exhortos Promociones, formularios
+Exh Exhortos Promociones, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, IntegerField, TextAreaField
+from wtforms import IntegerField, StringField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length, Optional
 
 
-class ExhExhortoPromocionNewForm(FlaskForm):
-    """Formulario ExhExhortoPromocionNew"""
+class ExhExhortoPromocionForm(FlaskForm):
+    """Formulario para agregar o editar una promoción al exhorto"""
 
-    folio_origen = StringField("Folio Origen")  # ReadOnly
+    folio_origen_promocion = StringField("Folio Origen Promoción")  # Read only
     fojas = IntegerField("Fojas", validators=[DataRequired()])
-    observaciones = TextAreaField("Observaciones", validators=[Optional()])
-    crear = SubmitField("Crear")
-
-
-class ExhExhortoPromocionEditForm(FlaskForm):
-    """Formulario ExhExhortoPromocionEdit"""
-
-    fecha_origen = StringField("Fecha Origen")  # Read-Only
-    fojas = IntegerField("Fojas", validators=[DataRequired()])
-    observaciones = TextAreaField("Observaciones", validators=[Optional()])
+    observaciones = TextAreaField("Observaciones", validators=[Optional(), Length(max=1024)], render_kw={"rows": 5})
     guardar = SubmitField("Guardar")

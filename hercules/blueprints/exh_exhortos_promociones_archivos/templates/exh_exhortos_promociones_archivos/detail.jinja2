@@ -3,16 +3,15 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Exhorto Promoción Archivo {{ exh_exhorto_promocion_archivo.id }}{% endblock %}
+{% block title %}Archivo {{ exh_exhorto_promocion_archivo.nombre_archivo }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Exhorto Promoción Archivo ' + exh_exhorto_promocion_archivo.id | string) %}
-        {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_promocion_archivo.exh_exhorto_promocion.exh_exhorto.id)) }}
-        {{ topbar.button_previous('Promoción', url_for('exh_exhortos_promociones.detail', exh_exhorto_promocion_id=exh_exhorto_promocion_archivo.exh_exhorto_promocion.id)) }}
-        {% if current_user.can_edit('EXH EXHORTOS ARCHIVOS') %}
+    {% call topbar.page_buttons('Archivo ' + exh_exhorto_promocion_archivo.nombre_archivo) %}
+        {{ topbar.button_previous('Promoción', url_for('exh_exhortos_promociones.detail', exh_exhorto_promocion_id=exh_exhorto_promocion_archivo.exh_exhorto_promocion_id)) }}
+        {% if current_user.can_edit('EXH EXHORTOS PROMOCIONES ARCHIVOS') and exh_exhorto_promocion_archivo.exh_exhorto_promocion.estado == 'PENDIENTE' %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_promociones_archivos.edit', exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id)) }}
         {% endif %}
-        {% if current_user.can_admin('EXH EXHORTOS ARCHIVOS') %}
+        {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES ARCHIVOS') %}
             {% if exh_exhorto_promocion_archivo.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('exh_exhortos_promociones_archivos.delete', exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id)) }}{% endif %}
             {% if exh_exhorto_promocion_archivo.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('exh_exhortos_promociones_archivos.recover', exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id)) }}{% endif %}
         {% endif %}
@@ -20,20 +19,22 @@
 {% endblock %}
 
 {% block content %}
+    <!-- Detalle del archivo -->
     {% call detail.card(estatus=exh_exhorto_promocion_archivo.estatus) %}
-        {{ detail.label_value('Exhorto', exh_exhorto_promocion_archivo.exh_exhorto_promocion.exh_exhorto.exhorto_origen_id, url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_promocion_archivo.exh_exhorto_promocion.exh_exhorto.id)) }}
-        {{ detail.label_value('Promoción', exh_exhorto_promocion_archivo.exh_exhorto_promocion.folio_origen_promocion, url_for('exh_exhortos_promociones.detail', exh_exhorto_promocion_id=exh_exhorto_promocion_archivo.exh_exhorto_promocion.id)) }}
+        {{ detail.label_value('Promoción', exh_exhorto_promocion_archivo.exh_exhorto_promocion.folio_origen_promocion, url_for('exh_exhortos_promociones.detail', exh_exhorto_promocion_id=exh_exhorto_promocion_archivo.exh_exhorto_promocion_id)) }}
         {{ detail.label_value('Nombre archivo', exh_exhorto_promocion_archivo.nombre_archivo) }}
         {{ detail.label_value('Hash SHA-1', exh_exhorto_promocion_archivo.hash_sha1) }}
         {{ detail.label_value('Hash SHA-256', exh_exhorto_promocion_archivo.hash_sha256) }}
-        {{ detail.label_value('Tipo', exh_exhorto_promocion_archivo.tipo_documento_nombre) }}
+        {{ detail.label_value('Tipo', exh_exhorto_promocion_archivo.tipo_documento_descripcion) }}
         {# detail.label_value('URL', exh_exhorto_promocion_archivo.url) #}
         {{ detail.label_value('Tamaño', exh_exhorto_promocion_archivo.tamano) }}
         {{ detail.label_value('Fecha y hora de recepción', moment(exh_exhorto_promocion_archivo.fecha_hora_recepcion).format('llll')) }}
+        <!-- Estado -->
         <div class="row">
             <div class="col-md-3 text-end">Estado</div>
             <div class="col-md-9"><span id="titulo-estado"> {{ exh_exhorto_promocion_archivo.estado }}</span></div>
         </div>
+        <!-- Botones de acciones -->
         {% if exh_exhorto_promocion_archivo.estado == 'RECIBIDO'%}
             <div class="row">
                 <div class="col">
@@ -42,6 +43,7 @@
             </div>
         {% endif %}
     {% endcall %}
+    <!-- Vista previa del archivo PDF -->
     {% if exh_exhorto_promocion_archivo.estado == 'RECIBIDO'%}
         {% call detail.card() %}
             <object data="{{ url_for('exh_exhortos_promociones_archivos.view_file_pdf', exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id) }}" type="application/pdf" width="100%" height="600px">
@@ -52,9 +54,10 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    {% if current_user.can_admin('EXH EXHORTOS ARCHIVOS') %}
-        {% if exh_exhorto_promocion_archivo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar?') }}{% endif %}
-        {% if exh_exhorto_promocion_archivo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar?') }}{% endif %}
+    <!-- Modales para eliminar y recuperar -->
+    {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES ARCHIVOS') %}
+        {% if exh_exhorto_promocion_archivo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar este Archivo?') }}{% endif %}
+        {% if exh_exhorto_promocion_archivo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar este Archivo?') }}{% endif %}
     {% endif %}
     <!-- Renderizar el campo estado con colores e iconos -->
     <script>
@@ -62,13 +65,13 @@
         const valor = "{{ exh_exhorto_promocion_archivo.estado }}";
         let bgcolor = "bg-dark";
         let icon = "circle-small";
-        switch (valor)    {
-            case "CANCELADO": bgcolor = 'bg-danger';            icon="cancel";              break;
-            case "ENVIADO":   bgcolor = 'bg-primary';           icon="send";                break;
-            case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit";           break;
-            default:          bgcolor = 'bg-secondary';         icon="circle-outline";      break;
+        switch (valor) {
+            case "CANCELADO":  bgcolor = 'bg-secondary';         icon="cancel";           break;
+            case "PENDIENTE":  bgcolor = 'bg-warning text-dark'; icon="note-edit";        break;
+            case "ENVIADO":    bgcolor = 'bg-primary';           icon="send";             break;
+            case "RECIBIDO":   bgcolor = 'bg-sucess';            icon="inbox-arrow-down"; break;
         }
-        html = '<span class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
+        html = '<span style="font-size:1.0em" class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
         titulo_estado.innerHTML = html;
     </script>
 {% endblock %}

@@ -22,7 +22,7 @@ def generar_api_key(id: int, email: str, random_length: int = 24) -> str:
 
 
 def generar_contrasena(largo=16):
-    """Generar contraseña con minúsculas, mayúculas, dígitos y signos"""
+    """Generar contraseña con minúsculas, mayúsculas, dígitos y signos"""
     minusculas = string.ascii_lowercase
     mayusculas = string.ascii_uppercase
     digitos = string.digits
@@ -33,7 +33,7 @@ def generar_contrasena(largo=16):
 
 
 def generar_aleatorio(largo=16):
-    """Generar cadena de texto aleatorio con minúsculas, mayúculas y dígitos"""
+    """Generar cadena de texto aleatorio con minúsculas, mayúsculas y dígitos"""
     minusculas = string.ascii_lowercase
     mayusculas = string.ascii_uppercase
     digitos = string.digits

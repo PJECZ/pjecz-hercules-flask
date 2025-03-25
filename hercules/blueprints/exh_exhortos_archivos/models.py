@@ -17,7 +17,9 @@ class ExhExhortoArchivo(database.Model, UniversalMixin):
     """ExhExhortoArchivo"""
 
     ESTADOS = {
+        "CANCELADO": "Cancelado",
         "PENDIENTE": "Pendiente",
+        "ENVIADO": "Enviado",
         "RECIBIDO": "Recibido",
     }
 
@@ -52,9 +54,6 @@ class ExhExhortoArchivo(database.Model, UniversalMixin):
     # 3 = Anexo
     tipo_documento: Mapped[int]
 
-    # Estado de recepción del documento
-    estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="exh_exhortos_archivos_estados", native_enum=False), index=True)
-
     # URL del archivo en Google Storage. Opcional para guardar, obtener el ID, y crear la ruta con ese ID hasheado.
     url: Mapped[Optional[str]] = mapped_column(String(512))
 
@@ -64,16 +63,16 @@ class ExhExhortoArchivo(database.Model, UniversalMixin):
     # Fecha y hora de recepción del documento
     fecha_hora_recepcion: Mapped[datetime] = mapped_column(default=now())
 
-    # Identifica si el archivo es del exhorto inicial o es parte de la respuesta
-    es_respuesta: Mapped[bool] = mapped_column(default=False)
+    # Estado de recepción del documento
+    estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="exh_exhortos_archivos_estados", native_enum=False), index=True)
 
     @property
-    def tipo_documento_nombre(self):
-        """Nombre del tipo de documento"""
+    def tipo_documento_descripcion(self):
+        """Descripción del tipo de documento"""
         try:
             return self.TIPOS_DOCUMENTOS[self.tipo_documento]
         except KeyError:
-            return "No Definido"
+            return "Desconocido"
 
     def __repr__(self):
         """Representación"""

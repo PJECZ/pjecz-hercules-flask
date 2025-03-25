@@ -2,10 +2,10 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Agregar Parte al Exhorto{% endblock %}
+{% block title %}Agregar Parte al Exhorto {{ exh_exhorto.exhorto_origen_id }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Agregar Parte al Exhorto') %}
+    {% call topbar.page_buttons('Agregar Parte al Exhorto ' + exh_exhorto.exhorto_origen_id) %}
     {% endcall %}
 {% endblock %}
 

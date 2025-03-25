@@ -1,5 +1,5 @@
 """
-Exh Areas, vistas
+Exh Áreas, vistas
 """
 
 import json
@@ -65,7 +65,7 @@ def list_active():
     return render_template(
         "exh_areas/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
-        titulo="Exhortos Áreas",
+        titulo="Áreas",
         estatus="A",
     )
 
@@ -77,7 +77,7 @@ def list_inactive():
     return render_template(
         "exh_areas/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Exhortos Áreas inactivas",
+        titulo="Áreas inactivas",
         estatus="B",
     )
 

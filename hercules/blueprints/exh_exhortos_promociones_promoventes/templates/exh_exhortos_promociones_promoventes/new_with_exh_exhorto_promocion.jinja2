@@ -2,10 +2,10 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Agregar Promovente a la Promoción{% endblock %}
+{% block title %}Agregar Promovente a la Promoción {{ exh_exhorto_promocion.folio_origen_promocion }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Agregar Promovente a la Promoción') %}
+    {% call topbar.page_buttons('Agregar Promovente a la Promoción ' + exh_exhorto_promocion.folio_origen_promocion) %}
     {% endcall %}
 {% endblock %}
 
