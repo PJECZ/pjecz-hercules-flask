@@ -2,9 +2,11 @@
 Communications, Enviar Actualización
 """
 
+import os
 from datetime import datetime
 
 import requests
+from dotenv import load_dotenv
 
 from hercules.app import create_app
 from hercules.blueprints.estados.models import Estado
@@ -14,12 +16,15 @@ from hercules.blueprints.exh_exhortos_actualizaciones.models import ExhExhortoAc
 from hercules.blueprints.exh_externos.models import ExhExterno
 from hercules.blueprints.municipios.models import Municipio
 from hercules.extensions import database
-from lib.exceptions import MyAnyError, MyConnectionError, MyNotExistsError, MyNotValidAnswerError
+from lib.exceptions import MyAnyError, MyConnectionError, MyNotExistsError, MyNotValidAnswerError, MyNotValidParamError
 from lib.pwgen import generar_identificador
 
 app = create_app()
 app.app_context().push()
 database.app = app
+
+load_dotenv()
+ESTADO_CLAVE = os.getenv("ESTADO_CLAVE", "")
 
 TIMEOUT = 60  # segundos
 
@@ -46,9 +51,40 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 
-    # Consultar el estado de ORIGEN a partir de municipio_origen_id, es a quien se le enviará la actualización
+    # Validar que este definida la variable de entorno ESTADO_CLAVE
+    if ESTADO_CLAVE == "":
+        mensaje_error = "No está definida la variable de entorno ESTADO_CLAVE"
+        bitacora.error(mensaje_error)
+        raise MyNotValidParamError(mensaje_error)
+
+    # Las actualizaciones pueden ser de ORIGEN a DESTINO o de DESTINO a ORIGEN
+    sentido = "ORIGEN A DESTINO"  # Por defecto, se asume que es de ORIGEN a DESTINO
+
+    # Tomar el estado de ORIGEN a partir de municipio_origen_id
     municipio = exh_exhorto_actualizacion.exh_exhorto.municipio_origen  # Es una columna foránea
     estado = municipio.estado
+
+    # Si el estado no es el mismo que el de la clave, entonces es de DESTINO a ORIGEN
+    if estado.clave == ESTADO_CLAVE:
+        sentido = "DESTINO A ORIGEN"
+
+        # Consultar el Estado de DESTINO a partir de municipio_destino_id
+        # La columna municipio_destino_id NO es clave foránea, por eso se tiene que hacer las consultas de esta manera
+        municipio = Municipio.query.get(exh_exhorto_actualizacion.exh_exhorto.municipio_destino_id)
+        if municipio is None:
+            mensaje_error = f"No existe el municipio con ID {exh_exhorto_actualizacion.exh_exhorto.municipio_destino_id}"
+            bitacora.error(mensaje_error)
+            raise MyNotExistsError(mensaje_error)
+        estado = Estado.query.get(municipio.estado_id)
+        if estado is None:
+            mensaje_error = f"No existe el estado con ID {municipio.estado_id}"
+            bitacora.error(mensaje_error)
+            raise MyNotExistsError(mensaje_error)
+
+    # Informar a la bitácora el sentido
+    mensaje_info = f"El sentido es {sentido}."
+    mensajes.append(mensaje_info)
+    bitacora.info(mensaje_info)
 
     # Consultar el ExhExterno, tomar el primero porque solo debe haber uno
     exh_externo = ExhExterno.query.filter_by(estado_id=estado.id).first()

@@ -141,6 +141,21 @@ def new_with_exh_exhorto(exh_exhorto_id):
     """Nueva respuesta con el ID de un exhorto"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
 
+    # Validar el estatus del exhorto
+    if exh_exhorto.estatus != "A":
+        flash("El exhorto debe estar ACTIVO para responder.", "warning")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_id))
+
+    # Validar el estado del exhorto
+    if exh_exhorto.estado not in ("RECIBIDO CON EXITO", "PROCESANDO", "RESPONDIDO", "CONTESTADO"):
+        flash("El exhorto debe estar RECIBIDO CON EXITO, PROCESANDO, RESPONDIDO o CONTESTADO para responder.", "warning")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_id))
+
+    # Validar que el remitente del exhorto NO sea INTERNO, es decir, no debe responderse a sí mismo
+    if exh_exhorto.remitente == "INTERNO":
+        flash("No se puede responder a un exhorto INTERNO.", "warning")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_id))
+
     # Crear el formulario
     form = ExhExhortoRespuestaForm()
     if form.validate_on_submit():

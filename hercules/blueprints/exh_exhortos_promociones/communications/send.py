@@ -66,16 +66,17 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         raise MyNotValidParamError(mensaje_error)
 
     # Las promociones pueden ser de ORIGEN a DESTINO o de DESTINO a ORIGEN
-    # Por lo hay qu determinar si es de ORIGEN a DESTINO o de DESTINO a ORIGEN
     sentido = "ORIGEN A DESTINO"  # Por defecto, se asume que es de ORIGEN a DESTINO
 
     # Tomar el estado de ORIGEN a partir de municipio_origen
     municipio = exh_exhorto_promocion.exh_exhorto.municipio_origen  # Es una columna foránea
     estado = municipio.estado
+
     # Si el estado no es el mismo que el de la clave, entonces es de DESTINO a ORIGEN
     if estado.clave == ESTADO_CLAVE:
         sentido = "DESTINO A ORIGEN"
-        # Consultar el Estado de DESTINO a partir de municipio_destino_id, porque es a quien se le envía el exhorto
+
+        # Consultar el Estado de DESTINO a partir de municipio_destino_id
         # La columna municipio_destino_id NO es clave foránea, por eso se tiene que hacer las consultas de esta manera
         municipio = Municipio.query.get(exh_exhorto_promocion.exh_exhorto.municipio_destino_id)
         if municipio is None:
@@ -88,8 +89,8 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
             bitacora.error(mensaje_error)
             raise MyNotExistsError(mensaje_error)
 
-    # Informar a la bitácora el sentido de la promoción
-    mensaje_info = f"El sentido de esta promoción es {sentido}."
+    # Informar a la bitácora el sentido
+    mensaje_info = f"El sentido es {sentido}."
     mensajes.append(mensaje_info)
     bitacora.info(mensaje_info)
 
