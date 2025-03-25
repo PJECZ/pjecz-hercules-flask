@@ -302,7 +302,7 @@
         {% endif %}
     {% endif %}
     <!-- DataTable exh_exhortos_respuestas -->
-    {% if exh_exhorto.estado in ('PROCESANDO', 'RESPONDIDO', 'CONTESTADO', 'ARCHIVADO') and current_user.can_view('EXH EXHORTOS RESPUESTAS') %}
+    {% if exh_exhorto.estado in ('RECIBIDO CON EXITO', 'PROCESANDO', 'RESPONDIDO', 'CONTESTADO', 'ARCHIVADO') and current_user.can_view('EXH EXHORTOS RESPUESTAS') %}
         {% call detail.card("Respuestas") %}
             <table id="exh_exhortos_respuestas_datatable" class="table display nowrap" style="width:100%">
                 <thead>
