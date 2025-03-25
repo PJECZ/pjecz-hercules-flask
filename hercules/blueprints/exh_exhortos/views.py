@@ -713,15 +713,21 @@ def change_to_send(exh_exhorto_id):
         es_valido = False
         flash("Este exhorto ya está ARCHIVADO. No puede cambiar su estado.", "warning")
     # Validar que tenga partes
-    exh_exhorto_partes = ExhExhortoParte.query.filter_by(exh_exhorto_id=exh_exhorto_id).filter_by(estatus="A").first()
-    if exh_exhorto_partes is None:
-        flash("No se cambiar el estado del exhorto a POR ENVIAR. Debe incluir al menos una parte.", "warning")
-        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+    partes = []
+    for parte in exh_exhorto.exh_exhortos_partes:
+        if parte.estatus == "A":
+            partes.append(parte)
+    if len(partes) == 0:
+        flash("No se puede cambiar el estado del exhorto a POR ENVIAR. Debe incluir al menos una parte.", "warning")
+        es_valido = False
     # Validar que tenga archivos
-    exh_exhorto_archivos = ExhExhortoArchivo.query.filter_by(exh_exhorto_id=exh_exhorto_id).filter_by(estatus="A").first()
-    if exh_exhorto_archivos is None:
-        flash("No se cambiar el estado del exhorto a POR ENVIAR. Debe incluir al menos un archivo.", "warning")
-        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+    archivos = []
+    for archivo in exh_exhorto.exh_exhortos_archivos:
+        if archivo.estatus == "A" and archivo.estado != "CANCELADO":
+            archivos.append(archivo)
+    if len(archivos) == 0:
+        flash("No se puede cambiar el estado del exhorto a POR ENVIAR. Debe incluir al menos un archivo.", "warning")
+        es_valido = False
     # Si NO es válido, redirigir al detalle
     if es_valido is False:
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))

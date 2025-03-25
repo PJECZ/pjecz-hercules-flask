@@ -315,7 +315,7 @@ def launch_task_send(exh_exhorto_respuesta_id):
         if archivo.estatus == "A" and archivo.estado != "CANCELADO":
             archivos.append(archivo)
     if len(archivos) == 0:
-        flash("No se pudo enviar la promoción. Debe incluir al menos un archivo.", "warning")
+        flash("No se pudo enviar la respuesta. Debe incluir al menos un archivo.", "warning")
         es_valido = False
     # Insertar en la Bitácora
     bitacora = Bitacora(
@@ -387,10 +387,10 @@ def change_to_pending(exh_exhorto_respuesta_id):
         flash("Esta respuesta ya fue ENVIADA. No puede se puede cambiar su estado.", "warning")
     if exh_exhorto_respuesta.exh_exhorto.estado == "ARCHIVADO":
         es_valido = False
-        flash("El exhorto está ARCHIVADO. No se puede cambiar la promoción.", "warning")
+        flash("El exhorto está ARCHIVADO. No se puede cambiar la respuesta.", "warning")
     if exh_exhorto_respuesta.exh_exhorto.estado == "CANCELADO":
         es_valido = False
-        flash("El exhorto está CANCELADO. No se puede cambiar la promoción.", "warning")
+        flash("El exhorto está CANCELADO. No se puede cambiar la respuesta.", "warning")
     # Cambiar el estado
     if es_valido:
         exh_exhorto_respuesta.estado = "PENDIENTE"
@@ -421,10 +421,18 @@ def change_to_send(exh_exhorto_respuesta_id):
         flash("Esta respuesta ya fue ENVIADA. No puede se puede cambiar su estado.", "warning")
     if exh_exhorto_respuesta.exh_exhorto.estado == "ARCHIVADO":
         es_valido = False
-        flash("El exhorto está ARCHIVADO. No se puede cambiar la promoción.", "warning")
+        flash("El exhorto está ARCHIVADO. No se puede cambiar la respuesta.", "warning")
     if exh_exhorto_respuesta.exh_exhorto.estado == "CANCELADO":
         es_valido = False
-        flash("El exhorto está CANCELADO. No se puede cambiar la promoción.", "warning")
+        flash("El exhorto está CANCELADO. No se puede cambiar la respuesta.", "warning")
+    # Validar que tenga archivos
+    archivos = []
+    for archivo in exh_exhorto_respuesta.exh_exhortos_respuestas_archivos:
+        if archivo.estatus == "A" and archivo.estado != "CANCELADO":
+            archivos.append(archivo)
+    if len(archivos) == 0:
+        flash("No se puede cambiar el estado de la respuesta a POR ENVIAR. Debe incluir al menos un archivo.", "warning")
+        es_valido = False
     # Cambiar el estado
     if es_valido:
         exh_exhorto_respuesta.estado = "POR ENVIAR"
