@@ -133,6 +133,12 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
             }
         )
 
+    # Validar que tenga promoventes
+    if len(promoventes) == 0:
+        mensaje_error = "Falló esta promoción porque no tiene promoventes"
+        bitacora.error(mensaje_error)
+        raise MyAnyError(mensaje_error)
+
     # Bucle para juntar los archivos
     archivos = []
     for archivo in exh_exhorto_promocion.exh_exhortos_promociones_archivos:
@@ -146,6 +152,12 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
                 "tipoDocumento": int(archivo.tipo_documento),
             }
         )
+
+    # Validar que tenga archivos
+    if len(archivos) == 0:
+        mensaje_error = "Falló esta promoción porque no tiene archivos"
+        bitacora.error(mensaje_error)
+        raise MyAnyError(mensaje_error)
 
     # Definir los datos de la promoción a enviar
     payload_for_json = {

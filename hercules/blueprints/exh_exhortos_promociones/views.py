@@ -226,6 +226,22 @@ def launch_task_send(exh_exhorto_promocion_id):
     if exh_exhorto_promocion.exh_exhorto.estado == "CANCELADO":
         es_valido = False
         flash("El exhorto está CANCELADO. No se puede enviar la promoción.", "warning")
+    # Validar que tenga archivos
+    archivos = []
+    for archivo in exh_exhorto_promocion.exh_exhortos_promociones_archivos:
+        if archivo.estatus == "A" and archivo.estado != "CANCELADO":
+            archivos.append(archivo)
+    if len(archivos) == 0:
+        flash("No se pudo enviar la promoción. Debe incluir al menos un archivo.", "warning")
+        es_valido = False
+    # Validar que tenga promoventes
+    promoventes = []
+    for promovente in exh_exhorto_promocion.exh_exhortos_promociones_promoventes:
+        if promovente.estatus == "A":
+            promoventes.append(promovente)
+    if len(promoventes) == 0:
+        flash("No se pudo enviar la promoción. Debe incluir al menos un promovente.", "warning")
+        es_valido = False
     # Lanzar tarea en el fondo
     if es_valido:
         tarea = current_user.launch_task(

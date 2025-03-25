@@ -102,6 +102,12 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
             }
         )
 
+    # Validar que tenga archivos
+    if len(archivos) == 0:
+        mensaje_error = "Falló esta promoción porque no tiene archivos"
+        bitacora.error(mensaje_error)
+        raise MyAnyError(mensaje_error)
+
     # Definir los datos de los videos a enviar
     videos = []
     for video in exh_exhorto_respuesta.exh_exhortos_respuestas_videos:
