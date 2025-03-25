@@ -48,9 +48,9 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 
-    # Validar que su estado
-    if exh_exhorto.estado not in ("PENDIENTE", "POR ENVIAR"):
-        mensaje_error = f"El exhorto con ID {exh_exhorto_id} no tiene el estado PENDIENTE o POR ENVIAR"
+    # Validar su estado
+    if exh_exhorto.estado != "POR ENVIAR":
+        mensaje_error = f"El exhorto con ID {exh_exhorto_id} no tiene el estado POR ENVIAR"
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 
@@ -117,6 +117,8 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     # Bucle para juntar los datos de los archivos
     archivos = []
     for archivo in exh_exhorto.exh_exhortos_archivos:
+        if archivo.estado == "CANCELADO":
+            continue
         archivos.append(
             {
                 "nombreArchivo": str(archivo.nombre_archivo),

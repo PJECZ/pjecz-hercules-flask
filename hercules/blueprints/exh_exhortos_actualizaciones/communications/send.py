@@ -40,7 +40,7 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 
-    # Validar que su estado sea POR ENVIAR
+    # Validar su estado
     if exh_exhorto_actualizacion.estado != "POR ENVIAR":
         mensaje_error = f"La actualización con ID {exh_exhorto_actualizacion_id} no tiene el estado POR ENVIAR"
         bitacora.error(mensaje_error)

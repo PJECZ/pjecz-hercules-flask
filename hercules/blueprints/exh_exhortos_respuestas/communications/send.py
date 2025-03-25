@@ -50,7 +50,7 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 
-    # Validar que su estado sea POR ENVIAR
+    # Validar su estado
     if exh_exhorto_respuesta.estado != "POR ENVIAR":
         mensaje_error = f"La respuesta con ID {exh_exhorto_respuesta_id} no tiene el estado POR ENVIAR"
         bitacora.error(mensaje_error)
@@ -91,6 +91,8 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
     # Definir los datos de los archivos a enviar
     archivos = []
     for archivo in exh_exhorto_respuesta.exh_exhortos_respuestas_archivos:
+        if archivo.estado == "CANCELADO":
+            continue
         archivos.append(
             {
                 "nombreArchivo": str(archivo.nombre_archivo),
