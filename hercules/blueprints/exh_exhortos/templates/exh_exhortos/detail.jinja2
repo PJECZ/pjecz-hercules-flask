@@ -470,7 +470,7 @@
             filtrosArchivos.precargar();
         </script>
     {% endif %}
-    {% if current_user.can_view('EXH EXHORTOS RESPUESTAS') %}
+    {% if exh_exhorto.estado in ('RECIBIDO CON EXITO', 'PROCESANDO', 'RESPONDIDO', 'CONTESTADO', 'ARCHIVADO') and current_user.can_view('EXH EXHORTOS RESPUESTAS') %}
         <script>
             // DataTable exh_exhortos_respuestas
             let configDTRespuestas = constructorDataTable.config();
@@ -515,7 +515,7 @@
             filtrosArchivosRespuesta.precargar();
         </script>
     {% endif %}
-    {% if exh_exhorto.estado in ('CONTESTADO', 'PROCESANDO', 'RESPONDIDO', 'ARCHIVADO') and current_user.can_view('EXH EXHORTOS ACTUALIZACIONES') %}
+    {% if exh_exhorto.estado in ('RECIBIDO CON EXITO', 'CONTESTADO', 'PROCESANDO', 'RESPONDIDO', 'ARCHIVADO') and current_user.can_view('EXH EXHORTOS ACTUALIZACIONES') %}
         <script>
             // DataTable exh_exhortos_actualizaciones
             let configDTActualizaciones = constructorDataTable.config();
