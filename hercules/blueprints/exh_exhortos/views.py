@@ -467,7 +467,7 @@ def launch_task_send(exh_exhorto_id):
         es_valido = False
     # Validar que tenga partes
     partes = []
-    for parte in exh_exhorto.exh_exhorto_partes:
+    for parte in exh_exhorto.exh_exhortos_partes:
         if parte.estatus == "A":
             partes.append(parte)
     if len(partes) == 0:
@@ -475,7 +475,7 @@ def launch_task_send(exh_exhorto_id):
         es_valido = False
     # Validar que tenga archivos
     archivos = []
-    for archivo in exh_exhorto.exh_exhorto_archivos:
+    for archivo in exh_exhorto.exh_exhortos_archivos:
         if archivo.estatus == "A" and archivo.estado != "CANCELADO":
             archivos.append(archivo)
     if len(archivos) == 0:
