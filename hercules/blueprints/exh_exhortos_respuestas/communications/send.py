@@ -336,6 +336,7 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
 
     # Actualizar la respuesta con los datos del acuse
     exh_exhorto_respuesta.estado = "ENVIADO"
+    exh_exhorto_respuesta.exh_exhorto.estado = "RESPONDIDO"  # Actualizar el exhorto con el estado RESPONDIDO
     exh_exhorto_respuesta.save()
 
     # Elaborar mensaje final
