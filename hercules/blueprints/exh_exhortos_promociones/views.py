@@ -242,6 +242,14 @@ def launch_task_send(exh_exhorto_promocion_id):
     if len(promoventes) == 0:
         flash("No se pudo enviar la promoción. Debe incluir al menos un promovente.", "warning")
         es_valido = False
+    # Insertar en la bitácora
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Se ha ENVIADO la promoción {exh_exhorto_promocion.folio_origen_promocion}"),
+        url=url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id),
+    )
+    bitacora.save()
     # Lanzar tarea en el fondo
     if es_valido:
         tarea = current_user.launch_task(

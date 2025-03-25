@@ -317,6 +317,14 @@ def launch_task_send(exh_exhorto_respuesta_id):
     if len(archivos) == 0:
         flash("No se pudo enviar la promoción. Debe incluir al menos un archivo.", "warning")
         es_valido = False
+    # Insertar en la Bitácora
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Se ha ENVIADO la respuesta {exh_exhorto_respuesta.respuesta_origen_id}"),
+        url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
+    )
+    bitacora.save()
     # Lanzar tarea en el fondo
     if es_valido:
         tarea = current_user.launch_task(

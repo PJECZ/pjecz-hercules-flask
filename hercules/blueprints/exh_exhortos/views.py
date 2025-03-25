@@ -398,6 +398,14 @@ def launch_task_query(exh_exhorto_id):
     # Si NO es válido, redirigir al detalle
     if es_valido is False:
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+    # Insertar en la bitácora
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Se ha CONSULTADO el exhorto {exh_exhorto.exhorto_origen_id}"),
+        url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
+    )
+    bitacora.save()
     # Lanzar tarea en el fondo
     tarea = current_user.launch_task(
         comando="exh_exhortos.tasks.task_consultar_exhorto",
@@ -425,6 +433,14 @@ def launch_task_reply(exh_exhorto_id):
     # Si NO es válido, redirigir al detalle
     if es_valido is False:
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+    # Insertar en la bitácora
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Se ha RESPONDIDO el exhorto {exh_exhorto.exhorto_origen_id}"),
+        url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
+    )
+    bitacora.save()
     # Lanzar tarea en el fondo
     tarea = current_user.launch_task(
         comando="exh_exhortos.tasks.task_responder_exhorto",
@@ -468,6 +484,14 @@ def launch_task_send(exh_exhorto_id):
     # Si NO es válido, redirigir al detalle
     if es_valido is False:
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
+    # Insertar en la bitácora
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Se ha ENVIADO el exhorto {exh_exhorto.exhorto_origen_id}"),
+        url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
+    )
+    bitacora.save()
     # Lanzar tarea en el fondo
     tarea = current_user.launch_task(
         comando="exh_exhortos.tasks.task_enviar_exhorto",
