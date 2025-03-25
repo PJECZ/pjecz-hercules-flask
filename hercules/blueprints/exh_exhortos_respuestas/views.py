@@ -147,8 +147,8 @@ def new_with_exh_exhorto(exh_exhorto_id):
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_id))
 
     # Validar el estado del exhorto
-    if exh_exhorto.estado not in ("RECIBIDO CON EXITO", "PROCESANDO", "RESPONDIDO", "CONTESTADO"):
-        flash("El exhorto debe estar RECIBIDO CON EXITO, PROCESANDO, RESPONDIDO o CONTESTADO para responder.", "warning")
+    if exh_exhorto.estado not in ("RECIBIDO", "RECIBIDO CON EXITO", "PROCESANDO", "RESPONDIDO", "CONTESTADO"):
+        flash(f"El exhorto tiene el estado {exh_exhorto.estado}. No se puede responder.", "warning")
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_id))
 
     # Validar que el remitente del exhorto NO sea INTERNO, es decir, no debe responderse a sí mismo
