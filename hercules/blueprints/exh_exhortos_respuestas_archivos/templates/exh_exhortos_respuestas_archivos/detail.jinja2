@@ -66,9 +66,10 @@
         let bgcolor = "bg-dark";
         let icon = "circle-small";
         switch (valor) {
-            case "CANCELADO": bgcolor = 'bg-secondary';         icon="cancel";    break;
-            case "ENVIADO":   bgcolor = 'bg-primary';           icon="send";      break;
-            case "PENDIENTE": bgcolor = 'bg-warning text-dark'; icon="note-edit"; break;
+            case "CANCELADO":  bgcolor = 'bg-secondary';         icon="cancel";           break;
+            case "PENDIENTE":  bgcolor = 'bg-warning text-dark'; icon="note-edit";        break;
+            case "ENVIADO":    bgcolor = 'bg-primary';           icon="send";             break;
+            case "RECIBIDO":   bgcolor = 'bg-sucess';            icon="inbox-arrow-down"; break;
         }
         html = '<span style="font-size:1.0em" class="badge rounded-pill ' + bgcolor + '"><span class="iconify" data-icon="mdi:' + icon + '"></span> ' + valor + '</span>';
         titulo_estado.innerHTML = html;
