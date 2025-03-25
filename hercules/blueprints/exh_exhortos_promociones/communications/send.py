@@ -1,5 +1,5 @@
 """
-Communications, Enviar Promocion
+Communications, Enviar Promoción
 """
 
 import os
@@ -54,8 +54,8 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         raise MyNotExistsError(mensaje_error)
 
     # Validar que su estado sea POR ENVIAR
-    if exh_exhorto_promocion.estado != "PENDIENTE":
-        mensaje_error = f"La promoción con ID {exh_exhorto_promocion_id} no tiene el estado PENDIENTE"
+    if exh_exhorto_promocion.estado != "POR ENVIAR":
+        mensaje_error = f"La promoción con ID {exh_exhorto_promocion_id} no tiene el estado POR ENVIAR"
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 
@@ -192,13 +192,13 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     # Terminar si NO es correcta estructura de la respuesta
     mensajes_advertencias = []
     if "success" not in contenido or not isinstance(contenido["success"], bool):
-        mensajes_advertencias.append("Falta 'success' en la respuesta")
+        mensajes_advertencias.append("Falta 'success' en la respuesta de la API")
     if "message" not in contenido:
-        mensajes_advertencias.append("Falta 'message' en la respuesta")
+        mensajes_advertencias.append("Falta 'message' en la respuesta de la API")
     if "errors" not in contenido:
-        mensajes_advertencias.append("Falta 'errors' en la respuesta")
+        mensajes_advertencias.append("Falta 'errors' en la respuesta de la API")
     if "data" not in contenido:
-        mensajes_advertencias.append("Falta 'data' en la respuesta")
+        mensajes_advertencias.append("Falta 'data' en la respuesta de la API")
     if len(mensajes_advertencias) > 0:
         mensaje_advertencia = ", ".join(mensajes_advertencias)
         bitacora.warning(mensaje_advertencia)
@@ -236,7 +236,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     mensajes.append(mensaje_info)
     bitacora.info(mensaje_info)
 
-    # Mandar los archivos del exhorto con multipart/form-data (ETAPA 3)
+    # Mandar los archivos con multipart/form-data
     data = None
     for archivo in exh_exhorto_promocion.exh_exhortos_promociones_archivos:
         # Pausa de 1 segundo entre envios de archivos

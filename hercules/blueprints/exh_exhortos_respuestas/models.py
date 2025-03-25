@@ -49,7 +49,8 @@ class ExhExhortoRespuesta(database.Model, UniversalMixin):
     # un GUID/UUID o cualquíer otro valor con que se identifique la respuesta
     respuesta_origen_id: Mapped[str] = mapped_column(String(64))
 
-    # Identificador del municipio que corresponde al Juzgado/Área al que se turnó el Exhorto y que realiza la respuesta de este
+    # Identificador INEGI del municipio que corresponde al
+    # Juzgado/Área al que se turnó el Exhorto y que realiza la respuesta de este
     municipio_turnado_id: Mapped[int]
 
     # Identificador propio del PJ exhortado que corresponde al Juzgado/Área al que se turna el Exhorto y está respondiendo

@@ -1,5 +1,5 @@
 """
-Communications, Enviar Actualizacion
+Communications, Enviar Actualización
 """
 
 from datetime import datetime
@@ -41,12 +41,12 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
         raise MyNotExistsError(mensaje_error)
 
     # Validar que su estado sea POR ENVIAR
-    if exh_exhorto_actualizacion.estado != "PENDIENTE":
-        mensaje_error = f"La actualización con ID {exh_exhorto_actualizacion_id} no tiene el estado PENDIENTE"
+    if exh_exhorto_actualizacion.estado != "POR ENVIAR":
+        mensaje_error = f"La actualización con ID {exh_exhorto_actualizacion_id} no tiene el estado POR ENVIAR"
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 
-    # Consultar el estado de ORIGEN a partir de municipio_origen_id, porque es a quien se le envía la actualización
+    # Consultar el estado de ORIGEN a partir de municipio_origen_id, es a quien se le enviará la actualización
     municipio = exh_exhorto_actualizacion.exh_exhorto.municipio_origen  # Es una columna foránea
     estado = municipio.estado
 
@@ -117,13 +117,13 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     # Terminar si NO es correcta estructura de la respuesta
     mensajes_advertencias = []
     if "success" not in contenido or not isinstance(contenido["success"], bool):
-        mensajes_advertencias.append("Falta 'success' en la respuesta")
+        mensajes_advertencias.append("Falta 'success' en la respuesta de la API")
     if "message" not in contenido:
-        mensajes_advertencias.append("Falta 'message' en la respuesta")
+        mensajes_advertencias.append("Falta 'message' en la respuesta de la API")
     if "errors" not in contenido:
-        mensajes_advertencias.append("Falta 'errors' en la respuesta")
+        mensajes_advertencias.append("Falta 'errors' en la respuesta de la API")
     if "data" not in contenido:
-        mensajes_advertencias.append("Falta 'data' en la respuesta")
+        mensajes_advertencias.append("Falta 'data' en la respuesta de la API")
     if len(mensajes_advertencias) > 0:
         mensaje_advertencia = ", ".join(mensajes_advertencias)
         bitacora.warning(mensaje_advertencia)
