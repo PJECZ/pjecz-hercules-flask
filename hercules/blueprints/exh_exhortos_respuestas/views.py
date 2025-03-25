@@ -116,8 +116,23 @@ def list_inactive():
 @exh_exhortos_respuestas.route("/exh_exhortos_respuestas/<int:exh_exhorto_respuesta_id>")
 def detail(exh_exhorto_respuesta_id):
     """Detalle de una respuesta"""
+    # Consultar la respuesta
     exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
-    return render_template("exh_exhortos_respuestas/detail.jinja2", exh_exhorto_respuesta=exh_exhorto_respuesta)
+    # Consultar el municipio turnado, en la tabla es un entero, hay que convertirlo a un string de 3 caracteres para consultarlo
+    municipio_turnado = None
+    if exh_exhorto_respuesta.municipio_turnado_id:
+        municipio_turnado = (
+            Municipio.query.join(Estado)
+            .filter(Estado.clave == current_app.config["ESTADO_CLAVE"])
+            .filter(Municipio.clave == str(exh_exhorto_respuesta.municipio_turnado_id).zfill(3))
+            .first()
+        )
+    # Entregar el detalle de la respuesta
+    return render_template(
+        "exh_exhortos_respuestas/detail.jinja2",
+        exh_exhorto_respuesta=exh_exhorto_respuesta,
+        municipio_turnado=municipio_turnado,
+    )
 
 
 @exh_exhortos_respuestas.route("/exh_exhortos_respuestas/nuevo/<int:exh_exhorto_id>", methods=["GET", "POST"])
@@ -129,24 +144,20 @@ def new_with_exh_exhorto(exh_exhorto_id):
     # Crear el formulario
     form = ExhExhortoRespuestaForm()
     if form.validate_on_submit():
-        # Si no se eligió un área, se usan valores nulos
-        area_turnado_id = None
-        area_turnado_nombre = None
-        exh_area = ExhArea.query.get(form.area_turnado.data)
+        # Tomar la clave del área turnada
+        area_turnado_id = form.area_turnado.data
+        area_turnado_nombre = ""
+        exh_area = ExhArea.query.filter_by(clave=area_turnado_id).first()
         if exh_area:
-            area_turnado_id = exh_area.clave
             area_turnado_nombre = exh_area.nombre
 
-        # Si no se eligió un municipio, se usa un valor nulo
-        municipio_turnado_id = None
-        municipio = Municipio.query.get(form.municipio_turnado.data)
-        if municipio:
-            municipio_turnado_id = int(municipio.clave)  # Identificador INEGI del municipio
+        # Tomar la clave INEGI del municipio turnado, se debe de guardar como un entero
+        municipio_turnado_id = int(form.municipio_turnado.data)
 
-        # Si no se eligió un tipo_diligenciado, se usa un valor nulo
+        # Tomar tipo_diligenciado, es opcional y se guarda como un entero 0, 1, 2
         tipo_diligenciado = None
-        if form.tipo_diligenciado.data:
-            tipo_diligenciado = form.tipo_diligenciado.data
+        if form.tipo_diligenciado.data and form.tipo_diligenciado.data >= 0 and form.tipo_diligenciado.data <= 2:
+            tipo_diligenciado = int(form.tipo_diligenciado.data)
 
         # Insertar el registro ExhExhortoRespuesta
         exh_exhorto_respuesta = ExhExhortoRespuesta(
@@ -176,21 +187,14 @@ def new_with_exh_exhorto(exh_exhorto_id):
         flash(bitacora.descripcion, "success")
         return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
 
-    # Consultar el municipio turnado por defecto
-    municipio = (
-        Municipio.query.join(Estado)
-        .filter(Estado.clave == ESTADO_TURNADO_CLAVE)
-        .filter(Municipio.clave == MUNICIPIO_TURNADO_CLAVE)
-        .first()
-    )
-
-    # Consultar el área turnado por defecto
+    # Definir el área turnada por defecto del formulario
     area_turnado = ExhArea.query.filter_by(clave=AREA_TURNADO_CLAVE).first()
+    if area_turnado:
+        form.area_turnado.data = area_turnado.id
 
     # Definir los valores por defecto del formulario
     form.respuesta_origen_id.data = generar_identificador()  # Read only
-    form.municipio_turnado.data = municipio.id
-    form.area_turnado.data = area_turnado.id
+    form.municipio_turnado.data = MUNICIPIO_TURNADO_CLAVE
     form.tipo_diligenciado.data = 0  # Cero es "NO DILIGENCIADO"
 
     # Entregar el formulario
@@ -206,24 +210,20 @@ def edit(exh_exhorto_respuesta_id):
     # Crear el formulario
     form = ExhExhortoRespuestaForm()
     if form.validate_on_submit():
-        # Si no se eligió un área, se usan valores nulos
-        area_turnado_id = None
-        area_turnado_nombre = None
-        exh_area = ExhArea.query.get(form.area_turnado.data)
+        # Tomar la clave del área turnada
+        area_turnado_id = form.area_turnado.data
+        area_turnado_nombre = ""
+        exh_area = ExhArea.query.filter_by(clave=area_turnado_id).first()
         if exh_area:
-            area_turnado_id = exh_area.clave
             area_turnado_nombre = exh_area.nombre
 
-        # Si no se eligió un municipio, se usa un valor nulo
-        municipio_turnado_id = None
-        municipio = Municipio.query.get(form.municipio_turnado.data)
-        if municipio:
-            municipio_turnado_id = int(municipio.clave)
+        # Tomar la clave INEGI del municipio turnado, se debe de guardar como un entero
+        municipio_turnado_id = int(form.municipio_turnado.data)
 
-        # Si no se eligió un tipo_diligenciado, se usa un valor nulo
+        # Tomar tipo_diligenciado, es opcional y se guarda como un entero 0, 1, 2
         tipo_diligenciado = None
-        if form.tipo_diligenciado.data:
-            tipo_diligenciado = form.tipo_diligenciado.data
+        if form.tipo_diligenciado.data and form.tipo_diligenciado.data >= 0 and form.tipo_diligenciado.data <= 2:
+            tipo_diligenciado = int(form.tipo_diligenciado.data)
 
         # Actualizar la respuesta
         exh_exhorto_respuesta.municipio_turnado_id = municipio_turnado_id
@@ -238,37 +238,20 @@ def edit(exh_exhorto_respuesta_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Editada Respuesta {exh_exhorto_respuesta.origen_id}"),
+            descripcion=safe_message(f"Editada Respuesta {exh_exhorto_respuesta.respuesta_origen_id}"),
             url=url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
 
-    # Consultar el municipio a partir del identificador INEGI del mismo
-    municipio_turnado = None
-    if exh_exhorto_respuesta.municipio_turnado_id:
-        municipio_turnado = (
-            Municipio.query.join(Estado)
-            .filter(Estado.clave == current_app.config["ESTADO_CLAVE"])
-            .filter(Municipio.clave == exh_exhorto_respuesta.municipio_turnado_id)
-            .first()
-        )
-
     # Definir los valores del formulario
     form.respuesta_origen_id.data = exh_exhorto_respuesta.respuesta_origen_id  # Read only
-    if municipio_turnado:
-        form.municipio_turnado.data = municipio_turnado.id
-    else:
-        form.municipio_turnado.data = 0
-    if exh_exhorto_respuesta.area_turnado_id:
-        form.area_turnado.data = exh_exhorto_respuesta.area_turnado_id
-    else:
-        form.area_turnado.data = 0
-    if exh_exhorto_respuesta.tipo_diligenciado:
-        form.tipo_diligenciado.data = exh_exhorto_respuesta.tipo_diligenciado
-    else:
-        form.tipo_diligenciado.data = 0
+    form.municipio_turnado.data = str(exh_exhorto_respuesta.municipio_turnado_id).zfill(3)  # Convertir a string de 3 caracteres
+    form.area_turnado.data = exh_exhorto_respuesta.area_turnado_id
+    form.numero_exhorto.data = exh_exhorto_respuesta.numero_exhorto
+    form.tipo_diligenciado.data = exh_exhorto_respuesta.tipo_diligenciado
+    form.observaciones.data = exh_exhorto_respuesta.observaciones
 
     # Entregar el formulario
     return render_template("exh_exhortos_respuestas/edit.jinja2", form=form, exh_exhorto_respuesta=exh_exhorto_respuesta)

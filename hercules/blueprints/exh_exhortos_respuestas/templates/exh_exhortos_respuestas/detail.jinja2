@@ -24,7 +24,7 @@
         {{ detail.label_value('Exhorto Origen ID', exh_exhorto_respuesta.exh_exhorto.exhorto_origen_id, url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_respuesta.exh_exhorto_id)) }}
         {{ detail.label_value('Respuesta Origen ID', exh_exhorto_respuesta.respuesta_origen_id) }}
         {% if exh_exhorto_respuesta.municipio_turnado_id %}
-            {{ detail.label_value('Municipio turnado', exh_exhorto_respuesta.municipio_turnado_id) }}
+            {{ detail.label_value('Municipio turnado', municipio_turnado.nombre) }}
         {% else %}
             {{ detail.label_value('Municipio turnado', 'NULO') }}
         {% endif %}
