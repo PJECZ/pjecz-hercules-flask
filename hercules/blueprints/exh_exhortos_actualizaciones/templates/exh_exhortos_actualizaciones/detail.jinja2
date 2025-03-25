@@ -87,7 +87,7 @@
                     <div class="col-md-6">
                         {{ detail.button_lg_modal(
                             label="Enviar",
-                            onclick="showModalEnviarBtn('" + url_for('exh_exhortos_actualizaciones.launch_task_send', exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id) + "', '¿Está seguro de ENVIAR esta actualización? Porque después de enviarlo ya NO HAY FORMA de regresarlo.');",
+                            onclick="showModalEnviarBtn('" + url_for('exh_exhortos_actualizaciones.launch_task_send', exh_exhorto_actualizacion_id=exh_exhorto_actualizacion.id) + "', '<strong>¿Está seguro de ENVIAR esta actualización?</strong> Porque una vez enviado ya <strong>NO HAY FORMA</strong> de regresarlo.');",
                             icon='mdi:send',
                             color_class='btn-primary') }}
                     </div>

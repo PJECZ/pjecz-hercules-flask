@@ -110,7 +110,7 @@
                     <div class="col-md-6">
                         {{ detail.button_lg_modal(
                             label="Enviar",
-                            onclick="showModalEnviarBtn('" + url_for('exh_exhortos_respuestas.launch_task_send', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) + "', '¿Está seguro de ENVIAR esta respuesta? Porque después de enviarlo ya NO HAY FORMA de regresarlo.');",
+                            onclick="showModalEnviarBtn('" + url_for('exh_exhortos_respuestas.launch_task_send', exh_exhorto_respuesta_id=exh_exhorto_respuesta.id) + "', '<strong>¿Está seguro de ENVIAR esta respuesta?</strong> Porque una vez enviado ya <strong>NO HAY FORMA</strong> de regresarlo.');",
                             icon='mdi:send',
                             color_class='btn-primary') }}
                     </div>

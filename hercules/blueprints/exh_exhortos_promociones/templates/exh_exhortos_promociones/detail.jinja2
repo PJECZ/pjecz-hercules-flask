@@ -91,7 +91,7 @@
                     <div class="col-md-6">
                         {{ detail.button_lg_modal(
                             label="Enviar",
-                            onclick="showModalEnviarBtn('" + url_for('exh_exhortos_promociones.launch_task_send', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '¿Está seguro de ENVIAR esta promoción? Porque después de enviarlo ya NO HAY FORMA de regresarlo.');",
+                            onclick="showModalEnviarBtn('" + url_for('exh_exhortos_promociones.launch_task_send', exh_exhorto_promocion_id=exh_exhorto_promocion.id) + "', '<strong>¿Está seguro de ENVIAR esta promoción?</strong> Porque una vez enviado ya <strong>NO HAY FORMA</strong> de regresarlo.');",
                             icon='mdi:send',
                             color_class='btn-primary') }}
                     </div>
