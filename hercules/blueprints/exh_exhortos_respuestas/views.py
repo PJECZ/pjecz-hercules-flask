@@ -315,9 +315,9 @@ def launch_task_send(exh_exhorto_respuesta_id):
     exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
     es_valido = True
     # Validar el estado
-    if exh_exhorto_respuesta.estado != "POR ENVIAR" or exh_exhorto_respuesta.estado != "RECHAZADO":
-        es_valido = False
+    if exh_exhorto_respuesta.estado not in ("POR ENVIAR", "RECHAZADO"):
         flash("No se puede responder porque el estado debe ser POR ENVIAR o RECHAZADO.", "warning")
+        es_valido = False
     # Validar el estado del exhorto
     if exh_exhorto_respuesta.exh_exhorto.estado in ("ARCHIVADO", "CANCELADO"):
         flash("El exhorto está ARCHIVADO o CANCELADO. No se puede enviar la respuesta.", "warning")

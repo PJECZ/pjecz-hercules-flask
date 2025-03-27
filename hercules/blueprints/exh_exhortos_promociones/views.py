@@ -228,8 +228,8 @@ def launch_task_send(exh_exhorto_promocion_id):
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
     es_valido = True
     # Validar el estado
-    if exh_exhorto_promocion.estado != "POR ENVIAR" or exh_exhorto_promocion.estado != "RECHAZADO":
-        flash("No se puede enviar porque el estado debe ser POR ENVIAR o RECHAZADO.", "warning")
+    if exh_exhorto_promocion.estado not in ("POR ENVIAR", "RECHAZADO"):
+        flash("No se puede enviar la promoción porque el estado debe ser POR ENVIAR o RECHAZADO.", "warning")
         es_valido = False
     # Validar el estado del exhorto
     if exh_exhorto_promocion.exh_exhorto.estado in ("ARCHIVADO", "CANCELADO"):
