@@ -462,8 +462,8 @@ def launch_task_send(exh_exhorto_id):
         flash("El exhorto no está activo", "warning")
         es_valido = False
     # Validar el estado
-    if exh_exhorto.estado != "POR ENVIAR":
-        flash("El estado del exhorto debe ser POR ENVIAR.", "warning")
+    if exh_exhorto.estado != "POR ENVIAR" or exh_exhorto.estado != "RECHAZADO":
+        flash("No se puede enviar porque el estado debe ser POR ENVIAR o RECHAZADO.", "warning")
         es_valido = False
     # Validar que tenga partes
     partes = []
@@ -471,7 +471,7 @@ def launch_task_send(exh_exhorto_id):
         if parte.estatus == "A":
             partes.append(parte)
     if len(partes) == 0:
-        flash("No se pudo enviar el exhorto. Debe incluir al menos una parte.", "warning")
+        flash("No se pudo enviar porque debe incluir al menos una parte.", "warning")
         es_valido = False
     # Validar que tenga archivos
     archivos = []
@@ -479,7 +479,7 @@ def launch_task_send(exh_exhorto_id):
         if archivo.estatus == "A" and archivo.estado != "CANCELADO":
             archivos.append(archivo)
     if len(archivos) == 0:
-        flash("No se pudo enviar el exhorto. Debe incluir al menos un archivo.", "warning")
+        flash("No se pudo enviar porque debe incluir al menos un archivo.", "warning")
         es_valido = False
     # Si NO es válido, redirigir al detalle
     if es_valido is False:
