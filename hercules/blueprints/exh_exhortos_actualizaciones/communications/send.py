@@ -46,8 +46,14 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
         raise MyNotExistsError(mensaje_error)
 
     # Validar su estado
-    if exh_exhorto_actualizacion.estado != "POR ENVIAR":
-        mensaje_error = f"La actualización con ID {exh_exhorto_actualizacion_id} no tiene el estado POR ENVIAR"
+    if exh_exhorto_actualizacion.estado not in ("POR ENVIAR", "RECHAZADO"):
+        mensaje_error = f"La actualización no se puede enviar porque su estado es {exh_exhorto_actualizacion.estado}"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
+
+    # Validar el estado del exhorto
+    if exh_exhorto_actualizacion.exh_exhorto.estado in ("ARCHIVADO", "CANCELADO"):
+        mensaje_error = "El exhorto está ARCHIVADO o CANCELADO. No se puede enviar la actualización."
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 

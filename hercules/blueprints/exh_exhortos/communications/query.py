@@ -36,8 +36,16 @@ def consultar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         raise MyNotExistsError(mensaje_error)
 
     # Validar que su estado sea POR ENVIAR
-    if exh_exhorto.estado != "RECIBIDO CON EXITO":
-        mensaje_error = f"El exhorto con ID {exh_exhorto_id} no tiene el estado RECIBIDO CON EXITO"
+    if exh_exhorto.estado not in (
+        "RECIBIDO",
+        "RECIBIDO CON EXITO",
+        "RESPONIDOD",
+        "TRANSFERIDO",
+        "PROCESANDO",
+        "CONTESTADO",
+        "RECHAZADO",
+    ):
+        mensaje_error = f"El exhorto no puede ser consultado porque su estado es {exh_exhorto.estado}"
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 

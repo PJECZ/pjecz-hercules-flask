@@ -49,7 +49,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         raise MyNotExistsError(mensaje_error)
 
     # Validar su estado
-    if exh_exhorto.estado != "POR ENVIAR":
+    if exh_exhorto.estado not in ("POR ENVIAR", "RECHAZADO"):
         mensaje_error = f"El exhorto con ID {exh_exhorto_id} no tiene el estado POR ENVIAR"
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
