@@ -391,9 +391,13 @@ def launch_task_query(exh_exhorto_id):
     if exh_exhorto.estatus != "A":
         flash("El exhorto no está activo", "warning")
         es_valido = False
+    # Validar el remitente
+    if exh_exhorto.remitente != "EXTERNO":
+        flash("No puede se puede consultar porque no tiene remitente EXTERNO", "warning")
+        es_valido = False
     # Validar el estado
-    if exh_exhorto.estado not in ["RECIBIDO CON EXITO", "RESPONDIDO"]:
-        flash("El estado del exhorto debe ser RECIBIDO CON EXITO o RESPONDIDO.", "warning")
+    if exh_exhorto.estado in ("ARCHIVADO", "CANCELADO", "PENDIENTE", "POR ENVIAR"):
+        flash("No puede se puede consultar porque el estado es ARCHIVADO, CANCELADO, PENDIENTE o POR ENVIAR.", "warning")
         es_valido = False
     # Si NO es válido, redirigir al detalle
     if es_valido is False:
@@ -426,9 +430,13 @@ def launch_task_reply(exh_exhorto_id):
     if exh_exhorto.estatus != "A":
         flash("El exhorto no está activo", "warning")
         es_valido = False
+    # Validar el remitente
+    if exh_exhorto.remitente != "EXTERNO":
+        flash("No puede se puede responder porque no tiene remitente EXTERNO", "warning")
+        es_valido = False
     # Validar el estado
-    if exh_exhorto.estado not in ["RECIBIDO", "TRANSFERIDO", "PROCESANDO"]:
-        flash("El estado del exhorto debe ser RECIBIDO, TRANSFERIDO o PROCESANDO.", "warning")
+    if exh_exhorto.estado not in ("RECIBIDO", "TRANSFERIDO", "PROCESANDO"):
+        flash("No puede se puede responder porque el estado debe ser RECIBIDO, TRANSFERIDO o PROCESANDO.", "warning")
         es_valido = False
     # Si NO es válido, redirigir al detalle
     if es_valido is False:
@@ -461,9 +469,13 @@ def launch_task_send(exh_exhorto_id):
     if exh_exhorto.estatus != "A":
         flash("El exhorto no está activo", "warning")
         es_valido = False
+    # Validar el remitente
+    if exh_exhorto.remitente != "INTERNO":
+        flash("No puede se puede enviar porque no tiene remitente INTERNO", "warning")
+        es_valido = False
     # Validar el estado
-    if exh_exhorto.estado != "POR ENVIAR":
-        flash("El estado del exhorto debe ser POR ENVIAR.", "warning")
+    if exh_exhorto.estado != "POR ENVIAR" or exh_exhorto.estado != "RECHAZADO":
+        flash("No se puede enviar porque el estado debe ser POR ENVIAR o RECHAZADO.", "warning")
         es_valido = False
     # Validar que tenga partes
     partes = []
@@ -471,7 +483,7 @@ def launch_task_send(exh_exhorto_id):
         if parte.estatus == "A":
             partes.append(parte)
     if len(partes) == 0:
-        flash("No se pudo enviar el exhorto. Debe incluir al menos una parte.", "warning")
+        flash("No se pudo enviar porque debe incluir al menos una parte.", "warning")
         es_valido = False
     # Validar que tenga archivos
     archivos = []
@@ -479,7 +491,7 @@ def launch_task_send(exh_exhorto_id):
         if archivo.estatus == "A" and archivo.estado != "CANCELADO":
             archivos.append(archivo)
     if len(archivos) == 0:
-        flash("No se pudo enviar el exhorto. Debe incluir al menos un archivo.", "warning")
+        flash("No se pudo enviar porque debe incluir al menos un archivo.", "warning")
         es_valido = False
     # Si NO es válido, redirigir al detalle
     if es_valido is False:

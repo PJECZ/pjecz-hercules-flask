@@ -216,18 +216,20 @@ def recover(exh_exhorto_actualizacion_id):
 def launch_task_send(exh_exhorto_actualizacion_id):
     """Lanzar tarea en el fondo para enviar una actualización al PJ Externo"""
     exh_exhorto_actualizacion = ExhExhortoActualizacion.query.get_or_404(exh_exhorto_actualizacion_id)
+    es_valido = True
     # Validar el estado
-    if exh_exhorto_actualizacion.estado != "POR ENVIAR":
-        flash("El estado de la actualización debe ser POR ENVIAR.", "warning")
+    if exh_exhorto_actualizacion.estado != "POR ENVIAR" or exh_exhorto_actualizacion.estado != "RECHAZADO":
+        flash("No se puede enviar porque el estado debe ser POR ENVIAR o RECHAZADO.", "warning")
+        es_valido = False
+    # Validar el estado del exhorto
+    if exh_exhorto_actualizacion.exh_exhorto.estado in ("ARCHIVADO", "CANCELADO"):
+        flash("El exhorto está ARCHIVADO o CANCELADO. No se puede enviar la actualización.", "warning")
+        es_valido = False
+    # Si NO es válido, redirigir al detalle
+    if es_valido is False:
         return redirect(
             url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion_id)
         )
-    if exh_exhorto_actualizacion.exh_exhorto.estado == "ARCHIVADO":
-        es_valido = False
-        flash("El exhorto está ARCHIVADO. No se puede enviar la actualización.", "warning")
-    if exh_exhorto_actualizacion.exh_exhorto.estado == "CANCELADO":
-        es_valido = False
-        flash("El exhorto está CANCELADO. No se puede enviar la actualización.", "warning")
     # Lanzar tarea en el fondo
     tarea = current_user.launch_task(
         comando="exh_exhortos_actualizaciones.tasks.task_enviar_actualizacion",

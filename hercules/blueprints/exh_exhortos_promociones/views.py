@@ -228,15 +228,13 @@ def launch_task_send(exh_exhorto_promocion_id):
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
     es_valido = True
     # Validar el estado
-    if exh_exhorto_promocion.estado != "POR ENVIAR":
+    if exh_exhorto_promocion.estado != "POR ENVIAR" or exh_exhorto_promocion.estado != "RECHAZADO":
+        flash("No se puede enviar porque el estado debe ser POR ENVIAR o RECHAZADO.", "warning")
         es_valido = False
-        flash("El estado de la promoción debe ser POR ENVIAR.", "warning")
-    if exh_exhorto_promocion.exh_exhorto.estado == "ARCHIVADO":
+    # Validar el estado del exhorto
+    if exh_exhorto_promocion.exh_exhorto.estado in ("ARCHIVADO", "CANCELADO"):
+        flash("El exhorto está ARCHIVADO o CANCELADO. No se puede enviar la promoción.", "warning")
         es_valido = False
-        flash("El exhorto está ARCHIVADO. No se puede enviar la promoción.", "warning")
-    if exh_exhorto_promocion.exh_exhorto.estado == "CANCELADO":
-        es_valido = False
-        flash("El exhorto está CANCELADO. No se puede enviar la promoción.", "warning")
     # Validar que tenga archivos
     archivos = []
     for archivo in exh_exhorto_promocion.exh_exhortos_promociones_archivos:
@@ -253,6 +251,9 @@ def launch_task_send(exh_exhorto_promocion_id):
     if len(promoventes) == 0:
         flash("No se pudo enviar la promoción. Debe incluir al menos un promovente.", "warning")
         es_valido = False
+    # Si NO es válido, redirigir al detalle
+    if es_valido is False:
+        return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id))
     # Insertar en la bitácora
     bitacora = Bitacora(
         modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -262,16 +263,13 @@ def launch_task_send(exh_exhorto_promocion_id):
     )
     bitacora.save()
     # Lanzar tarea en el fondo
-    if es_valido:
-        tarea = current_user.launch_task(
-            comando="exh_exhortos_promociones.tasks.task_enviar_promocion",
-            mensaje="Enviando la promoción al PJ externo",
-            exh_exhorto_promocion_id=exh_exhorto_promocion_id,
-        )
-        flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
-        return redirect(url_for("tareas.detail", tarea_id=tarea.id))
-    # Redirigir al detalle porque NO se lanzó la tarea
-    return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion.id))
+    tarea = current_user.launch_task(
+        comando="exh_exhortos_promociones.tasks.task_enviar_promocion",
+        mensaje="Enviando la promoción al PJ externo",
+        exh_exhorto_promocion_id=exh_exhorto_promocion_id,
+    )
+    flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
+    return redirect(url_for("tareas.detail", tarea_id=tarea.id))
 
 
 @exh_exhortos_promociones.route("/exh_exhortos_promociones/cancelar/<int:exh_exhorto_promocion_id>")

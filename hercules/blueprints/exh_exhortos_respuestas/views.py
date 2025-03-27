@@ -315,15 +315,13 @@ def launch_task_send(exh_exhorto_respuesta_id):
     exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
     es_valido = True
     # Validar el estado
-    if exh_exhorto_respuesta.estado != "POR ENVIAR":
+    if exh_exhorto_respuesta.estado != "POR ENVIAR" or exh_exhorto_respuesta.estado != "RECHAZADO":
         es_valido = False
-        flash("El estado de la respuesta debe ser POR ENVIAR.", "warning")
-    if exh_exhorto_respuesta.exh_exhorto.estado == "ARCHIVADO":
+        flash("No se puede responder porque el estado debe ser POR ENVIAR o RECHAZADO.", "warning")
+    # Validar el estado del exhorto
+    if exh_exhorto_respuesta.exh_exhorto.estado in ("ARCHIVADO", "CANCELADO"):
+        flash("El exhorto está ARCHIVADO o CANCELADO. No se puede enviar la respuesta.", "warning")
         es_valido = False
-        flash("El exhorto está ARCHIVADO. No se puede enviar la respuesta.", "warning")
-    if exh_exhorto_respuesta.exh_exhorto.estado == "CANCELADO":
-        es_valido = False
-        flash("El exhorto está CANCELADO. No se puede enviar la respuesta.", "warning")
     # Validar que tenga archivos
     archivos = []
     for archivo in exh_exhorto_respuesta.exh_exhortos_respuestas_archivos:
@@ -332,6 +330,9 @@ def launch_task_send(exh_exhorto_respuesta_id):
     if len(archivos) == 0:
         flash("No se pudo enviar la respuesta. Debe incluir al menos un archivo.", "warning")
         es_valido = False
+    # Si NO es válido, redirigir al detalle
+    if es_valido is False:
+        return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
     # Insertar en la Bitácora
     bitacora = Bitacora(
         modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -341,16 +342,13 @@ def launch_task_send(exh_exhorto_respuesta_id):
     )
     bitacora.save()
     # Lanzar tarea en el fondo
-    if es_valido:
-        tarea = current_user.launch_task(
-            comando="exh_exhortos_respuestas.tasks.task_enviar_respuesta",
-            mensaje="Enviando la respuesta al PJ externo",
-            exh_exhorto_respuesta_id=exh_exhorto_respuesta_id,
-        )
-        flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
-        return redirect(url_for("tareas.detail", tarea_id=tarea.id))
-    # Redirigir al detalle porque NO se lanzó la tarea
-    return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
+    tarea = current_user.launch_task(
+        comando="exh_exhortos_respuestas.tasks.task_enviar_respuesta",
+        mensaje="Enviando la respuesta al PJ externo",
+        exh_exhorto_respuesta_id=exh_exhorto_respuesta_id,
+    )
+    flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
+    return redirect(url_for("tareas.detail", tarea_id=tarea.id))
 
 
 @exh_exhortos_respuestas.route("/exh_exhortos_respuestas/cancelar/<int:exh_exhorto_respuesta_id>")
