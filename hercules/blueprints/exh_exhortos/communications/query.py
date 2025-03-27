@@ -86,7 +86,7 @@ def consultar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     # Terminar si hubo mensaje_advertencia
     if mensaje_advertencia != "":
         bitacora.warning(mensaje_advertencia)
-        raise MyConnectionError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyConnectionError(mensaje_advertencia + "\n" + "\n".join(mensajes))
 
     # Terminar si NO es correcta estructura de la respuesta
     mensajes_advertencias = []
@@ -101,7 +101,7 @@ def consultar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     if len(mensajes_advertencias) > 0:
         mensaje_advertencia = ", ".join(mensajes_advertencias)
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyNotValidAnswerError(mensaje_advertencia + "\n" + "\n".join(mensajes))
     if contenido["message"]:
         mensaje_info = f"- message: {contenido['message']}"
         bitacora.info(mensaje_info)
@@ -111,7 +111,7 @@ def consultar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     if contenido["success"] is False:
         mensaje_advertencia = f"Falló la consulta del exhorto porque 'success' es falso: {','.join(contenido['errors'])}"
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyNotValidAnswerError(mensaje_advertencia + "\n" + "\n".join(mensajes))
 
     # Definir los campos que esperamos vengan en el data
     campos = [

@@ -23,7 +23,7 @@ def task_enviar_exhorto(exh_exhorto_id: int) -> str:
 
     # Ejecutar
     try:
-        mensaje_termino, nombre_archivo, url_publica = enviar_exhorto(exh_exhorto_id)
+        mensaje_termino, _, _ = enviar_exhorto(exh_exhorto_id)
     except MyAnyError as error:
         # Consultar el exhorto para cambiar su estado a RECHAZADO
         exh_exhorto = ExhExhorto.query.get(exh_exhorto_id)
@@ -36,7 +36,7 @@ def task_enviar_exhorto(exh_exhorto_id: int) -> str:
         return mensaje_error
 
     # Terminar la tarea en el fondo
-    set_task_progress(100, mensaje_termino, nombre_archivo, url_publica)
+    set_task_progress(100, mensaje_termino)
 
     # Entregar mensaje de termino
     return mensaje_termino
@@ -49,14 +49,14 @@ def task_consultar_exhorto(exh_exhorto_id: int) -> str:
 
     # Ejecutar
     try:
-        mensaje_termino, nombre_archivo, url_publica = consultar_exhorto(exh_exhorto_id)
+        mensaje_termino, _, _ = consultar_exhorto(exh_exhorto_id)
     except MyAnyError as error:
         mensaje_error = str(error)
         set_task_error(mensaje_error)
         return mensaje_error
 
     # Terminar la tarea en el fondo
-    set_task_progress(100, mensaje_termino, nombre_archivo, url_publica)
+    set_task_progress(100, mensaje_termino)
 
     # Entregar mensaje de termino
     return mensaje_termino
@@ -69,14 +69,14 @@ def task_responder_exhorto(exh_exhorto_id: int) -> str:
 
     # Ejecutar
     try:
-        mensaje_termino, nombre_archivo, url_publica = responder_exhorto(exh_exhorto_id)
+        mensaje_termino, _, _ = responder_exhorto(exh_exhorto_id)
     except MyAnyError as error:
         mensaje_error = str(error)
         set_task_error(mensaje_error)
         return mensaje_error
 
     # Terminar la tarea en el fondo
-    set_task_progress(100, mensaje_termino, nombre_archivo, url_publica)
+    set_task_progress(100, mensaje_termino)
 
     # Entregar mensaje de termino
     return mensaje_termino

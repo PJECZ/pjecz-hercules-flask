@@ -21,7 +21,7 @@ def task_enviar_promocion(exh_exhorto_promocion_id: int) -> str:
 
     # Ejecutar
     try:
-        mensaje_termino, nombre_archivo, url_publica = enviar_promocion(exh_exhorto_promocion_id)
+        mensaje_termino, _, _ = enviar_promocion(exh_exhorto_promocion_id)
     except MyAnyError as error:
         # Consultar la promoción para cambiar su estado a RECHAZADO
         exh_exhorto_promocion = ExhExhortoPromocion.query.get(exh_exhorto_promocion_id)
@@ -34,7 +34,7 @@ def task_enviar_promocion(exh_exhorto_promocion_id: int) -> str:
         return mensaje_error
 
     # Terminar la tarea en el fondo
-    set_task_progress(100, mensaje_termino, nombre_archivo, url_publica)
+    set_task_progress(100, mensaje_termino)
 
     # Entregar mensaje de termino
     return mensaje_termino
