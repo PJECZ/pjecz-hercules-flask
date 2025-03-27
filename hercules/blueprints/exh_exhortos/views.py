@@ -396,8 +396,8 @@ def launch_task_query(exh_exhorto_id):
         flash("No puede se puede consultar porque no tiene remitente EXTERNO", "warning")
         es_valido = False
     # Validar el estado
-    if exh_exhorto.estado in ("ARCHIVADO", "CANCELADO", "PENDIENTE", "POR ENVIAR"):
-        flash("No puede se puede consultar porque el estado es ARCHIVADO, CANCELADO, PENDIENTE o POR ENVIAR.", "warning")
+    if exh_exhorto.estado in ("PENDIENTE", "POR ENVIAR", "CANCELADO", "RECHAZADO", "ARCHIVADO"):
+        flash(f"No puede se puede consultar porque el estado {exh_exhorto.estado} no lo permite.", "warning")
         es_valido = False
     # Si NO es válido, redirigir al detalle
     if es_valido is False:
@@ -435,8 +435,8 @@ def launch_task_reply(exh_exhorto_id):
         flash("No puede se puede responder porque no tiene remitente EXTERNO", "warning")
         es_valido = False
     # Validar el estado
-    if exh_exhorto.estado not in ("RECIBIDO", "TRANSFERIDO", "PROCESANDO"):
-        flash("No puede se puede responder porque el estado debe ser RECIBIDO, TRANSFERIDO o PROCESANDO.", "warning")
+    if exh_exhorto.estado in ("PENDIENTE", "POR ENVIAR", "CANCELADO", "RECHAZADO", "ARCHIVADO"):
+        flash(f"No puede se puede responder porque el estado {exh_exhorto.estado} no lo permite.", "warning")
         es_valido = False
     # Si NO es válido, redirigir al detalle
     if es_valido is False:
@@ -474,7 +474,7 @@ def launch_task_send(exh_exhorto_id):
         flash("No puede se puede enviar porque no tiene remitente INTERNO", "warning")
         es_valido = False
     # Validar el estado
-    if exh_exhorto.estado != "POR ENVIAR" or exh_exhorto.estado != "RECHAZADO":
+    if exh_exhorto.estado not in ("POR ENVIAR", "RECHAZADO"):
         flash("No se puede enviar porque el estado debe ser POR ENVIAR o RECHAZADO.", "warning")
         es_valido = False
     # Validar que tenga partes
