@@ -396,7 +396,15 @@ def launch_task_query(exh_exhorto_id):
         flash("No puede se puede consultar porque no tiene remitente EXTERNO", "warning")
         es_valido = False
     # Validar el estado
-    if exh_exhorto.estado in ("PENDIENTE", "POR ENVIAR", "CANCELADO", "RECHAZADO", "ARCHIVADO"):
+    if exh_exhorto.estado not in (
+        "RECIBIDO",
+        "RECIBIDO CON EXITO",
+        "RESPONIDOD",
+        "TRANSFERIDO",
+        "PROCESANDO",
+        "CONTESTADO",
+        "RECHAZADO",
+    ):
         flash(f"No puede se puede consultar porque el estado {exh_exhorto.estado} no lo permite.", "warning")
         es_valido = False
     # Si NO es válido, redirigir al detalle
@@ -435,7 +443,7 @@ def launch_task_reply(exh_exhorto_id):
         flash("No puede se puede responder porque no tiene remitente EXTERNO", "warning")
         es_valido = False
     # Validar el estado
-    if exh_exhorto.estado in ("PENDIENTE", "POR ENVIAR", "CANCELADO", "RECHAZADO", "ARCHIVADO"):
+    if exh_exhorto.estado not in ("RECIBIDO", "TRANSFERIDO", "PROCESANDO", "CONTESTADO", "RECHAZADO"):
         flash(f"No puede se puede responder porque el estado {exh_exhorto.estado} no lo permite.", "warning")
         es_valido = False
     # Si NO es válido, redirigir al detalle

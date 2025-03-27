@@ -50,8 +50,8 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         raise MyNotExistsError(mensaje_error)
 
     # Validar que su estado
-    if exh_exhorto.estado not in ("TRANSFERIDO", "PROCESANDO"):
-        mensaje_error = f"El exhorto con ID {exh_exhorto_id} no tiene el estado TRANSFERIDO o PROCESANDO"
+    if exh_exhorto.estado not in ("RECIBIDO", "TRANSFERIDO", "PROCESANDO", "CONTESTADO", "RECHAZADO"):
+        mensaje_error = f"El exhorto no puede ser respondido porque tiene el estado {exh_exhorto.estado}"
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 
