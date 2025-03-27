@@ -148,7 +148,7 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     # Terminar si hubo mensaje_advertencia
     if mensaje_advertencia != "":
         bitacora.warning(mensaje_advertencia)
-        raise MyConnectionError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyConnectionError(mensaje_advertencia + "\n" + "\n".join(mensajes))
 
     # Terminar si NO es correcta estructura de la respuesta
     mensajes_advertencias = []
@@ -163,7 +163,7 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     if len(mensajes_advertencias) > 0:
         mensaje_advertencia = ", ".join(mensajes_advertencias)
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyNotValidAnswerError(mensaje_advertencia + "\n" + "\n".join(mensajes))
     if contenido["message"]:
         mensaje_info = f"- message: {contenido['message']}"
         bitacora.info(mensaje_info)
@@ -173,7 +173,7 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     if contenido["success"] is False:
         mensaje_advertencia = f"Falló el envío de la actualización porque 'success' es falso: {','.join(contenido['errors'])}"
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyNotValidAnswerError(mensaje_advertencia + "\n" + "\n".join(mensajes))
 
     # Informar a la bitácora que terminó el envío de la actualización
     mensaje_info = "Termina el envío la actualización."
@@ -218,7 +218,7 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     if len(errores) > 0:
         mensaje_advertencia = ", ".join(errores)
         bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyAnyError(mensaje_advertencia + "\n" + "\n".join(mensajes))
 
     # Actualizar el estado a ENVIADO
     exh_exhorto_actualizacion.estado = "ENVIADO"

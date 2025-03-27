@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 from hercules.app import create_app
 from hercules.blueprints.estados.models import Estado
-from hercules.blueprints.exh_exhortos.communications import bitacora
+from hercules.blueprints.exh_exhortos_respuestas.communications import bitacora
 from hercules.blueprints.exh_exhortos_respuestas.models import ExhExhortoRespuesta
 from hercules.blueprints.exh_externos.models import ExhExterno
 from hercules.blueprints.municipios.models import Municipio
@@ -165,7 +165,7 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
     # Terminar si hubo mensaje_advertencia
     if mensaje_advertencia != "":
         bitacora.warning(mensaje_advertencia)
-        raise MyConnectionError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyConnectionError(mensaje_advertencia + "\n" + "\n".join(mensajes))
 
     # Terminar si NO es correcta estructura de la respuesta
     mensajes_advertencias = []
@@ -180,7 +180,7 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
     if len(mensajes_advertencias) > 0:
         mensaje_advertencia = ", ".join(mensajes_advertencias)
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyNotValidAnswerError(mensaje_advertencia + "\n" + "\n".join(mensajes))
     if contenido["message"]:
         mensaje_info = f"- message: {contenido['message']}"
         bitacora.info(mensaje_info)
@@ -190,7 +190,7 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
     if contenido["success"] is False:
         mensaje_advertencia = f"Falló el envío de la respuesta porque 'success' es falso: {','.join(contenido['errors'])}"
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyNotValidAnswerError(mensaje_advertencia + "\n" + "\n".join(mensajes))
 
     # Informar a la bitácora que terminó el envío de la respuesta
     mensaje_info = "Termina el envío de la respuesta."
@@ -255,7 +255,7 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
         # Terminar si hubo mensaje_advertencia
         if mensaje_advertencia != "":
             bitacora.warning(mensaje_advertencia)
-            raise MyAnyError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+            raise MyAnyError(mensaje_advertencia + "\n" + "\n".join(mensajes))
         # Terminar si NO es correcta estructura de la respuesta
         mensajes_advertencias = []
         if "success" not in contenido or not isinstance(contenido["success"], bool):
@@ -269,7 +269,7 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
         if len(mensajes_advertencias) > 0:
             mensaje_advertencia = ", ".join(mensajes_advertencias)
             bitacora.warning(mensaje_advertencia)
-            raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+            raise MyNotValidAnswerError(mensaje_advertencia + "\n" + "\n".join(mensajes))
         if contenido["message"]:
             mensaje_info = f"- message: {contenido['message']}"
             bitacora.info(mensaje_info)
@@ -278,7 +278,7 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
         if contenido["success"] is False:
             mensaje_advertencia = f"Falló el envío del archivo porque 'success' es falso: {','.join(contenido['errors'])}"
             bitacora.warning(mensaje_advertencia)
-            raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+            raise MyNotValidAnswerError(mensaje_advertencia + "\n" + "\n".join(mensajes))
         # Actualizar el archivo de la promoción al estado RECIBIDO
         archivo.estado = "RECIBIDO"
         archivo.save()
@@ -294,35 +294,35 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
     if "acuse" not in data or data["acuse"] is None:
         mensaje_advertencia = "Falló porque la respuesta NO tiene acuse"
         bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyAnyError(mensaje_advertencia + "\n" + "\n".join(mensajes))
     acuse = data["acuse"]
 
     # Inicializar listado de errores para acumular fallos si los hubiera
     errores = []
 
-    # Validar que el acuse tenga folioOrigenRespuesta
+    # Validar que el acuse tenga exhortoId
     try:
-        folio_origen_respuesta = str(acuse["folioOrigenRespuesta"])
-        mensaje_info = f"- acuse folioOrigenRespuesta: {folio_origen_respuesta}"
+        acuse_exhorto_id = str(acuse["exhortoId"])
+        mensaje_info = f"- acuse exhortoId: {acuse_exhorto_id}"
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
     except KeyError:
-        errores.append("Faltó folioOrigenRespuesta en el acuse")
+        errores.append("Faltó exhortoId en el acuse")
 
-    # Validar que el acuse tenga folioRespuestaRecibida
+    # Validar que el acuse tenga respuestaOrigenId
     try:
-        folio_respuesta_recibida = str(acuse["folioRespuestaRecibida"])
-        mensaje_info = f"- acuse folioRespuestaRecibida: {folio_respuesta_recibida}"
+        acuse_respuesta_origen_id = str(acuse["respuestaOrigenId"])
+        mensaje_info = f"- acuse respuestaOrigenId: {acuse_respuesta_origen_id}"
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
     except KeyError:
-        errores.append("Faltó folioRespuestaRecibida en el acuse")
+        errores.append("Faltó respuestaOrigenId en el acuse")
 
     # Validar que el acuse tenga fechaHoraRecepcion
     try:
-        fecha_hora_recepcion_str = str(acuse["fechaHoraRecepcion"])
-        acuse_fecha_hora_recepcion = datetime.strptime(fecha_hora_recepcion_str, "%Y-%m-%d %H:%M:%S")
-        mensaje_info = f"- acuse fechaHoraRecepcion: {fecha_hora_recepcion_str}"
+        acuse_fecha_hora_recepcion_str = str(acuse["fechaHoraRecepcion"])
+        acuse_fecha_hora_recepcion = datetime.strptime(acuse_fecha_hora_recepcion_str, "%Y-%m-%d %H:%M:%S")
+        mensaje_info = f"- acuse fechaHoraRecepcion: {acuse_fecha_hora_recepcion_str}"
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
     except (KeyError, ValueError):
@@ -332,7 +332,7 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
     if len(errores) > 0:
         mensaje_advertencia = ", ".join(errores)
         bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyAnyError(mensaje_advertencia + "\n" + "\n".join(mensajes))
 
     # Actualizar la respuesta con los datos del acuse
     exh_exhorto_respuesta.estado = "ENVIADO"

@@ -169,7 +169,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     # Terminar si hubo mensaje_advertencia
     if mensaje_advertencia != "":
         bitacora.warning(mensaje_advertencia)
-        raise MyConnectionError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyConnectionError(mensaje_advertencia + "\n" + "\n".join(mensajes))
 
     # Terminar si NO es correcta estructura de la respuesta
     mensajes_advertencias = []
@@ -184,7 +184,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     if len(mensajes_advertencias) > 0:
         mensaje_advertencia = ", ".join(mensajes_advertencias)
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyNotValidAnswerError(mensaje_advertencia + "\n" + "\n".join(mensajes))
     if contenido["message"]:
         mensaje_info = f"- message: {contenido['message']}"
         bitacora.info(mensaje_info)
@@ -194,7 +194,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     if contenido["success"] is False:
         mensaje_advertencia = f"Falló el envío de la respuesta porque 'success' es falso: {','.join(contenido['errors'])}"
         bitacora.warning(mensaje_advertencia)
-        raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyNotValidAnswerError(mensaje_advertencia + "\n" + "\n".join(mensajes))
 
     # Informar a la bitácora que terminó el envío de la respuesta
     mensaje_info = "Termina el envío de la respuesta."
@@ -259,7 +259,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         # Terminar si hubo mensaje_advertencia
         if mensaje_advertencia != "":
             bitacora.warning(mensaje_advertencia)
-            raise MyAnyError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+            raise MyAnyError(mensaje_advertencia + "\n" + "\n".join(mensajes))
         # Terminar si NO es correcta estructura de la respuesta
         mensajes_advertencias = []
         if "success" not in contenido or not isinstance(contenido["success"], bool):
@@ -273,7 +273,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         if len(mensajes_advertencias) > 0:
             mensaje_advertencia = ", ".join(mensajes_advertencias)
             bitacora.warning(mensaje_advertencia)
-            raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+            raise MyNotValidAnswerError(mensaje_advertencia + "\n" + "\n".join(mensajes))
         if contenido["message"]:
             mensaje_info = f"- message: {contenido['message']}"
             bitacora.info(mensaje_info)
@@ -282,7 +282,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         if contenido["success"] is False:
             mensaje_advertencia = f"Falló el envío del archivo porque 'success' es falso: {','.join(contenido['errors'])}"
             bitacora.warning(mensaje_advertencia)
-            raise MyNotValidAnswerError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+            raise MyNotValidAnswerError(mensaje_advertencia + "\n" + "\n".join(mensajes))
         # Actualizar el archivo del exhorto al estado RECIBIDO
         archivo.estado = "RECIBIDO"
         archivo.save()
@@ -298,7 +298,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     if "acuse" not in data or data["acuse"] is None:
         mensaje_advertencia = "Falló porque la respuesta NO tiene acuse"
         bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyAnyError(mensaje_advertencia + "\n" + "\n".join(mensajes))
     acuse = data["acuse"]
 
     # Inicializar listado de errores para acumular fallos si los hubiera
@@ -336,7 +336,7 @@ def responder_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
     if len(errores) > 0:
         mensaje_advertencia = ", ".join(errores)
         bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia.upper() + "\n" + "\n".join(mensajes))
+        raise MyAnyError(mensaje_advertencia + "\n" + "\n".join(mensajes))
 
     # Actualizar el estado a CONTESTADO y conservar respuesta_origen_id
     exh_exhorto.estado = "CONTESTADO"
