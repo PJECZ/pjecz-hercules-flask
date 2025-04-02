@@ -55,7 +55,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
 
     # Validar su estado
     if exh_exhorto_promocion.estado not in ("POR ENVIAR", "RECHAZADO"):
-        mensaje_error = f"La promoción no se puede enviar porque su estado es {exh_exhorto_promocion.estado}"
+        mensaje_error = f"La promoción NO se puede enviar porque su estado es {exh_exhorto_promocion.estado}"
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 

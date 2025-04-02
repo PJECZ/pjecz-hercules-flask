@@ -7,7 +7,6 @@ import time
 from datetime import datetime
 
 import requests
-from dotenv import load_dotenv
 
 from hercules.app import create_app
 from hercules.blueprints.estados.models import Estado
@@ -51,8 +50,8 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
         raise MyNotExistsError(mensaje_error)
 
     # Validar su estado
-    if exh_exhorto_respuesta.estado != "POR ENVIAR":
-        mensaje_error = f"La respuesta con ID {exh_exhorto_respuesta_id} no tiene el estado POR ENVIAR"
+    if exh_exhorto_respuesta.estado not in ("POR ENVIAR", "RECHAZADO"):
+        mensaje_error = f"La respuesta NO se puede enviar porque su estado es {exh_exhorto_respuesta.estado}"
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 
