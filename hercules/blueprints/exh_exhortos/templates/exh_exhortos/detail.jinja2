@@ -155,7 +155,7 @@
                 </div>
             {% endif %}
             <!-- Botones de acciones REGRESAR A PENDIENTE y ENVIAR -->
-            {% if exh_exhorto.remitente == "INTERNO" and (exh_exhorto.estado == "POR ENVIAR" or exh_exhorto == "RECHAZADO") %}
+            {% if exh_exhorto.remitente == "INTERNO" and (exh_exhorto.estado == "POR ENVIAR" or exh_exhorto.estado == "RECHAZADO") %}
                 <div class="row">
                     <div class="col-md-3">
                         {{ detail.button_lg_modal(
@@ -371,7 +371,7 @@
             {{ modals.custom_javascript('CANCELAR este Exhorto', '', "CancelarBtn") }}
             {{ modals.custom_javascript('POR ENVIAR este Exhorto', '', "PorEnviarBtn") }}
         {% endif %}
-        {% if exh_exhorto.remitente == "INTERNO" and (exh_exhorto.estado == "POR ENVIAR" or exh_exhorto == "RECHAZADO") %}
+        {% if exh_exhorto.remitente == "INTERNO" and (exh_exhorto.estado == "POR ENVIAR" or exh_exhorto.estado == "RECHAZADO") %}
             {{ modals.custom_javascript('Regresar a PENDIENTE', '', "PendienteBtn") }}
             {{ modals.custom_javascript('ENVIAR el Exhorto al P.J.', '', "EnviarBtn") }}
         {% endif %}
