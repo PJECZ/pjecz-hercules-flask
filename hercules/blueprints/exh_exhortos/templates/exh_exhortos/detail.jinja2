@@ -363,18 +363,23 @@
     {% if current_user.can_admin('EXH EXHORTOS') and exh_exhorto.paquete_enviado %}
         {% call detail.card('JSON del paquete enviado y del acuse recibido') %}
             <div class="row">
-                <div class="col-md-6">
-                    <pre><script>print(JSON.stringify("{{ exh_exhorto.paquete_enviado|tojson }}", null, 2))</script></pre>
-                </div>
-                <div class="col-md-6">
-                    <pre><script>print(JSON.stringify("{{ exh_exhorto.acuse_recibido|tojson }}", null, 2))</script></pre>
-                </div>
+                <div class="col-md-6"><pre id="elementPaqueteEnviado"></pre></div>
+                <div class="col-md-6"><pre id="elementAcuseRecibido"></pre></div>
             </div>
         {% endcall %}
     {% endif %}
 {% endblock %}
 
 {% block custom_javascript %}
+    <!-- Paquete enviado y acuse recibido -->
+    {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') and exh_exhorto.paquete_enviado %}
+        <script>
+            let jsonPaqueteEnviado = JSON.parse("{{ exh_exhorto.paquete_enviado|tojson }}");
+            let jsonAcuseRecibido = JSON.parse("{{ exh_exhorto.acuse_recibido|tojson }}");
+            document.getElementById("elementPaqueteEnviado").innerHTML = JSON.stringify(jsonPaqueteEnviado, null, 2);
+            document.getElementById("elementAcuseRecibido").innerHTML = JSON.stringify(jsonAcuseRecibido, null, 2);
+        </script>
+    {% endif %}
     <!-- Modales para los botones de acción -->
     {% if current_user.can_insert('EXH EXHORTOS') %}
         {% if exh_exhorto.remitente == "EXTERNO" and exh_exhorto.estado == 'PENDIENTE' %}
