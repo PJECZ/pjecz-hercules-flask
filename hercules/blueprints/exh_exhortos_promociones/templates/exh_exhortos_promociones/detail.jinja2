@@ -141,10 +141,10 @@
         {% call detail.card('JSON del paquete enviado y del acuse recibido') %}
             <div class="row">
                 <div class="col-md-6">
-                    <pre><script>JSON.stringify("{{ exh_exhorto_promocion.paquete_enviado|tojson }}", null, 2)</script></pre>
+                    <pre><script>print(JSON.stringify("{{ exh_exhorto_promocion.paquete_enviado|tojson }}", null, 2))</script></pre>
                 </div>
                 <div class="col-md-6">
-                    <pre><script>JSON.stringify("{{ exh_exhorto_promocion.acuse_recibido|tojson }}", null, 2)</script></pre>
+                    <pre><script>print(JSON.stringify("{{ exh_exhorto_promocion.acuse_recibido|tojson }}", null, 2))</script></pre>
                 </div>
             </div>
         {% endcall %}
