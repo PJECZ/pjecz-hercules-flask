@@ -177,6 +177,10 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         "archivos": archivos,
     }
 
+    # Conservar el paquete que se va enviar en la base de datos
+    exh_exhorto_promocion.paquete_enviado = payload_for_json
+    exh_exhorto_promocion.save()
+
     # Informar a la bitácora que se va a enviar la promoción
     mensaje_info = "Comienza el envío de la promoción con los siguientes datos:"
     mensajes.append(mensaje_info)
@@ -340,8 +344,12 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         raise MyAnyError(mensaje_advertencia + "\n" + "\n".join(mensajes))
     acuse = data["acuse"]
 
-    # Inicializar listado de errores para acumular fallos si los hubiera
-    errores = []
+    # Conservar el acuse recibido en la base de datos
+    exh_exhorto_promocion.acuse_recibido = acuse
+    exh_exhorto_promocion.save()
+
+    # Inicializar listado de advertencias para acumular fallos en el acuse si los hubiera
+    advertencias = []
 
     # Validar que el acuse tenga folioOrigenPromocion
     try:
@@ -350,7 +358,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
     except KeyError:
-        errores.append("Faltó folioOrigenPromocion en el acuse")
+        advertencias.append("Faltó folioOrigenPromocion en el acuse")
 
     # Validar que el acuse tenga folioPromocionRecibida
     try:
@@ -359,7 +367,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
     except KeyError:
-        errores.append("Faltó folioPromocionRecibida en el acuse")
+        advertencias.append("Faltó folioPromocionRecibida en el acuse")
 
     # Validar que el acuse tenga fechaHoraRecepcion
     try:
@@ -369,15 +377,16 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
     except (KeyError, ValueError):
-        errores.append("Faltó o es incorrecta fechaHoraRecepcion en el acuse")
+        advertencias.append("Faltó o es incorrecta fechaHoraRecepcion en el acuse")
 
-    # Terminar si hubo errores
-    if len(errores) > 0:
-        mensaje_advertencia = ", ".join(errores)
+    # Si hubo advertencias
+    if len(advertencias) > 0:
+        mensaje_advertencia = ", ".join(advertencias)
         bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia + "\n" + "\n".join(mensajes))
+        # raise MyAnyError(mensaje_advertencia + "\n" + "\n".join(mensajes))
 
     # Actualizar la promoción con los datos del acuse
+    exh_exhorto_promocion.estado_anterior = exh_exhorto_promocion.estado
     exh_exhorto_promocion.estado = "ENVIADO"
     exh_exhorto_promocion.save()
 

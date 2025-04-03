@@ -136,9 +136,27 @@
             {% endif %}
         {% endcall %}
     {% endif %}
+    <!-- Paquete enviado y acuse recibido -->
+    {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') and exh_exhorto_promocion.paquete_enviado %}
+        {% call detail.card('JSON del paquete enviado y del acuse recibido') %}
+            <div class="row">
+                <div class="col-md-6"><pre id="elementPaqueteEnviado"></pre></div>
+                <div class="col-md-6"><pre id="elementAcuseRecibido"></pre></div>
+            </div>
+        {% endcall %}
+    {% endif %}
 {% endblock %}
 
 {% block custom_javascript %}
+    <!-- Paquete enviado y acuse recibido -->
+    {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') and exh_exhorto_promocion.paquete_enviado %}
+        <script>
+            let jsonPaqueteEnviado = {{ exh_exhorto_promocion.paquete_enviado|tojson }};
+            let jsonAcuseRecibido = {{ exh_exhorto_promocion.acuse_recibido|tojson }};
+            document.getElementById("elementPaqueteEnviado").innerHTML = JSON.stringify(jsonPaqueteEnviado, null, 2);
+            document.getElementById("elementAcuseRecibido").innerHTML = JSON.stringify(jsonAcuseRecibido, null, 2);
+        </script>
+    {% endif %}
     <!-- Modales para los botones de acción -->
     {% if current_user.can_insert('EXH EXHORTOS PROMOCIONES') %}
         {% if exh_exhorto_promocion.estado == 'CANCELADO' %}

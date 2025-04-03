@@ -26,6 +26,7 @@ def task_enviar_respuesta(exh_exhorto_respuesta_id: int) -> str:
         # Consultar la respuesta para cambiar su estado a RECHAZADO
         exh_exhorto_respuesta = ExhExhortoRespuesta.query.get(exh_exhorto_respuesta_id)
         if exh_exhorto_respuesta is not None:
+            exh_exhorto_respuesta.estado_anterior = exh_exhorto_respuesta.estado
             exh_exhorto_respuesta.estado = "RECHAZADO"
             exh_exhorto_respuesta.save()
         # Mandar mensaje de error al usuario

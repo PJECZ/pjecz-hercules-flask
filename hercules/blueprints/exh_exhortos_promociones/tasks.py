@@ -26,6 +26,7 @@ def task_enviar_promocion(exh_exhorto_promocion_id: int) -> str:
         # Consultar la promoción para cambiar su estado a RECHAZADO
         exh_exhorto_promocion = ExhExhortoPromocion.query.get(exh_exhorto_promocion_id)
         if exh_exhorto_promocion is not None:
+            exh_exhorto_promocion.estado_anterior = exh_exhorto_promocion.estado
             exh_exhorto_promocion.estado = "RECHAZADO"
             exh_exhorto_promocion.save()
         # Mandar mensaje de error al usuario

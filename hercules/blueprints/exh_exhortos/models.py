@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from sqlalchemy import Enum, ForeignKey, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.functions import now
 
@@ -145,8 +146,13 @@ class ExhExhorto(database.Model, UniversalMixin):
     # Campo para saber si es un proceso interno o extorno
     remitente: Mapped[str] = mapped_column(Enum(*REMITENTES, name="exh_exhortos_remitentes", native_enum=False), index=True)
 
-    # Estado de recepción del documento
+    # Estado del exhorto y el estado anterior, para cuando se necesite revertir un cambio de estado
     estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="exh_exhortos_estados", native_enum=False), index=True)
+    estado_anterior: Mapped[Optional[str]]
+
+    # Conservar el JSON que se genera cuando se hace el envío y el que se recibe con el acuse
+    paquete_enviado: Mapped[Optional[dict]] = mapped_column(JSONB)
+    acuse_recibido: Mapped[Optional[dict]] = mapped_column(JSONB)
 
     # Hijo: Definición de las partes del Expediente
     exh_exhortos_partes: Mapped[List["ExhExhortoParte"]] = relationship("ExhExhortoParte", back_populates="exh_exhorto")
