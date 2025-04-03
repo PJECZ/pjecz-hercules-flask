@@ -169,8 +169,8 @@
     <!-- Paquete enviado y acuse recibido -->
     {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') and exh_exhorto_respuesta.paquete_enviado %}
         <script>
-            let jsonPaqueteEnviado = JSON.parse("{{ exh_exhorto_respuesta.paquete_enviado|tojson }}");
-            let jsonAcuseRecibido = JSON.parse("{{ exh_exhorto_respuesta.acuse_recibido|tojson }}");
+            let jsonPaqueteEnviado = {{ exh_exhorto_respuesta.paquete_enviado|tojson }};
+            let jsonAcuseRecibido = {{ exh_exhorto_respuesta.acuse_recibido|tojson }};
             document.getElementById("elementPaqueteEnviado").innerHTML = JSON.stringify(jsonPaqueteEnviado, null, 2);
             document.getElementById("elementAcuseRecibido").innerHTML = JSON.stringify(jsonAcuseRecibido, null, 2);
         </script>
