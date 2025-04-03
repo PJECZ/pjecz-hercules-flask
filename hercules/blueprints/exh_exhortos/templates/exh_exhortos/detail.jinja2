@@ -363,8 +363,12 @@
     {% if current_user.can_admin('EXH EXHORTOS') and exh_exhorto.paquete_enviado %}
         {% call detail.card('JSON del paquete enviado y del acuse recibido') %}
             <div class="row">
-                <div class="col-md-6">{% if exh_exhorto.paquete_enviado %}{{ exh_exhorto.paquete_enviado|tojson }}{% endif %}</div>
-                <div class="col-md-6">{% if exh_exhorto.acuse_recibido %}{{ exh_exhorto.acuse_recibido|tojson }}{% endif %}</div>
+                <div class="col-md-6">
+                    <pre><script>JSON.stringify("{{ exh_exhorto.paquete_enviado|tojson }}", null, 2)</script></pre>
+                </div>
+                <div class="col-md-6">
+                    <pre><script>JSON.stringify("{{ exh_exhorto.acuse_recibido|tojson }}", null, 2)</script></pre>
+                </div>
             </div>
         {% endcall %}
     {% endif %}
