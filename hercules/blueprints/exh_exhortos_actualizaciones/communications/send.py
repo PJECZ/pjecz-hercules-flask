@@ -123,6 +123,10 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
         "descripcion": str(exh_exhorto_actualizacion.descripcion),
     }
 
+    # Conservar el paquete que se va enviar en la base de datos
+    exh_exhorto_actualizacion.paquete_enviado = payload_for_json
+    exh_exhorto_actualizacion.save()
+
     # Informar a la bitácora que se va a enviar la actualización
     mensaje_info = "Comienza el envío de la actualización."
     mensajes.append(mensaje_info)
@@ -189,8 +193,12 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     # Tomar la confirmación de la actualización
     confirmacion = contenido["data"]
 
-    # Inicializar listado de errores para acumular fallos si los hubiera
-    errores = []
+    # Conservar la confirmación recibida en la base de datos
+    exh_exhorto_actualizacion.acuse_recibido = confirmacion
+    exh_exhorto_actualizacion.save()
+
+    # Inicializar listado de advertencias para acumular fallos si los hubiera
+    advertencias = []
 
     # Validar que la confirmación tenga exhortoId
     try:
@@ -199,7 +207,7 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
     except KeyError:
-        errores.append("Faltó exhortoId en la confirmación")
+        advertencias.append("Faltó exhortoId en la confirmación")
 
     # Validar que la confirmación tenga actualizacionOrigenId
     try:
@@ -208,7 +216,7 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
     except KeyError:
-        errores.append("Faltó actualizacionOrigenId en la confirmación")
+        advertencias.append("Faltó actualizacionOrigenId en la confirmación")
 
     # Validar que la confirmación tenga fechaHora
     try:
@@ -217,14 +225,14 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
         mensaje_info = f"- fechaHora: {confirmacion_fecha_hora_str}"
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
-    except KeyError:
-        errores.append("Faltó o es incorrecta fechaHora en la confirmación")
+    except (KeyError, ValueError):
+        advertencias.append("Faltó o es incorrecta fechaHora en la confirmación")
 
-    # Terminar si hubo errores
-    if len(errores) > 0:
-        mensaje_advertencia = ", ".join(errores)
+    # Si hubo advertencias
+    if len(advertencias) > 0:
+        mensaje_advertencia = ", ".join(advertencias)
         bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia + "\n" + "\n".join(mensajes))
+        # raise MyAnyError(mensaje_advertencia + "\n" + "\n".join(mensajes))
 
     # Actualizar el estado a ENVIADO
     exh_exhorto_actualizacion.estado = "ENVIADO"

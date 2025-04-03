@@ -136,6 +136,15 @@
             {% endif %}
         {% endcall %}
     {% endif %}
+    <!-- Paquete enviado y acuse recibido -->
+    {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') and exh_exhorto_promocion.paquete_enviado %}
+        {% call detail.card('JSON del paquete enviado y del acuse recibido') %}
+            <div class="row">
+                <div class="col-md-6">{% if exh_exhorto_promocion.paquete_enviado %}{{ exh_exhorto_promocion.paquete_enviado|tojson }}{% endif %}</div>
+                <div class="col-md-6">{% if exh_exhorto_promocion.acuse_recibido %}{{ exh_exhorto_promocion.acuse_recibido|tojson }}{% endif %}</div>
+            </div>
+        {% endcall %}
+    {% endif %}
 {% endblock %}
 
 {% block custom_javascript %}

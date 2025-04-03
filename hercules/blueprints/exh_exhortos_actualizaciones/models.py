@@ -3,9 +3,10 @@ Exh Exhortos Actualizaciones, modelos
 """
 
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, Enum, ForeignKey, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.functions import now
 
@@ -69,10 +70,15 @@ class ExhExhortoActualizacion(database.Model, UniversalMixin):
         Enum(*REMITENTES, name="exh_exhortos_actualizaciones_remitentes", native_enum=False), index=True
     )
 
-    # Dato interno para conocer si fue enviado o sigue en proceso de edición
+    # Estado de la actualización y el estado anterior, para cuando se necesite revertir un cambio de estado
     estado: Mapped[str] = mapped_column(
         Enum(*ESTADOS, name="exh_exhortos_actualizaciones_estados", native_enum=False), index=True
     )
+    estado_anterior: Mapped[Optional[str]]
+
+    # Conservar el JSON que se genera cuando se hace el envío y el que se recibe con el acuse
+    paquete_enviado: Mapped[Optional[dict]] = mapped_column(JSONB)
+    acuse_recibido: Mapped[Optional[dict]] = mapped_column(JSONB)
 
     def __repr__(self):
         """Representación"""

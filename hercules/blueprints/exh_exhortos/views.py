@@ -29,7 +29,7 @@ from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.pwgen import generar_identificador
-from lib.safe_string import safe_clave, safe_expediente, safe_message, safe_string
+from lib.safe_string import safe_expediente, safe_message, safe_string
 from lib.time_to_text import dia_mes_ano
 
 MODULO = "EXH EXHORTOS"
@@ -428,45 +428,6 @@ def launch_task_query(exh_exhorto_id):
     return redirect(url_for("tareas.detail", tarea_id=tarea.id))
 
 
-@exh_exhortos.route("/exh_exhortos/responder/<int:exh_exhorto_id>")
-@permission_required(MODULO, Permiso.CREAR)
-def launch_task_reply(exh_exhorto_id):
-    """Lanzar tarea en el fondo para responder un exhorto al PJ Externo"""
-    exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
-    es_valido = True
-    # Validar estatus
-    if exh_exhorto.estatus != "A":
-        flash("El exhorto no está activo", "warning")
-        es_valido = False
-    # Validar el remitente
-    if exh_exhorto.remitente != "EXTERNO":
-        flash("No puede se puede responder porque no tiene remitente EXTERNO", "warning")
-        es_valido = False
-    # Validar el estado
-    if exh_exhorto.estado not in ("RECIBIDO", "TRANSFERIDO", "PROCESANDO", "CONTESTADO", "RECHAZADO"):
-        flash(f"No puede se puede responder porque el estado {exh_exhorto.estado} no lo permite.", "warning")
-        es_valido = False
-    # Si NO es válido, redirigir al detalle
-    if es_valido is False:
-        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
-    # Insertar en la bitácora
-    bitacora = Bitacora(
-        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-        usuario=current_user,
-        descripcion=safe_message(f"Se ha RESPONDIDO el exhorto {exh_exhorto.exhorto_origen_id}"),
-        url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
-    )
-    bitacora.save()
-    # Lanzar tarea en el fondo
-    tarea = current_user.launch_task(
-        comando="exh_exhortos.tasks.task_responder_exhorto",
-        mensaje="Respondiendo el exhorto al PJ externo",
-        exh_exhorto_id=exh_exhorto_id,
-    )
-    flash("Se ha lanzado la tarea en el fondo. Esta página se va a recargar en 10 segundos...", "info")
-    return redirect(url_for("tareas.detail", tarea_id=tarea.id))
-
-
 @exh_exhortos.route("/exh_exhortos/enviar/<int:exh_exhorto_id>")
 @permission_required(MODULO, Permiso.CREAR)
 def launch_task_send(exh_exhorto_id):
@@ -540,6 +501,7 @@ def change_to_archive(exh_exhorto_id):
     if es_valido is False:
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
     # Cambiar el estado
+    exh_exhorto.estado_anterior = exh_exhorto.estado
     exh_exhorto.estado = "ARCHIVADO"
     exh_exhorto.save()
     bitacora = Bitacora(
@@ -574,6 +536,7 @@ def change_to_cancel(exh_exhorto_id):
     if es_valido is False:
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
     # Cambiar el estado
+    exh_exhorto.estado_anterior = exh_exhorto.estado
     exh_exhorto.estado = "CANCELADO"
     exh_exhorto.save()
     bitacora = Bitacora(
@@ -608,6 +571,7 @@ def change_to_pending(exh_exhorto_id):
     if es_valido is False:
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
     # Cambiar el estado
+    exh_exhorto.estado_anterior = exh_exhorto.estado
     exh_exhorto.estado = "PENDIENTE"
     exh_exhorto.save()
     bitacora = Bitacora(
@@ -645,6 +609,7 @@ def change_to_process(exh_exhorto_id):
     form = ExhExhortoProcessForm()
     if form.validate_on_submit():
         exh_exhorto.numero_exhorto = safe_string(form.numero_exhorto.data)
+        exh_exhorto.estado_anterior = exh_exhorto.estado
         exh_exhorto.estado = "PROCESANDO"
         exh_exhorto.save()
         bitacora = Bitacora(
@@ -692,6 +657,7 @@ def change_to_refuse(exh_exhorto_id):
     # Recibir el formulario
     form = ExhExhortoRefuseForm(CombinedMultiDict((request.files, request.form)))
     if form.validate_on_submit():
+        exh_exhorto.estado_anterior = exh_exhorto.estado
         exh_exhorto.estado = "RECHAZADO"
         exh_exhorto.respuesta_tipo_diligenciado = 0
         exh_exhorto.save()
@@ -752,6 +718,7 @@ def change_to_send(exh_exhorto_id):
     if es_valido is False:
         return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
     # Cambiar el estado
+    exh_exhorto.estado_anterior = exh_exhorto.estado
     exh_exhorto.estado = "POR ENVIAR"
     exh_exhorto.por_enviar_intentos = 0
     exh_exhorto.save()
@@ -787,6 +754,7 @@ def change_to_transfer(exh_exhorto_id):
     if form.validate_on_submit():
         exh_exhorto.exh_area_id = form.exh_area.data
         exh_exhorto.autoridad_id = form.autoridad.data
+        exh_exhorto.estado_anterior = exh_exhorto.estado
         exh_exhorto.estado = "TRANSFIRIENDO"
         exh_exhorto.save()
         bitacora = Bitacora(

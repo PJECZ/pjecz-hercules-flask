@@ -133,6 +133,10 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
         "videos": videos,
     }
 
+    # Conservar el paquete que se va enviar en la base de datos
+    exh_exhorto_respuesta.paquete_enviado = payload_for_json
+    exh_exhorto_respuesta.save()
+
     # Informar a la bitácora que se va a enviar la respuesta
     mensaje_info = "Comienza el envío de la respuesta."
     mensajes.append(mensaje_info)
@@ -296,8 +300,12 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
         raise MyAnyError(mensaje_advertencia + "\n" + "\n".join(mensajes))
     acuse = data["acuse"]
 
-    # Inicializar listado de errores para acumular fallos si los hubiera
-    errores = []
+    # Conservar el acuse recibido en la base de datos
+    exh_exhorto_respuesta.acuse_recibido = acuse
+    exh_exhorto_respuesta.save()
+
+    # Inicializar listado de advertencias para acumular fallos en el acuse si los hubiera
+    advertencias = []
 
     # Validar que el acuse tenga exhortoId
     try:
@@ -306,7 +314,7 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
     except KeyError:
-        errores.append("Faltó exhortoId en el acuse")
+        advertencias.append("Faltó exhortoId en el acuse")
 
     # Validar que el acuse tenga respuestaOrigenId
     try:
@@ -315,7 +323,7 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
     except KeyError:
-        errores.append("Faltó respuestaOrigenId en el acuse")
+        advertencias.append("Faltó respuestaOrigenId en el acuse")
 
     # Validar que el acuse tenga fechaHoraRecepcion
     try:
@@ -325,15 +333,16 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
     except (KeyError, ValueError):
-        errores.append("Faltó o es incorrecta fechaHoraRecepcion en el acuse")
+        advertencias.append("Faltó o es incorrecta fechaHoraRecepcion en el acuse")
 
-    # Terminar si hubo errores
-    if len(errores) > 0:
-        mensaje_advertencia = ", ".join(errores)
+    # Si hubo advertencias
+    if len(advertencias) > 0:
+        mensaje_advertencia = ", ".join(advertencias)
         bitacora.warning(mensaje_advertencia)
-        raise MyAnyError(mensaje_advertencia + "\n" + "\n".join(mensajes))
+        # raise MyAnyError(mensaje_advertencia + "\n" + "\n".join(mensajes))
 
     # Actualizar la respuesta con los datos del acuse
+    exh_exhorto_respuesta.estado_anterior = exh_exhorto_respuesta.estado
     exh_exhorto_respuesta.estado = "ENVIADO"
     exh_exhorto_respuesta.exh_exhorto.estado = "RESPONDIDO"  # Actualizar el exhorto con el estado RESPONDIDO
     exh_exhorto_respuesta.save()
