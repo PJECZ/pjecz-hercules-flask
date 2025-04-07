@@ -3,10 +3,10 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Destinatario-Remitente {{ exh_externo.clave }}{% endblock %}
+{% block title %}Externo {{ exh_externo.clave }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Destinatario-Remitente ' + exh_externo.clave) %}
+    {% call topbar.page_buttons('Externo ' + exh_externo.clave) %}
         {{ topbar.button_previous('Externos', url_for('exh_externos.list_active')) }}
         {% if current_user.can_edit('EXH EXTERNOS') %}
             {{ topbar.button_edit('Editar', url_for('exh_externos.edit', exh_externo_id=exh_externo.id)) }}

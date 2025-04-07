@@ -58,6 +58,10 @@ class ExhExhortoPromocion(database.Model, UniversalMixin):
     # Folio de la promoción recibida, se va a generar cuando se entreguen todos los archivos
     folio_promocion_recibida: Mapped[Optional[str]] = mapped_column(String(64))
 
+    #
+    # Internos
+    #
+
     # Si el remitente es INTERNO entonces fue creada por nosotros, si es EXTERNO fue creada por otro PJ
     remitente: Mapped[str] = mapped_column(
         Enum(*REMITENTES, name="exh_exhortos_promociones_remitentes", native_enum=False), index=True
@@ -70,6 +74,10 @@ class ExhExhortoPromocion(database.Model, UniversalMixin):
     # Conservar el JSON que se genera cuando se hace el envío y el que se recibe con el acuse
     paquete_enviado: Mapped[Optional[dict]] = mapped_column(JSONB)
     acuse_recibido: Mapped[Optional[dict]] = mapped_column(JSONB)
+
+    #
+    # Hijos
+    #
 
     # Hijo: archivos
     # Colección de los datos referentes a los archivos que se van a recibir el Poder Judicial exhortado en el envío del Exhorto.

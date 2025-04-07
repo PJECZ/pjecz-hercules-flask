@@ -46,6 +46,7 @@ from hercules.blueprints.exh_exhortos_respuestas.views import exh_exhortos_respu
 from hercules.blueprints.exh_exhortos_respuestas_archivos.views import exh_exhortos_respuestas_archivos
 from hercules.blueprints.exh_exhortos_respuestas_videos.views import exh_exhortos_respuestas_videos
 from hercules.blueprints.exh_externos.views import exh_externos
+from hercules.blueprints.exh_tipos_diligencias.views import exh_tipos_diligencias
 from hercules.blueprints.fin_vales.views import fin_vales
 from hercules.blueprints.funcionarios.views import funcionarios
 from hercules.blueprints.funcionarios_oficinas.views import funcionarios_oficinas
@@ -139,6 +140,7 @@ def create_app():
     app.register_blueprint(exh_exhortos_respuestas_archivos)
     app.register_blueprint(exh_exhortos_respuestas_videos)
     app.register_blueprint(exh_externos)
+    app.register_blueprint(exh_tipos_diligencias)
     app.register_blueprint(edictos)
     app.register_blueprint(edictos_acuses)
     app.register_blueprint(entradas_salidas)

@@ -43,9 +43,13 @@
                             <label for="filtroClave">Clave</label>
                         </div>
                     </div>
-                    <div class="col-8">
+                    <div class="col-4">
+                        <div class="form-floating">
+                            <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción">
+                            <label for="filtroDescripcion">Descripción</label>
+                        </div>
                     </div>
-                    <div class="col-2 text-end">
+                    <div class="col-6 text-end">
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosExhExternos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
                         <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosExhExternos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
@@ -107,6 +111,7 @@
         // Filtros exh_externos
         const filtrosExhExternos = new FiltrosDataTable('#exh_externos_datatable', configDTExhExternos);
         filtrosExhExternos.agregarInput('filtroClave', 'clave');
+        filtrosExhExternos.agregarInput('filtroDescripcion', 'descripcion');
         filtrosExhExternos.precargar();
     </script>
 {% endblock %}

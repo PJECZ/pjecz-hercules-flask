@@ -62,6 +62,15 @@ class ExhExhortoParte(database.Model, UniversalMixin):
     # Aquí se puede especificar el nombre del tipo de parte. Opcional.
     tipo_parte_nombre: Mapped[Optional[str]] = mapped_column(String(256))
 
+    # Dirección de correo electrónico de la parte,
+    # esto para facilitar el acceso a los medios electrónicos correspondientes al exhorto
+    correo_electronico: Mapped[Optional[str]] = mapped_column(String(256))
+
+    # Número de teléfono (los 10 digitos numéricos del teléfono) de contacto para la parte,
+    # es recomendable especificarlo cuando el objeto PersonaParte corresponde a un promovente del exhorto o
+    # promovente de la promoción de exhorto.
+    telefono: Mapped[Optional[str]] = mapped_column(String(10))
+
     @property
     def genero_descripcion(self):
         """Descripción del género"""

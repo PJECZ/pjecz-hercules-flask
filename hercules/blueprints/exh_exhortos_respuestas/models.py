@@ -72,6 +72,10 @@ class ExhExhortoRespuesta(database.Model, UniversalMixin):
     # Texto simple referente a alguna observación u observaciones correspondientes a la respuesta del Exhorto
     observaciones: Mapped[Optional[str]] = mapped_column(String(1024))
 
+    #
+    # Internos
+    #
+
     # Si el remitente es INTERNO entonces fue creada por nosotros, si es EXTERNO fue creada por otro PJ
     remitente: Mapped[str] = mapped_column(
         Enum(*REMITENTES, name="exh_exhortos_respuestas_remitentes", native_enum=False), index=True
@@ -84,6 +88,10 @@ class ExhExhortoRespuesta(database.Model, UniversalMixin):
     # Conservar el JSON que se genera cuando se hace el envío y el que se recibe con el acuse
     paquete_enviado: Mapped[Optional[dict]] = mapped_column(JSONB)
     acuse_recibido: Mapped[Optional[dict]] = mapped_column(JSONB)
+
+    #
+    # Hijos
+    #
 
     # Hijo: Archivos de la respuesta
     exh_exhortos_respuestas_archivos: Mapped[List["ExhExhortoRespuestaArchivo"]] = relationship(
