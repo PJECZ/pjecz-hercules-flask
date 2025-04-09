@@ -160,12 +160,20 @@ class ExhExhorto(database.Model, UniversalMixin):
     # Hijos
     #
 
-    # Hijo: Definición de las partes del Expediente
+    # Hijo: Archivos
+    # Colección de los datos referentes a los archivos que se van a recibir el Poder Judicial exhortado en el envío del Exhorto.
+    exh_exhortos_archivos: Mapped[List["ExhExhortoArchivo"]] = relationship("ExhExhortoArchivo", back_populates="exh_exhorto")
+
+    # Hijo: Partes
+    # Contiene la definición de las partes del Expediente/Juicio/Asunto en el Juzgado/Área de origen
     exh_exhortos_partes: Mapped[List["ExhExhortoParte"]] = relationship("ExhExhortoParte", back_populates="exh_exhorto")
 
-    # Hijo: Colección de los datos referentes a los archivos
-    # que se van a recibir el Poder Judicial exhortado en el envío del Exhorto.
-    exh_exhortos_archivos: Mapped[List["ExhExhortoArchivo"]] = relationship("ExhExhortoArchivo", back_populates="exh_exhorto")
+    # Hijo: Promoventes
+    # Contiene la definición del promovente o los promoventes del exhorto, que comúnmente será el representante legal o abogado.
+    # Donde se debe especificar el correo electrónico para darle acceso a medios electrónicos.
+    exh_exhortos_promoventes: Mapped[List["ExhExhortoPromovente"]] = relationship(
+        "ExhExhortoPromovente", back_populates="exh_exhorto"
+    )
 
     # Hijo: Actualizaciones
     exh_exhortos_actualizaciones: Mapped[List["ExhExhortoActualizacion"]] = relationship(

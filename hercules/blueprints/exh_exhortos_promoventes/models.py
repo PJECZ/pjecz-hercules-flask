@@ -1,5 +1,5 @@
 """
-Exh Exhortos Partes, modelos
+Exh Exhortos Promoventes, modelos
 """
 
 from typing import Optional
@@ -11,8 +11,8 @@ from hercules.extensions import database
 from lib.universal_mixin import UniversalMixin
 
 
-class ExhExhortoParte(database.Model, UniversalMixin):
-    """ExhExhortoParte"""
+class ExhExhortoPromovente(database.Model, UniversalMixin):
+    """ExhExhortoPromovente"""
 
     GENEROS = {
         "M": "Masculino",
@@ -27,14 +27,14 @@ class ExhExhortoParte(database.Model, UniversalMixin):
     }
 
     # Nombre de la tabla
-    __tablename__ = "exh_exhortos_partes"
+    __tablename__ = "exh_exhortos_promoventes"
 
     # Clave primaria
     id: Mapped[int] = mapped_column(primary_key=True)
 
     # Clave foránea
     exh_exhorto_id: Mapped[int] = mapped_column(ForeignKey("exh_exhortos.id"))
-    exh_exhorto: Mapped["ExhExhorto"] = relationship(back_populates="exh_exhortos_partes")
+    exh_exhorto: Mapped["ExhExhorto"] = relationship(back_populates="exh_exhortos_promoventes")
 
     # Nombre de la parte, en el caso de persona moral, solo en nombre de la empresa o razón social.
     nombre: Mapped[str] = mapped_column(String(256))
@@ -98,4 +98,4 @@ class ExhExhortoParte(database.Model, UniversalMixin):
 
     def __repr__(self):
         """Representación"""
-        return f"<ExhExhortoParte {self.id}>"
+        return f"<ExhExhortoPromovente {self.id}>"

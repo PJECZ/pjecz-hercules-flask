@@ -300,6 +300,24 @@
                 {% endif %}
             {% endcall %}
         {% endif %}
+        <!-- DataTable exh_exhortos_promoventes -->
+        {% if current_user.can_view('EXH EXHORTOS PROMOVENTES') %}
+            {% call detail.card("Promoventes") %}
+                <table id="exh_exhortos_promoventes_datatable" class="table display nowrap" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Nombre Completo</th>
+                            <th>Género</th>
+                            <th>Es Persona Moral</th>
+                            <th>Tipo Parte</th>
+                        </tr>
+                    </thead>
+                </table>
+                {% if exh_exhorto.remitente == 'INTERNO' and exh_exhorto.estado == 'PENDIENTE' and current_user.can_insert('EXH EXHORTOS PROMOVENTES') %}
+                    <a class="btn btn-primary" href="{{ url_for('exh_exhortos_promoventes.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id) }}">Agregar Parte</a>
+                {% endif %}
+            {% endcall %}
+        {% endif %}
     {% endif %}
     <!-- DataTable exh_exhortos_respuestas -->
     {% if exh_exhorto.estado in ('RECIBIDO', 'RECIBIDO CON EXITO', 'PROCESANDO', 'RESPONDIDO', 'CONTESTADO', 'ARCHIVADO') and current_user.can_view('EXH EXHORTOS RESPUESTAS') %}
@@ -486,6 +504,42 @@
             // Filtros exh_exhortos_archivos
             const filtrosArchivos = new FiltrosDataTable('#exh_exhortos_archivos_datatable', configDTArchivos);
             filtrosArchivos.precargar();
+        </script>
+    {% endif %}
+    {% if exh_exhorto.estado == 'PENDIENTE' and current_user.can_view('EXH EXHORTOS PROMOVENTES') %}
+        <script>
+            // DataTable exh_exhortos_promoventes
+            let configDTPromoventes = constructorDataTable.config();
+            configDTPromoventes['ajax']['url'] = '/exh_exhortos_promoventes/datatable_json';
+            configDTPromoventes['ajax']['data'] = {'estatus':'A', 'exh_exhorto_id':{{exh_exhorto.id}}};
+            configDTPromoventes['columns'] = [
+                { data: 'detalle' },
+                { data: 'genero_descripcion' },
+                { data: 'es_persona_moral' },
+                { data: 'tipo_parte_descripcion' }
+            ];
+            configDTPromoventes['columnDefs'] = [
+                {
+                    targets: 0, // detalle
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '">' + data.nombre + '</a>';
+                    }
+                },
+                {
+                    targets: 2, // es_persona_moral
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        if (data == true) {
+                            return "SÍ";
+                        }
+                        return "-";
+                    }
+                }
+            ];
+            // Filtros exh_exhortos_promoventes
+            const filtrosPartes = new FiltrosDataTable('#exh_exhortos_promoventes_datatable', configDTPromoventes);
+            filtrosPartes.precargar();
         </script>
     {% endif %}
     {% if exh_exhorto.estado in ('RECIBIDO', 'RECIBIDO CON EXITO', 'PROCESANDO', 'RESPONDIDO', 'CONTESTADO', 'ARCHIVADO') and current_user.can_view('EXH EXHORTOS RESPUESTAS') %}

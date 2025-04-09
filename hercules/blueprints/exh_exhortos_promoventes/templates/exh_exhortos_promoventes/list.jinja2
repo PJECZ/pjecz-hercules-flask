@@ -1,0 +1,78 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('EXH AREAS') %}
+            {{ topbar.button('Áreas', url_for('exh_areas.list_active'), 'mdi:office-building-marker') }}
+        {% endif %}
+        {% if current_user.can_view('EXH EXHORTOS') %}
+            {{ topbar.button('Exhortos', url_for('exh_exhortos.list_active'), 'mdi:email-fast') }}
+        {% endif %}
+        {% if current_user.can_view('EXH EXTERNOS') %}
+            {{ topbar.button('Externos', url_for('exh_externos.list_active'), 'mdi:home-map-marker') }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS PROMOVENTES') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_exhortos_promoventes.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('exh_exhortos_promoventes.list_active')) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call list.card() %}
+        <!-- DataTable exh_exhortos_promoventes -->
+        <table id="exh_exhortos_promoventes_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Clave</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable exh_exhortos_promoventes
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDataTable = constructorDataTable.config();
+        configDataTable['ajax']['url'] = '/exh_exhortos_promoventes/datatable_json';
+        configDataTable['ajax']['data'] = {{ filtros }};
+        configDataTable['columns'] = [
+            { data: 'detalle' },
+            { data: 'genero_descripcion' },
+            { data: 'es_persona_moral' },
+            { data: 'tipo_parte_descripcion' },
+            { data: 'exhorto_origen_id' }
+        ];
+        configDataTable['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.url != '') {
+                        return '<a href="' + data.url + '">' + data.nombre + '</a>';
+                    }
+                    return data.nombre;
+                }
+            },
+            {
+                targets: 2, // es_persona_moral
+                data: null,
+                render: function(data, type, row, meta) {
+                    return data ? 'Sí' : '';
+                }
+            }
+        ];
+        // Filtros exh_exhortos_promoventes
+        const filtrosExhExhortosPromoventes = new FiltrosDataTable('#exh_exhortos_promoventes_datatable', configDataTable);
+        filtrosExhExhortosPromoventes.precargar();
+    </script>
+{% endblock %}
