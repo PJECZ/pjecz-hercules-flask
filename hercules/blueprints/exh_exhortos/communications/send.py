@@ -111,6 +111,8 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
                 "esPersonaMoral": bool(parte.es_persona_moral),
                 "tipoParte": int(parte.tipo_parte),
                 "tipoParteNombre": str(parte.tipo_parte_nombre),
+                "correoElectronico": str(parte.correo_electronico),
+                "telefono": str(parte.telefono),
             }
         )
 
@@ -125,6 +127,25 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
                 "hashSha1": str(archivo.hash_sha1),
                 "hashSha256": str(archivo.hash_sha256),
                 "tipoDocumento": int(archivo.tipo_documento),
+            }
+        )
+
+    # Bucle para juntar los datos de los promoventes
+    promoventes = []
+    for promovente in exh_exhorto.exh_exhortos_promoventes:
+        if promovente.estado == "CANCELADO":
+            continue
+        promoventes.append(
+            {
+                "nombre": str(promovente.nombre),
+                "apellidoPaterno": str(promovente.apellido_paterno),
+                "apellidoMaterno": str(promovente.apellido_materno),
+                "genero": str(promovente.genero),
+                "esPersonaMoral": bool(promovente.es_persona_moral),
+                "tipoParte": int(promovente.tipo_parte),
+                "tipoParteNombre": str(promovente.tipo_parte_nombre),
+                "correoElectronico": str(promovente.correo_electronico),
+                "telefono": str(promovente.telefono),
             }
         )
 
@@ -144,10 +165,12 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         "partes": partes,
         "fojas": int(exh_exhorto.fojas),
         "diasResponder": int(exh_exhorto.dias_responder),
+        "tipoDiligenciaId": str(exh_exhorto.tipo_diligenciacion_id),
         "tipoDiligenciacionNombre": str(exh_exhorto.tipo_diligenciacion_nombre),
         "fechaOrigen": exh_exhorto.fecha_origen.strftime("%Y-%m-%d %H:%M:%S"),
         "observaciones": str(exh_exhorto.observaciones),
         "archivos": archivos,
+        "promoventes": promoventes,
     }
 
     # Conservar el paquete que se va enviar en la base de datos
