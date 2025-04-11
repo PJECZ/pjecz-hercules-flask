@@ -23,6 +23,7 @@ from hercules.blueprints.exh_exhortos.models import ExhExhorto
 from hercules.blueprints.exh_exhortos_archivos.models import ExhExhortoArchivo
 from hercules.blueprints.exh_exhortos_partes.models import ExhExhortoParte
 from hercules.blueprints.exh_externos.models import ExhExterno
+from hercules.blueprints.exh_tipos_diligencias.models import ExhTipoDiligencia
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.municipios.models import Municipio
 from hercules.blueprints.permisos.models import Permiso
@@ -33,6 +34,8 @@ from lib.safe_string import safe_expediente, safe_message, safe_string
 from lib.time_to_text import dia_mes_ano
 
 MODULO = "EXH EXHORTOS"
+
+EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO = "OTR"
 
 exh_exhortos = Blueprint("exh_exhortos", __name__, template_folder="templates")
 
@@ -175,6 +178,8 @@ def new():
         if juzgado_origen is None:
             flash("El juzgado de origen no es válido", "warning")
             es_valido = False
+        # Consultar el tipo de diligencia por defecto
+        # TODO
         # Inicilizar las variables para la clave y el nombre de la materia
         materia_clave = form.materia.data
         materia_nombre = ""
