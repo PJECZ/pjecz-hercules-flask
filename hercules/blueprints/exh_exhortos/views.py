@@ -19,9 +19,8 @@ from hercules.blueprints.exh_exhortos.forms import (
     ExhExhortoRefuseForm,
     ExhExhortoTransferForm,
 )
+from hercules.blueprints.exh_areas.models import ExhArea
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
-from hercules.blueprints.exh_exhortos_archivos.models import ExhExhortoArchivo
-from hercules.blueprints.exh_exhortos_partes.models import ExhExhortoParte
 from hercules.blueprints.exh_externos.models import ExhExterno
 from hercules.blueprints.exh_tipos_diligencias.models import ExhTipoDiligencia
 from hercules.blueprints.modulos.models import Modulo
@@ -34,10 +33,11 @@ from lib.safe_string import safe_expediente, safe_message, safe_string
 from lib.time_to_text import dia_mes_ano
 
 MODULO = "EXH EXHORTOS"
-
-EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO = "OTR"
-
 exh_exhortos = Blueprint("exh_exhortos", __name__, template_folder="templates")
+
+AUTORIDAD_CLAVE_POR_DEFECTO = "ND"
+EXH_AREA_CLAVE_POR_DEFECTO = "ND"
+EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO = "OTR"
 
 
 @exh_exhortos.route("/exh_exhortos/acuses/recepcion/<id_hashed>")
@@ -170,6 +170,22 @@ def detail(exh_exhorto_id):
 @permission_required(MODULO, Permiso.CREAR)
 def new():
     """Nuevo Exhorto"""
+    # Consultar Autoridad por defecto
+    autoridad = Autoridad.query.filter_by(clave=AUTORIDAD_CLAVE_POR_DEFECTO).first()
+    if autoridad is None:
+        flash(f"No hay registro de Autoridad con clave {AUTORIDAD_CLAVE_POR_DEFECTO}", "warning")
+        return redirect(url_for("exh_exhortos.list_active"))
+    # Consultar ExhArea por defecto
+    exh_area = ExhArea.query.filter_by(clave=EXH_AREA_CLAVE_POR_DEFECTO).first()
+    if exh_area is None:
+        flash(f"No hay registro de ExhArea con clave {EXH_AREA_CLAVE_POR_DEFECTO}", "warning")
+        return redirect(url_for("exh_exhortos.list_active"))
+    # Consultar ExhTipoDiligencia por defecto
+    exh_tipo_diligencia = ExhTipoDiligencia.query.filter_by(clave=EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO).first()
+    if exh_tipo_diligencia is None:
+        flash(f"No hay registro de ExhTipoDiligencia con clave {EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO}", "warning")
+        return redirect(url_for("exh_exhortos.list_active"))
+    # Recibir el formulario
     form = ExhExhortoNewForm()
     if form.validate_on_submit():
         es_valido = True
@@ -209,7 +225,10 @@ def new():
         # Si es valido, guardar
         if es_valido:
             exh_exhorto = ExhExhorto(
-                exhorto_origen_id=generar_identificador(),
+                autoridad_id=autoridad.id,
+                exh_area_id=exh_area.id,
+                exh_tipo_diligencia_id=exh_tipo_diligencia.id,
+                exhorto_origen_id=form.exhorto_origen_id.data,
                 municipio_destino_id=form.municipio_destino.data,
                 materia_clave=materia_clave,
                 materia_nombre=materia_nombre,
@@ -226,8 +245,6 @@ def new():
                 fecha_origen=form.fecha_origen.data,
                 observaciones=safe_string(form.observaciones.data, save_enie=True, max_len=1024),
                 # Datos por defecto
-                exh_area_id=1,  # valor: NO DEFINIDO
-                autoridad_id=342,  # valor por defecto: ND - NO DEFINIDO
                 numero_exhorto="",
                 remitente="INTERNO",
                 estado="PENDIENTE",
@@ -245,7 +262,7 @@ def new():
     # Consultar el estado de origen por medio de la clave INEGI en la variable de entorno ESTADO_CLAVE
     estado_origen_id = current_app.config["ESTADO_CLAVE"]
     # Definir valores por defecto del formulario
-    form.exhorto_origen_id.data = "0" * 24  # Read only
+    form.exhorto_origen_id.data = generar_identificador()  # Read only
     form.estado_origen.data = Estado.query.get(estado_origen_id).nombre  # Read only
     form.estado.data = "PENDIENTE"
     form.fecha_origen.data = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -336,7 +353,6 @@ def edit(exh_exhorto_id):
     form.folio_seguimiento.data = exh_exhorto.folio_seguimiento
     form.exh_area.data = exh_exhorto.exh_area.nombre
     form.remitente.data = exh_exhorto.remitente
-    form.numero_exhorto.data = exh_exhorto.numero_exhorto
     form.estado.data = exh_exhorto.estado  # Read only
     # El municipio_destino_id NO es una clave foránea, por lo que debe de consultarse de manera independiente
     municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()

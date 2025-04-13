@@ -314,7 +314,7 @@
                     </thead>
                 </table>
                 {% if exh_exhorto.remitente == 'INTERNO' and exh_exhorto.estado == 'PENDIENTE' and current_user.can_insert('EXH EXHORTOS PROMOVENTES') %}
-                    <a class="btn btn-primary" href="{{ url_for('exh_exhortos_promoventes.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id) }}">Agregar Parte</a>
+                    <a class="btn btn-primary" href="{{ url_for('exh_exhortos_promoventes.new_with_exh_exhorto', exh_exhorto_id=exh_exhorto.id) }}">Agregar Promovente</a>
                 {% endif %}
             {% endcall %}
         {% endif %}
@@ -538,8 +538,8 @@
                 }
             ];
             // Filtros exh_exhortos_promoventes
-            const filtrosPartes = new FiltrosDataTable('#exh_exhortos_promoventes_datatable', configDTPromoventes);
-            filtrosPartes.precargar();
+            const filtrosPromoventes = new FiltrosDataTable('#exh_exhortos_promoventes_datatable', configDTPromoventes);
+            filtrosPromoventes.precargar();
         </script>
     {% endif %}
     {% if exh_exhorto.estado in ('RECIBIDO', 'RECIBIDO CON EXITO', 'PROCESANDO', 'RESPONDIDO', 'CONTESTADO', 'ARCHIVADO') and current_user.can_view('EXH EXHORTOS RESPUESTAS') %}

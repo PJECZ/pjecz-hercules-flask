@@ -53,9 +53,6 @@ class ExhExhortoEditForm(FlaskForm):
     folio_seguimiento = StringField("Folio de Seguimiento", validators=[Optional()])
     exh_area = StringField("Área", validators=[Optional()])
     remitente = StringField("Remitente", validators=[Optional()])
-    distrito = StringField("Distrito", validators=[Optional()])
-    autoridad = StringField("Autoridad", validators=[Optional()])
-    numero_exhorto = StringField("Número de Exhorto", validators=[Optional()])
     estado = StringField("Estado", validators=[Optional()])
 
     # Campos select con opciones que se cargan con javascript
