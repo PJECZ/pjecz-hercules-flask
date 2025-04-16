@@ -66,6 +66,21 @@ def datatable_json():
     return output_datatable_json(draw, total, data)
 
 
+@exh_tipos_diligencias.route("/exh_tipos_diligencias/select_json", methods=["GET", "POST"])
+def select_json():
+    """Proporcionar el JSON para elegir con un select tradicional"""
+    consulta = ExhTipoDiligencia.query.order_by(ExhTipoDiligencia.nombre)
+    data = []
+    for resultado in consulta.all():
+        data.append(
+            {
+                "id": resultado.id,
+                "nombre": resultado.nombre,
+            }
+        )
+    return json.dumps(data)
+
+
 @exh_tipos_diligencias.route("/exh_tipos_diligencias")
 def list_active():
     """Listado de Tipos de Diligencias activos"""

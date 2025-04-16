@@ -30,16 +30,16 @@
                     {% call f.form_group(form.juez_exhortante) %}{% endcall %}
                     {% call f.form_group(form.fojas) %}{% endcall %}
                     {% call f.form_group(form.dias_responder) %}{% endcall %}
-                    {% call f.form_group(form.tipo_diligenciacion_nombre) %}{% endcall %}
-                    {% call f.form_group(form.fecha_origen, readonly=true) %}{% endcall %}
-                    {% call f.form_group(form.observaciones) %}{% endcall %}
             </div>
                 <div class="col-md-6">
                     {% call f.form_group(form.folio_seguimiento, readonly=true) %}{% endcall %}
                     {% call f.form_group(form.estado_destino) %}{% endcall %}
                     {% call f.form_group(form.municipio_destino) %}{% endcall %}
                     {% call f.form_group(form.materia) %}{% endcall %}
-                    {% call f.form_group(form.estado, readonly=true) %}{% endcall %}
+                    {% call f.form_group(form.tipo_diligencia) %}{% endcall%}
+                    {% call f.form_group(form.tipo_diligenciacion_nombre) %}{% endcall %}
+                    {% call f.form_group(form.fecha_origen, readonly=true) %}{% endcall %}
+                    {% call f.form_group(form.observaciones) %}{% endcall %}
                 </div>
             </div>
             {% call f.form_group(form.crear) %}{% endcall %}
@@ -50,38 +50,36 @@
 {% block custom_javascript %}
     <!-- Combo select Estados Destino - Municipios Destino -->
     <script>
-        // Llamar a /estados/select_json para cargar las opciones en el select estados
+        // Cargar las opciones en estado_destino
         fetch('/estados/select_json')
             .then(response => response.json())
             .then(data => {
-                const estadoSelect = document.getElementById('estado_destino');
+                const estadoDestinoSelect = document.getElementById('estado_destino');
                 data.forEach(estado => {
                     const option = document.createElement('option');
                     option.value = estado.id;
                     option.text = estado.nombre;
-                    estadoSelect.appendChild(option);
+                    estadoDestinoSelect.appendChild(option);
                 });
-                // Efectuar el cambio de selección
                 document.getElementById('estado_destino').dispatchEvent(new Event('change'));
             });
-        // Si estado_destino cambia...
+        // Si estado_destino cambia actualizar el select municipio_destino
         document.getElementById('estado_destino').addEventListener('change', () => {
-            const estadoId = document.getElementById('estado_destino').value;
-            // Llamar a /municipios/select_json para cambiar las opciones en el select municipio
-            fetch(`/municipios/select_json/${estadoId}`)
+            const estadoDestinoId = document.getElementById('estado_destino').value;
+            fetch(`/municipios/select_json/${estadoDestinoId}`)
                 .then(response => response.json())
                 .then(data => {
-                    const municipioSelect = document.getElementById('municipio_destino');
-                    municipioSelect.innerHTML = '';
+                    const municipioDestinoSelect = document.getElementById('municipio_destino');
+                    municipioDestinoSelect.innerHTML = '';
                     data.forEach(municipio => {
                         const option = document.createElement('option');
                         option.value = municipio.id;
                         option.text = municipio.nombre;
-                        municipioSelect.appendChild(option);
+                        municipioDestinoSelect.appendChild(option);
                     });
                 });
-            // Llamar a /exh_externos/select_materias_json para cambiar las opciones en el select materia
-            fetch(`/exh_externos/select_materias_json/${estadoId}`)
+            // Cargar las opciones en el select materia
+            fetch(`/exh_externos/select_materias_json/${estadoDestinoId}`)
                 .then(response => response.json())
                 .then(data => {
                     const materiaSelect = document.getElementById('materia');
@@ -100,47 +98,47 @@
                 });
         });
     </script>
-    <!-- Combo select Estados Origen - Municipios Origen -->
+    <!-- Select municipio_origen -->
     <script>
-        // Llamar a /estados/select_json para cargar las opciones en el select estados
-        fetch('/estados/select_json')
+        // Cargar las opciones en municipio_origen
+        fetch(`/municipios/select_json/{{ estado_origen_id }}`)
             .then(response => response.json())
             .then(data => {
-                const estadoSelect = document.getElementById('estado_origen');
-                data.forEach(estado => {
+                const municipioSelect = document.getElementById('municipio_origen');
+                municipioSelect.innerHTML = '';
+                data.forEach(municipio => {
                     const option = document.createElement('option');
-                    option.value = estado.id;
-                    option.text = estado.nombre;
-                    estadoSelect.appendChild(option);
+                    option.value = municipio.id;
+                    option.text = municipio.nombre;
+                    municipioSelect.appendChild(option);
                 });
-                // Efectuar el cambio de selección
-                document.getElementById('estado_origen').dispatchEvent(new Event('change'));
+                municipioSelect.value = {{ municipio_origen_id }};
             });
-        // Si el municipio cambia...
-        document.getElementById('estado_origen').addEventListener('change', () => {
-            // Llamar a /municipios/select_json para cargar las opciones en el select municipio
-            fetch(`/municipios/select_json/{{ estado_origen_id }}`)
-                .then(response => response.json())
-                .then(data => {
-                    const municipioSelect = document.getElementById('municipio_origen');
-                    municipioSelect.innerHTML = '';
-                    data.forEach(municipio => {
-                        const option = document.createElement('option');
-                        option.value = municipio.id;
-                        option.text = municipio.nombre;
-                        municipioSelect.appendChild(option);
-                    });
+    </script>
+    <!-- Select tipo_diligencia -->
+    <script>
+        // Llamar a /exh_tipos_diligencias/select_json para cargar las opciones en el select
+        fetch('/exh_tipos_diligencias/select_json')
+            .then(response => response.json())
+            .then(data => {
+                const tipoDiligenciaSelect = document.getElementById('tipo_diligencia');
+                data.forEach(tipoDiligencia => {
+                    const option = document.createElement('option');
+                    option.value = tipoDiligencia.id;
+                    option.text = tipoDiligencia.nombre;
+                    tipoDiligenciaSelect.appendChild(option);
                 });
-        });
+                tipoDiligenciaSelect.value = {{ tipo_diligencia_id }};
+            });
     </script>
     <!-- Select2 para juzgado de origen -->
-    <!-- Select2 bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function(){
+            // Select2 agregar clase
             $('#juzgado_origen').addClass('js-example-placeholder-single');
+            // Select2 consultar opciones por AJAX
             $("#juzgado_origen").select2({
-                // --- Carga de emails por Ajax --- //
                 ajax: {
                     url: '/autoridades/select_json',
                     headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
