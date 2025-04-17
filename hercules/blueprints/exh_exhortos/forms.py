@@ -25,7 +25,7 @@ class ExhExhortoNewForm(FlaskForm):
     estado_destino = SelectField("Estado Destino", choices=None, validate_choice=False, validators=[DataRequired()])
     municipio_destino = SelectField("Municipio Destino", choices=None, validate_choice=False, validators=[DataRequired()])
     materia = SelectField("Materia", choices=None, validate_choice=False, validators=[DataRequired()])
-    tipo_diligencia = SelectField("Tipo Diligencia", choices=None, validate_choice=False, validators=[DataRequired()])
+    tipo_diligencia = SelectField("Tipo Diligencia (si es OTROS escriba el nombre)", choices=None, validate_choice=False, validators=[DataRequired()])
 
     # Campos Select2
     juzgado_origen = SelectField("Juzgado Origen", coerce=int, validate_choice=False, validators=[DataRequired()])
@@ -58,7 +58,7 @@ class ExhExhortoEditForm(FlaskForm):
     estado_destino = SelectField("Estado Destino", choices=None, validate_choice=False, validators=[DataRequired()])
     municipio_destino = SelectField("Municipio Destino", choices=None, validate_choice=False, validators=[DataRequired()])
     materia = SelectField("Materia", choices=None, validate_choice=False, validators=[DataRequired()])
-    tipo_diligencia = SelectField("Tipo Diligencia", choices=None, validate_choice=False, validators=[DataRequired()])
+    tipo_diligencia = SelectField("Tipo Diligencia (si es OTROS escriba el nombre)", choices=None, validate_choice=False, validators=[DataRequired()])
 
     # Campos Select2
     juzgado_origen = SelectField("Juzgado Origen", coerce=int, validate_choice=False, validators=[DataRequired()])

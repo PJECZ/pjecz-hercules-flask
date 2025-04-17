@@ -15,6 +15,9 @@
         {% if current_user.can_view('EXH EXTERNOS') %}
             {{ topbar.button('Externos', url_for('exh_externos.list_active'), 'mdi:home-map-marker') }}
         {% endif %}
+        {% if current_user.can_view('EXH TIPOS DILIGENCIAS') %}
+            {{ topbar.button('Tipos Diligencias', url_for('exh_tipos_diligencias.list_active'), 'mdi:label') }}
+        {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS ARCHIVOS') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_exhortos_archivos.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('exh_exhortos_archivos.list_active')) }}{% endif %}

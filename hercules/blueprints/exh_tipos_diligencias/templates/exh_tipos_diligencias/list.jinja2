@@ -6,13 +6,22 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('EXH AREAS') %}
+            {{ topbar.button('Áreas', url_for('exh_areas.list_active'), 'mdi:office-building-marker') }}
+        {% endif %}
+        {% if current_user.can_view('EXH EXHORTOS') %}
+            {{ topbar.button('Exhortos', url_for('exh_exhortos.list_active'), 'mdi:email-fast') }}
+        {% endif %}
+        {% if current_user.can_view('EXH EXTERNOS') %}
+            {{ topbar.button('Externos', url_for('exh_externos.list_active'), 'mdi:home-map-marker') }}
+        {% endif %}
         {% if current_user.can_admin('EXH TIPOS DILIGENCIAS') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_tipos_diligencias.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('exh_tipos_diligencias.list_active')) }}{% endif %}
         {% endif %}
-        {% if current_user.can_insert('EXH TIPOS DILIGENCIAS') %}
+        {# if current_user.can_insert('EXH TIPOS DILIGENCIAS') %}
             {{ topbar.button_new('Nuevo Tipo de Diligencia', url_for('exh_tipos_diligencias.new')) }}
-        {% endif %}
+        {% endif #}
     {% endcall %}
 {% endblock %}
 

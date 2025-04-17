@@ -15,6 +15,7 @@ Para producción, configure los siguientes secretos en Google Cloud Secret Manag
 - pjecz_hercules_flask_expediente_virtual_api_key
 - pjecz_hercules_flask_expediente_virtual_api_url
 - pjecz_hercules_flask_host
+- pjecz_hercules_flask_municipio_clave
 - pjecz_hercules_flask_redis_url
 - pjecz_hercules_flask_salt
 - pjecz_hercules_flask_secret_key
@@ -36,6 +37,7 @@ Para desarrollo, debe crear un archivo .env con las variables de entorno:
 - EXPEDIENTE_VIRTUAL_API_KEY
 - EXPEDIENTE_VIRTUAL_API_URL
 - HOST
+- MUNICIPIO_CLAVE
 - REDIS_URL
 - SALT
 - SECRET_KEY
@@ -92,6 +94,7 @@ class Settings(BaseSettings):
     EXPEDIENTE_VIRTUAL_API_KEY: str = get_secret("expediente_virtual_api_key")
     EXPEDIENTE_VIRTUAL_API_URL: str = get_secret("expediente_virtual_api_url")
     HOST: str = get_secret("host")
+    MUNICIPIO_CLAVE: str = get_secret("municipio_clave")
     REDIS_URL: str = get_secret("redis_url")
     SALT: str = get_secret("salt")
     SECRET_KEY: str = get_secret("secret_key")

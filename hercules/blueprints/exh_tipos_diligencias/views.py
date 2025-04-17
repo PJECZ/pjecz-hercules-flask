@@ -69,13 +69,13 @@ def datatable_json():
 @exh_tipos_diligencias.route("/exh_tipos_diligencias/select_json", methods=["GET", "POST"])
 def select_json():
     """Proporcionar el JSON para elegir con un select tradicional"""
-    consulta = ExhTipoDiligencia.query.order_by(ExhTipoDiligencia.nombre)
+    consulta = ExhTipoDiligencia.query.order_by(ExhTipoDiligencia.descripcion)
     data = []
     for resultado in consulta.all():
         data.append(
             {
                 "id": resultado.id,
-                "nombre": resultado.nombre,
+                "descripcion": resultado.descripcion,
             }
         )
     return json.dumps(data)

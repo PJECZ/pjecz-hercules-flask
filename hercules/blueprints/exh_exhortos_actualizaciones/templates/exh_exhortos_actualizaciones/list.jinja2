@@ -12,14 +12,11 @@
         {% if current_user.can_view('EXH EXHORTOS') %}
             {{ topbar.button('Exhortos', url_for('exh_exhortos.list_active'), 'mdi:email-fast') }}
         {% endif %}
-        {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') %}
-            {{ topbar.button('E. Promociones', url_for('exh_exhortos_promociones.list_active'), 'mdi:receipt-text-plus') }}
-        {% endif %}
-        {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
-            {{ topbar.button('E. Respuestas', url_for('exh_exhortos_respuestas.list_active'), 'mdi:forum') }}
-        {% endif %}
         {% if current_user.can_view('EXH EXTERNOS') %}
             {{ topbar.button('Externos', url_for('exh_externos.list_active'), 'mdi:home-map-marker') }}
+        {% endif %}
+        {% if current_user.can_view('EXH TIPOS DILIGENCIAS') %}
+            {{ topbar.button('Tipos Diligencias', url_for('exh_tipos_diligencias.list_active'), 'mdi:label') }}
         {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS ACTUALIZACIONES') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_exhortos_actualizaciones.list_inactive')) }}{% endif %}

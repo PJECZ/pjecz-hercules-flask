@@ -106,7 +106,7 @@
     <!-- Select municipio_origen -->
     <script>
         // Cargar las opciones en municipio_origen
-        fetch(`/municipios/select_json/{{ estado_origen_id }}`)
+        fetch(`/municipios/select_json/{{ estado_origen_clave }}`)
             .then(response => response.json())
             .then(data => {
                 const municipioSelect = document.getElementById('municipio_origen');
@@ -117,7 +117,7 @@
                     option.text = municipio.nombre;
                     municipioSelect.appendChild(option);
                 });
-                municipioSelect.value = {{ exh_exhorto.municipio_origen_id }};
+                municipioSelect.value = "{{ exh_exhorto.municipio_origen_id }}";
             });
     </script>
     <!-- Select tipo_diligencia -->
@@ -130,10 +130,10 @@
                 data.forEach(tipoDiligencia => {
                     const option = document.createElement('option');
                     option.value = tipoDiligencia.id;
-                    option.text = tipoDiligencia.nombre;
+                    option.text = tipoDiligencia.descripcion;
                     tipoDiligenciaSelect.appendChild(option);
                 });
-                tipoDiligenciaSelect.value = {{ exh_exhorto.tipo_diligencia_id }};
+                tipoDiligenciaSelect.value = "{{ exh_exhorto.exh_tipo_diligencia_id }}";
             });
     </script>
     <!-- Select2 para juzgado de origen -->

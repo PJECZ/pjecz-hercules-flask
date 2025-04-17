@@ -37,7 +37,7 @@ exh_exhortos = Blueprint("exh_exhortos", __name__, template_folder="templates")
 
 AUTORIDAD_CLAVE_POR_DEFECTO = "ND"
 EXH_AREA_CLAVE_POR_DEFECTO = "ND"
-EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO = "OTR"
+EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO = "OTR"  # OTRO va a tomar el campo tipo_diligenciacion_nombre
 
 
 @exh_exhortos.route("/exh_exhortos/acuses/recepcion/<id_hashed>")
@@ -199,12 +199,13 @@ def new():
             juzgado_origen_nombre = juzgado_origen.descripcion
         # Por defecto el tipo de diligenciación toma el campo tipo_diligenciacion_nombre
         exh_tipo_diligencia = exh_tipo_diligencia_por_defecto
-        tipo_diligencia_id = ""  # Sin clave
+        tipo_diligencia_id = EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO  # Note que se conserva la clave
         tipo_diligenciacion_nombre = safe_string(form.tipo_diligenciacion_nombre.data, save_enie=True)
         if form.tipo_diligencia.data:
             exh_tipo_diligencia = ExhTipoDiligencia.query.get(form.tipo_diligencia.data)
-            tipo_diligencia_id = exh_tipo_diligencia.clave  # Note que aquí se guarda la clave
-            tipo_diligenciacion_nombre = exh_tipo_diligencia.descripcion  # No se usa el campo
+            if exh_tipo_diligencia.clave == EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO:
+                tipo_diligencia_id = exh_tipo_diligencia.clave  # Note que se conserva la clave
+                tipo_diligenciacion_nombre = exh_tipo_diligencia.descripcion  # Se usa la descripcion en vez del campo
         # Validar el municipio de destino
         municipio_destino = Municipio.query.get(form.municipio_destino.data)
         if municipio_destino is None:
@@ -283,9 +284,11 @@ def new():
             bitacora.save()
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
-    # Consultar el estado de origen por medio de la clave INEGI en la variable de entorno ESTADO_CLAVE
+    # Consultar el estado y municipio de origen
+    # Tomando las claves INEGI de las variables de entorno ESTADO_CLAVE y MUNICIPIO_CLAVE
     estado_origen_clave = current_app.config["ESTADO_CLAVE"]
     estado_origen = Estado.query.filter_by(clave=estado_origen_clave).first()
+    municipio_origen = Municipio.query.filter_by(estado_id=estado_origen.id).filter_by(clave=current_app.config["MUNICIPIO_CLAVE"]).first()
     # Definir valores por defecto del formulario
     form.exhorto_origen_id.data = generar_identificador()  # Read only
     form.estado_origen.data = estado_origen.nombre  # Read only
@@ -293,7 +296,13 @@ def new():
     form.folio_seguimiento.data = ""  # Read only
     form.juzgado_origen.data = autoridad_por_defecto.id  # Select2
     # Entregar el formulario
-    return render_template("exh_exhortos/new.jinja2", form=form)
+    return render_template(
+        "exh_exhortos/new.jinja2",
+        form=form,
+        estado_origen_clave=estado_origen_clave,
+        municipio_origen_id=municipio_origen.id,
+        tipo_diligencia_id=exh_tipo_diligencia_por_defecto.id,
+    )
 
 
 @exh_exhortos.route("/exh_exhortos/edicion/<int:exh_exhorto_id>", methods=["GET", "POST"])
@@ -325,12 +334,13 @@ def edit(exh_exhorto_id):
             juzgado_origen_nombre = juzgado_origen.descripcion
         # Por defecto el tipo de diligenciación toma el campo tipo_diligenciacion_nombre
         exh_tipo_diligencia = exh_tipo_diligencia_por_defecto
-        tipo_diligencia_id = ""  # Sin clave
-        tipo_diligenciacion_nombre = safe_string(form.tipo_diligenciacion_nombre.data, save_enie=True)
+        tipo_diligencia_id = EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO  # Note que se conserva la clave
+        tipo_diligenciacion_nombre = safe_string(form.tipo_diligenciacion_nombre.data, save_enie=True)  # Se usa el campo
         if form.tipo_diligencia.data:
             exh_tipo_diligencia = ExhTipoDiligencia.query.get(form.tipo_diligencia.data)
-            tipo_diligencia_id = exh_tipo_diligencia.clave  # Note que aquí se guarda la clave
-            tipo_diligenciacion_nombre = exh_tipo_diligencia.descripcion  # No se usa el campo
+            tipo_diligencia_id = exh_tipo_diligencia.clave  # Note que se conserva la clave
+            if exh_tipo_diligencia.clave != EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO:  # No es OTROS
+                tipo_diligenciacion_nombre = exh_tipo_diligencia.descripcion  # Se usa la descripcion de la tabla
         # Validar el municipio de destino
         municipio_destino = Municipio.query.get(form.municipio_destino.data)
         if municipio_destino is None:
@@ -428,6 +438,7 @@ def edit(exh_exhorto_id):
     return render_template(
         "exh_exhortos/edit.jinja2",
         form=form,
+        estado_origen_clave=estado_origen_clave,
         exh_exhorto=exh_exhorto,
         juzgado_origen=juzgado_origen,
         municipio_destino=municipio_destino,
