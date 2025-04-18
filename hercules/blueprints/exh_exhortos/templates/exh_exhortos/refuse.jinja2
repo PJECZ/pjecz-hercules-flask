@@ -67,6 +67,23 @@
                         </ul>
                     </div>
                 </div>
+                <!-- Listado de promoventes -->
+                <div class="row">
+                    <div class="col-md-3 text-end">
+                        Promoventes
+                    </div>
+                    <div class="col-md-9">
+                        <ul class="list-unstyled my-0">
+                            {% for promovente in exh_exhorto.exh_exhortos_promoventes %}
+                                <li>
+                                    <a href="{{ url_for('exh_exhortos_promoventes.detail', exh_exhorto_promovente_id=promovente.id) }}">{{ promovente.nombre_completo }}</a> |
+                                    {{ promovente.genero_descripcion }} |
+                                    {{ promovente.tipo_parte_descripcion }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
             </div>
             <div class="col-md-6">
                 <!-- Datos de Destino -->

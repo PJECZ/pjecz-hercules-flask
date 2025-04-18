@@ -301,7 +301,7 @@ def new():
         form=form,
         estado_origen_clave=estado_origen_clave,
         municipio_origen_id=municipio_origen.id,
-        tipo_diligencia_id=exh_tipo_diligencia_por_defecto.id,
+        exh_tipo_diligencia_por_defecto=exh_tipo_diligencia_por_defecto,
     )
 
 
@@ -440,6 +440,7 @@ def edit(exh_exhorto_id):
         form=form,
         estado_origen_clave=estado_origen_clave,
         exh_exhorto=exh_exhorto,
+        exh_tipo_diligencia_por_defecto=exh_tipo_diligencia_por_defecto,
         juzgado_origen=juzgado_origen,
         municipio_destino=municipio_destino,
     )

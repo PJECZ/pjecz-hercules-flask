@@ -118,18 +118,28 @@
     <!-- Select tipo_diligencia -->
     <script>
         // Llamar a /exh_tipos_diligencias/select_json para cargar las opciones en el select
+        const tipoDiligenciaSelect = document.getElementById('tipo_diligencia');
+        const tipoDiligenciacioNombreInput = document.getElementById('tipo_diligenciacion_nombre')
         fetch('/exh_tipos_diligencias/select_json')
             .then(response => response.json())
             .then(data => {
-                const tipoDiligenciaSelect = document.getElementById('tipo_diligencia');
                 data.forEach(tipoDiligencia => {
                     const option = document.createElement('option');
                     option.value = tipoDiligencia.id;
                     option.text = tipoDiligencia.descripcion;
                     tipoDiligenciaSelect.appendChild(option);
                 });
-                tipoDiligenciaSelect.value = "{{ tipo_diligencia_id }}";
+                tipoDiligenciaSelect.value = "{{ exh_tipo_diligencia_por_defecto.id }}";
             });
+        // Si el tipo de diligencia es "OTROS" habilitar el campo tipo_diligenciacion_nombre
+        tipoDiligenciaSelect.addEventListener('change', () => {
+            if (tipoDiligenciaSelect.value == "{{ exh_tipo_diligencia_por_defecto.id }}") {
+                tipoDiligenciacioNombreInput.disabled = false;
+            } else {
+                tipoDiligenciacioNombreInput.disabled = true;
+                tipoDiligenciacioNombreInput.value = '';
+            }
+        });
     </script>
     <!-- Select2 para juzgado de origen -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>

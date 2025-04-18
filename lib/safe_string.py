@@ -20,6 +20,7 @@ PLAZA_REGEXP = r"^[a-zA-Z0-9]{1,24}$"
 QUINCENA_REGEXP = r"^\d{6}$"
 RFC_REGEXP = r"^[a-zA-Z]{3,4}\d{6}[a-zA-Z0-9]{3}$"
 SENTENCIA_REGEXP = r"^\d+/[12]\d\d\d$"
+TELEFONO_REGEXP = r"^[0-9]{10}$"
 TOKEN_REGEXP = r"^[a-zA-Z0-9_.=+-]+$"
 URL_REGEXP = r"^(https?:\/\/)[0-9a-z-_]*(\.[0-9a-z-_]+)*(\.[a-z]+)+(:(\d+))?(\/[0-9a-z%-_]*)*?\/?$"
 
