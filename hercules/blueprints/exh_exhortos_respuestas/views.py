@@ -23,10 +23,6 @@ from lib.safe_string import safe_expediente, safe_message, safe_string
 
 MODULO = "EXH EXHORTOS RESPUESTAS"
 
-ESTADO_TURNADO_CLAVE = "05"  # Clave INEGI del estado por defecto, 05 es COAHUILA DE ZARAGOZA
-MUNICIPIO_TURNADO_CLAVE = "030"  # Clave INEGI del municipio por defecto, 030 es SALTILLO
-AREA_TURNADO_CLAVE = "SLT-OCP"  # Clave de Área Turnado por defecto
-
 exh_exhortos_respuestas = Blueprint("exh_exhortos_respuestas", __name__, template_folder="templates")
 
 
@@ -201,11 +197,6 @@ def new_with_exh_exhorto(exh_exhorto_id):
         # Mostrar mensaje de éxito y redirigir a la página del detalle del ExhExhorto
         flash(bitacora.descripcion, "success")
         return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta.id))
-
-    # Definir el área turnada por defecto del formulario
-    area_turnado = ExhArea.query.filter_by(clave=AREA_TURNADO_CLAVE).first()
-    if area_turnado:
-        form.area_turnado.data = area_turnado.id
 
     # Definir los valores por defecto del formulario
     form.respuesta_origen_id.data = generar_identificador()  # Read only
