@@ -15,7 +15,7 @@ from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_message, safe_string
+from lib.safe_string import safe_email, safe_message, safe_string, safe_telefono
 
 MODULO = "EXH EXHORTOS PARTES"
 
@@ -131,6 +131,15 @@ def new_with_exh_exhorto(exh_exhorto_id):
                 flash("Debe especificar un 'Tipo Parte Nombre'", "warning")
                 es_valido = False
 
+        # Validad correo_electronico
+        correo_electronico = None
+        if form.correo_electronico.data:
+            try:
+                correo_electronico = safe_email(form.correo_electronico.data)
+            except ValueError:
+                flash("El correo electrónico no es válido", "warning")
+                es_valido = False
+
         # Si es válido, guardar
         if es_valido == True:
             exh_exhorto_parte = ExhExhortoParte(
@@ -142,6 +151,8 @@ def new_with_exh_exhorto(exh_exhorto_id):
                 es_persona_moral=es_persona_moral,
                 tipo_parte=form.tipo_parte.data,
                 tipo_parte_nombre=tipo_parte_nombre,
+                correo_electronico=correo_electronico,
+                telefono=safe_telefono(form.telefono.data),
             )
             exh_exhorto_parte.save()
             bitacora = Bitacora(
@@ -194,6 +205,15 @@ def edit(exh_exhorto_parte_id):
                 flash("Debe especificar un 'Tipo Parte Nombre'", "warning")
                 es_valido = False
 
+        # Validad correo_electronico
+        correo_electronico = None
+        if form.correo_electronico.data:
+            try:
+                correo_electronico = safe_email(form.correo_electronico.data)
+            except ValueError:
+                flash("El correo electrónico no es válido", "warning")
+                es_valido = False
+
         # Si es válido, guardar
         if es_valido is True:
             exh_exhorto_parte.nombre = nombre
@@ -203,6 +223,8 @@ def edit(exh_exhorto_parte_id):
             exh_exhorto_parte.es_persona_moral = es_persona_moral
             exh_exhorto_parte.tipo_parte = form.tipo_parte.data
             exh_exhorto_parte.tipo_parte_nombre = tipo_parte_nombre
+            exh_exhorto_parte.correo_electronico = correo_electronico
+            exh_exhorto_parte.telefono = safe_telefono(form.telefono.data)
             exh_exhorto_parte.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -222,6 +244,8 @@ def edit(exh_exhorto_parte_id):
     form.es_persona_moral.data = exh_exhorto_parte.es_persona_moral
     form.tipo_parte.data = exh_exhorto_parte.tipo_parte
     form.tipo_parte_nombre.data = exh_exhorto_parte.tipo_parte_nombre
+    form.correo_electronico.data = exh_exhorto_parte.correo_electronico
+    form.telefono.data = exh_exhorto_parte.telefono
 
     # Entregar formulario
     return render_template("exh_exhortos_partes/edit.jinja2", form=form, exh_exhorto_parte=exh_exhorto_parte)

@@ -83,6 +83,8 @@ def safe_email(input_str, search_fragment=False) -> str:
     if not isinstance(input_str, str):
         return ""
     final = input_str.strip().lower()
+    if final == "":
+        return ""
     if search_fragment:
         if re.match(r"^[\w.-]*@*[\w.-]*\.*\w*$", final) is None:
             return ""
@@ -144,6 +146,16 @@ def safe_mac_address(input_str):
     en_mayusculas = input_str.upper()
     m = re.sub(r"[^0-9A-F]+", "", en_mayusculas)
     return f"{m[0:2]}:{m[2:4]}:{m[4:6]}:{m[6:8]}:{m[8:10]}:{m[10:12]}"
+
+
+def safe_telefono(input_str):
+    """Safe telefono, debe ser de 10 digitos"""
+    if not isinstance(input_str, str) or input_str.strip() == "":
+        return ""
+    input_str = input_str.strip()
+    if re.match(TELEFONO_REGEXP, input_str) is None:
+        return ""
+    return input_str
 
 
 def safe_text(input_str, max_len=4096, to_uppercase=True):
