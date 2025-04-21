@@ -126,7 +126,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
         # Definir la fecha y hora de recepción
         fecha_hora_recepcion = datetime.now()
 
-        # Insertar el registro ExhExhortoArchivo
+        # Insertar el registro
         exh_exhorto_archivo = ExhExhortoArchivo(
             exh_exhorto=exh_exhorto,
             nombre_archivo=nombre_archivo,
@@ -209,7 +209,7 @@ def edit(exh_exhorto_archivo_id):
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
-        return redirect(bitacora.url)
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_archivo.exh_exhorto_id))
     form.nombre_archivo.data = exh_exhorto_archivo.nombre_archivo
     form.hash_sha1.data = exh_exhorto_archivo.hash_sha1
     form.hash_sha256.data = exh_exhorto_archivo.hash_sha256
@@ -235,6 +235,7 @@ def delete(exh_exhorto_archivo_id):
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_archivo.exh_exhorto_id))
     return redirect(url_for("exh_exhortos_archivos.detail", exh_exhorto_archivo_id=exh_exhorto_archivo.id))
 
 
@@ -253,6 +254,7 @@ def recover(exh_exhorto_archivo_id):
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_archivo.exh_exhorto_id))
     return redirect(url_for("exh_exhortos_archivos.detail", exh_exhorto_archivo_id=exh_exhorto_archivo.id))
 
 

@@ -65,6 +65,10 @@ class ExhExhortoActualizacion(database.Model, UniversalMixin):
     # Este puede ser: "Turnado al Juzgado Tercero Familiar (Municipio)", "Radicado con Número de Exhorto 99999/2024"
     descripcion: Mapped[str] = mapped_column(String(256))
 
+    #
+    # Internos
+    #
+
     # Si el remitente es INTERNO entonces fue creada por nosotros, si es EXTERNO fue creada por otro PJ
     remitente: Mapped[str] = mapped_column(
         Enum(*REMITENTES, name="exh_exhortos_actualizaciones_remitentes", native_enum=False), index=True

@@ -1,5 +1,5 @@
 """
-Exh Exhortos Partes, vistas
+Exh Exhortos Promoventes, vistas
 """
 
 import json
@@ -9,33 +9,33 @@ from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
-from hercules.blueprints.exh_exhortos_partes.forms import ExhExhortoParteForm
-from hercules.blueprints.exh_exhortos_partes.models import ExhExhortoParte
+from hercules.blueprints.exh_exhortos_promoventes.forms import ExhExhortoPromoventeForm
+from hercules.blueprints.exh_exhortos_promoventes.models import ExhExhortoPromovente
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_message, safe_string
 
-MODULO = "EXH EXHORTOS PARTES"
+MODULO = "EXH EXHORTOS PROMOVENTES"
 
-exh_exhortos_partes = Blueprint("exh_exhortos_partes", __name__, template_folder="templates")
+exh_exhortos_promoventes = Blueprint("exh_exhortos_promoventes", __name__, template_folder="templates")
 
 
-@exh_exhortos_partes.before_request
+@exh_exhortos_promoventes.before_request
 @login_required
 @permission_required(MODULO, Permiso.VER)
 def before_request():
     """Permiso por defecto"""
 
 
-@exh_exhortos_partes.route("/exh_exhortos_partes/datatable_json", methods=["GET", "POST"])
+@exh_exhortos_promoventes.route("/exh_exhortos_promoventes/datatable_json", methods=["GET", "POST"])
 def datatable_json():
-    """DataTable JSON para listado de Partes"""
+    """DataTable JSON para listado de Promoventes"""
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
-    consulta = ExhExhortoParte.query
+    consulta = ExhExhortoPromovente.query
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
         consulta = consulta.filter_by(estatus=request.form["estatus"])
@@ -44,7 +44,7 @@ def datatable_json():
     if "exh_exhorto_id" in request.form:
         consulta = consulta.filter_by(exh_exhorto_id=request.form["exh_exhorto_id"])
     # Ordenar y paginar
-    registros = consulta.order_by(ExhExhortoParte.id.desc()).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ExhExhortoPromovente.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -53,7 +53,7 @@ def datatable_json():
             {
                 "detalle": {
                     "nombre": resultado.nombre_completo,
-                    "url": url_for("exh_exhortos_partes.detail", exh_exhorto_parte_id=resultado.id),
+                    "url": url_for("exh_exhortos_promoventes.detail", exh_exhorto_promovente_id=resultado.id),
                 },
                 "genero_descripcion": resultado.genero_descripcion,
                 "es_persona_moral": resultado.es_persona_moral,
@@ -65,44 +65,44 @@ def datatable_json():
     return output_datatable_json(draw, total, data)
 
 
-@exh_exhortos_partes.route("/exh_exhortos_partes")
+@exh_exhortos_promoventes.route("/exh_exhortos_promoventes")
 def list_active():
-    """Listado de Partes activos"""
+    """Listado de Promoventes activos"""
     return render_template(
-        "exh_exhortos_partes/list.jinja2",
+        "exh_exhortos_promoventes/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
-        titulo="Exhortos Partes",
+        titulo="Exhortos Promoventes",
         estatus="A",
     )
 
 
-@exh_exhortos_partes.route("/exh_exhortos_partes/inactivos")
+@exh_exhortos_promoventes.route("/exh_exhortos_promoventes/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Partes inactivas"""
+    """Listado de Promoventes inactivos"""
     return render_template(
-        "exh_exhortos_partes/list.jinja2",
+        "exh_exhortos_promoventes/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Exhortos Partes inactivas",
+        titulo="Exhortos Promoventes inactivos",
         estatus="B",
     )
 
 
-@exh_exhortos_partes.route("/exh_exhortos_partes/<int:exh_exhorto_parte_id>")
-def detail(exh_exhorto_parte_id):
-    """Detalle de un Parte"""
-    exh_exhorto_parte = ExhExhortoParte.query.get_or_404(exh_exhorto_parte_id)
-    return render_template("exh_exhortos_partes/detail.jinja2", exh_exhorto_parte=exh_exhorto_parte)
+@exh_exhortos_promoventes.route("/exh_exhortos_promoventes/<int:exh_exhorto_promovente_id>")
+def detail(exh_exhorto_promovente_id):
+    """Detalle de un Promovente"""
+    exh_exhorto_promovente = ExhExhortoPromovente.query.get_or_404(exh_exhorto_promovente_id)
+    return render_template("exh_exhortos_promoventes/detail.jinja2", exh_exhorto_promovente=exh_exhorto_promovente)
 
 
-@exh_exhortos_partes.route("/exh_exhortos_partes/nuevo/<int:exh_exhorto_id>", methods=["GET", "POST"])
+@exh_exhortos_promoventes.route("/exh_exhortos_promoventes/nuevo/<int:exh_exhorto_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_exh_exhorto(exh_exhorto_id):
-    """Nueva Parte"""
+    """Nuevo Promovente"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
 
     # Crear formulario
-    form = ExhExhortoParteForm()
+    form = ExhExhortoPromoventeForm()
     if form.validate_on_submit():
         es_valido = True
 
@@ -133,7 +133,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
 
         # Si es válido, guardar
         if es_valido == True:
-            exh_exhorto_parte = ExhExhortoParte(
+            exh_exhorto_promovente = ExhExhortoPromovente(
                 exh_exhorto=exh_exhorto,
                 nombre=nombre,
                 apellido_paterno=apellido_paterno,
@@ -143,29 +143,29 @@ def new_with_exh_exhorto(exh_exhorto_id):
                 tipo_parte=form.tipo_parte.data,
                 tipo_parte_nombre=tipo_parte_nombre,
             )
-            exh_exhorto_parte.save()
+            exh_exhorto_promovente.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
-                descripcion=safe_message(f"Nueva Parte {exh_exhorto_parte.nombre_completo}"),
-                url=url_for("exh_exhortos_partes.detail", exh_exhorto_parte_id=exh_exhorto_parte.id),
+                descripcion=safe_message(f"Nueva Parte {exh_exhorto_promovente.nombre_completo}"),
+                url=url_for("exh_exhortos_promoventes.detail", exh_exhorto_promovente_id=exh_exhorto_promovente.id),
             )
             bitacora.save()
             flash(bitacora.descripcion, "success")
-            return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_id))
+            return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id))
 
     # Entregar formulario
-    return render_template("exh_exhortos_partes/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
+    return render_template("exh_exhortos_promoventes/new_with_exh_exhorto.jinja2", form=form, exh_exhorto=exh_exhorto)
 
 
-@exh_exhortos_partes.route("/exh_exhortos_partes/edicion/<int:exh_exhorto_parte_id>", methods=["GET", "POST"])
+@exh_exhortos_promoventes.route("/exh_exhortos_promoventes/edicion/<int:exh_exhorto_promovente_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.MODIFICAR)
-def edit(exh_exhorto_parte_id):
-    """Editar Parte"""
-    exh_exhorto_parte = ExhExhortoParte.query.get_or_404(exh_exhorto_parte_id)
+def edit(exh_exhorto_promovente_id):
+    """Editar Promovente"""
+    exh_exhorto_promovente = ExhExhortoPromovente.query.get_or_404(exh_exhorto_promovente_id)
 
     # Crear formulario
-    form = ExhExhortoParteForm()
+    form = ExhExhortoPromoventeForm()
     if form.validate_on_submit():
         es_valido = True
 
@@ -196,70 +196,70 @@ def edit(exh_exhorto_parte_id):
 
         # Si es válido, guardar
         if es_valido is True:
-            exh_exhorto_parte.nombre = nombre
-            exh_exhorto_parte.apellido_paterno = apellido_paterno
-            exh_exhorto_parte.apellido_materno = apellido_materno
-            exh_exhorto_parte.genero = genero
-            exh_exhorto_parte.es_persona_moral = es_persona_moral
-            exh_exhorto_parte.tipo_parte = form.tipo_parte.data
-            exh_exhorto_parte.tipo_parte_nombre = tipo_parte_nombre
-            exh_exhorto_parte.save()
+            exh_exhorto_promovente.nombre = nombre
+            exh_exhorto_promovente.apellido_paterno = apellido_paterno
+            exh_exhorto_promovente.apellido_materno = apellido_materno
+            exh_exhorto_promovente.genero = genero
+            exh_exhorto_promovente.es_persona_moral = es_persona_moral
+            exh_exhorto_promovente.tipo_parte = form.tipo_parte.data
+            exh_exhorto_promovente.tipo_parte_nombre = tipo_parte_nombre
+            exh_exhorto_promovente.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
-                descripcion=safe_message(f"Editado Parte {exh_exhorto_parte.nombre_completo}"),
-                url=url_for("exh_exhortos_partes.detail", exh_exhorto_parte_id=exh_exhorto_parte.id),
+                descripcion=safe_message(f"Editado Parte {exh_exhorto_promovente.nombre_completo}"),
+                url=url_for("exh_exhortos_partes.detail", exh_exhorto_promovente_id=exh_exhorto_promovente.id),
             )
             bitacora.save()
             flash(bitacora.descripcion, "success")
-            return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_parte.exh_exhorto_id))
+            return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_promovente.exh_exhorto.id))
 
     # Cargar valores en el formulario
-    form.nombre.data = exh_exhorto_parte.nombre
-    form.apellido_paterno.data = exh_exhorto_parte.apellido_paterno
-    form.apellido_materno.data = exh_exhorto_parte.apellido_materno
-    form.genero.data = exh_exhorto_parte.genero
-    form.es_persona_moral.data = exh_exhorto_parte.es_persona_moral
-    form.tipo_parte.data = exh_exhorto_parte.tipo_parte
-    form.tipo_parte_nombre.data = exh_exhorto_parte.tipo_parte_nombre
+    form.nombre.data = exh_exhorto_promovente.nombre
+    form.apellido_paterno.data = exh_exhorto_promovente.apellido_paterno
+    form.apellido_materno.data = exh_exhorto_promovente.apellido_materno
+    form.genero.data = exh_exhorto_promovente.genero
+    form.es_persona_moral.data = exh_exhorto_promovente.es_persona_moral
+    form.tipo_parte.data = exh_exhorto_promovente.tipo_parte
+    form.tipo_parte_nombre.data = exh_exhorto_promovente.tipo_parte_nombre
 
     # Entregar formulario
-    return render_template("exh_exhortos_partes/edit.jinja2", form=form, exh_exhorto_parte=exh_exhorto_parte)
+    return render_template("exh_exhortos_promoventes/edit.jinja2", form=form, exh_exhorto_promovente=exh_exhorto_promovente)
 
 
-@exh_exhortos_partes.route("/exh_exhortos_partes/eliminar/<int:exh_exhorto_parte_id>")
+@exh_exhortos_promoventes.route("/exh_exhortos_promoventes/eliminar/<int:exh_exhorto_promovente_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
-def delete(exh_exhorto_parte_id):
-    """Eliminar Parte"""
-    exh_exhorto_parte = ExhExhortoParte.query.get_or_404(exh_exhorto_parte_id)
-    if exh_exhorto_parte.estatus == "A":
-        exh_exhorto_parte.delete()
+def delete(exh_exhorto_promovente_id):
+    """Eliminar Promovente"""
+    exh_exhorto_promovente = ExhExhortoPromovente.query.get_or_404(exh_exhorto_promovente_id)
+    if exh_exhorto_promovente.estatus == "A":
+        exh_exhorto_promovente.delete()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Parte {exh_exhorto_parte.nombre_completo}"),
-            url=url_for("exh_exhortos_partes.detail", exh_exhorto_parte_id=exh_exhorto_parte.id),
+            descripcion=safe_message(f"Eliminado Promovente {exh_exhorto_promovente.nombre_completo}"),
+            url=url_for("exh_exhortos_promoventes.detail", exh_exhorto_promovente_id=exh_exhorto_promovente.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
-        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_parte.exh_exhorto_id))
-    return redirect(url_for("exh_exhortos_partes.detail", exh_exhorto_parte_id=exh_exhorto_parte.id))
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_promovente.exh_exhorto.id))
+    return redirect(url_for("exh_exhortos_promoventes.detail", exh_exhorto_promovente_id=exh_exhorto_promovente.id))
 
 
-@exh_exhortos_partes.route("/exh_exhortos_partes/recuperar/<int:exh_exhorto_parte_id>")
+@exh_exhortos_promoventes.route("/exh_exhortos_promoventes/recuperar/<int:exh_exhorto_promovente_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
-def recover(exh_exhorto_parte_id):
-    """Recuperar Parte"""
-    exh_exhorto_parte = ExhExhortoParte.query.get_or_404(exh_exhorto_parte_id)
-    if exh_exhorto_parte.estatus == "B":
-        exh_exhorto_parte.recover()
+def recover(exh_exhorto_promovente_id):
+    """Recuperar Promovente"""
+    exh_exhorto_promovente = ExhExhortoPromovente.query.get_or_404(exh_exhorto_promovente_id)
+    if exh_exhorto_promovente.estatus == "B":
+        exh_exhorto_promovente.recover()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Parte {exh_exhorto_parte.nombre_completo}"),
-            url=url_for("exh_exhortos_partes.detail", exh_exhorto_parte_id=exh_exhorto_parte.id),
+            descripcion=safe_message(f"Recuperado Promovente {exh_exhorto_promovente.nombre_completo}"),
+            url=url_for("exh_exhortos_promoventes.detail", exh_exhorto_promovente_id=exh_exhorto_promovente.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
-        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_parte.exh_exhorto_id))
-    return redirect(url_for("exh_exhortos_partes.detail", exh_exhorto_parte_id=exh_exhorto_parte.id))
+        return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_promovente.exh_exhorto.id))
+    return redirect(url_for("exh_exhortos_promoventes.detail", exh_exhorto_promovente_id=exh_exhorto_promovente.id))

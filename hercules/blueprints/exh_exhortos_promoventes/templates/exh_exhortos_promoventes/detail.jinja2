@@ -1,0 +1,45 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Promovente {{ exh_exhorto_promovente.nombre }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Promovente ' + exh_exhorto_promovente.nombre) %}
+        {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_promovente.exh_exhorto_id)) }}
+        {% if current_user.can_edit('EXH EXHORTOS PROMOVENTES') and exh_exhorto_promovente.exh_exhorto.estado == 'PENDIENTE' %}
+            {{ topbar.button_edit('Editar', url_for('exh_exhortos_promoventes.edit', exh_exhorto_promovente_id=exh_exhorto_promovente.id)) }}
+        {% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS PROMOVENTES') %}
+            {% if exh_exhorto_promovente.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('exh_exhortos_promoventes.delete', exh_exhorto_promovente_id=exh_exhorto_promovente.id)) }}{% endif %}
+            {% if exh_exhorto_promovente.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('exh_exhortos_promoventes.recover', exh_exhorto_promovente_id=exh_exhorto_promovente.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=exh_exhorto_promovente.estatus) %}
+        {{ detail.label_value('Exhorto Origen ID', exh_exhorto_promovente.exh_exhorto.exhorto_origen_id, url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_promovente.exh_exhorto.id)) }}
+        {{ detail.label_value('Nombre', exh_exhorto_promovente.nombre) }}
+        {{ detail.label_value('Apellido Paterno', exh_exhorto_promovente.apellido_paterno) }}
+        {{ detail.label_value('Apellido Materno', exh_exhorto_promovente.apellido_materno) }}
+        {% if exh_exhorto_promovente.es_persona_moral == false %}
+            {{ detail.label_value('Genero', exh_exhorto_promovente.genero_descripcion) }}
+        {% else %}
+            {{ detail.label_value('Es Persona Moral', "Sí") }}
+        {% endif %}
+        {{ detail.label_value('Tipo Promovente', exh_exhorto_promovente.tipo_parte_descripcion) }}
+        {{ detail.label_value('Tipo Promovente Nombre', exh_exhorto_promovente.tipo_parte_nombre) }}
+        {{ detail.label_value('Correo Electrónico', exh_exhorto_promovente.correo_electronico) }}
+        {{ detail.label_value('Teléfono', exh_exhorto_promovente.telefono) }}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <!-- Modales para eliminar y recuperar -->
+    {% if current_user.can_admin('EXH EXHORTOS PROMOVENTES') %}
+        {% if exh_exhorto_promovente.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + exh_exhorto_promovente.nombre + '?') }}{% endif %}
+        {% if exh_exhorto_promovente.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + exh_exhorto_promovente.nombre + '?') }}{% endif %}
+    {% endif %}
+{% endblock %}

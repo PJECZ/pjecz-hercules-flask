@@ -1,0 +1,33 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Tipo de Diligencia {{ exh_tipo_diligencia.clave }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Tipo de Diligencia ' + exh_tipo_diligencia.clave) %}
+        {{ topbar.button_previous('Tipos de Diligencias', url_for('exh_tipos_diligencias.list_active')) }}
+        {# if current_user.can_edit('EXH TIPOS DILIGENCIAS') %}
+            {{ topbar.button_edit('Editar', url_for('exh_tipos_diligencias.edit', exh_tipo_diligencia_id=exh_tipo_diligencia.id)) }}
+        {% endif #}
+        {# if current_user.can_admin('EXH TIPOS DILIGENCIAS') %}
+            {% if exh_tipo_diligencia.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('exh_tipos_diligencias.delete', exh_tipo_diligencia_id=exh_tipo_diligencia.id)) }}{% endif %}
+            {% if exh_tipo_diligencia.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('exh_tipos_diligencias.recover', exh_tipo_diligencia_id=exh_tipo_diligencia.id)) }}{% endif %}
+        {% endif #}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=exh_tipo_diligencia.estatus) %}
+        {{ detail.label_value_big('Clave', exh_tipo_diligencia.clave) }}
+        {{ detail.label_value('Descripción', exh_tipo_diligencia.descripcion) }}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {# if current_user.can_admin('EXH TIPOS DILIGENCIAS') %}
+        {% if exh_tipo_diligencia.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + exh_tipo_diligencia.clave + '?') }}{% endif %}
+        {% if exh_tipo_diligencia.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + exh_tipo_diligencia.clave + '?') }}{% endif %}
+    {% endif #}
+{% endblock %}

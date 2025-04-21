@@ -18,24 +18,21 @@
         {% if current_user.can_view('EXH TIPOS DILIGENCIAS') %}
             {{ topbar.button('Tipos Diligencias', url_for('exh_tipos_diligencias.list_active'), 'mdi:label') }}
         {% endif %}
-        {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES PROMOVENTES') %}
-            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_exhortos_promociones_promoventes.list_inactive')) }}{% endif %}
-            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('exh_exhortos_promociones_promoventes.list_active')) }}{% endif %}
+        {% if current_user.can_admin('EXH EXHORTOS PROMOVENTES') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_exhortos_promoventes.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('exh_exhortos_promoventes.list_active')) }}{% endif %}
         {% endif %}
     {% endcall %}
 {% endblock %}
 
 {% block content %}
     {% call list.card() %}
-        <!-- DataTable exh_exhortos_promociones_promoventes -->
-        <table id="exh_exhortos_promociones_promoventes_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+        <!-- DataTable exh_exhortos_promoventes -->
+        <table id="exh_exhortos_promoventes_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>Nombre Completo</th>
-                    <th>Género</th>
-                    <th>Es Persona Moral</th>
-                    <th>Tipo de Parte</th>
-                    <th>Promoción Folio Origen</th>
+                    <th>Clave</th>
+                    <th>Descripción</th>
                 </tr>
             </thead>
         </table>
@@ -46,19 +43,19 @@
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
-        // DataTable exh_exhortos_promociones_promoventes
+        // DataTable exh_exhortos_promoventes
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
-        let configDTExhExhortosPromocionesPromoventes = constructorDataTable.config();
-        configDTExhExhortosPromocionesPromoventes['ajax']['url'] = '/exh_exhortos_promociones_promoventes/datatable_json';
-        configDTExhExhortosPromocionesPromoventes['ajax']['data'] = {{ filtros }};
-        configDTExhExhortosPromocionesPromoventes['columns'] = [
+        let configDataTable = constructorDataTable.config();
+        configDataTable['ajax']['url'] = '/exh_exhortos_promoventes/datatable_json';
+        configDataTable['ajax']['data'] = {{ filtros }};
+        configDataTable['columns'] = [
             { data: 'detalle' },
             { data: 'genero_descripcion' },
             { data: 'es_persona_moral' },
             { data: 'tipo_parte_descripcion' },
-            { data: 'folio_origen_promocion' }
+            { data: 'exhorto_origen_id' }
         ];
-        configDTExhExhortosPromocionesPromoventes['columnDefs'] = [
+        configDataTable['columnDefs'] = [
             {
                 targets: 0, // detalle
                 data: null,
@@ -77,8 +74,8 @@
                 }
             }
         ];
-        // Filtros exh_exhortos_promociones_promoventes
-        const filtrosDTExhExhortosPromocionesPromoventes = new FiltrosDataTable('#exh_exhortos_promociones_promoventes_datatable', configDTExhExhortosPromocionesPromoventes);
-        filtrosDTExhExhortosPromocionesPromoventes.precargar();
+        // Filtros exh_exhortos_promoventes
+        const filtrosExhExhortosPromoventes = new FiltrosDataTable('#exh_exhortos_promoventes_datatable', configDataTable);
+        filtrosExhExhortosPromoventes.precargar();
     </script>
 {% endblock %}

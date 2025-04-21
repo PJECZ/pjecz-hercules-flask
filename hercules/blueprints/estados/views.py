@@ -69,10 +69,8 @@ def datatable_json():
 
 @estados.route("/estados/select_json", methods=["GET", "POST"])
 def select_json():
-    """Select JSON para Estados"""
-    # Consultar
+    """Proporcionar el JSON para elegir con un select tradicional"""
     consulta = Estado.query.filter_by(estatus="A").order_by(Estado.nombre)
-    # Elaborar datos para Select
     data = []
     for resultado in consulta.all():
         data.append(
@@ -81,8 +79,21 @@ def select_json():
                 "nombre": resultado.nombre,
             }
         )
-    # Entregar JSON
     return json.dumps(data)
+
+
+@estados.route("/estados/select2_json", methods=["GET", "POST"])
+def select2_json():
+    """Proporcionar el JSON para elegir con un Select2"""
+    consulta = Estado.query.filter(Estado.estatus == "A")
+    if "searchString" in request.form:
+        nombre = safe_string(request.form["searchString"])
+        if nombre != "":
+            consulta = consulta.filter(Estado.nombre.contains(nombre))
+    resultados = []
+    for estado in consulta.order_by(Estado.nombre).limit(10).all():
+        resultados.append({"id": estado.id, "text": estado.nombre})
+    return {"results": resultados, "pagination": {"more": False}}
 
 
 @estados.route("/estados")

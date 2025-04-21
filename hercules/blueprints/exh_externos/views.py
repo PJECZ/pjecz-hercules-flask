@@ -44,6 +44,10 @@ def datatable_json():
         clave = safe_clave(request.form["clave"])
         if clave != "":
             consulta = consulta.filter(ExhExterno.clave.contains(clave))
+    if "descripcion" in request.form:
+        descripcion = safe_string(request.form["descripcion"], save_enie=True)
+        if descripcion != "":
+            consulta = consulta.filter(ExhExterno.descripcion.contains(descripcion))
     # Ordenar y paginar
     registros = consulta.order_by(ExhExterno.clave).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -62,9 +66,9 @@ def datatable_json():
                 "endpoint_recibir_exhorto_archivo": "Sí" if resultado.endpoint_recibir_exhorto_archivo else "",
                 "endpoint_consultar_exhorto": "Sí" if resultado.endpoint_consultar_exhorto else "",
                 "endpoint_recibir_respuesta_exhorto": "Sí" if resultado.endpoint_recibir_respuesta_exhorto else "",
-                "endpoint_recibir_respuesta_exhorto_archivo": "Sí"
-                if resultado.endpoint_recibir_respuesta_exhorto_archivo
-                else "",
+                "endpoint_recibir_respuesta_exhorto_archivo": (
+                    "Sí" if resultado.endpoint_recibir_respuesta_exhorto_archivo else ""
+                ),
                 "endpoint_actualizar_exhorto": "Sí" if resultado.endpoint_actualizar_exhorto else "",
                 "endpoint_recibir_promocion": "Sí" if resultado.endpoint_recibir_promocion else "",
                 "endpoint_recibir_promocion_archivo": "Sí" if resultado.endpoint_recibir_promocion_archivo else "",

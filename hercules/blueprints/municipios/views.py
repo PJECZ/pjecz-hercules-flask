@@ -72,13 +72,10 @@ def datatable_json():
 
 @municipios.route("/municipios/select_json/<int:estado_id>", methods=["GET", "POST"])
 def select_json(estado_id=None):
-    """Select JSON para Municipios"""
-    # Si estado_id es None, entonces no se entregan autoriades
+    """Proporcionar el JSON para elegir con un select tradicional"""
     if estado_id is None:
         return json.dumps([])
-    # Consultar
     consulta = Municipio.query.filter_by(estado_id=estado_id, estatus="A").order_by(Municipio.nombre)
-    # Elaborar datos para Select
     data = []
     for resultado in consulta.all():
         data.append(
@@ -87,8 +84,23 @@ def select_json(estado_id=None):
                 "nombre": resultado.nombre,
             }
         )
-    # Entregar JSON
     return json.dumps(data)
+
+
+@municipios.route("/municipios/select2_json/<int:estado_id>", methods=["GET", "POST"])
+def select2_json(estado_id=None):
+    """Proporcionar el JSON de Municipio para elegir con un Select2"""
+    if estado_id is None:
+        return {"results": [], "pagination": {"more": False}}
+    consulta = Municipio.query.filter_by(estado_id=estado_id, estatus="A").filter(Municipio.estatus == "A")
+    if "searchString" in request.form:
+        nombre = safe_string(request.form["searchString"])
+        if nombre != "":
+            consulta = consulta.filter(Municipio.nombre.contains(nombre))
+    resultados = []
+    for municipio in consulta.order_by(Municipio.nombre).limit(10).all():
+        resultados.append({"id": municipio.id, "text": municipio.nombre})
+    return {"results": resultados, "pagination": {"more": False}}
 
 
 @municipios.route("/municipios")

@@ -19,13 +19,13 @@ class ExhExhortoNewForm(FlaskForm):
     estado_origen = StringField("Estado Origen", validators=[Optional()])
     fecha_origen = StringField("Fecha Origen", validators=[Optional()])
     folio_seguimiento = StringField("Folio de Seguimiento", validators=[Optional()])
-    estado = StringField("Estado", validators=[Optional()])
 
     # Campos select con opciones que se cargan con javascript
     municipio_origen = SelectField("Municipio Origen", choices=None, validate_choice=False, validators=[DataRequired()])
     estado_destino = SelectField("Estado Destino", choices=None, validate_choice=False, validators=[DataRequired()])
     municipio_destino = SelectField("Municipio Destino", choices=None, validate_choice=False, validators=[DataRequired()])
     materia = SelectField("Materia", choices=None, validate_choice=False, validators=[DataRequired()])
+    tipo_diligencia = SelectField("Tipo Diligencia (si es OTROS escriba el nombre)", choices=None, validate_choice=False, validators=[DataRequired()])
 
     # Campos Select2
     juzgado_origen = SelectField("Juzgado Origen", coerce=int, validate_choice=False, validators=[DataRequired()])
@@ -40,8 +40,8 @@ class ExhExhortoNewForm(FlaskForm):
     fojas = IntegerField("Fojas", validators=[DataRequired()])
     dias_responder = IntegerField("Días Responder", validators=[DataRequired()])
     tipo_diligenciacion_nombre = StringField("Tipo Diligenciación Nombre", validators=[Optional(), Length(max=256)])
-    observaciones = TextAreaField("Observaciones", validators=[Optional(), Length(max=1024)])
-    crear = SubmitField("Crear")
+    observaciones = TextAreaField("Observaciones", validators=[Optional(), Length(max=1024)], render_kw={"rows": 6})
+    guardar = SubmitField("Guardar")
 
 
 class ExhExhortoEditForm(FlaskForm):
@@ -49,21 +49,16 @@ class ExhExhortoEditForm(FlaskForm):
 
     # Campos solo lectura
     exhorto_origen_id = StringField("Exhorto Origen ID", validators=[Optional()])
+    estado_origen = StringField("Estado Origen", validators=[Optional()])
     fecha_origen = StringField("Fecha Origen", validators=[Optional()])
     folio_seguimiento = StringField("Folio de Seguimiento", validators=[Optional()])
-    exh_area = StringField("Área", validators=[Optional()])
-    remitente = StringField("Remitente", validators=[Optional()])
-    distrito = StringField("Distrito", validators=[Optional()])
-    autoridad = StringField("Autoridad", validators=[Optional()])
-    numero_exhorto = StringField("Número de Exhorto", validators=[Optional()])
-    estado = StringField("Estado", validators=[Optional()])
 
     # Campos select con opciones que se cargan con javascript
-    estado_origen = SelectField("Estado Origen", choices=None, validate_choice=False, validators=[DataRequired()])
     municipio_origen = SelectField("Municipio Origen", choices=None, validate_choice=False, validators=[DataRequired()])
     estado_destino = SelectField("Estado Destino", choices=None, validate_choice=False, validators=[DataRequired()])
     municipio_destino = SelectField("Municipio Destino", choices=None, validate_choice=False, validators=[DataRequired()])
     materia = SelectField("Materia", choices=None, validate_choice=False, validators=[DataRequired()])
+    tipo_diligencia = SelectField("Tipo Diligencia", choices=None, validate_choice=False, validators=[DataRequired()])
 
     # Campos Select2
     juzgado_origen = SelectField("Juzgado Origen", coerce=int, validate_choice=False, validators=[DataRequired()])
@@ -75,8 +70,8 @@ class ExhExhortoEditForm(FlaskForm):
     juez_exhortante = StringField("Juez Exhortante", validators=[Optional(), Length(max=256)])
     fojas = IntegerField("Fojas", validators=[DataRequired()])
     dias_responder = IntegerField("Días Responder", validators=[DataRequired()])
-    tipo_diligenciacion_nombre = StringField("Tipo Diligenciación Nombre", validators=[Optional(), Length(max=256)])
-    observaciones = TextAreaField("Observaciones", validators=[Optional(), Length(max=1024)])
+    tipo_diligenciacion_nombre = StringField("Tipo Diligenciación Nombre (cuando Tipo Diligencia es OTROS)", validators=[Optional(), Length(max=256)])
+    observaciones = TextAreaField("Observaciones", validators=[Optional(), Length(max=1024)], render_kw={"rows": 6})
     guardar = SubmitField("Guardar")
 
 

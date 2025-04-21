@@ -14,8 +14,8 @@ from cli.commands.exh_exhortos_demo_07_enviar_promocion import demo_enviar_promo
 from cli.commands.exh_exhortos_demo_07_recibir_promocion import demo_recibir_promocion
 from cli.commands.exh_exhortos_truncar import truncar as ejecutar_truncar
 from hercules.blueprints.exh_exhortos.communications.query import consultar_exhorto
-from hercules.blueprints.exh_exhortos.communications.reply import responder_exhorto
 from hercules.blueprints.exh_exhortos.communications.send import enviar_exhorto
+from hercules.blueprints.exh_exhortos_respuestas.communications.send import enviar_respuesta
 
 
 @click.group()
@@ -120,7 +120,7 @@ def consultar(exh_exhorto_id):
 def responder(exh_exhorto_id):
     """Responder un exhorto"""
     click.echo("Responder un exhorto")
-    mensaje, _, _ = responder_exhorto(exh_exhorto_id)
+    mensaje, _, _ = enviar_respuesta(exh_exhorto_id)
     click.echo(click.style(mensaje, fg="green"))
 
 

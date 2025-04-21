@@ -9,17 +9,11 @@
         {% if current_user.can_view('EXH AREAS') %}
             {{ topbar.button('Áreas', url_for('exh_areas.list_active'), 'mdi:office-building-marker') }}
         {% endif %}
-        {% if current_user.can_admin('EXH EXHORTOS ACTUALIZACIONES') %}
-            {{ topbar.button('E. Actualizaciones', url_for('exh_exhortos_actualizaciones.list_active'), 'mdi:reload') }}
-        {% endif %}
-        {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES') %}
-            {{ topbar.button('E. Promociones', url_for('exh_exhortos_promociones.list_active'), 'mdi:receipt-text-plus') }}
-        {% endif %}
-        {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS') %}
-            {{ topbar.button('E. Respuestas', url_for('exh_exhortos_respuestas.list_active'), 'mdi:forum') }}
-        {% endif %}
         {% if current_user.can_view('EXH EXHORTOS') %}
             {{ topbar.button('Exhortos', url_for('exh_exhortos.list_active'), 'mdi:email-fast') }}
+        {% endif %}
+        {% if current_user.can_view('EXH TIPOS DILIGENCIAS') %}
+            {{ topbar.button('Tipos Diligencias', url_for('exh_tipos_diligencias.list_active'), 'mdi:label') }}
         {% endif %}
         {% if current_user.can_admin('EXH EXTERNOS') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('exh_externos.list_inactive')) }}{% endif %}
@@ -43,9 +37,13 @@
                             <label for="filtroClave">Clave</label>
                         </div>
                     </div>
-                    <div class="col-8">
+                    <div class="col-4">
+                        <div class="form-floating">
+                            <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción">
+                            <label for="filtroDescripcion">Descripción</label>
+                        </div>
                     </div>
-                    <div class="col-2 text-end">
+                    <div class="col-6 text-end">
                         <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosExhExternos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
                         <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosExhExternos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
@@ -107,6 +105,7 @@
         // Filtros exh_externos
         const filtrosExhExternos = new FiltrosDataTable('#exh_externos_datatable', configDTExhExternos);
         filtrosExhExternos.agregarInput('filtroClave', 'clave');
+        filtrosExhExternos.agregarInput('filtroDescripcion', 'descripcion');
         filtrosExhExternos.precargar();
     </script>
 {% endblock %}

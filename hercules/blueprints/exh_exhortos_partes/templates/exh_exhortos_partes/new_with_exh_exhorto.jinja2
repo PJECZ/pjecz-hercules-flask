@@ -5,8 +5,7 @@
 {% block title %}Agregar Parte al Exhorto {{ exh_exhorto.exhorto_origen_id }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Agregar Parte al Exhorto ' + exh_exhorto.exhorto_origen_id) %}
-    {% endcall %}
+    {{ topbar.page('Agregar Parte al Exhorto ' + exh_exhorto.exhorto_origen_id) }}
 {% endblock %}
 
 {% block content %}
@@ -20,12 +19,15 @@
             {% call f.form_group(form.genero) %}{% endcall %}
             {% call f.form_group(form.tipo_parte) %}{% endcall %}
             {% call f.form_group(form.tipo_parte_nombre) %}{% endcall %}
+            {% call f.form_group(form.correo_electronico) %}{% endcall %}
+            {% call f.form_group(form.telefono) %}{% endcall %}
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}
     {% endcall %}
 {% endblock %}
 
 {% block custom_javascript %}
+    <!-- Deshabilitar los campos de apellidos cuando es persona moral -->
     <script>
         const checkbox = document.getElementById("es_persona_moral");
         const apellido_paterno_input = document.getElementById("apellido_paterno");

@@ -19,10 +19,10 @@ from hercules.blueprints.exh_exhortos.forms import (
     ExhExhortoRefuseForm,
     ExhExhortoTransferForm,
 )
+from hercules.blueprints.exh_areas.models import ExhArea
 from hercules.blueprints.exh_exhortos.models import ExhExhorto
-from hercules.blueprints.exh_exhortos_archivos.models import ExhExhortoArchivo
-from hercules.blueprints.exh_exhortos_partes.models import ExhExhortoParte
 from hercules.blueprints.exh_externos.models import ExhExterno
+from hercules.blueprints.exh_tipos_diligencias.models import ExhTipoDiligencia
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.municipios.models import Municipio
 from hercules.blueprints.permisos.models import Permiso
@@ -33,8 +33,11 @@ from lib.safe_string import safe_expediente, safe_message, safe_string
 from lib.time_to_text import dia_mes_ano
 
 MODULO = "EXH EXHORTOS"
-
 exh_exhortos = Blueprint("exh_exhortos", __name__, template_folder="templates")
+
+AUTORIDAD_CLAVE_POR_DEFECTO = "ND"
+EXH_AREA_CLAVE_POR_DEFECTO = "ND"
+EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO = "OTR"  # OTRO va a tomar el campo tipo_diligenciacion_nombre
 
 
 @exh_exhortos.route("/exh_exhortos/acuses/recepcion/<id_hashed>")
@@ -167,24 +170,55 @@ def detail(exh_exhorto_id):
 @permission_required(MODULO, Permiso.CREAR)
 def new():
     """Nuevo Exhorto"""
+    # Consultar Autoridad por defecto
+    autoridad_por_defecto = Autoridad.query.filter_by(clave=AUTORIDAD_CLAVE_POR_DEFECTO).first()
+    if autoridad_por_defecto is None:
+        flash(f"No hay registro de Autoridad con clave {AUTORIDAD_CLAVE_POR_DEFECTO}", "warning")
+        return redirect(url_for("exh_exhortos.list_active"))
+    # Consultar ExhArea por defecto
+    exh_area_por_defecto = ExhArea.query.filter_by(clave=EXH_AREA_CLAVE_POR_DEFECTO).first()
+    if exh_area_por_defecto is None:
+        flash(f"No hay registro de ExhArea con clave {EXH_AREA_CLAVE_POR_DEFECTO}", "warning")
+        return redirect(url_for("exh_exhortos.list_active"))
+    # Consultar ExhTipoDiligencia por defecto
+    exh_tipo_diligencia_por_defecto = ExhTipoDiligencia.query.filter_by(clave=EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO).first()
+    if exh_tipo_diligencia_por_defecto is None:
+        flash(f"No hay registro de ExhTipoDiligencia con clave {EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO}", "warning")
+        return redirect(url_for("exh_exhortos.list_active"))
+    # Recibir el formulario
     form = ExhExhortoNewForm()
     if form.validate_on_submit():
         es_valido = True
-        # Consultar el juzgado de origen
-        juzgado_origen = Autoridad.query.get(form.juzgado_origen.data)
-        if juzgado_origen is None:
-            flash("El juzgado de origen no es válido", "warning")
-            es_valido = False
-        # Inicilizar las variables para la clave y el nombre de la materia
-        materia_clave = form.materia.data
-        materia_nombre = ""
-        # Consultar el municipio de destino
+        # Por defecto el juzgado de origen es la autoridad por defecto
+        juzgado_origen = autoridad_por_defecto
+        juzgado_origen_id = autoridad_por_defecto.clave
+        juzgado_origen_nombre = autoridad_por_defecto.descripcion
+        if form.juzgado_origen.data:
+            juzgado_origen = Autoridad.query.get(form.juzgado_origen.data)
+            juzgado_origen_id = juzgado_origen.clave
+            juzgado_origen_nombre = juzgado_origen.descripcion
+        # Por defecto el tipo de diligenciación toma el campo tipo_diligenciacion_nombre
+        exh_tipo_diligencia = exh_tipo_diligencia_por_defecto
+        tipo_diligencia_id = EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO  # Note que se conserva la clave
+        tipo_diligenciacion_nombre = safe_string(form.tipo_diligenciacion_nombre.data, save_enie=True)
+        if form.tipo_diligencia.data:
+            exh_tipo_diligencia = ExhTipoDiligencia.query.get(form.tipo_diligencia.data)
+            if exh_tipo_diligencia.clave == EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO:
+                tipo_diligencia_id = exh_tipo_diligencia.clave  # Note que se conserva la clave
+                tipo_diligenciacion_nombre = exh_tipo_diligencia.descripcion  # Se usa la descripcion en vez del campo
+        # Validar el municipio de destino
         municipio_destino = Municipio.query.get(form.municipio_destino.data)
         if municipio_destino is None:
             flash("El municipio de destino no es válido", "warning")
             es_valido = False
+        estado_destino = municipio_destino.estado
+        # Validar la materia
+        materia_clave = form.materia.data  # Este campo es la clave de la materia
+        materia_nombre = ""
+        if materia_clave is None:
+            flash(f"No hay materias para el estado de destino {estado_destino.nombre}", "warning")
+            es_valido = False
         else:
-            estado_destino = municipio_destino.estado
             # Consultar en exh_externos al estado de destino
             exh_externo = ExhExterno.query.filter_by(estado_id=estado_destino.id).first()
             if exh_externo is None:
@@ -201,28 +235,41 @@ def new():
                         flash(f"La clave de materia {materia_clave} no se encuentra en externo {exh_externo.clave}", "warning")
                         es_valido = False
                     materia_nombre = materia["nombre"]
+        # Validar el número de expediente
+        try:
+            numero_expediente_origen = safe_expediente(form.numero_expediente_origen.data)
+        except ValueError:
+            flash("El número de expediente no es válido", "warning")
+            es_valido = False
+        # Validar el número de oficio
+        try:
+            numero_oficio_origen = safe_expediente(form.numero_oficio_origen.data)
+        except ValueError:
+            flash("El número de oficio no es válido", "warning")
+            es_valido = False
         # Si es valido, guardar
         if es_valido:
             exh_exhorto = ExhExhorto(
-                exhorto_origen_id=generar_identificador(),
+                autoridad_id=juzgado_origen.id,
+                exh_area_id=exh_area_por_defecto.id,
+                exh_tipo_diligencia_id=exh_tipo_diligencia.id,
+                municipio_origen_id=form.municipio_origen.data,
                 municipio_destino_id=form.municipio_destino.data,
+                exhorto_origen_id=form.exhorto_origen_id.data,
                 materia_clave=materia_clave,
                 materia_nombre=materia_nombre,
-                municipio_origen_id=form.municipio_origen.data,
-                juzgado_origen_id=safe_string(juzgado_origen.clave),
-                juzgado_origen_nombre=safe_string(juzgado_origen.descripcion, save_enie=True),
-                numero_expediente_origen=safe_string(form.numero_expediente_origen.data),
-                numero_oficio_origen=safe_string(form.numero_oficio_origen.data),
-                tipo_juicio_asunto_delitos=safe_string(form.tipo_juicio_asunto_delitos.data),
+                juzgado_origen_id=juzgado_origen_id,
+                juzgado_origen_nombre=juzgado_origen_nombre,
+                numero_expediente_origen=numero_expediente_origen,
+                numero_oficio_origen=numero_oficio_origen,
+                tipo_juicio_asunto_delitos=safe_string(form.tipo_juicio_asunto_delitos.data, save_enie=True),
                 juez_exhortante=safe_string(form.juez_exhortante.data, save_enie=True),
                 fojas=form.fojas.data,
                 dias_responder=form.dias_responder.data,
-                tipo_diligenciacion_nombre=safe_string(form.tipo_diligenciacion_nombre.data, save_enie=True),
+                tipo_diligencia_id=tipo_diligencia_id,
+                tipo_diligenciacion_nombre=tipo_diligenciacion_nombre,
                 fecha_origen=form.fecha_origen.data,
                 observaciones=safe_string(form.observaciones.data, save_enie=True, max_len=1024),
-                # Datos por defecto
-                exh_area_id=1,  # valor: NO DEFINIDO
-                autoridad_id=342,  # valor por defecto: ND - NO DEFINIDO
                 numero_exhorto="",
                 remitente="INTERNO",
                 estado="PENDIENTE",
@@ -237,15 +284,25 @@ def new():
             bitacora.save()
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
-    # Consultar el estado de origen por medio de la clave INEGI en la variable de entorno ESTADO_CLAVE
-    estado_origen_id = current_app.config["ESTADO_CLAVE"]
+    # Consultar el estado y municipio de origen
+    # Tomando las claves INEGI de las variables de entorno ESTADO_CLAVE y MUNICIPIO_CLAVE
+    estado_origen_clave = current_app.config["ESTADO_CLAVE"]
+    estado_origen = Estado.query.filter_by(clave=estado_origen_clave).first()
+    municipio_origen = Municipio.query.filter_by(estado_id=estado_origen.id).filter_by(clave=current_app.config["MUNICIPIO_CLAVE"]).first()
     # Definir valores por defecto del formulario
-    form.exhorto_origen_id.data = "0" * 24  # Read only
-    form.estado_origen.data = Estado.query.get(estado_origen_id).nombre  # Read only
-    form.estado.data = "PENDIENTE"
-    form.fecha_origen.data = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    # Entregar
-    return render_template("exh_exhortos/new.jinja2", form=form, estado_origen_id=estado_origen_id)
+    form.exhorto_origen_id.data = generar_identificador()  # Read only
+    form.estado_origen.data = estado_origen.nombre  # Read only
+    form.fecha_origen.data = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Read only
+    form.folio_seguimiento.data = ""  # Read only
+    form.juzgado_origen.data = autoridad_por_defecto.id  # Select2
+    # Entregar el formulario
+    return render_template(
+        "exh_exhortos/new.jinja2",
+        form=form,
+        estado_origen_clave=estado_origen_clave,
+        municipio_origen_id=municipio_origen.id,
+        exh_tipo_diligencia_por_defecto=exh_tipo_diligencia_por_defecto,
+    )
 
 
 @exh_exhortos.route("/exh_exhortos/edicion/<int:exh_exhorto_id>", methods=["GET", "POST"])
@@ -253,24 +310,50 @@ def new():
 def edit(exh_exhorto_id):
     """Editar Exhorto"""
     exh_exhorto = ExhExhorto.query.get_or_404(exh_exhorto_id)
+    # Consultar Autoridad por defecto
+    autoridad_por_defecto = Autoridad.query.filter_by(clave=AUTORIDAD_CLAVE_POR_DEFECTO).first()
+    if autoridad_por_defecto is None:
+        flash(f"No hay registro de Autoridad con clave {AUTORIDAD_CLAVE_POR_DEFECTO}", "warning")
+        return redirect(url_for("exh_exhortos.list_active"))
+    # Consultar ExhTipoDiligencia por defecto
+    exh_tipo_diligencia_por_defecto = ExhTipoDiligencia.query.filter_by(clave=EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO).first()
+    if exh_tipo_diligencia_por_defecto is None:
+        flash(f"No hay registro de ExhTipoDiligencia con clave {EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO}", "warning")
+        return redirect(url_for("exh_exhortos.list_active"))
+    # Recibir el formulario
     form = ExhExhortoEditForm()
     if form.validate_on_submit():
         es_valido = True
-        # Consultar la autoridad que es el juzgado de origen
-        juzgado_origen = Autoridad.query.filter_by(id=form.juzgado_origen.data).filter_by(estatus="A").first()
-        if juzgado_origen is None:
-            flash("El juzgado de origen no es válido", "warning")
-            es_valido = False
-        # Inicializar las variables para la clave y el nombre de la materia
-        materia_clave = form.materia.data
-        materia_nombre = ""
-        # Consultar el municipio de destino
+        # Por defecto el juzgado de origen es la autoridad por defecto
+        juzgado_origen = autoridad_por_defecto
+        juzgado_origen_id = autoridad_por_defecto.clave
+        juzgado_origen_nombre = autoridad_por_defecto.descripcion
+        if form.juzgado_origen.data:
+            juzgado_origen = Autoridad.query.get(form.juzgado_origen.data)
+            juzgado_origen_id = juzgado_origen.clave
+            juzgado_origen_nombre = juzgado_origen.descripcion
+        # Por defecto el tipo de diligenciación toma el campo tipo_diligenciacion_nombre
+        exh_tipo_diligencia = exh_tipo_diligencia_por_defecto
+        tipo_diligencia_id = EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO  # Note que se conserva la clave
+        tipo_diligenciacion_nombre = safe_string(form.tipo_diligenciacion_nombre.data, save_enie=True)  # Se usa el campo
+        if form.tipo_diligencia.data:
+            exh_tipo_diligencia = ExhTipoDiligencia.query.get(form.tipo_diligencia.data)
+            tipo_diligencia_id = exh_tipo_diligencia.clave  # Note que se conserva la clave
+            if exh_tipo_diligencia.clave != EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO:  # No es OTROS
+                tipo_diligenciacion_nombre = exh_tipo_diligencia.descripcion  # Se usa la descripcion de la tabla
+        # Validar el municipio de destino
         municipio_destino = Municipio.query.get(form.municipio_destino.data)
         if municipio_destino is None:
             flash("El municipio de destino no es válido", "warning")
             es_valido = False
+        estado_destino = municipio_destino.estado
+        # Validar la materia
+        materia_clave = form.materia.data  # Este campo es la clave de la materia
+        materia_nombre = ""
+        if materia_clave is None:
+            flash(f"No hay materias para el estado de destino {estado_destino.nombre}", "warning")
+            es_valido = False
         else:
-            estado_destino = municipio_destino.estado
             # Consultar en exh_externos al estado de destino
             exh_externo = ExhExterno.query.filter_by(estado_id=estado_destino.id).first()
             if exh_externo is None:
@@ -287,38 +370,58 @@ def edit(exh_exhorto_id):
                         flash(f"La clave de materia {materia_clave} no se encuentra en externo {exh_externo.clave}", "warning")
                         es_valido = False
                     materia_nombre = materia["nombre"]
+        # Validar el número de expediente
+        try:
+            numero_expediente_origen = safe_expediente(form.numero_expediente_origen.data)
+        except ValueError:
+            flash("El número de expediente no es válido", "warning")
+            es_valido = False
+        # Validar el número de oficio
+        try:
+            numero_oficio_origen = safe_expediente(form.numero_oficio_origen.data)
+        except ValueError:
+            flash("El número de oficio no es válido", "warning")
+            es_valido = False
         # Si es valido, actualizar
         if es_valido:
+            exh_exhorto.autoridad_id = juzgado_origen.id
+            exh_exhorto.exh_tipo_diligencia_id = exh_tipo_diligencia.id
+            exh_exhorto.municipio_origen_id = form.municipio_origen.data
             exh_exhorto.municipio_destino_id = form.municipio_destino.data
             exh_exhorto.materia_clave = materia_clave
             exh_exhorto.materia_nombre = materia_nombre
-            exh_exhorto.municipio_origen_id = form.municipio_origen.data
-            exh_exhorto.juzgado_origen_id = safe_string(juzgado_origen.clave)
-            exh_exhorto.juzgado_origen_nombre = safe_string(juzgado_origen.descripcion, save_enie=True)
-            exh_exhorto.numero_expediente_origen = safe_string(form.numero_expediente_origen.data)
-            exh_exhorto.numero_oficio_origen = safe_string(form.numero_oficio_origen.data)
+            exh_exhorto.juzgado_origen_id = juzgado_origen_id
+            exh_exhorto.juzgado_origen_nombre = juzgado_origen_nombre
+            exh_exhorto.numero_expediente_origen = numero_expediente_origen
+            exh_exhorto.numero_oficio_origen = numero_oficio_origen
             exh_exhorto.tipo_juicio_asunto_delitos = safe_string(form.tipo_juicio_asunto_delitos.data)
             exh_exhorto.juez_exhortante = safe_string(form.juez_exhortante.data, save_enie=True)
             exh_exhorto.fojas = form.fojas.data
             exh_exhorto.dias_responder = form.dias_responder.data
-            exh_exhorto.tipo_diligenciacion_nombre = safe_string(form.tipo_diligenciacion_nombre.data, save_enie=True)
+            exh_exhorto.tipo_diligencia_id = tipo_diligencia_id
+            exh_exhorto.tipo_diligenciacion_nombre = tipo_diligenciacion_nombre
             exh_exhorto.fecha_origen = form.fecha_origen.data
             exh_exhorto.observaciones = safe_string(form.observaciones.data, save_enie=True, max_len=1024)
             exh_exhorto.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
-                descripcion=safe_message(f"Editado Exhorto ID {exh_exhorto.id}"),
+                descripcion=safe_message(f"Editado Exhorto {exh_exhorto.exhorto_origen_id}"),
                 url=url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto.id),
             )
             bitacora.save()
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
-    # Buscar el juzgado origen en Autoridades
-    juzgado_origen = Autoridad.query.filter_by(clave=exh_exhorto.juzgado_origen_id).filter_by(estatus="A").first()
-    # Cargar los valores guardados en el formulario
-    form.exhorto_origen_id.data = exh_exhorto.exhorto_origen_id
-    form.juzgado_origen.data = juzgado_origen.id
+    # Consultar el estado de origen por medio de la clave INEGI en la variable de entorno ESTADO_CLAVE
+    estado_origen_clave = current_app.config["ESTADO_CLAVE"]
+    estado_origen = Estado.query.filter_by(clave=estado_origen_clave).first()
+    # Definir los valores solo lectura en el formulario
+    form.exhorto_origen_id.data = exh_exhorto.exhorto_origen_id  # Read only
+    form.estado_origen.data = estado_origen.nombre  # Read only
+    form.fecha_origen.data = exh_exhorto.fecha_origen  # Read only
+    form.folio_seguimiento.data = exh_exhorto.folio_seguimiento  # Read only
+    # Definir los valores que se pueden modificar en el formulario
+    form.juzgado_origen.data = exh_exhorto.autoridad_id  # Select2
     form.numero_expediente_origen.data = exh_exhorto.numero_expediente_origen
     form.numero_oficio_origen.data = exh_exhorto.numero_oficio_origen
     form.tipo_juicio_asunto_delitos.data = exh_exhorto.tipo_juicio_asunto_delitos
@@ -326,20 +429,18 @@ def edit(exh_exhorto_id):
     form.fojas.data = exh_exhorto.fojas
     form.dias_responder.data = exh_exhorto.dias_responder
     form.tipo_diligenciacion_nombre.data = exh_exhorto.tipo_diligenciacion_nombre
-    form.fecha_origen.data = exh_exhorto.fecha_origen
     form.observaciones.data = exh_exhorto.observaciones
-    form.folio_seguimiento.data = exh_exhorto.folio_seguimiento
-    form.exh_area.data = exh_exhorto.exh_area.nombre
-    form.remitente.data = exh_exhorto.remitente
-    form.numero_exhorto.data = exh_exhorto.numero_exhorto
-    form.estado.data = exh_exhorto.estado  # Read only
+    # Consultar la autoridad por la clave en juzgado_origen_id
+    juzgado_origen = Autoridad.query.filter_by(clave=exh_exhorto.juzgado_origen_id).filter_by(estatus="A").first()
     # El municipio_destino_id NO es una clave foránea, por lo que debe de consultarse de manera independiente
     municipio_destino = Municipio.query.filter_by(id=exh_exhorto.municipio_destino_id).first()
-    # Entregar
+    # Entregar el formulario
     return render_template(
         "exh_exhortos/edit.jinja2",
         form=form,
+        estado_origen_clave=estado_origen_clave,
         exh_exhorto=exh_exhorto,
+        exh_tipo_diligencia_por_defecto=exh_tipo_diligencia_por_defecto,
         juzgado_origen=juzgado_origen,
         municipio_destino=municipio_destino,
     )
