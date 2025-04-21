@@ -203,7 +203,7 @@ def new():
         tipo_diligenciacion_nombre = safe_string(form.tipo_diligenciacion_nombre.data, save_enie=True)
         if form.tipo_diligencia.data:
             exh_tipo_diligencia = ExhTipoDiligencia.query.get(form.tipo_diligencia.data)
-            if exh_tipo_diligencia.clave == EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO:
+            if exh_tipo_diligencia.clave != EXH_TIPO_DILIGENCIA_CLAVE_POR_DEFECTO:
                 tipo_diligencia_id = exh_tipo_diligencia.clave  # Note que se conserva la clave
                 tipo_diligenciacion_nombre = exh_tipo_diligencia.descripcion  # Se usa la descripcion en vez del campo
         # Validar el municipio de destino
