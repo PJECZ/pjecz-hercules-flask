@@ -209,7 +209,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
 
     # Definir los valores por defecto del formulario
     form.respuesta_origen_id.data = generar_identificador()  # Read only
-    form.municipio_turnado.data = MUNICIPIO_TURNADO_CLAVE
+    form.municipio_turnado.data = current_app.config["MUNICIPIO_CLAVE"]  # Clave INEGI del municipio con tres digitos
     form.tipo_diligenciado.data = 0  # Cero es "NO DILIGENCIADO"
 
     # Entregar el formulario
