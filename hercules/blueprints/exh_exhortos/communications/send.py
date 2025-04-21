@@ -167,7 +167,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         "partes": partes,
         "fojas": int(exh_exhorto.fojas),
         "diasResponder": int(exh_exhorto.dias_responder),
-        "tipoDiligenciaId": str(exh_exhorto.tipo_diligenciacion_id),
+        "tipoDiligenciaId": str(exh_exhorto.tipo_diligencia_id),
         "tipoDiligenciacionNombre": str(exh_exhorto.tipo_diligenciacion_nombre),
         "fechaOrigen": exh_exhorto.fecha_origen.strftime("%Y-%m-%d %H:%M:%S"),
         "observaciones": str(exh_exhorto.observaciones),
