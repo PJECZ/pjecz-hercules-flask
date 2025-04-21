@@ -8,7 +8,7 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons('Archivo ' + exh_exhorto_respuesta_archivo.nombre_archivo) %}
         {{ topbar.button_previous('Respuesta', url_for('exh_exhortos_respuestas.detail', exh_exhorto_respuesta_id=exh_exhorto_respuesta_archivo.exh_exhorto_respuesta_id)) }}
-        {% if current_user.can_edit('EXH EXHORTOS RESPUESTAS ARCHIVOS') and exh_exhorto_respuesta_archivo.exh_exhorto_respuesta.estado == 'PENDIENTE' %}
+        {% if current_user.can_edit('EXH EXHORTOS RESPUESTAS ARCHIVOS') %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_respuestas_archivos.edit', exh_exhorto_respuesta_archivo_id=exh_exhorto_respuesta_archivo.id)) }}
         {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS ARCHIVOS') %}
