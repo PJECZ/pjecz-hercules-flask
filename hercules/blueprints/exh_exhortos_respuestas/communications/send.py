@@ -87,10 +87,10 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 
-    # Definir los datos de los archivos a enviar
+    # Bucle para juntar los archivos
     archivos = []
     for archivo in exh_exhorto_respuesta.exh_exhortos_respuestas_archivos:
-        if archivo.estado == "CANCELADO":
+        if archivo.estatus != "A" or archivo.estado == "CANCELADO":
             continue
         archivos.append(
             {
@@ -107,9 +107,11 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
         bitacora.error(mensaje_error)
         raise MyAnyError(mensaje_error)
 
-    # Definir los datos de los videos a enviar
+    # Bucle para juntar los videos
     videos = []
     for video in exh_exhorto_respuesta.exh_exhortos_respuestas_videos:
+        if video.estatus != "A":
+            continue
         videos.append(
             {
                 "titulo": str(video.titulo),

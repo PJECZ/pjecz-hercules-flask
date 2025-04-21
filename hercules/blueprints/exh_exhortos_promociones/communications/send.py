@@ -128,6 +128,8 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     # Bucle para juntar los promoventes
     promoventes = []
     for promovente in exh_exhorto_promocion.exh_exhortos_promociones_promoventes:
+        if promovente.estatus != "A":
+            continue
         promoventes.append(
             {
                 "nombre": str(promovente.nombre),
@@ -149,7 +151,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     # Bucle para juntar los archivos
     archivos = []
     for archivo in exh_exhorto_promocion.exh_exhortos_promociones_archivos:
-        if archivo.estado == "CANCELADO":
+        if archivo.estatus != "A" or archivo.estado == "CANCELADO":
             continue
         archivos.append(
             {

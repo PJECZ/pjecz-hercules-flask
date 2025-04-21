@@ -99,9 +99,11 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         bitacora.error(mensaje_error)
         raise MyNotExistsError(mensaje_error)
 
-    # Bucle para juntar los datos de las partes
+    # Bucle para juntar las partes
     partes = []
     for parte in exh_exhorto.exh_exhortos_partes:
+        if parte.estatus != "A":
+            continue
         partes.append(
             {
                 "nombre": str(parte.nombre),
@@ -116,10 +118,10 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
             }
         )
 
-    # Bucle para juntar los datos de los archivos
+    # Bucle para juntar los archivos
     archivos = []
     for archivo in exh_exhorto.exh_exhortos_archivos:
-        if archivo.estado == "CANCELADO":
+        if archivo.estatus != "A" or archivo.estado == "CANCELADO":
             continue
         archivos.append(
             {
@@ -130,10 +132,10 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
             }
         )
 
-    # Bucle para juntar los datos de los promoventes
+    # Bucle para juntar los promoventes
     promoventes = []
     for promovente in exh_exhorto.exh_exhortos_promoventes:
-        if promovente.estado == "CANCELADO":
+        if promovente.estatus != "A":
             continue
         promoventes.append(
             {
