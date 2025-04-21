@@ -8,7 +8,7 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons('Promovente ' + exh_exhorto_promovente.nombre) %}
         {{ topbar.button_previous('Exhorto', url_for('exh_exhortos.detail', exh_exhorto_id=exh_exhorto_promovente.exh_exhorto_id)) }}
-        {% if current_user.can_edit('EXH EXHORTOS PROMOVENTES') and exh_exhorto_promovente.exh_exhorto.estado == 'POR ENVIAR' %}
+        {% if current_user.can_edit('EXH EXHORTOS PROMOVENTES') and exh_exhorto_promovente.exh_exhorto.estado == 'PENDIENTE' %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_promoventes.edit', exh_exhorto_promovente_id=exh_exhorto_promovente.id)) }}
         {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS PROMOVENTES') %}

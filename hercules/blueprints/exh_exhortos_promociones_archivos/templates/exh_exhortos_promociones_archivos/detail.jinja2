@@ -8,7 +8,7 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons('Archivo ' + exh_exhorto_promocion_archivo.nombre_archivo) %}
         {{ topbar.button_previous('Promoción', url_for('exh_exhortos_promociones.detail', exh_exhorto_promocion_id=exh_exhorto_promocion_archivo.exh_exhorto_promocion_id)) }}
-        {% if current_user.can_edit('EXH EXHORTOS PROMOCIONES ARCHIVOS') and exh_exhorto_promocion_archivo.exh_exhorto_promocion.estado == 'POR ENVIAR' %}
+        {% if current_user.can_edit('EXH EXHORTOS PROMOCIONES ARCHIVOS') and exh_exhorto_promocion_archivo.exh_exhorto_promocion.estado == 'PENDIENTE' %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_promociones_archivos.edit', exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id)) }}
         {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES ARCHIVOS') %}
