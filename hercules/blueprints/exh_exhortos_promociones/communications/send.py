@@ -139,6 +139,8 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
                 "esPersonaMoral": bool(promovente.es_persona_moral),
                 "tipoParte": int(promovente.tipo_parte),
                 "tipoParteNombre": str(promovente.tipo_parte_nombre),
+                "correoElectronico": str(promovente.correo_electronico),
+                "telefono": str(promovente.telefono),
             }
         )
 
