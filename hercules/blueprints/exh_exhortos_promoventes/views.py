@@ -235,7 +235,7 @@ def edit(exh_exhorto_promovente_id):
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
                 descripcion=safe_message(f"Editado Parte {exh_exhorto_promovente.nombre_completo}"),
-                url=url_for("exh_exhortos_partes.detail", exh_exhorto_promovente_id=exh_exhorto_promovente.id),
+                url=url_for("exh_exhortos_promoventes.detail", exh_exhorto_promovente_id=exh_exhorto_promovente.id),
             )
             bitacora.save()
             flash(bitacora.descripcion, "success")
