@@ -132,7 +132,7 @@ def new_with_exh_exhorto(exh_exhorto_id):
                 es_valido = False
 
         # Validad correo_electronico
-        correo_electronico = None
+        correo_electronico = ""
         if form.correo_electronico.data:
             try:
                 correo_electronico = safe_email(form.correo_electronico.data)
@@ -198,8 +198,8 @@ def edit(exh_exhorto_parte_id):
             apellido_materno = safe_string(form.apellido_materno.data, save_enie=True)
             genero = form.genero.data
         else:
-            apellido_paterno = None
-            apellido_materno = None
+            apellido_paterno = ""
+            apellido_materno = ""
             genero = "-"  # No aplica
 
         # Si tipo_parte es NO DEFINIDO debe venir tipo_parte_nombre
@@ -211,7 +211,7 @@ def edit(exh_exhorto_parte_id):
                 es_valido = False
 
         # Validad correo_electronico
-        correo_electronico = None
+        correo_electronico = ""
         if form.correo_electronico.data:
             try:
                 correo_electronico = safe_email(form.correo_electronico.data)
