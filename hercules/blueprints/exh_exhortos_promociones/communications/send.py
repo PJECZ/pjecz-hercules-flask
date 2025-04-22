@@ -142,6 +142,14 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         tipo_parte_nombre = None
         if tipo_parte == 0:
             tipo_parte_nombre = promovente.tipo_parte_nombre
+        # Correo electrónico es opcional, si no se tiene se deja como None
+        correo_electronico = None
+        if promovente.correo_electronico is not None and promovente.correo_electronico != "":
+            correo_electronico = promovente.correo_electronico
+        # Teléfono es opcional, si no se tiene se deja como None
+        telefono = None
+        if promovente.telefono is not None and promovente.telefono != "":
+            telefono = promovente.telefono
         promoventes.append(
             {
                 "nombre": promovente.nombre,
@@ -151,8 +159,8 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
                 "esPersonaMoral": promovente.es_persona_moral,
                 "tipoParte": tipo_parte,
                 "tipoParteNombre": tipo_parte_nombre,
-                "correoElectronico": promovente.correo_electronico,
-                "telefono": promovente.telefono,
+                "correoElectronico": correo_electronico,
+                "telefono": telefono,
             }
         )
 
