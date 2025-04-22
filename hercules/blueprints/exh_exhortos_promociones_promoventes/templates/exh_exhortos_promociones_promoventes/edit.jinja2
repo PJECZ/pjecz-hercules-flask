@@ -2,10 +2,10 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Editar Promovente de la Promoción {{ exh_exhorto_promocion_archivo.exh_exhorto_promocion.folio_origen_promocion }}{% endblock %}
+{% block title %}Editar Promovente de la Promoción {{ exh_exhorto_promocion_promovente.exh_exhorto_promocion.folio_origen_promocion }}{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Editar Promovente de la Promoción ' + exh_exhorto_promocion_archivo.exh_exhorto_promocion.folio_origen_promocion) }}
+    {{ topbar.page('Editar Promovente de la Promoción ' + exh_exhorto_promocion_promovente.exh_exhorto_promocion.folio_origen_promocion) }}
 {% endblock %}
 
 {% block content %}

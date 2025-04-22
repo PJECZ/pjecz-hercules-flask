@@ -83,7 +83,13 @@ class ExhExhortoPromocionPromovente(database.Model, UniversalMixin):
     @property
     def nombre_completo(self):
         """Junta nombres, apellido_paterno y apellido materno"""
-        return self.nombre + " " + str(self.apellido_paterno) + " " + str(self.apellido_materno)
+        if self.es_persona_moral:
+            return self.nombre
+        if self.apellido_paterno and self.apellido_materno:
+            return f"{self.nombre} {self.apellido_paterno} {self.apellido_materno}"
+        if self.apellido_paterno:
+            return f"{self.nombre} {self.apellido_paterno}"
+        return self.nombre
 
     @property
     def tipo_parte_descripcion(self):

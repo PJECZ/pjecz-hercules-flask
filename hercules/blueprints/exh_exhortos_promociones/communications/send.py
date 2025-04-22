@@ -130,17 +130,29 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
     for promovente in exh_exhorto_promocion.exh_exhortos_promociones_promoventes:
         if promovente.estatus != "A":
             continue
+        # Genero es opcional, si no es M o F se deja como None
+        genero = None
+        if promovente.genero in ("M", "F"):
+            genero = promovente.genero
+        # Tipo Parte es entero, debe ser 0, 1 o 2
+        tipo_parte = 0
+        if promovente.tipo_parte in (0, 1, 2):
+            tipo_parte = promovente.tipo_parte
+        # Tipo Parte Nombre es opcional, si Tipo Parte es 0 se usa
+        tipo_parte_nombre = None
+        if tipo_parte == 0:
+            tipo_parte_nombre = promovente.tipo_parte_nombre
         promoventes.append(
             {
-                "nombre": str(promovente.nombre),
-                "apellidoPaterno": str(promovente.apellido_paterno),
-                "apellidoMaterno": str(promovente.apellido_materno),
-                "genero": str(promovente.genero),
-                "esPersonaMoral": bool(promovente.es_persona_moral),
-                "tipoParte": int(promovente.tipo_parte),
-                "tipoParteNombre": str(promovente.tipo_parte_nombre),
-                "correoElectronico": str(promovente.correo_electronico),
-                "telefono": str(promovente.telefono),
+                "nombre": promovente.nombre,
+                "apellidoPaterno": promovente.apellido_paterno,
+                "apellidoMaterno": promovente.apellido_materno,
+                "genero": genero,
+                "esPersonaMoral": promovente.es_persona_moral,
+                "tipoParte": tipo_parte,
+                "tipoParteNombre": tipo_parte_nombre,
+                "correoElectronico": promovente.correo_electronico,
+                "telefono": promovente.telefono,
             }
         )
 

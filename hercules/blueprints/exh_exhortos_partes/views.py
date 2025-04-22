@@ -175,6 +175,11 @@ def edit(exh_exhorto_parte_id):
     """Editar Parte"""
     exh_exhorto_parte = ExhExhortoParte.query.get_or_404(exh_exhorto_parte_id)
 
+    # Si el estado del exhorto NO es PENDIENTE, no se puede editar
+    if exh_exhorto_parte.exh_exhorto.estado != "PENDIENTE":
+        flash("No se puede editar porque el estado del exhorto no es PENDIENTE.", "warning")
+        return redirect(url_for("exh_exhortos_partes.detail", exh_exhorto_parte_id=exh_exhorto_parte_id))
+
     # Crear formulario
     form = ExhExhortoParteForm()
     if form.validate_on_submit():
