@@ -213,6 +213,11 @@ def edit(exh_exhorto_respuesta_id):
     """Editar una respuesta"""
     exh_exhorto_respuesta = ExhExhortoRespuesta.query.get_or_404(exh_exhorto_respuesta_id)
 
+    # Si el estado del exhorto NO es PENDIENTE, no se puede editar
+    if exh_exhorto_respuesta.exh_exhorto.estado != "PENDIENTE":
+        flash("No se puede editar porque el estado del exhorto no es PENDIENTE.", "warning")
+        return redirect(url_for("exh_exhortos_respuestas.detail", exh_exhorto_respuesta_id=exh_exhorto_respuesta_id))
+
     # Crear el formulario
     form = ExhExhortoRespuestaForm()
     if form.validate_on_submit():

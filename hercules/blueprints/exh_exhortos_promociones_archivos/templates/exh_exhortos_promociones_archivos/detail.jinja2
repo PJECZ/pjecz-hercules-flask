@@ -8,7 +8,7 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons('Archivo ' + exh_exhorto_promocion_archivo.nombre_archivo) %}
         {{ topbar.button_previous('Promoción', url_for('exh_exhortos_promociones.detail', exh_exhorto_promocion_id=exh_exhorto_promocion_archivo.exh_exhorto_promocion_id)) }}
-        {% if current_user.can_edit('EXH EXHORTOS PROMOCIONES ARCHIVOS') %}
+        {% if current_user.can_edit('EXH EXHORTOS PROMOCIONES ARCHIVOS') and exh_exhorto_promocion_archivo.exh_exhorto_promocion.estado == 'PENDIENTE' %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_promociones_archivos.edit', exh_exhorto_promocion_archivo_id=exh_exhorto_promocion_archivo.id)) }}
         {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS PROMOCIONES ARCHIVOS') %}
@@ -22,6 +22,7 @@
     <!-- Detalle del archivo -->
     {% call detail.card(estatus=exh_exhorto_promocion_archivo.estatus) %}
         {{ detail.label_value('Promoción', exh_exhorto_promocion_archivo.exh_exhorto_promocion.folio_origen_promocion, url_for('exh_exhortos_promociones.detail', exh_exhorto_promocion_id=exh_exhorto_promocion_archivo.exh_exhorto_promocion_id)) }}
+        {{ detail.label_value('Estado de la promoción', exh_exhorto_promocion_archivo.exh_exhorto_promocion.estado) }}
         {{ detail.label_value('Nombre archivo', exh_exhorto_promocion_archivo.nombre_archivo) }}
         {{ detail.label_value('Hash SHA-1', exh_exhorto_promocion_archivo.hash_sha1) }}
         {{ detail.label_value('Hash SHA-256', exh_exhorto_promocion_archivo.hash_sha256) }}

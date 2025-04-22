@@ -195,6 +195,11 @@ def new_with_exh_exhorto(exh_exhorto_id):
 def edit(exh_exhorto_archivo_id):
     """Editar Archivo"""
     exh_exhorto_archivo = ExhExhortoArchivo.query.get_or_404(exh_exhorto_archivo_id)
+    # Si el estado del exhorto NO es PENDIENTE, no se puede editar
+    if exh_exhorto_archivo.exh_exhorto.estado != "PENDIENTE":
+        flash("No se puede editar porque el estado del exhorto no es PENDIENTE.", "warning")
+        return redirect(url_for("exh_exhortos_archivos.detail", exh_exhorto_archivo_id=exh_exhorto_archivo_id))
+    # Crear formulario
     form = ExhExhortoArchivoEditForm()
     if form.validate_on_submit():
         exh_exhorto_archivo.nombre_archivo = safe_string(form.nombre_archivo.data)

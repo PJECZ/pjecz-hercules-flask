@@ -8,7 +8,7 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons('Video ' + exh_exhorto_respuesta_video.titulo) %}
         {{ topbar.button_previous('Respuesta', url_for('exh_exhortos_respuestas.detail', exh_exhorto_respuesta_id=exh_exhorto_respuesta_video.exh_exhorto_respuesta_id)) }}
-        {% if current_user.can_edit('EXH EXHORTOS RESPUESTAS VIDEOS') %}
+        {% if current_user.can_edit('EXH EXHORTOS RESPUESTAS VIDEOS') and exh_exhorto_respuesta_video.exh_exhorto_respuesta.estado == 'PENDIENTE' %}
             {{ topbar.button_edit('Editar', url_for('exh_exhortos_respuestas_videos.edit', exh_exhorto_respuesta_video_id=exh_exhorto_respuesta_video.id)) }}
         {% endif %}
         {% if current_user.can_admin('EXH EXHORTOS RESPUESTAS VIDEOS') %}
@@ -21,6 +21,7 @@
 {% block content %}
     {% call detail.card(estatus=exh_exhorto_respuesta_video.estatus) %}
         {{ detail.label_value('Respuesta Origen ID', exh_exhorto_respuesta_video.exh_exhorto_respuesta.respuesta_origen_id, url_for('exh_exhortos_respuestas.detail', exh_exhorto_respuesta_id=exh_exhorto_respuesta_video.exh_exhorto_respuesta_id)) }}
+        {{ detail.label_value('Estado de la respuesta', exh_exhorto_respuesta_video.exh_exhorto_respuesta.estado) }}
         {{ detail.label_value('Título', exh_exhorto_respuesta_video.titulo) }}
         {{ detail.label_value('Descripción', exh_exhorto_respuesta_video.descripcion) }}
         {{ detail.label_value('URL de acceso', exh_exhorto_respuesta_video.url_acceso, exh_exhorto_respuesta_video.url_acceso) }}

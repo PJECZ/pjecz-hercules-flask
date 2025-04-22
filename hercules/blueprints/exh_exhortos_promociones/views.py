@@ -165,6 +165,11 @@ def new_with_exh_exhorto(exh_exhorto_id):
 def edit(exh_exhorto_promocion_id):
     """Editar una promoción"""
     exh_exhorto_promocion = ExhExhortoPromocion.query.get_or_404(exh_exhorto_promocion_id)
+    # Si el estado del exhorto NO es PENDIENTE, no se puede editar
+    if exh_exhorto_promocion.exh_exhorto.estado != "PENDIENTE":
+        flash("No se puede editar porque el estado del exhorto no es PENDIENTE.", "warning")
+        return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion_id))
+    # Crear formulario
     form = ExhExhortoPromocionForm()
     if form.validate_on_submit():
         exh_exhorto_promocion.fojas = form.fojas.data

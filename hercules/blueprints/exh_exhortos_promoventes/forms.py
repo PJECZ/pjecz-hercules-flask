@@ -19,9 +19,7 @@ class ExhExhortoPromoventeForm(FlaskForm):
     apellido_materno = StringField("Apellido Materno", validators=[Optional(), Length(max=256)])
     genero = RadioField("Genero", coerce=str, choices=ExhExhortoPromovente.GENEROS.items(), validators=[DataRequired()])
     es_persona_moral = BooleanField("Es Persona Moral")
-    tipo_parte = SelectField(
-        "Tipo de Promovente", coerce=int, choices=ExhExhortoPromovente.TIPOS_PARTES.items(), validators=[Optional()]
-    )
+    tipo_parte = SelectField("Tipo de Promovente", coerce=int, choices=ExhExhortoPromovente.TIPOS_PARTES.items(), validators=[Optional()])
     tipo_parte_nombre = StringField("Tipo Promovente Nombre")
     correo_electronico = StringField("Correo Electrónico", validators=[Optional(), Length(max=256)])
     telefono = StringField("Teléfono (10 dígitos)", validators=[Optional(), Length(min=10, max=10), Regexp(TELEFONO_REGEXP)])
