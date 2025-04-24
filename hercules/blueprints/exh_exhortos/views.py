@@ -288,7 +288,9 @@ def new():
     # Tomando las claves INEGI de las variables de entorno ESTADO_CLAVE y MUNICIPIO_CLAVE
     estado_origen_clave = current_app.config["ESTADO_CLAVE"]
     estado_origen = Estado.query.filter_by(clave=estado_origen_clave).first()
-    municipio_origen = Municipio.query.filter_by(estado_id=estado_origen.id).filter_by(clave=current_app.config["MUNICIPIO_CLAVE"]).first()
+    municipio_origen = (
+        Municipio.query.filter_by(estado_id=estado_origen.id).filter_by(clave=current_app.config["MUNICIPIO_CLAVE"]).first()
+    )
     # Definir valores por defecto del formulario
     form.exhorto_origen_id.data = generar_identificador()  # Read only
     form.estado_origen.data = estado_origen.nombre  # Read only

@@ -30,7 +30,7 @@ from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
 
 load_dotenv()
 TIMEOUT = int(os.getenv("TIMEOUT", "60"))  # Tiempo de espera de la comunicación con el PJ externo
-TZ=os.getenv("TZ", "America/Mexico_City")  # Zona horaria para convertir a tiempo local
+TZ = os.getenv("TZ", "America/Mexico_City")  # Zona horaria para convertir a tiempo local
 
 app = create_app()
 app.app_context().push()

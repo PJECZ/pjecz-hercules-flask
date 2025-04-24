@@ -165,11 +165,19 @@ def new_with_exh_exhorto_promocion(exh_exhorto_promocion_id):
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
                 descripcion=safe_message(f"Nuevo Promovente {exh_exhorto_promocion_promovente.nombre}"),
-                url=url_for("exh_exhortos_promociones_promoventes.detail", exh_exhorto_promocion_promovente_id=exh_exhorto_promocion_promovente.id),
+                url=url_for(
+                    "exh_exhortos_promociones_promoventes.detail",
+                    exh_exhorto_promocion_promovente_id=exh_exhorto_promocion_promovente.id,
+                ),
             )
             bitacora.save()
             flash(bitacora.descripcion, "success")
-            return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion_promovente.exh_exhorto_promocion.id))
+            return redirect(
+                url_for(
+                    "exh_exhortos_promociones.detail",
+                    exh_exhorto_promocion_id=exh_exhorto_promocion_promovente.exh_exhorto_promocion.id,
+                )
+            )
 
     # Entregar formulario
     return render_template(
@@ -188,9 +196,14 @@ def edit(exh_exhorto_promocion_promovente_id):
     exh_exhorto_promocion_promovente = ExhExhortoPromocionPromovente.query.get_or_404(exh_exhorto_promocion_promovente_id)
 
     # Si el estado del promoción NO es PENDIENTE, no se puede editar
-    if exh_exhorto_promocion_promovente.exh_exhorto_promocion.estado != 'PENDIENTE':
+    if exh_exhorto_promocion_promovente.exh_exhorto_promocion.estado != "PENDIENTE":
         flash("No se puede editar porque la promoción que no está en estado PENDIENTE", "warning")
-        return redirect(url_for("exh_exhortos_promociones_promoventes.detail", exh_exhorto_promocion_promovente_id=exh_exhorto_promocion_promovente_id))
+        return redirect(
+            url_for(
+                "exh_exhortos_promociones_promoventes.detail",
+                exh_exhorto_promocion_promovente_id=exh_exhorto_promocion_promovente_id,
+            )
+        )
 
     # Crear formulario
     form = ExhExhortoPromocionPromoventeForm()
@@ -254,7 +267,12 @@ def edit(exh_exhorto_promocion_promovente_id):
             )
             bitacora.save()
             flash(bitacora.descripcion, "success")
-            return redirect(url_for("exh_exhortos_promociones.detail", exh_exhorto_promocion_id=exh_exhorto_promocion_promovente.exh_exhorto_promocion.id))
+            return redirect(
+                url_for(
+                    "exh_exhortos_promociones.detail",
+                    exh_exhorto_promocion_id=exh_exhorto_promocion_promovente.exh_exhorto_promocion.id,
+                )
+            )
 
     # Cargar valores en el formulario
     form.nombre.data = exh_exhorto_promocion_promovente.nombre
