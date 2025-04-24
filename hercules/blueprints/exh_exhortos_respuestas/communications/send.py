@@ -6,7 +6,9 @@ import os
 import time
 from datetime import datetime
 
+from dotenv import load_dotenv
 import requests
+import pytz
 
 from hercules.app import create_app
 from hercules.blueprints.estados.models import Estado
@@ -26,11 +28,13 @@ from lib.exceptions import (
 )
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
 
+load_dotenv()
+TIMEOUT = int(os.getenv("TIMEOUT", "60"))  # Tiempo de espera de la comunicación con el PJ externo
+TZ = os.getenv("TZ", "America/Mexico_City")  # Zona horaria para convertir a tiempo local
+
 app = create_app()
 app.app_context().push()
 database.app = app
-
-TIMEOUT = 60  # segundos
 
 
 def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:

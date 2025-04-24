@@ -157,7 +157,9 @@ def edit(exh_exhorto_actualizacion_id):
     # Si el estado del exhorto NO es PENDIENTE, no se puede editar
     if exh_exhorto_actualizacion.exh_exhorto.estado != "PENDIENTE":
         flash("No se puede editar porque el estado del exhorto no es PENDIENTE.", "warning")
-        return redirect(url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion_id))
+        return redirect(
+            url_for("exh_exhortos_actualizaciones.detail", exh_exhorto_actualizacion_id=exh_exhorto_actualizacion_id)
+        )
     # Crear formulario
     form = ExhExhortoActualizacionForm()
     if form.validate_on_submit():

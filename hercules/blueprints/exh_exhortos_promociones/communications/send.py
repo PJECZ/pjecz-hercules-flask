@@ -6,8 +6,9 @@ import os
 import time
 from datetime import datetime
 
-import requests
 from dotenv import load_dotenv
+import requests
+import pytz
 
 from hercules.app import create_app
 from hercules.blueprints.estados.models import Estado
@@ -27,14 +28,14 @@ from lib.exceptions import (
 )
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
 
+load_dotenv()
+ESTADO_CLAVE = os.getenv("ESTADO_CLAVE", "05")  # Clave INEGI del estado
+TIMEOUT = int(os.getenv("TIMEOUT", "60"))  # Tiempo de espera de la comunicación con el PJ externo
+TZ = os.getenv("TZ", "America/Mexico_City")  # Zona horaria para convertir a tiempo local
+
 app = create_app()
 app.app_context().push()
 database.app = app
-
-load_dotenv()
-ESTADO_CLAVE = os.getenv("ESTADO_CLAVE", "")
-
-TIMEOUT = 60  # segundos
 
 
 def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
@@ -190,13 +191,17 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         bitacora.error(mensaje_error)
         raise MyAnyError(mensaje_error)
 
+    # Definir fecha_origen en tiempo local
+    local_tz = pytz.timezone(TZ)
+    fecha_origen_local = exh_exhorto_promocion.fecha_origen.astimezone(local_tz)
+
     # Definir los datos de la promoción a enviar
     payload_for_json = {
         "folioSeguimiento": str(exh_exhorto_promocion.exh_exhorto.folio_seguimiento),
         "folioOrigenPromocion": str(exh_exhorto_promocion.folio_origen_promocion),
         "promoventes": promoventes,
         "fojas": int(exh_exhorto_promocion.fojas),
-        "fechaOrigen": exh_exhorto_promocion.fecha_origen.strftime("%Y-%m-%d %H:%M:%S"),
+        "fechaOrigen": fecha_origen_local.strftime("%Y-%m-%d %H:%M:%S"),
         "observaciones": str(exh_exhorto_promocion.observaciones),
         "archivos": archivos,
     }

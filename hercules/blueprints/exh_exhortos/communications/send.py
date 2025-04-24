@@ -2,10 +2,13 @@
 Communications, Enviar Exhorto
 """
 
+import os
 import time
 from datetime import datetime
 
+from dotenv import load_dotenv
 import requests
+import pytz
 
 from hercules.app import create_app
 from hercules.blueprints.estados.models import Estado
@@ -25,11 +28,13 @@ from lib.exceptions import (
 )
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
 
+load_dotenv()
+TIMEOUT = int(os.getenv("TIMEOUT", "60"))  # Tiempo de espera de la comunicación con el PJ externo
+TZ = os.getenv("TZ", "America/Mexico_City")  # Zona horaria para convertir a tiempo local
+
 app = create_app()
 app.app_context().push()
 database.app = app
-
-TIMEOUT = 60  # segundos
 
 
 def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
@@ -191,6 +196,10 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
             }
         )
 
+    # Definir fecha_origen en tiempo local
+    local_tz = pytz.timezone(TZ)
+    fecha_origen_local = exh_exhorto.fecha_origen.astimezone(local_tz)
+
     # Definir los datos del exhorto a enviar
     payload_for_json = {
         "exhortoOrigenId": str(exh_exhorto.exhorto_origen_id),
@@ -209,7 +218,7 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
         "diasResponder": int(exh_exhorto.dias_responder),
         "tipoDiligenciaId": str(exh_exhorto.tipo_diligencia_id),
         "tipoDiligenciacionNombre": str(exh_exhorto.tipo_diligenciacion_nombre),
-        "fechaOrigen": exh_exhorto.fecha_origen.strftime("%Y-%m-%d %H:%M:%S"),
+        "fechaOrigen": fecha_origen_local.strftime("%Y-%m-%d %H:%M:%S"),
         "observaciones": str(exh_exhorto.observaciones),
         "archivos": archivos,
         "promoventes": promoventes,
