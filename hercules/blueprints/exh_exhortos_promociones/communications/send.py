@@ -191,9 +191,10 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         bitacora.error(mensaje_error)
         raise MyAnyError(mensaje_error)
 
-    # Definir fecha_origen en tiempo local
+    # Cambiar fecha_origen de UTC a tiempo local
+    utc_tz = pytz.utc
     local_tz = pytz.timezone(TZ)
-    fecha_origen_local = exh_exhorto_promocion.fecha_origen.astimezone(local_tz)
+    fecha_origen_local = exh_exhorto_promocion.fecha_origen.replace(tzinfo=utc_tz).astimezone(local_tz)
 
     # Definir los datos de la promoción a enviar
     payload_for_json = {
@@ -405,6 +406,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
         mensaje_info = f"- acuse fechaHoraRecepcion: {acuse_fecha_hora_recepcion_str}"
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
+        acuse_fecha_hora_recepcion = acuse_fecha_hora_recepcion.replace(tzinfo=local_tz).astimezone(utc_tz)
     except (KeyError, ValueError):
         advertencias.append("Faltó o es incorrecta fechaHoraRecepcion en el acuse")
 

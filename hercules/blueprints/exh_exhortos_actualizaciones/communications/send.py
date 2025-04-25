@@ -115,9 +115,10 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
     # Generar un identificador único para la actualización
     actualizacion_origen_id = generar_identificador()
 
-    # Definir fecha_hora en tiempo local
+    # Cambiar fecha_hora de UTC a tiempo local
+    utc_tz = pytz.utc
     local_tz = pytz.timezone(TZ)
-    fecha_hora_local = exh_exhorto_actualizacion.fecha_hora.astimezone(local_tz)
+    fecha_hora_local = exh_exhorto_actualizacion.fecha_hora.replace(tzinfo=utc_tz).astimezone(local_tz)
 
     # Definir los datos de la actualización a enviar
     payload_for_json = {
@@ -216,8 +217,8 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
 
     # Validar que la confirmación tenga actualizacionOrigenId
     try:
-        confirmacion_actulaizacion_origen_id = str(confirmacion["actualizacionOrigenId"])
-        mensaje_info = f"- actualizacionOrigenId: {confirmacion_actulaizacion_origen_id}"
+        confirmacion_actualizacion_origen_id = str(confirmacion["actualizacionOrigenId"])
+        mensaje_info = f"- actualizacionOrigenId: {confirmacion_actualizacion_origen_id}"
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
     except KeyError:
@@ -230,6 +231,7 @@ def enviar_actualizacion(exh_exhorto_actualizacion_id: int) -> tuple[str, str, s
         mensaje_info = f"- fechaHora: {confirmacion_fecha_hora_str}"
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
+        confirmacion_fecha_hora = confirmacion_fecha_hora.replace(tzinfo=local_tz).astimezone(utc_tz)
     except (KeyError, ValueError):
         advertencias.append("Faltó o es incorrecta fechaHora en la confirmación")
 

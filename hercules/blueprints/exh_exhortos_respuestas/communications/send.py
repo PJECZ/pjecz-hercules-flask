@@ -338,6 +338,8 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
         mensaje_info = f"- acuse fechaHoraRecepcion: {acuse_fecha_hora_recepcion_str}"
         mensajes.append(mensaje_info)
         bitacora.info(mensaje_info)
+        local_tz = pytz.timezone(TZ)
+        acuse_fecha_hora_recepcion = acuse_fecha_hora_recepcion.replace(tzinfo=local_tz).astimezone(pytz.utc)
     except (KeyError, ValueError):
         advertencias.append("Faltó o es incorrecta fechaHoraRecepcion en el acuse")
 
