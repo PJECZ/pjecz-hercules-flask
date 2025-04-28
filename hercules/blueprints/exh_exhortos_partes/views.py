@@ -241,7 +241,7 @@ def edit(exh_exhorto_parte_id):
             flash(bitacora.descripcion, "success")
             return redirect(url_for("exh_exhortos.detail", exh_exhorto_id=exh_exhorto_parte.exh_exhorto_id))
 
-    # Cargar valores en el formulario
+    # Definir los valores del formulario
     form.nombre.data = exh_exhorto_parte.nombre
     form.apellido_paterno.data = exh_exhorto_parte.apellido_paterno
     form.apellido_materno.data = exh_exhorto_parte.apellido_materno
@@ -252,7 +252,7 @@ def edit(exh_exhorto_parte_id):
     form.correo_electronico.data = exh_exhorto_parte.correo_electronico
     form.telefono.data = exh_exhorto_parte.telefono
 
-    # Entregar formulario
+    # Entregar el formulario
     return render_template("exh_exhortos_partes/edit.jinja2", form=form, exh_exhorto_parte=exh_exhorto_parte)
 
 
