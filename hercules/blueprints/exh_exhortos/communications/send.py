@@ -143,6 +143,12 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
             }
         )
 
+    # Validar que haya al menos una parte
+    if len(partes) == 0:
+        mensaje_error = "No hay partes en el exhorto"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
+
     # Bucle para juntar los archivos
     archivos = []
     for archivo in exh_exhorto.exh_exhortos_archivos:
@@ -156,6 +162,12 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
                 "tipoDocumento": int(archivo.tipo_documento),
             }
         )
+
+    # Validar que haya al menos un archivo
+    if len(archivos) == 0:
+        mensaje_error = "No hay archivos en el exhorto"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Bucle para juntar los promoventes
     promoventes = []
@@ -195,6 +207,12 @@ def enviar_exhorto(exh_exhorto_id: int) -> tuple[str, str, str]:
                 "telefono": telefono,
             }
         )
+
+    # Validar que haya al menos un promovente
+    if len(promoventes) == 0:
+        mensaje_error = "No hay promoventes en el exhorto"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Cambiar fecha_origen de UTC a tiempo local
     utc_tz = pytz.utc

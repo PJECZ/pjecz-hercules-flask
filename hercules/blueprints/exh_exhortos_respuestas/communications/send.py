@@ -107,7 +107,7 @@ def enviar_respuesta(exh_exhorto_respuesta_id: int) -> tuple[str, str, str]:
 
     # Validar que tenga archivos
     if len(archivos) == 0:
-        mensaje_error = "Falló esta promoción porque no tiene archivos"
+        mensaje_error = "No hay archivos en la respuesta"
         bitacora.error(mensaje_error)
         raise MyAnyError(mensaje_error)
 
