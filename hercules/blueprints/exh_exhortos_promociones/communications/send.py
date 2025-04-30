@@ -165,9 +165,9 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
             }
         )
 
-    # Validar que tenga promoventes
+    # Validar que haya al menos un promovente
     if len(promoventes) == 0:
-        mensaje_error = "Falló esta promoción porque no tiene promoventes"
+        mensaje_error = "No hay promoventes en la promoción"
         bitacora.error(mensaje_error)
         raise MyAnyError(mensaje_error)
 
@@ -187,7 +187,7 @@ def enviar_promocion(exh_exhorto_promocion_id: int) -> tuple[str, str, str]:
 
     # Validar que tenga archivos
     if len(archivos) == 0:
-        mensaje_error = "Falló esta promoción porque no tiene archivos"
+        mensaje_error = "No hay archivos en la promoción"
         bitacora.error(mensaje_error)
         raise MyAnyError(mensaje_error)
 
