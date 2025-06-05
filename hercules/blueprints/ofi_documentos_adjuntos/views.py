@@ -1,7 +1,6 @@
 """
-Ofi Documentos Flujos, vistas
+Ofi Documentos Adjuntos, vistas
 """
-
 import json
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
@@ -13,15 +12,16 @@ from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
-from hercules.blueprints.ofi_documentos_flujos.models import OfiDocumentoFlujo
+from hercules.blueprints.ofi_documentos_adjuntos.models import OfiDocumentoAdjunto
 
-MODULO = "OFI DOCUMENTOS FLUJOS"
+MODULO = "OFI DOCUMENTOS ADJUNTOS"
 
-ofi_documentos_flujos = Blueprint('ofi_documentos_flujos', __name__, template_folder='templates')
+ofi_documentos_adjuntos = Blueprint('ofi_documentos_adjuntos', __name__, template_folder='templates')
 
 
-@ofi_documentos_flujos.before_request
+@ofi_documentos_adjuntos.before_request
 @login_required
 @permission_required(MODULO, Permiso.VER)
 def before_request():
     """ Permiso por defecto """
+
