@@ -1,0 +1,34 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Oficio-Plantilla {{ ofi_plantilla.descripcion }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Oficio-Plantilla ' + ofi_plantilla.descripcion) %}
+        {{ topbar.button_previous('Plantillas', url_for('ofi_plantillas.list_active')) }}
+        {% if current_user.can_edit('OFI PLANTILLAS') %}
+            {{ topbar.button_edit('Editar', url_for('ofi_plantillas.edit', ofi_plantilla_id=ofi_plantilla.id)) }}
+        {% endif %}
+        {% if current_user.can_admin('OFI PLANTILLAS') %}
+            {% if ofi_plantilla.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('ofi_plantillas.delete', ofi_plantilla_id=ofi_plantilla.id)) }}{% endif %}
+            {% if ofi_plantilla.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('ofi_plantillas.recover', ofi_plantilla_id=ofi_plantilla.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=ofi_plantilla.estatus) %}
+        {{ detail.label_value_big('Título', ofi_plantilla.descripcion) }}
+        {{ detail.label_value('Contenido', ofi_plantilla.contenido) }}
+        {{ detail.label_value('Creado', moment(ofi_plantilla.creado, local=False).format('DD MMM YYYY HH:mm')) }}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_admin('OFI PLANTILLAS') %}
+        {% if ofi_plantilla.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + ofi_plantilla.descripcion + '?') }}{% endif %}
+        {% if ofi_plantilla.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + ofi_plantilla.descripcion + '?') }}{% endif %}
+    {% endif %}
+{% endblock %}
