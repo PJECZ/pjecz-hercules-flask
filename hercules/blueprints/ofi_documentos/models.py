@@ -13,7 +13,7 @@ from hercules.extensions import database
 
 
 class OfiDocumento(database.Model, UniversalMixin):
-    """ OfiDocumento """
+    """OfiDocumento"""
 
     ESTADOS = {
         "BORRADOR": "Borrador",
@@ -23,7 +23,7 @@ class OfiDocumento(database.Model, UniversalMixin):
     }
 
     # Nombre de la tabla
-    __tablename__ = 'ofi_documentos'
+    __tablename__ = "ofi_documentos"
 
     # Clave primaria
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -57,9 +57,9 @@ class OfiDocumento(database.Model, UniversalMixin):
     firma_avanzada_cancelo_error: Mapped[Optional[str]] = mapped_column(String(512))
 
     # Hijos
-    ofi_documentos_adjuntos: Mapped[List["OfiDocumentosAdjuntos"]] = relationship(back_populates="ofi_documento")
-    ofi_documentos_destinatarios: Mapped[List["OfiDocumentosDestinatarios"]] = relationship(back_populates="ofi_documento")
+    ofi_documentos_adjuntos: Mapped[List["OfiDocumentoAdjunto"]] = relationship(back_populates="ofi_documento")
+    ofi_documentos_destinatarios: Mapped[List["OfiDocumentoDestinatario"]] = relationship(back_populates="ofi_documento")
 
     def __repr__(self):
-        """ Representación """
-        return f'<OfiDocumento {self.id}>'
+        """Representación"""
+        return f"<OfiDocumento {self.id}>"
