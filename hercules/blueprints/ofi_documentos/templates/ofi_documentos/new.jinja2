@@ -12,7 +12,6 @@
     {% call f.card() %}
         {% call f.form_tag('ofi_documentos.new', fid='ofi_documento_form') %}
             {% call f.form_group(form.titulo) %}{% endcall %}
-            {% call f.form_group(form.folio) %}{% endcall %}
             {% call f.form_group(form.contenido) %}{% endcall %}
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}

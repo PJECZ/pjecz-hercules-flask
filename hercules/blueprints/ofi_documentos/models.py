@@ -2,6 +2,7 @@
 Ofi Documentos, modelos
 """
 
+import hashlib
 from datetime import datetime
 from typing import List, Optional
 
@@ -59,6 +60,19 @@ class OfiDocumento(database.Model, UniversalMixin):
     # Hijos
     ofi_documentos_adjuntos: Mapped[List["OfiDocumentoAdjunto"]] = relationship(back_populates="ofi_documento")
     ofi_documentos_destinatarios: Mapped[List["OfiDocumentoDestinatario"]] = relationship(back_populates="ofi_documento")
+
+    def elaborar_firma(self):
+        """Generate a hash representing the current sample state"""
+        elementos = []
+        elementos.append(str(self.id))
+        elementos.append(self.creado.strftime("%Y-%m-%d %H:%M:%S"))
+        elementos.append(self.modificado.strftime("%Y-%m-%d %H:%M:%S"))
+        elementos.append(str(self.usuario_id))
+        elementos.append(self.descripcion)
+        elementos.append(self.contenido)
+        elementos.append(str(self.folio))
+        elementos.append(str(self.firmante_usuario_id))
+        return hashlib.md5("|".join(elementos).encode("utf-8")).hexdigest()
 
     def __repr__(self):
         """Representación"""
