@@ -260,8 +260,7 @@ def _numero_maximo_de_folio() -> int:
     # Inicializar sesión a la base de datos
     session = database.session()
     # Calcular el año actual
-    anio_actual = datetime.now().year
-    fecha_actual = datetime(anio_actual, 12, 31, 23, 59, 59)
+    fecha_actual = datetime(datetime.now().year, 12, 31, 23, 59, 59)
     # Query para calcular el número máximo de folio de una autoridad del usuario actual
     numero_max_folio = (
         session.query(func.max(OfiDocumento.folio))
