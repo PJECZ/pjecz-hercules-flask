@@ -3,10 +3,10 @@ Ofi Documentos, vistas
 """
 
 import json
+from datetime import datetime
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func
-
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_string, safe_message
@@ -259,13 +259,19 @@ def _numero_maximo_de_folio() -> int:
 
     # Inicializar sesión a la base de datos
     session = database.session()
+    # Calcular el año actual
+    anio_actual = datetime.now().year
+    fecha_actual = datetime(anio_actual, 12, 31, 23, 59, 59)
     # Query para calcular el número máximo de folio de una autoridad del usuario actual
     numero_max_folio = (
         session.query(func.max(OfiDocumento.folio))
         .join(Usuario)
         .filter(Usuario.autoridad_id == current_user.autoridad_id)
+        .filter(OfiDocumento.creado <= fecha_actual)
         .scalar()
     )
+    if numero_max_folio is None:
+        numero_max_folio = 0
     return numero_max_folio
 
 
