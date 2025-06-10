@@ -23,6 +23,7 @@
         {{ detail.label_value('Email', ofi_documento_destinatario.usuario.email, url_for('usuarios.detail', usuario_id=ofi_documento_destinatario.usuario.id)) }}
         {{ detail.label_value('Nombre', ofi_documento_destinatario.usuario.nombre) }}
         {{ detail.label_value('Oficio', ofi_documento_destinatario.ofi_documento.descripcion, url_for('ofi_documentos.detail', ofi_documento_id=ofi_documento_destinatario.ofi_documento.id)) }}
+        {{ detail.label_value_boolean('Fue Leído', ofi_documento_destinatario.fue_leido) }}
     {% endcall %}
 {% endblock %}
 

@@ -65,6 +65,7 @@ def datatable_json():
                     "email": resultado.usuario.email,
                     "url": url_for("usuarios.detail", usuario_id=resultado.usuario.id),
                 },
+                "fue_leido": resultado.fue_leido,
             }
         )
     # Entregar JSON

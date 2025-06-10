@@ -7,9 +7,13 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons('Oficio ' + ofi_documento.id | string) %}
-        {{ topbar.button_previous('Oficios', url_for('ofi_documentos.list_active')) }}
+        {{ topbar.button_previous('Mis Oficios', url_for('ofi_documentos.list_active')) }}
+        {{ topbar.button('Mi Autoridad', url_for('ofi_documentos.list_active_mi_autoridad'), "mdi:scale-balance") }}
+        {{ topbar.button('Mi Bandeja de Entrada', url_for('ofi_documentos.list_active_mi_bandeja_entrada'), "mdi:inbox-multiple") }}
         {% if current_user.can_edit('OFI DOCUMENTOS') %}
-            {{ topbar.button_edit('Editar', url_for('ofi_documentos.edit', ofi_documento_id=ofi_documento.id)) }}
+            {% if ofi_documento.estado == "BORRADOR" %}
+                {{ topbar.button_edit('Editar', url_for('ofi_documentos.edit', ofi_documento_id=ofi_documento.id)) }}
+            {% endif %}
         {% endif %}
         {% if current_user.can_admin('OFI DOCUMENTOS') %}
             {% if ofi_documento.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('ofi_documentos.delete', ofi_documento_id=ofi_documento.id)) }}{% endif %}
@@ -23,10 +27,27 @@
         {{ detail.label_value('Título', ofi_documento.descripcion) }}
         {{ detail.label_value('Folio', ofi_documento.folio) }}
         {{ detail.label_value('Contenido', ofi_documento.contenido) }}
-        {{ detail.label_value('Firma Simple', ofi_documento.firma_simple) }}
-        {{ detail.label_value('Estado', ofi_documento.estado) }}
-        {{ detail.label_value('Usuario', ofi_documento.usuario.nombre) }}
+        {{ detail.label_value('Usuario', ofi_documento.usuario.nombre,  url_for("usuarios.detail", usuario_id=ofi_documento.usuario.id)) }}
         {{ detail.label_value('Creado', moment(ofi_documento.creado, local=False).format('DD MMM YYYY HH:mm')) }}
+        {{ detail.label_value('Modificado', moment(ofi_documento.modificado, local=False).format('DD MMM YYYY HH:mm')) }}
+        {{ detail.label_value('Estado', ofi_documento.estado) }}
+        {# Botones de acción #}
+        {% if ofi_documento.estado == "BORRADOR" %}
+            <hr />
+            {{ detail.button_md('Firmar', url_for('ofi_documentos.sign', ofi_documento_id=ofi_documento.id), 'mdi:file-sign',  color_class='btn-success') }}
+        {% endif %}
+        {% if ofi_documento.estado == "FIRMADO" %}
+            <hr />
+            {{ detail.label_value('Firma Simple', ofi_documento.firma_simple) }}
+            {{ detail.label_value('Firmado por', usuario_firmante.nombre, url_for("usuarios.detail", usuario_id=usuario_firmante.id)) }}
+            <hr />
+            {{ modals.button_modal_md('Enviar', url_for('ofi_documentos.send', ofi_documento_id=ofi_documento.id), "Enviar", "mdi:send-outline", "¿Desea enviar el oficio? Esta acción no puede ser deshecha.",  "btn-primary") }}
+        {% endif %}
+        {% if ofi_documento.estado == "ENVIADO" %}
+            <hr />
+            {{ detail.label_value('Firma Simple', ofi_documento.firma_simple) }}
+            {{ detail.label_value('Firmado por', usuario_firmante.nombre, url_for("usuarios.detail", usuario_id=usuario_firmante.id)) }}
+        {% endif %}
     {% endcall %}
     {# Card para archivos adjuntos #}
     {% call detail.card("Archivos Adjuntos") %}
@@ -40,7 +61,9 @@
             </thead>
         </table>
         {% if current_user.can_insert('OFI DOCUMENTOS ADJUNTOS') %}
-            <a href="{{ url_for('ofi_documentos_adjuntos.new_with_ofi_documento', ofi_documento_id=ofi_documento.id) }}" class="btn btn-primary">Agregar Archivo Adjunto</a>
+            {% if ofi_documento.estado != "ENVIADO" %}
+                <a href="{{ url_for('ofi_documentos_adjuntos.new_with_ofi_documento', ofi_documento_id=ofi_documento.id) }}" class="btn btn-primary">Agregar Archivo Adjunto</a>
+            {% endif %}
         {% endif %}
     {% endcall %}
     {# Card para Destinatarios #}
@@ -52,11 +75,14 @@
                     <th>Id</th>
                     <th>email</th>
                     <th>Nombre</th>
+                    <th>Leído</th>
                 </tr>
             </thead>
         </table>
         {% if current_user.can_insert('OFI DOCUMENTOS DESTINATARIOS') %}
-            <a href="{{ url_for('ofi_documentos_destinatarios.new_with_ofi_documento', ofi_documento_id=ofi_documento.id) }}" class="btn btn-primary">Agregar Destinatario</a>
+            {% if ofi_documento.estado != "ENVIADO" %}
+                <a href="{{ url_for('ofi_documentos_destinatarios.new_with_ofi_documento', ofi_documento_id=ofi_documento.id) }}" class="btn btn-primary">Agregar Destinatario</a>
+            {% endif %}
         {% endif %}
     {% endcall %}
 {% endblock %}
@@ -103,7 +129,8 @@
         configDT_destinatarios['columns'] = [
             { data: 'detalle' },
             { data: 'usuario_email' },
-            { data: 'usuario_nombre' }
+            { data: 'usuario_nombre' },
+            { data: 'fue_leido' }
         ];
         configDT_destinatarios['columnDefs'] = [
             {
@@ -119,10 +146,22 @@
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.email + '</a>';
                 }
+            },
+            {
+                targets: 3, // fue_leido
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data) {
+                        return '<span class="iconify" data-icon="mdi:checkbox-marked" style="font-size: 1.4em"></span>';
+                    }
+                    return '<span class="iconify text-secondary" data-icon="mdi:checkbox-blank-outline" style="font-size: 1.4em"></span>';
+                }
             }
         ];
         // Filtros Destinatarios
         const filtrosDestinatarios = new FiltrosDataTable('#ofi_documentos_destinatarios_datatable', configDT_destinatarios);
         filtrosDestinatarios.precargar();
     </script>
+    {# Modal para firmar #}
+    {{ modals.custom_javascript("Enviar", "", "Enviar") }}
 {% endblock %}

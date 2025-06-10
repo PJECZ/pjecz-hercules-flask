@@ -3,6 +3,7 @@ Ofi Documentos Adjuntos, vistas
 """
 
 import json
+
 from flask import Blueprint, flash, redirect, render_template, request, url_for, current_app, make_response
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
@@ -10,9 +11,16 @@ from werkzeug.exceptions import NotFound
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.exceptions import MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError, MyUploadError
+from lib.exceptions import (
+    MyAnyError,
+    MyFilenameError,
+    MyMissingConfigurationError,
+    MyNotAllowedExtensionError,
+    MyUnknownExtensionError,
+)
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs, upload_file_to_gcs
 from lib.safe_string import safe_string, safe_message
-
+from lib.storage import GoogleCloudStorage
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
@@ -21,14 +29,6 @@ from hercules.blueprints.ofi_documentos_adjuntos.models import OfiDocumentoAdjun
 from hercules.blueprints.ofi_documentos_adjuntos.forms import OfiDocumentoAdjuntoForm
 from hercules.blueprints.ofi_documentos.models import OfiDocumento
 
-from lib.exceptions import (
-    MyAnyError,
-    MyFilenameError,
-    MyMissingConfigurationError,
-    MyNotAllowedExtensionError,
-    MyUnknownExtensionError,
-)
-from lib.storage import GoogleCloudStorage
 
 MODULO = "OFI DOCUMENTOS ADJUNTOS"
 
