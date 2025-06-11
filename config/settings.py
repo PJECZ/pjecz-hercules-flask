@@ -54,6 +54,7 @@ from pydantic_settings import BaseSettings
 
 load_dotenv()
 
+MEGABYTE = (2**10) ** 2
 PROJECT_ID = os.getenv("PROJECT_ID", "")  # Por defecto está vacío, esto significa estamos en modo local
 SERVICE_PREFIX = os.getenv("SERVICE_PREFIX", "pjecz_hercules_flask")
 
@@ -100,6 +101,11 @@ class Settings(BaseSettings):
     SECRET_KEY: str = get_secret("secret_key")
     SQLALCHEMY_DATABASE_URI: str = get_secret("sqlalchemy_database_uri")
     TASK_QUEUE: str = get_secret("task_queue")
+
+    # Incrementar el tamaño de lo que se sube en los formularios para Syncfusion Document Editor
+    MAX_CONTENT_LENGTH: int | None = None
+    MAX_FORM_MEMORY_SIZE: int = 50 * MEGABYTE
+
 
     class Config:
         """Load configuration"""

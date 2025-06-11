@@ -54,7 +54,7 @@
                     <th>ID</th>
                     <th>Creado</th>
                     <th>Folio</th>
-                    <th>Título</th>
+                    <th>Descripción</th>
                     <th>Estado</th>
                 </tr>
             </thead>
@@ -75,7 +75,7 @@
             { data: 'detalle' },
             { data: 'creado' },
             { data: 'folio' },
-            { data: 'titulo' },
+            { data: 'descripcion' },
             { data: 'estado' }
         ];
         configDataTable['columnDefs'] = [
@@ -84,6 +84,15 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.id + '</a>';
+                }
+            },
+            {
+                targets: 3, // descripcion
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.length > 48)
+                        return '<span title="' + data + '">' + data.substring(0, 48) + '…</span>';
+                    return data;
                 }
             }
         ];

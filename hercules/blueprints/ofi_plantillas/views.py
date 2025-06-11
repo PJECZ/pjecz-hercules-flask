@@ -56,11 +56,11 @@ def datatable_json():
         data.append(
             {
                 "detalle": {
-                    "titulo": resultado.descripcion,
+                    "detalle": resultado.descripcion,
                     "url": url_for("ofi_plantillas.detail", ofi_plantilla_id=resultado.id),
                 },
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
-                "es_activo": resultado.es_activo,
+                "esta_archivado": resultado.esta_archivado,
             }
         )
     # Entregar JSON
@@ -105,20 +105,20 @@ def new():
     if form.validate_on_submit():
         ofi_plantilla = OfiPlantilla(
             usuario=current_user,
-            descripcion=safe_string(form.titulo.data, save_enie=True),
-            contenido=safe_message(form.contenido.data),
+            descripcion=safe_string(form.descripcion.data, save_enie=True),
+            contenido=form.contenido_sfdt.data,
         )
         ofi_plantilla.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Nuevo Oficio-Plantilla {ofi_plantilla.descripcion}"),
+            descripcion=safe_message(f"Nuevo Ofi Plantilla {ofi_plantilla.descripcion}"),
             url=url_for("ofi_plantillas.detail", ofi_plantilla_id=ofi_plantilla.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    return render_template("ofi_plantillas/new.jinja2", form=form)
+    return render_template("ofi_plantillas/new_syncfusion_document.jinja2", form=form)
 
 
 @ofi_plantillas.route("/ofi_plantillas/edicion/<int:ofi_plantilla_id>", methods=["GET", "POST"])
@@ -128,23 +128,23 @@ def edit(ofi_plantilla_id):
     ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
     form = OfiPlantillaForm()
     if form.validate_on_submit():
-        ofi_plantilla.descripcion = safe_string(form.titulo.data, save_enie=True)
-        ofi_plantilla.contenido = safe_message(form.contenido.data)
-        ofi_plantilla.es_activo = form.es_activo.data
+        ofi_plantilla.descripcion = safe_string(form.descripcion.data, save_enie=True)
+        ofi_plantilla.contenido_sfdt = form.contenido_sfdt.data
+        ofi_plantilla.esta_archivado = form.esta_archivado.data
         ofi_plantilla.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Editado Oficio-Plantilla {ofi_plantilla.descripcion}"),
+            descripcion=safe_message(f"Editado Ofi Plantilla {ofi_plantilla.descripcion}"),
             url=url_for("ofi_plantillas.detail", ofi_plantilla_id=ofi_plantilla.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
     form.titulo.data = ofi_plantilla.descripcion
-    form.contenido.data = ofi_plantilla.contenido
-    form.es_activo.data = ofi_plantilla.es_activo
-    return render_template("ofi_plantillas/edit.jinja2", form=form, ofi_plantilla=ofi_plantilla)
+    form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
+    form.esta_archivado.data = ofi_plantilla.esta_archivado
+    return render_template("ofi_plantillas/edit_syncfusion_document.jinja2", form=form, ofi_plantilla=ofi_plantilla)
 
 
 @ofi_plantillas.route("/ofi_plantillas/eliminar/<int:ofi_plantilla_id>")
@@ -157,7 +157,7 @@ def delete(ofi_plantilla_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Oficio-Plantilla {ofi_plantilla.descripcion}"),
+            descripcion=safe_message(f"Eliminado Ofi Plantilla {ofi_plantilla.descripcion}"),
             url=url_for("ofi_plantillas.detail", ofi_plantilla_id=ofi_plantilla.id),
         )
         bitacora.save()
@@ -175,7 +175,7 @@ def recover(ofi_plantilla_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Oficio-Plantilla {ofi_plantilla.descripcion}"),
+            descripcion=safe_message(f"Recuperado Ofi Plantilla {ofi_plantilla.descripcion}"),
             url=url_for("ofi_plantillas.detail", ofi_plantilla_id=ofi_plantilla.id),
         )
         bitacora.save()

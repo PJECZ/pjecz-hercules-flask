@@ -69,7 +69,7 @@
         configDataTable['columns'] = [
             { data: 'detalle' },
             { data: 'creado' },
-            { data: 'es_activo' }
+            { data: 'esta_archivado' }
         ];
         configDataTable['columnDefs'] = [
             {
@@ -80,7 +80,7 @@
                 }
             },
             {
-                targets: 2, // es_activo
+                targets: 2, // esta_archivado
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data) {

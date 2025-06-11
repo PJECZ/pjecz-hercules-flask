@@ -20,12 +20,11 @@
 
 {% block content %}
     {% call detail.card(estatus=ofi_plantilla.estatus) %}
-        {{ detail.label_value_big('Título', ofi_plantilla.descripcion) }}
-        {{ detail.label_value('Contenido', ofi_plantilla.contenido) }}
+        {{ detail.label_value_big('Descripción', ofi_plantilla.descripcion) }}
         {{ detail.label_value('Creado', moment(ofi_plantilla.creado, local=False).format('DD MMM YYYY HH:mm')) }}
         {{ detail.label_value('Modificado', moment(ofi_plantilla.modificado, local=False).format('DD MMM YYYY HH:mm')) }}
-        {{ detail.label_value_boolean('Activo', ofi_plantilla.es_activo) }}
-        {{ detail.button_md('Crear un oficio en base a esta plantilla', url_for('ofi_documentos.new_with_plantilla', ofi_plantilla_id=ofi_plantilla.id), 'mdi:content-copy',  color_class='btn-primary') }}
+        {{ detail.label_value_boolean('Está archivado', ofi_plantilla.esta_archivado) }}
+        {{ detail.button_md('Crear un oficio en base a esta plantilla', url_for('ofi_documentos.new', ofi_plantilla_id=ofi_plantilla.id), 'mdi:content-copy',  color_class='btn-primary') }}
     {% endcall %}
 {% endblock %}
 
