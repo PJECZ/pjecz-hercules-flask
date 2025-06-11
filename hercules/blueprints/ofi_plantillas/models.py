@@ -32,7 +32,7 @@ class OfiPlantilla(database.Model, UniversalMixin):
     # Columnas contenido
     contenido_html: Mapped[Optional[str]] = mapped_column(Text)
     contenido_md: Mapped[Optional[str]] = mapped_column(Text)
-    contenido_sfdt: Mapped[Optional[JSONB]] = mapped_column(Text)  # Syncfusion Document Editor
+    contenido_sfdt: Mapped[Optional[JSONB]] = mapped_column(JSONB)  # Syncfusion Document Editor
 
     def __repr__(self):
         """Representación"""

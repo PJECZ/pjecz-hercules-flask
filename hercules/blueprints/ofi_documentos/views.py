@@ -4,7 +4,7 @@ Ofi Documentos, vistas
 
 import json
 from datetime import datetime
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func
 
@@ -133,11 +133,11 @@ def list_inactive():
 def detail(ofi_documento_id):
     """Detalle de un Ofi-Documento"""
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    # Determinar el usuario firmante
+    # Consultar el usuario firmante, si lo tiene
     usuario_firmante = None
-    if ofi_documento.firmante_usuario_id is not None:
-        usuario_firmante = Usuario.query.get(ofi_documento.firmante_usuario_id)
-    # Marcar como leído
+    if ofi_documento.firma_simple_usuario_id is not None:
+        usuario_firmante = Usuario.query.get(ofi_documento.firma_simple_usuario_id)
+    # Si el usuario que lo ve es un Destinatario, se va a marcar como leído
     if ofi_documento.estado == "ENVIADO":
         # Buscar al usuario entre los destinatarios
         usuario_destinatario = (
@@ -145,17 +145,28 @@ def detail(ofi_documento_id):
             .filter_by(usuario_id=current_user.id)
             .first()
         )
+        # Marcar como leído si es que no lo ha sido
         if usuario_destinatario is not None and usuario_destinatario.fue_leido is False:
             usuario_destinatario.fue_leido = True
             usuario_destinatario.save()
+    # Para mostrar el contenido del documento, se usa Syncfusion Document Editor con un formulario que NO se envía
+    form = OfiDocumentoNewForm()
+    form.descripcion.data = ofi_documento.descripcion
+    form.contenido_sfdt.data = ofi_documento.contenido_sfdt
     # Entregar
-    return render_template("ofi_documentos/detail.jinja2", ofi_documento=ofi_documento, usuario_firmante=usuario_firmante)
+    return render_template(
+        "ofi_documentos/detail.jinja2",
+        ofi_documento=ofi_documento,
+        usuario_firmante=usuario_firmante,
+        form=form,
+        syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
+    )
 
 
 @ofi_documentos.route("/ofi_documentos/nuevo/<int:ofi_plantilla_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
 def new(ofi_plantilla_id):
-    """Nuevo Ofi-Documento"""
+    """Nuevo Ofi Documento"""
     ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
     form = OfiDocumentoNewForm()
     if form.validate_on_submit():
@@ -179,13 +190,18 @@ def new(ofi_plantilla_id):
     form.descripcion.data = ofi_plantilla.descripcion
     form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
     # Entregar
-    return render_template("ofi_documentos/new_syncfusion_document.jinja2", form=form)
+    return render_template(
+        "ofi_documentos/new_syncfusion_document.jinja2",
+        form=form,
+        syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
+        ofi_plantilla_id=ofi_plantilla_id,
+    )
 
 
 @ofi_documentos.route("/ofi_documentos/edicion/<int:ofi_documento_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.MODIFICAR)
 def edit(ofi_documento_id):
-    """Editar Oficio-Documento"""
+    """Editar Ofi Documento"""
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
     form = OfiDocumentoEditForm()
     if form.validate_on_submit():
@@ -205,7 +221,109 @@ def edit(ofi_documento_id):
     form.descripcion.data = ofi_documento.descripcion
     form.contenido_sfdt.data = ofi_documento.contenido_sfdt
     # Entregar
-    return render_template("ofi_documentos/edit.jinja2", form=form, ofi_documento=ofi_documento)
+    return render_template(
+        "ofi_documentos/edit.jinja2",
+        form=form,
+        ofi_documento=ofi_documento,
+        syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
+    )
+
+
+@ofi_documentos.route("/ofi_documentos/firmar/<int:ofi_documento_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def sign(ofi_documento_id):
+    """Firmar un Ofi Documento"""
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # Validar el estatus, que no esté eliminado
+    if ofi_documento.estatus != "A":
+        flash("El oficio está eliminado", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Validar que el estado sea "BORRADOR"
+    if ofi_documento.estado != "BORRADOR":
+        flash("El oficio no está en estado BORRADOR, no se puede firmar", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # TODO: Calcular el número de folio
+    # fecha_actual = datetime(datetime.now().year, 12, 31, 23, 59, 59)
+    # numero_max_folio = (
+    #     OfiDocumento.query(func.max(OfiDocumento.folio))
+    #     .join(Usuario)
+    #     .filter(Usuario.autoridad_id == current_user.autoridad_id)
+    #     .filter(OfiDocumento.creado <= fecha_actual)
+    #     .scalar()
+    # )
+    # if numero_max_folio is None:
+    #     numero_max_folio = 0
+    # Formuario
+    form = OfiDocumentoSignForm()
+    if form.validate_on_submit():
+        es_valido = True
+        # TODO: Separar el número y el año del folio
+        folio = form.folio.data
+        # TODO: Validar que número de folio no se repita en el año actual y en la misma autoridad
+        # Si es válido
+        if es_valido:
+            # Guardar en la base de datos
+            ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
+            ofi_documento.folio = folio
+            ofi_documento.estado = "FIRMADO"
+            ofi_documento.firmante_usuario_id = current_user.id
+            ofi_documento.firma_simple = OfiDocumento.elaborar_firma(ofi_documento)
+            ofi_documento.save()
+            # Agregar registro a la bitácora
+            bitacora = Bitacora(
+                modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+                usuario=current_user,
+                descripcion=safe_message(f"Firmado simple Ofi Documento {ofi_documento.descripcion}"),
+                url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+            )
+            bitacora.save()
+            flash(bitacora.descripcion, "success")
+            return redirect(bitacora.url)
+    # Cargar los datos en el formulario
+    form.descripcion.data = ofi_documento.descripcion
+    form.folio.data = ofi_documento.folio if ofi_documento.folio else "0/2025"
+    form.contenido_sfdt.data = ofi_documento.contenido_sfdt
+    # Entregar
+    return render_template(
+        "ofi_documentos/sign_syncfusion_document.jinja2",
+        form=form,
+        ofi_documento=ofi_documento,
+        syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
+    )
+
+
+@ofi_documentos.route("/ofi_documentos/enviar/<int:ofi_documento_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def send(ofi_documento_id):
+    """Enviar un Ofi Documento"""
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # Validar el estatus, que no esté eliminado
+    if ofi_documento.estatus != "A":
+        flash("El oficio está eliminado", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Validar que el estado sea "FIRMADO"
+    if ofi_documento.estado != "FIRMADO":
+        flash("El oficio no está en estado FIRMADO, no se puede firmar", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Validar que haya al menos un destinatario
+    cantidad_destinatarios = OfiDocumentoDestinatario.query.filter_by(ofi_documento_id=ofi_documento.id).filter_by(estatus="A").count()
+    if cantidad_destinatarios == 0:
+        flash("Este oficio NO tiene destinatarios, no se puede enviar, debe agregarlos", "danger")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Actualizar el estado del documento
+    ofi_documento.estado = "ENVIADO"
+    ofi_documento.save()
+    # TODO: Ejecutar la tarea en el fondo para enviar un mensaje a cada destinatario
+    # Agregar registro a la bitácora
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Enviado Ofi Documento {ofi_documento.descripcion}"),
+        url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+    )
+    bitacora.save()
+    flash(bitacora.descripcion, "success")
+    return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
 
 
 @ofi_documentos.route("/ofi_documentos/eliminar/<int:ofi_documento_id>")
@@ -241,96 +359,4 @@ def recover(ofi_documento_id):
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
-    return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-
-
-@ofi_documentos.route("/ofi_documentos/firmar/<int:ofi_documento_id>", methods=["GET", "POST"])
-@permission_required(MODULO, Permiso.ADMINISTRAR)
-def sign(ofi_documento_id):
-    """Firmar un Ofi-Documento"""
-    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    # Validar el estatus, que no esté eliminado
-    if ofi_documento.estatus != "A":
-        flash("El oficio está eliminado", "warning")
-        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-    # Validar que el estado sea "BORRADOR"
-    if ofi_documento.estado != "BORRADOR":
-        flash("El oficio no está en estado BORRADOR, no se puede firmar", "warning")
-        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-    # Calcular el número de folio
-    fecha_actual = datetime(datetime.now().year, 12, 31, 23, 59, 59)
-    numero_max_folio = (
-        OfiDocumento.query(func.max(OfiDocumento.folio))
-        .join(Usuario)
-        .filter(Usuario.autoridad_id == current_user.autoridad_id)
-        .filter(OfiDocumento.creado <= fecha_actual)
-        .scalar()
-    )
-    if numero_max_folio is None:
-        numero_max_folio = 0
-    # Formuario
-    form = OfiDocumentoSignForm()
-    if form.validate_on_submit():
-        es_valido = True
-        # TODO: Separar el número y el año del folio
-        folio = form.folio.data
-        # TODO: Validar que número de folio no se repita en el año actual y en la misma autoridad
-        # Si es válido
-        if es_valido:
-            # Guardar en la base de datos
-            ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
-            ofi_documento.folio = folio
-            ofi_documento.estado = "FIRMADO"
-            ofi_documento.firmante_usuario_id = current_user.id
-            ofi_documento.firma_simple = OfiDocumento.elaborar_firma(ofi_documento)
-            ofi_documento.save()
-            # Agregar registro a la bitácora
-            bitacora = Bitacora(
-                modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-                usuario=current_user,
-                descripcion=safe_message(f"Firmado simple Ofi Documento {ofi_documento.descripcion}"),
-                url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
-            )
-            bitacora.save()
-            flash(bitacora.descripcion, "success")
-            return redirect(bitacora.url)
-    # Cargar los datos en el formulario
-    form.descripcion.data = ofi_documento.descripcion
-    form.folio.data = ofi_documento.folio if ofi_documento.folio else numero_max_folio + 1
-    form.contenido_sfdt.data = ofi_documento.contenido_sfdt
-    # Entregar
-    return render_template("ofi_documentos/sign.jinja2", form=form, ofi_documento=ofi_documento)
-
-
-@ofi_documentos.route("/ofi_documentos/enviar/<int:ofi_documento_id>")
-@permission_required(MODULO, Permiso.ADMINISTRAR)
-def send(ofi_documento_id):
-    """Enviar un Ofi Documento"""
-    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    # Validar el estatus, que no esté eliminado
-    if ofi_documento.estatus != "A":
-        flash("El oficio está eliminado", "warning")
-        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-    # Validar que el estado sea "FIRMADO"
-    if ofi_documento.estado != "FIRMADO":
-        flash("El oficio no está en estado FIRMADO, no se puede firmar", "warning")
-        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-    # Validar que haya al menos un destinatario
-    cantidad_destinatarios = OfiDocumentoDestinatario.query.filter_by(ofi_documento_id=ofi_documento.id).filter_by(estatus="A").count()
-    if cantidad_destinatarios == 0:
-        flash("Este oficio NO tiene destinatarios, no se puede enviar, debe agregarlos", "danger")
-        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-    # Actualizar el estado del documento
-    ofi_documento.estado = "ENVIADO"
-    ofi_documento.save()
-    # TODO: Ejecutar la tarea en el fondo para enviar un mensaje a cada destinatario
-    # Agregar registro a la bitácora
-    bitacora = Bitacora(
-        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-        usuario=current_user,
-        descripcion=safe_message(f"Enviado Ofi Documento {ofi_documento.descripcion}"),
-        url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
-    )
-    bitacora.save()
-    flash(bitacora.descripcion, "success")
     return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))

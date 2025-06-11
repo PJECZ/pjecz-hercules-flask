@@ -97,9 +97,10 @@
 
             // Inicializar el componente
             let documenteditorContainer = new ej.documenteditor.DocumentEditorContainer({
-                enableToolbar: true,
-                height: '590px',
+                enableToolbar: false, // Desactivar la barra de herramientas
+                height: '400px',
                 isReadOnly: true, // Hacer el editor de solo lectura
+                showPropertiesPane: false, // Ocultar el panel de propiedades
             });
             ej.documenteditor.DocumentEditorContainer.Inject(ej.documenteditor.Toolbar);
             documenteditorContainer.serviceUrl = 'https://services.syncfusion.com/js/production/api/documenteditor/';

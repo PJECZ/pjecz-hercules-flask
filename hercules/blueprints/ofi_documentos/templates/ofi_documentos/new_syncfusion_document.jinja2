@@ -43,7 +43,8 @@
 
 {% block content %}
     {% call f.card() %}
-        {% call f.form_tag('ofi_documentos.new', fid='ofi_documento_form') %}
+        {% set form_kwargs = {'ofi_plantilla_id': ofi_plantilla_id} %}
+        {% call f.form_tag('ofi_documentos.new', fid='ofi_documento_form', **form_kwargs) %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
             <div style="display:none">
                 {% call f.form_group(form.contenido_sfdt) %}{% endcall %}

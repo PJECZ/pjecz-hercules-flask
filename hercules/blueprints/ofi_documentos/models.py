@@ -48,7 +48,7 @@ class OfiDocumento(database.Model, UniversalMixin):
     # Columnas contenido
     contenido_html: Mapped[Optional[str]] = mapped_column(Text)
     contenido_md: Mapped[Optional[str]] = mapped_column(Text)
-    contenido_sfdt: Mapped[Optional[JSONB]] = mapped_column(Text)  # Syncfusion Document Editor
+    contenido_sfdt: Mapped[Optional[JSONB]] = mapped_column(JSONB)  # Syncfusion Document Editor
 
     # Columnas firma electronica simple
     firma_simple: Mapped[str] = mapped_column(String(256), default="")
