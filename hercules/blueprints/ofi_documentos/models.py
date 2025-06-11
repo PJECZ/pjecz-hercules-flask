@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from sqlalchemy import Enum, ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.universal_mixin import UniversalMixin
@@ -35,12 +36,24 @@ class OfiDocumento(database.Model, UniversalMixin):
 
     # Columnas
     descripcion: Mapped[str] = mapped_column(String(256))
-    contenido: Mapped[str] = mapped_column(Text)
     estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="ofi_documentos_estados", native_enum=False), index=True)
-    folio: Mapped[Optional[int]]  # En BORRADOR puede ser None
-    firmante_usuario_id: Mapped[Optional[int]]
-    es_archivado: Mapped[bool] = mapped_column(default=False)
+    esta_archivado: Mapped[bool] = mapped_column(default=False)
+
+    # El folio es None cuando el estado es BORRADOR
+    # Cuando se firma el documento, se genera un folio y se separa su año y número
+    folio: Mapped[Optional[str]] = mapped_column(String(64))
+    folio_anio: Mapped[Optional[int]]
+    folio_num: Mapped[Optional[int]]
+
+    # Columnas contenido
+    contenido_html: Mapped[Optional[str]] = mapped_column(Text)
+    contenido_md: Mapped[Optional[str]] = mapped_column(Text)
+    contenido_sfdt: Mapped[Optional[JSONB]] = mapped_column(JSONB)  # Syncfusion Document Editor
+
+    # Columnas firma electronica simple
     firma_simple: Mapped[str] = mapped_column(String(256), default="")
+    firma_simple_tiempo: Mapped[Optional[datetime]]
+    firma_simple_usuario_id: Mapped[Optional[int]]
 
     # Columnas firma electronica avanzada
     firma_avanzada_nombre: Mapped[Optional[str]] = mapped_column(String(256))
@@ -65,13 +78,13 @@ class OfiDocumento(database.Model, UniversalMixin):
         """Generate a hash representing the current sample state"""
         elementos = []
         elementos.append(str(self.id))
-        elementos.append(self.creado.strftime("%Y-%m-%d %H:%M:%S"))
-        elementos.append(self.modificado.strftime("%Y-%m-%d %H:%M:%S"))
+        # elementos.append(self.creado.strftime("%Y-%m-%d %H:%M:%S"))
+        # elementos.append(self.modificado.strftime("%Y-%m-%d %H:%M:%S"))
         elementos.append(str(self.usuario_id))
         elementos.append(self.descripcion)
-        elementos.append(self.contenido)
+        elementos.append(str(self.contenido_sfdt))
         elementos.append(str(self.folio))
-        elementos.append(str(self.firmante_usuario_id))
+        elementos.append(str(self.firma_simple_usuario_id))
         return hashlib.md5("|".join(elementos).encode("utf-8")).hexdigest()
 
     def __repr__(self):

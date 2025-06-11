@@ -3,30 +3,32 @@ Ofi Documentos, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, IntegerField
-from wtforms.validators import DataRequired, Length, Optional
+from wtforms import StringField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, Length, Optional, Regexp
+
+FOLIO_REGEXP = r"^(\w.\/)*\d+\/\d{4}$"
 
 
 class OfiDocumentoNewForm(FlaskForm):
     """Formulario para crear OfiDocumento"""
 
-    titulo = StringField("Título", validators=[DataRequired(), Length(max=256)])
-    contenido = TextAreaField("Contenido", validators=[DataRequired()])
+    descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=256)])
+    contenido_sfdt = TextAreaField("Contenido SFDT", validators=[Optional()], render_kw={"rows": 10})
     guardar = SubmitField("Guardar")
 
 
 class OfiDocumentoEditForm(FlaskForm):
     """Formulario para editar OfiDocumento"""
 
-    titulo = StringField("Título", validators=[DataRequired(), Length(max=256)])
-    folio = IntegerField("Folio", validators=[Optional()])
-    contenido = TextAreaField("Contenido", validators=[DataRequired()])
+    descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=256)])
+    contenido_sfdt = TextAreaField("Contenido SFDT", validators=[Optional()], render_kw={"rows": 10})
     guardar = SubmitField("Guardar")
 
 
 class OfiDocumentoSignForm(FlaskForm):
     """Formulario para firmar un OfiDocumento"""
 
-    titulo = StringField("Título")  # ReadOnly
-    folio = IntegerField("Folio", validators=[DataRequired()])
+    descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=256)])
+    folio = StringField("Folio", validators=[DataRequired(), Regexp(FOLIO_REGEXP)])
+    contenido_sfdt = TextAreaField("Contenido SFDT", validators=[Optional()], render_kw={"rows": 10})  # Read Only
     firmar = SubmitField("Firmar")

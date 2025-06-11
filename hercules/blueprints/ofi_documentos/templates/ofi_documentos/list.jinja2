@@ -6,9 +6,6 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {% if current_user.can_view('OFI PLANTILLAS') %}
-            {{ topbar.button('Plantillas', url_for('ofi_plantillas.list_active'), "mdi:text-box-multiple") }}
-        {% endif %}
         {{ topbar.button('Mis Oficios', url_for('ofi_documentos.list_active'), "mdi:file-document-edit-outline") }}
         {{ topbar.button('Mi Autoridad', url_for('ofi_documentos.list_active_mi_autoridad'), "mdi:scale-balance") }}
         {{ topbar.button('Mi Bandeja de Entrada', url_for('ofi_documentos.list_active_mi_bandeja_entrada'), "mdi:inbox-multiple") }}
@@ -16,8 +13,8 @@
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('ofi_documentos.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('ofi_documentos.list_active')) }}{% endif %}
         {% endif %}
-        {% if current_user.can_insert('OFI DOCUMENTOS') %}
-            {{ topbar.button_new('Nuevo Oficio', url_for('ofi_documentos.new')) }}
+        {% if current_user.can_insert('OFI DOCUMENTOS') and current_user.can_view('OFI PLANTILLAS') %}
+            {{ topbar.button_new('Nuevo Oficio desde una Plantilla', url_for('ofi_plantillas.list_active')) }}
         {% endif %}
     {% endcall %}
 {% endblock %}
@@ -54,7 +51,7 @@
                     <th>ID</th>
                     <th>Creado</th>
                     <th>Folio</th>
-                    <th>Título</th>
+                    <th>Descripción</th>
                     <th>Estado</th>
                 </tr>
             </thead>
@@ -75,7 +72,7 @@
             { data: 'detalle' },
             { data: 'creado' },
             { data: 'folio' },
-            { data: 'titulo' },
+            { data: 'descripcion' },
             { data: 'estado' }
         ];
         configDataTable['columnDefs'] = [
@@ -84,6 +81,15 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.id + '</a>';
+                }
+            },
+            {
+                targets: 3, // descripcion
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.length > 48)
+                        return '<span title="' + data + '">' + data.substring(0, 48) + '…</span>';
+                    return data;
                 }
             }
         ];

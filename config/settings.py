@@ -20,6 +20,7 @@ Para producción, configure los siguientes secretos en Google Cloud Secret Manag
 - pjecz_hercules_flask_salt
 - pjecz_hercules_flask_secret_key
 - pjecz_hercules_flask_sqlalchemy_database_uri
+- pjecz_hercules_flask_syncfusion_license_key
 - pjecz_hercules_flask_task_queue
 
 Para desarrollo, debe crear un archivo .env con las variables de entorno:
@@ -42,6 +43,7 @@ Para desarrollo, debe crear un archivo .env con las variables de entorno:
 - SALT
 - SECRET_KEY
 - SQLALCHEMY_DATABASE_URI
+- SYNCFUSION_LICENSE_KEY
 - TASK_QUEUE
 """
 
@@ -54,6 +56,7 @@ from pydantic_settings import BaseSettings
 
 load_dotenv()
 
+MEGABYTE = (2**10) ** 2
 PROJECT_ID = os.getenv("PROJECT_ID", "")  # Por defecto está vacío, esto significa estamos en modo local
 SERVICE_PREFIX = os.getenv("SERVICE_PREFIX", "pjecz_hercules_flask")
 
@@ -99,7 +102,13 @@ class Settings(BaseSettings):
     SALT: str = get_secret("salt")
     SECRET_KEY: str = get_secret("secret_key")
     SQLALCHEMY_DATABASE_URI: str = get_secret("sqlalchemy_database_uri")
+    SYNCFUSION_LICENSE_KEY: str = get_secret("syncfusion_license_key")
     TASK_QUEUE: str = get_secret("task_queue")
+
+    # Incrementar el tamaño de lo que se sube en los formularios para Syncfusion Document Editor
+    MAX_CONTENT_LENGTH: int | None = None
+    MAX_FORM_MEMORY_SIZE: int = 50 * MEGABYTE
+
 
     class Config:
         """Load configuration"""

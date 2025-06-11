@@ -1,10 +1,8 @@
 {% extends 'layouts/app.jinja2' %}
-{% import 'macros/detail.jinja2' as detail %}
-{% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Plantilla {{ ofi_plantilla.descripcion }}{% endblock %}
+{% block title %}Editar {{ ofi_documento.descripcion }}{% endblock %}
 
 {% block custom_head %}
     <!-- Syncfusion EJ2 Document Editor dependent theme -->
@@ -40,44 +38,30 @@
 {% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Oficio-Plantilla ' + ofi_plantilla.descripcion) %}
-        {{ topbar.button_previous('Plantillas', url_for('ofi_plantillas.list_active')) }}
-        {% if current_user.can_edit('OFI PLANTILLAS') %}
-            {{ topbar.button_edit('Editar', url_for('ofi_plantillas.edit', ofi_plantilla_id=ofi_plantilla.id)) }}
-        {% endif %}
-        {% if current_user.can_admin('OFI PLANTILLAS') %}
-            {% if ofi_plantilla.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('ofi_plantillas.delete', ofi_plantilla_id=ofi_plantilla.id)) }}{% endif %}
-            {% if ofi_plantilla.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('ofi_plantillas.recover', ofi_plantilla_id=ofi_plantilla.id)) }}{% endif %}
-        {% endif %}
+    {% call topbar.page_buttons('Editar ' + ofi_documento.descripcion) %}
     {% endcall %}
 {% endblock %}
 
 {% block content %}
-    {% call detail.card(estatus=ofi_plantilla.estatus) %}
-        {% set form_kwargs = {'ofi_plantilla_id': ofi_plantilla.id} %}
-        {% call f.form_tag('ofi_plantillas.edit', fid='ofi_plantilla_form', **form_kwargs) %}
-            {{ detail.label_value_big('Descripción', ofi_plantilla.descripcion) }}
+    {% call f.card() %}
+        {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
+        {% call f.form_tag('ofi_documentos.edit_syncfusion_document', fid='ofi_documento_form', **form_kwargs) %}
+            {% call f.form_group(form.descripcion) %}{% endcall %}
             <div style="display:none">
                 {% call f.form_group(form.contenido_sfdt) %}{% endcall %}
             </div>
             <div id='editor' style='width:100%'></div>
-            {{ detail.label_value_boolean('Está archivado', ofi_plantilla.esta_archivado) }}
-            <hr>
-            {{ detail.button_md('Nuevo oficio a partir de esta plantilla', url_for('ofi_documentos.new', ofi_plantilla_id=ofi_plantilla.id), 'mdi:content-copy',  color_class='btn-primary') }}
+            {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}
     {% endcall %}
 {% endblock %}
 
 {% block custom_javascript %}
-    {% if current_user.can_admin('OFI PLANTILLAS') %}
-        {% if ofi_plantilla.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + ofi_plantilla.descripcion + '?') }}{% endif %}
-        {% if ofi_plantilla.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + ofi_plantilla.descripcion + '?') }}{% endif %}
-    {% endif %}
     <!-- Syncfusion EJ2 Document Editor -->
     <script>
 
         // Obtener los elementos del formulario y del componente
-        const ofiPlantillaForm = document.getElementById('ofi_plantilla_form');
+        const ofiDocumentoForm = document.getElementById('ofi_documento_form');
         const contenidoSfdtTextArea = document.getElementById('contenido_sfdt');
 
         // Inicializar el editor de documentos Syncfusion
@@ -106,10 +90,8 @@
 
             // Inicializar el componente
             let documenteditorContainer = new ej.documenteditor.DocumentEditorContainer({
-                enableToolbar: false, // Desactivar la barra de herramientas
+                enableToolbar: true,
                 height: '590px',
-                isReadOnly: true, // Hacer el editor de solo lectura
-                showPropertiesPane: false, // Ocultar el panel de propiedades
             });
             ej.documenteditor.DocumentEditorContainer.Inject(ej.documenteditor.Toolbar);
             documenteditorContainer.serviceUrl = 'https://services.syncfusion.com/js/production/api/documenteditor/';
@@ -127,6 +109,13 @@
             } else {
                 console.log('Contenido vacío');
             }
+
+            // Cambiar la forma de enviar el formulario
+            ofiDocumentoForm.addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevenir la sumisión inmediata del formulario
+                contenidoSfdtTextArea.value = documenteditorContainer.documentEditor.serialize(); // Cambiar el valor del campo
+                ofiDocumentoForm.submit(); // Enviar el formulario
+            });
 
         } // async function
 

@@ -48,8 +48,7 @@
         <table id="ofi_plantillas_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>Título</th>
-                    <th>Creación</th>
+                    <th>Descripción</th>
                     <th>Activo</th>
                 </tr>
             </thead>
@@ -68,19 +67,18 @@
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
             { data: 'detalle' },
-            { data: 'creado' },
-            { data: 'es_activo' }
+            { data: 'esta_archivado' }
         ];
         configDataTable['columnDefs'] = [
             {
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.titulo + '</a>';
+                    return '<a href="' + data.url + '">' + data.descripcion + '</a>';
                 }
             },
             {
-                targets: 2, // es_activo
+                targets: 1, // esta_archivado
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data) {
