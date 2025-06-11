@@ -60,6 +60,7 @@ def datatable_json():
                     "url": url_for("ofi_plantillas.detail", ofi_plantilla_id=resultado.id),
                 },
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
+                "es_activo": resultado.es_activo,
             }
         )
     # Entregar JSON
@@ -72,7 +73,7 @@ def list_active():
     return render_template(
         "ofi_plantillas/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
-        titulo="Oficios-Plantillas",
+        titulo="Plantillas",
         estatus="A",
     )
 
@@ -84,7 +85,7 @@ def list_inactive():
     return render_template(
         "ofi_plantillas/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Oficios-Plantillas inactivos",
+        titulo="Plantillas inactivos",
         estatus="B",
     )
 
@@ -129,6 +130,7 @@ def edit(ofi_plantilla_id):
     if form.validate_on_submit():
         ofi_plantilla.descripcion = safe_string(form.titulo.data, save_enie=True)
         ofi_plantilla.contenido = safe_message(form.contenido.data)
+        ofi_plantilla.es_activo = form.es_activo.data
         ofi_plantilla.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -141,6 +143,7 @@ def edit(ofi_plantilla_id):
         return redirect(bitacora.url)
     form.titulo.data = ofi_plantilla.descripcion
     form.contenido.data = ofi_plantilla.contenido
+    form.es_activo.data = ofi_plantilla.es_activo
     return render_template("ofi_plantillas/edit.jinja2", form=form, ofi_plantilla=ofi_plantilla)
 
 

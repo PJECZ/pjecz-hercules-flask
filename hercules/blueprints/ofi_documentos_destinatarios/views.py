@@ -78,7 +78,7 @@ def list_active():
     return render_template(
         "ofi_documentos_destinatarios/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
-        titulo="Oficios-Destinatarios",
+        titulo="Destinatarios",
         estatus="A",
     )
 
@@ -90,7 +90,7 @@ def list_inactive():
     return render_template(
         "ofi_documentos_destinatarios/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Oficios-Destinatarios inactivos",
+        titulo="Destinatarios inactivos",
         estatus="B",
     )
 

@@ -9,6 +9,13 @@
 {% endblock %}
 
 {% block content %}
+    <div class="card bg-warning mb-3">
+        <div class="card-header">Advertencia</div>
+        <div class="card-body">
+            <h5 class="card-title">Esta acción no se puede deshacer</h5>
+            <p class="card-text">Asigne o confirme el folio sugerido. Después de firmar ya no se podrá editar el oficio.</p>
+        </div>
+    </div>
     {% call f.card() %}
         {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
         {% call f.form_tag('ofi_documentos.sign', fid='ofi_documento_form', **form_kwargs) %}
