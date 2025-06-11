@@ -27,7 +27,11 @@
         {{ detail.label_value('Título', ofi_documento.descripcion) }}
         {{ detail.label_value('Folio', ofi_documento.folio) }}
         {{ detail.label_value('Contenido', ofi_documento.contenido) }}
-        {{ detail.label_value('Usuario', ofi_documento.usuario.nombre,  url_for("usuarios.detail", usuario_id=ofi_documento.usuario.id)) }}
+        {% if current_user.can_view('USUARIOS') %}
+            {{ detail.label_value('Usuario', ofi_documento.usuario.nombre,  url_for("usuarios.detail", usuario_id=ofi_documento.usuario.id)) }}
+        {% else %}
+            {{ detail.label_value('Usuario', ofi_documento.usuario.nombre) }}
+        {% endif %}
         {{ detail.label_value('Creado', moment(ofi_documento.creado, local=False).format('DD MMM YYYY HH:mm')) }}
         {{ detail.label_value('Modificado', moment(ofi_documento.modificado, local=False).format('DD MMM YYYY HH:mm')) }}
         {{ detail.label_value('Estado', ofi_documento.estado) }}
@@ -39,14 +43,22 @@
         {% if ofi_documento.estado == "FIRMADO" %}
             <hr />
             {{ detail.label_value('Firma Simple', ofi_documento.firma_simple) }}
-            {{ detail.label_value('Firmado por', usuario_firmante.nombre, url_for("usuarios.detail", usuario_id=usuario_firmante.id)) }}
+            {% if current_user.can_view('USUARIOS') %}
+                {{ detail.label_value('Firmado por', usuario_firmante.nombre, url_for("usuarios.detail", usuario_id=usuario_firmante.id)) }}
+            {% else %}
+                {{ detail.label_value('Usuario', usuario_firmante.nombre) }}
+            {% endif %}
             <hr />
             {{ modals.button_modal_md('Enviar', url_for('ofi_documentos.send', ofi_documento_id=ofi_documento.id), "Enviar", "mdi:send-outline", "¿Desea enviar el oficio? Esta acción no puede ser deshecha.",  "btn-primary") }}
         {% endif %}
         {% if ofi_documento.estado == "ENVIADO" %}
             <hr />
             {{ detail.label_value('Firma Simple', ofi_documento.firma_simple) }}
-            {{ detail.label_value('Firmado por', usuario_firmante.nombre, url_for("usuarios.detail", usuario_id=usuario_firmante.id)) }}
+            {% if current_user.can_view('USUARIOS') %}
+                {{ detail.label_value('Firmado por', usuario_firmante.nombre, url_for("usuarios.detail", usuario_id=usuario_firmante.id)) }}
+            {% else %}
+                {{ detail.label_value('Usuario', usuario_firmante.nombre) }}
+            {% endif %}
         {% endif %}
     {% endcall %}
     {# Card para archivos adjuntos #}

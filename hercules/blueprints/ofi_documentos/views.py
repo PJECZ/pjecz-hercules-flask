@@ -90,7 +90,7 @@ def list_active_mis_oficios():
     return render_template(
         "ofi_documentos/list.jinja2",
         filtros=json.dumps({"estatus": "A", "usuario_id": current_user.id}),
-        titulo="Mis Oficios Redactados",
+        titulo="Mis Oficios",
         estatus="A",
     )
 
@@ -101,7 +101,7 @@ def list_active_mi_bandeja_entrada():
     return render_template(
         "ofi_documentos/list.jinja2",
         filtros=json.dumps({"estatus": "A", "estado": "ENVIADO", "usuario_destinatario_id": current_user.id}),
-        titulo="Oficios - Mi Bandeja de Entrada",
+        titulo="Mi Bandeja de Entrada",
         estatus="A",
     )
 
@@ -112,7 +112,7 @@ def list_active_mi_autoridad():
     return render_template(
         "ofi_documentos/list.jinja2",
         filtros=json.dumps({"estatus": "A", "usuario_autoridad_id": current_user.autoridad.id}),
-        titulo="Oficios - Mi Autoridad",
+        titulo="Mi Autoridad",
         estatus="A",
     )
 
@@ -124,7 +124,7 @@ def list_inactive():
     return render_template(
         "ofi_documentos/list.jinja2",
         filtros=json.dumps({"estatus": "B", "usuario_id": current_user.id}),
-        titulo="Mis Oficios Redactados inactivos",
+        titulo="Mis Oficios inactivos",
         estatus="B",
     )
 
@@ -200,7 +200,6 @@ def edit(ofi_documento_id):
     form = OfiDocumentoEditForm()
     if form.validate_on_submit():
         ofi_documento.descripcion = safe_string(form.titulo.data, save_enie=True)
-        ofi_documento.folio = form.folio.data
         ofi_documento.contenido = safe_message(form.contenido.data)
         ofi_documento.save()
         bitacora = Bitacora(
@@ -213,7 +212,6 @@ def edit(ofi_documento_id):
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
     form.titulo.data = ofi_documento.descripcion
-    form.folio.data = ofi_documento.folio
     form.contenido.data = ofi_documento.contenido
     return render_template("ofi_documentos/edit.jinja2", form=form, ofi_documento=ofi_documento)
 
