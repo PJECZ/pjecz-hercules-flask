@@ -27,7 +27,9 @@
         {% endif %}
         {{ detail.label_value('Nombre', ofi_documento_destinatario.usuario.nombre) }}
         {{ detail.label_value('Oficio', ofi_documento_destinatario.ofi_documento.descripcion, url_for('ofi_documentos.detail', ofi_documento_id=ofi_documento_destinatario.ofi_documento.id)) }}
+        {{ detail.label_value_boolean('Con copia', ofi_documento_destinatario.con_copia) }}
         {{ detail.label_value_boolean('Fue Leído', ofi_documento_destinatario.fue_leido) }}
+        {{ detail.label_value('Fue Leído en la Fecha', ofi_documento_destinatario.fue_leido_tiempo) }}
     {% endcall %}
 {% endblock %}
 

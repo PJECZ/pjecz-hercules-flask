@@ -27,7 +27,7 @@ class OfiPlantilla(database.Model, UniversalMixin):
 
     # Columnas
     descripcion: Mapped[str] = mapped_column(String(256))
-    esta_archivado: Mapped[bool] = mapped_column(default=True)
+    esta_archivado: Mapped[bool] = mapped_column(default=False)
 
     # Columnas contenido
     contenido_html: Mapped[Optional[str]] = mapped_column(Text)

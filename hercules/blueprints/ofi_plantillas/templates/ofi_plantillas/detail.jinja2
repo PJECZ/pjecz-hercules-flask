@@ -40,7 +40,7 @@
 {% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Oficio-Plantilla ' + ofi_plantilla.descripcion) %}
+    {% call topbar.page_buttons('Plantilla ' + ofi_plantilla.descripcion) %}
         {{ topbar.button_previous('Plantillas', url_for('ofi_plantillas.list_active')) }}
         {% if current_user.can_edit('OFI PLANTILLAS') %}
             {{ topbar.button_edit('Editar', url_for('ofi_plantillas.edit', ofi_plantilla_id=ofi_plantilla.id)) }}
@@ -56,7 +56,7 @@
     {% call detail.card(estatus=ofi_plantilla.estatus) %}
         {% set form_kwargs = {'ofi_plantilla_id': ofi_plantilla.id} %}
         {% call f.form_tag('ofi_plantillas.edit', fid='ofi_plantilla_form', **form_kwargs) %}
-            {{ detail.label_value_big('Descripción', ofi_plantilla.descripcion) }}
+            {{ detail.label_value('Descripción', ofi_plantilla.descripcion) }}
             <div style="display:none">
                 {% call f.form_group(form.contenido_sfdt) %}{% endcall %}
             </div>

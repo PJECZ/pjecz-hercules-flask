@@ -12,5 +12,5 @@ class OfiPlantillaForm(FlaskForm):
 
     descripcion = StringField("Descripción", validators=[DataRequired()])
     contenido_sfdt = TextAreaField("Contenido SFDT", validators=[Optional()], render_kw={"rows": 10})
-    esta_archivado = BooleanField("Activo", validators=[Optional()])
+    esta_archivado = BooleanField("Está Archivada", validators=[Optional()])
     guardar = SubmitField("Guardar")

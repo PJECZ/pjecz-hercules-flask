@@ -25,13 +25,7 @@
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosPlantillas.buscar(); return false;">
-                    <div class="col-4">
-                        <div class="form-floating">
-                            <input id="filtroClave" type="text" class="form-control" aria-label="Clave" style="text-transform: uppercase;">
-                            <label for="filtroClave">Clave</label>
-                        </div>
-                    </div>
-                    <div class="col-6">
+                    <div class="col-10">
                         <div class="form-floating">
                             <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
                             <label for="filtroDescripcion">Descripción</label>
@@ -49,7 +43,7 @@
             <thead>
                 <tr>
                     <th>Descripción</th>
-                    <th>Activo</th>
+                    <th>Archivada</th>
                 </tr>
             </thead>
         </table>
@@ -90,7 +84,6 @@
         ];
         // Filtros OfiPlantillas
         const filtrosPlantillas = new FiltrosDataTable('#ofi_plantillas_datatable', configDataTable);
-        filtrosPlantillas.agregarInput('filtroClave', 'clave');
         filtrosPlantillas.agregarInput('filtroDescripcion', 'descripcion');
         filtrosPlantillas.precargar();
     </script>

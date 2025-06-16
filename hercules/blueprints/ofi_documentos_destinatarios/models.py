@@ -2,6 +2,9 @@
 Ofi Documentos Destinatarios, modelos
 """
 
+from datetime import datetime
+from typing import Optional
+
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -25,7 +28,9 @@ class OfiDocumentoDestinatario(database.Model, UniversalMixin):
     usuario: Mapped["Usuario"] = relationship(back_populates="ofi_documentos_destinatarios")
 
     # Columnas
+    con_copia: Mapped[bool] = mapped_column(default=False)
     fue_leido: Mapped[bool] = mapped_column(default=False)
+    fue_leido_tiempo: Mapped[Optional[datetime]]
 
     def __repr__(self):
         """Representación"""

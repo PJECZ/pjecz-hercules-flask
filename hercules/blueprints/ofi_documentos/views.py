@@ -9,7 +9,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import func
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_string, safe_message
+from lib.safe_string import safe_string, safe_message, safe_clave
 
 from hercules.extensions import database
 from hercules.blueprints.bitacoras.models import Bitacora
@@ -20,6 +20,7 @@ from hercules.blueprints.ofi_documentos.models import OfiDocumento
 from hercules.blueprints.ofi_documentos.forms import OfiDocumentoNewForm, OfiDocumentoEditForm, OfiDocumentoSignForm
 from hercules.blueprints.ofi_plantillas.models import OfiPlantilla
 from hercules.blueprints.usuarios.models import Usuario
+from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.ofi_documentos_destinatarios.models import OfiDocumentoDestinatario
 
 MODULO = "OFI DOCUMENTOS"
@@ -48,14 +49,40 @@ def datatable_json():
         consulta = consulta.filter(OfiDocumento.estatus == "A")
     if "usuario_id" in request.form:
         consulta = consulta.filter(OfiDocumento.usuario_id == request.form["usuario_id"])
+    if "estado" in request.form:
+        consulta = consulta.filter(OfiDocumento.estado == request.form["estado"])
+    if "folio" in request.form:
+        folio = request.form["folio"]
+        consulta = consulta.filter(OfiDocumento.folio.contains(folio))
+    if "descripcion" in request.form:
+        descripcion = safe_string(request.form["descripcion"])
+        if descripcion:
+            consulta = consulta.filter(OfiDocumento.descripcion.contains(descripcion))
     # Luego filtrar por columnas de otras tablas
+    tabla_usuario_incluida = False
+    if "autor" in request.form:
+        if tabla_usuario_incluida is False:
+            consulta = consulta.join(Usuario)
+            tabla_usuario_incluida = True
+        autor = request.form["autor"].lower()
+        consulta = consulta.filter(Usuario.email.contains(autor))
+    if "autoridad" in request.form:
+        autoridad = safe_clave(request.form["autoridad"])
+        if autoridad:
+            if tabla_usuario_incluida is False:
+                consulta = consulta.join(Usuario)
+                tabla_usuario_incluida = True
+            consulta = consulta.join(Autoridad, Usuario.autoridad_id == Autoridad.id)
+            consulta = consulta.filter(Autoridad.clave.contains(autoridad))
+    if "usuario_autoridad_id" in request.form:
+        if tabla_usuario_incluida is False:
+            consulta = consulta.join(Usuario)
+            tabla_usuario_incluida = True
+        consulta = consulta.filter(Usuario.autoridad_id == request.form["usuario_autoridad_id"])
     if "usuario_destinatario_id" in request.form:
-        consulta = consulta.join(OfiDocumentoDestinatario)
+        consulta = consulta.join(OfiDocumentoDestinatario, OfiDocumentoDestinatario.ofi_documento_id == OfiDocumento.id)
         consulta = consulta.filter(OfiDocumentoDestinatario.usuario_id == request.form["usuario_destinatario_id"])
         consulta = consulta.filter(OfiDocumentoDestinatario.estatus == "A")
-    if "usuario_autoridad_id" in request.form:
-        consulta = consulta.join(Usuario)
-        consulta = consulta.filter(Usuario.autoridad_id == request.form["usuario_autoridad_id"])
     # Ordenar y paginar
     registros = consulta.order_by(OfiDocumento.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -68,10 +95,25 @@ def datatable_json():
                     "id": resultado.id,
                     "url": url_for("ofi_documentos.detail", ofi_documento_id=resultado.id),
                 },
+                "autor": {
+                    "email": resultado.usuario.email,
+                    "nombre": resultado.usuario.nombre,
+                    "url": url_for("usuarios.detail", usuario_id=resultado.usuario.id),
+                },
+                "autoridad": {
+                    "clave": resultado.usuario.autoridad.clave,
+                    "nombre": resultado.usuario.autoridad.descripcion_corta,
+                    "url": (
+                        url_for("autoridades.detail", autoridad_id=resultado.usuario.autoridad.id)
+                        if current_user.can_view("AUTORIDADES")
+                        else ""
+                    ),
+                },
                 "folio": resultado.folio,
                 "descripcion": resultado.descripcion,
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
                 "estado": resultado.estado,
+                "cancelado": resultado.esta_cancelado,
             }
         )
     # Entregar JSON
@@ -92,6 +134,7 @@ def list_active_mis_oficios():
         filtros=json.dumps({"estatus": "A", "usuario_id": current_user.id}),
         titulo="Mis Oficios",
         estatus="A",
+        estados=OfiDocumento.ESTADOS,
     )
 
 
@@ -148,6 +191,7 @@ def detail(ofi_documento_id):
         # Marcar como leído si es que no lo ha sido
         if usuario_destinatario is not None and usuario_destinatario.fue_leido is False:
             usuario_destinatario.fue_leido = True
+            usuario_destinatario.fue_leido_tiempo = datetime.now()
             usuario_destinatario.save()
     # Para mostrar el contenido del documento, se usa Syncfusion Document Editor con un formulario que NO se envía
     form = OfiDocumentoNewForm()
@@ -170,22 +214,31 @@ def new(ofi_plantilla_id):
     ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
     form = OfiDocumentoNewForm()
     if form.validate_on_submit():
-        ofi_documento = OfiDocumento(
-            usuario=current_user,
-            descripcion=safe_string(form.descripcion.data, save_enie=True),
-            contenido_sfdt=form.contenido_sfdt.data.strip(),
-            estado="BORRADOR",
-        )
-        ofi_documento.save()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Nuevo Oficio Documento {ofi_documento.descripcion}"),
-            url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-        return redirect(bitacora.url)
+        es_valido = True
+        # Validar la fecha de vencimiento
+        vencimiento_fecha = form.vencimiento_fecha.data
+        if vencimiento_fecha is not None and vencimiento_fecha < datetime.now().date():
+            flash("La fecha de vencimiento no puede ser anterior a la fecha actual", "warning")
+            es_valido = False
+        if es_valido:
+            ofi_documento = OfiDocumento(
+                usuario=current_user,
+                descripcion=safe_string(form.descripcion.data, save_enie=True),
+                folio=form.folio.data,
+                vencimiento_fecha=vencimiento_fecha,
+                contenido_sfdt=form.contenido_sfdt.data.strip(),
+                estado="BORRADOR",
+            )
+            ofi_documento.save()
+            bitacora = Bitacora(
+                modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+                usuario=current_user,
+                descripcion=safe_message(f"Nuevo Oficio Documento {ofi_documento.descripcion}"),
+                url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+            )
+            bitacora.save()
+            flash(bitacora.descripcion, "success")
+            return redirect(bitacora.url)
     # Cargar los datos de la plantilla en el formulario
     form.descripcion.data = ofi_plantilla.descripcion
     form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
@@ -205,24 +258,35 @@ def edit(ofi_documento_id):
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
     form = OfiDocumentoEditForm()
     if form.validate_on_submit():
-        ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
-        ofi_documento.contenido_sfdt = form.contenido_sfdt.data.strip()
-        ofi_documento.save()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Editado Oficio Documento {ofi_documento.descripcion}"),
-            url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-        return redirect(bitacora.url)
+        es_valido = True
+        # Validar la fecha de vencimiento
+        vencimiento_fecha = form.vencimiento_fecha.data
+        if vencimiento_fecha is not None and vencimiento_fecha < datetime.now().date():
+            flash("La fecha de vencimiento no puede ser anterior a la fecha actual", "warning")
+            es_valido = False
+        if es_valido:
+            ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
+            ofi_documento.folio = form.folio.data
+            ofi_documento.vencimiento_fecha = vencimiento_fecha
+            ofi_documento.contenido_sfdt = form.contenido_sfdt.data.strip()
+            ofi_documento.save()
+            bitacora = Bitacora(
+                modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+                usuario=current_user,
+                descripcion=safe_message(f"Editado Oficio Documento {ofi_documento.descripcion}"),
+                url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+            )
+            bitacora.save()
+            flash(bitacora.descripcion, "success")
+            return redirect(bitacora.url)
     # Cargar los datos en el formulario
     form.descripcion.data = ofi_documento.descripcion
+    form.folio.data = ofi_documento.folio
+    form.vencimiento_fecha.data = ofi_documento.vencimiento_fecha
     form.contenido_sfdt.data = ofi_documento.contenido_sfdt
     # Entregar
     return render_template(
-        "ofi_documentos/edit.jinja2",
+        "ofi_documentos/edit_syncfusion_document.jinja2",
         form=form,
         ofi_documento=ofi_documento,
         syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
@@ -241,6 +305,10 @@ def sign(ofi_documento_id):
     # Validar que el estado sea "BORRADOR"
     if ofi_documento.estado != "BORRADOR":
         flash("El oficio no está en estado BORRADOR, no se puede firmar", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Validar la fecha de vencimiento
+    if ofi_documento.vencimiento_fecha is not None and ofi_documento.vencimiento_fecha < datetime.now().date():
+        flash("La fecha de vencimiento no puede ser anterior a la fecha actual", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
     # TODO: Calcular el número de folio
     # fecha_actual = datetime(datetime.now().year, 12, 31, 23, 59, 59)
@@ -266,7 +334,8 @@ def sign(ofi_documento_id):
             ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
             ofi_documento.folio = folio
             ofi_documento.estado = "FIRMADO"
-            ofi_documento.firmante_usuario_id = current_user.id
+            ofi_documento.firma_simple_usuario_id = current_user.id
+            ofi_documento.firma_simple_tiempo = datetime.now()
             ofi_documento.firma_simple = OfiDocumento.elaborar_firma(ofi_documento)
             ofi_documento.save()
             # Agregar registro a la bitácora
@@ -306,12 +375,15 @@ def send(ofi_documento_id):
         flash("El oficio no está en estado FIRMADO, no se puede firmar", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
     # Validar que haya al menos un destinatario
-    cantidad_destinatarios = OfiDocumentoDestinatario.query.filter_by(ofi_documento_id=ofi_documento.id).filter_by(estatus="A").count()
+    cantidad_destinatarios = (
+        OfiDocumentoDestinatario.query.filter_by(ofi_documento_id=ofi_documento.id).filter_by(estatus="A").count()
+    )
     if cantidad_destinatarios == 0:
         flash("Este oficio NO tiene destinatarios, no se puede enviar, debe agregarlos", "danger")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
     # Actualizar el estado del documento
     ofi_documento.estado = "ENVIADO"
+    ofi_documento.enviado_tiempo = datetime.now()
     ofi_documento.save()
     # TODO: Ejecutar la tarea en el fondo para enviar un mensaje a cada destinatario
     # Agregar registro a la bitácora
@@ -324,6 +396,29 @@ def send(ofi_documento_id):
     bitacora.save()
     flash(bitacora.descripcion, "success")
     return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+
+
+@ofi_documentos.route("/ofi_documentos/cancelar/<int:ofi_documento_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def cancel(ofi_documento_id):
+    """Cancelar Ofi Documento"""
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # Validar si no está archivado
+    if ofi_documento.esta_archivado:
+        flash("El oficio ya está archivado", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    if ofi_documento.esta_cancelado is False:
+        ofi_documento.esta_cancelado = True
+        ofi_documento.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Cancelado Oficio Documento {ofi_documento.descripcion}"),
+            url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("ofi_documentos.list_active"))
 
 
 @ofi_documentos.route("/ofi_documentos/eliminar/<int:ofi_documento_id>")

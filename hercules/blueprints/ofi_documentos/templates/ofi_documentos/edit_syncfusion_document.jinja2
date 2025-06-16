@@ -45,8 +45,10 @@
 {% block content %}
     {% call f.card() %}
         {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
-        {% call f.form_tag('ofi_documentos.edit_syncfusion_document', fid='ofi_documento_form', **form_kwargs) %}
+        {% call f.form_tag('ofi_documentos.edit', fid='ofi_documento_form', **form_kwargs) %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
+            {% call f.form_group(form.folio) %}{% endcall %}
+            {% call f.form_group(form.vencimiento_fecha) %}{% endcall %}
             <div style="display:none">
                 {% call f.form_group(form.contenido_sfdt) %}{% endcall %}
             </div>

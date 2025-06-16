@@ -25,16 +25,39 @@
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosOficios.buscar(); return false;">
-                    <div class="col-4">
+                    <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroClave" type="text" class="form-control" aria-label="Clave" style="text-transform: uppercase;">
-                            <label for="filtroClave">Clave</label>
+                            <input id="filtroFolio" type="text" class="form-control" aria-label="Folio" style="text-transform: uppercase;">
+                            <label for="filtroFolio">Folio</label>
+                        </div>
+                    </div>
+                    <div class="col-5">
+                        <div class="form-floating">
+                            <input id="filtroAutor" type="text" class="form-control" aria-label="Autor" style="text-transform: lowercase;">
+                            <label for="filtroAutor">Autor</label>
+                        </div>
+                    </div>
+                    <div class="col-5">
+                        <div class="form-floating">
+                            <input id="filtroAutoridad" type="text" class="form-control" aria-label="Autoridad" style="text-transform: uppercase;">
+                            <label for="filtroAutoridad">Autoridad</label>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="form-floating">
                             <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
                             <label for="filtroDescripcion">Descripción</label>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-floating">
+                            <select class="form-select" id="estadoSelect" name="estadoSelect" aria-label="Estado" onchange="filtrosOficios.buscar(); return false;" style="flex: inherit;">
+                                <option selected value=""></option>
+                                {% for estado in estados %}
+                                    <option value="{{estado}}">{{estado}}</option>
+                                {% endfor %}
+                            </select>
+                            <label for="estadoSelect">Estado</label>
                         </div>
                     </div>
                     <div class="col-2 text-end">
@@ -51,8 +74,11 @@
                     <th>ID</th>
                     <th>Creado</th>
                     <th>Folio</th>
+                    <th>Autor</th>
+                    <th>Autoridad</th>
                     <th>Descripción</th>
                     <th>Estado</th>
+                    <th>Cancelado</th>
                 </tr>
             </thead>
         </table>
@@ -72,8 +98,11 @@
             { data: 'detalle' },
             { data: 'creado' },
             { data: 'folio' },
+            { data: 'autor' },
+            { data: 'autoridad' },
             { data: 'descripcion' },
-            { data: 'estado' }
+            { data: 'estado' },
+            { data: 'cancelado' }
         ];
         configDataTable['columnDefs'] = [
             {
@@ -84,19 +113,69 @@
                 }
             },
             {
-                targets: 3, // descripcion
+                targets: 3, // autor
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data.length > 48)
-                        return '<span title="' + data + '">' + data.substring(0, 48) + '…</span>';
+                    if (data.email.length > 16)
+                        return '<span title="' + data.nombre + '"><a href="' + data.url + '">' + data.email.substring(0, 16) + '…</a></span>';
                     return data;
+                }
+            },
+            {
+                targets: 4, // autoridad
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.url == "" )
+                        return '<span title="' + data.nombre + '">' + data.clave + '</span>';
+                    return '<span title="' + data.nombre + '"><a href="' + data.url + '">' + data.clave + '</a></span>';
+                }
+            },
+            {
+                targets: 5, // descripcion
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.length > 32)
+                        return '<span title="' + data + '">' + data.substring(0, 32) + '…</span>';
+                    return data;
+                }
+            },
+            {
+                targets: 6, // estado
+                data: null,
+                render: function(data, type, row, meta) {
+                    let bgcolor = "bg-secondary";
+                    switch (data)    {
+                        case "BORRADOR":        bgcolor = "bg-warning text-dark";   break;
+                        case "CANCELADO":       bgcolor = "bg-danger";              break;
+                        case "FIRMADO":         bgcolor = "bg-success";             break;
+                        case "ENVIADO":         bgcolor = "bg-primary";             break;
+                    }
+                    return '<span class="badge rounded-pill ' + bgcolor + '">' + data + '</span>';
+                }
+            },
+            {
+                targets: 7, // cancelado
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data)
+                        return '🚫';
+                    return '';
                 }
             }
         ];
+        // Colorear renglones
+        configDataTable['rowCallback'] = function( row, data )  {
+            if (data.cancelado)    {
+                $(row).css("background-color", "#eceff1");
+            }
+        };
         // Filtros Oficios
         const filtrosOficios = new FiltrosDataTable('#ofi_documentos_datatable', configDataTable);
-        filtrosOficios.agregarInput('filtroClave', 'clave');
+        filtrosOficios.agregarInput('filtroFolio', 'folio');
+        filtrosOficios.agregarInput('filtroAutor', 'autor');
+        filtrosOficios.agregarInput('filtroAutoridad', 'autoridad');
         filtrosOficios.agregarInput('filtroDescripcion', 'descripcion');
+        filtrosOficios.agregarInput('estadoSelect', 'estado');
         filtrosOficios.precargar();
     </script>
 {% endblock %}
