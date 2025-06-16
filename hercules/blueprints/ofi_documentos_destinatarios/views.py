@@ -66,6 +66,7 @@ def datatable_json():
                     "url": url_for("usuarios.detail", usuario_id=resultado.usuario.id),
                 },
                 "fue_leido": resultado.fue_leido,
+                "con_copia": resultado.con_copia,
             }
         )
     # Entregar JSON
@@ -109,21 +110,30 @@ def new_with_ofi_documento(ofi_documento_id):
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
     form = OfiDocumentoDestinatarioForm()
     if form.validate_on_submit():
-        ofi_documento_destinatario = OfiDocumentoDestinatario(
-            ofi_documento=ofi_documento,
-            usuario_id=form.usuario.data,
-            fue_leido=False,
-        )
-        ofi_documento_destinatario.save()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Nuevo Ofi-Documento-Destinatario {ofi_documento_destinatario.usuario}"),
-            url=url_for("ofi_documentos_destinatarios.detail", ofi_documento_destinatario_id=ofi_documento_destinatario.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_id))
+        es_valido = True
+        # Validar que el destinatario no esté ya listado en este ofi-documento
+        destinatario_repetido = OfiDocumentoDestinatario.query.filter_by(
+            ofi_documento_id=ofi_documento_id, usuario_id=form.usuario.data
+        ).first()
+        if destinatario_repetido:
+            flash(f"Destinatario '{destinatario_repetido.usuario.nombre}' ya se encuentra agregado", "warning")
+            es_valido = False
+        if es_valido:
+            ofi_documento_destinatario = OfiDocumentoDestinatario(
+                ofi_documento=ofi_documento,
+                usuario_id=form.usuario.data,
+                con_copia=form.con_copia.data,
+            )
+            ofi_documento_destinatario.save()
+            bitacora = Bitacora(
+                modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+                usuario=current_user,
+                descripcion=safe_message(f"Nuevo Ofi-Documento-Destinatario {ofi_documento_destinatario.usuario}"),
+                url=url_for("ofi_documentos_destinatarios.detail", ofi_documento_destinatario_id=ofi_documento_destinatario.id),
+            )
+            bitacora.save()
+            flash(bitacora.descripcion, "success")
+            return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_id))
     # Llenar Campos ReadOnly
     form.ofi_documento.data = ofi_documento.descripcion
     # Entregar plantilla

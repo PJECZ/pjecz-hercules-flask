@@ -3,7 +3,7 @@ Ofi Documentos, modelos
 """
 
 import hashlib
-from datetime import datetime
+from datetime import datetime, date
 from typing import List, Optional
 
 from sqlalchemy import Enum, ForeignKey, String, Text
@@ -21,7 +21,6 @@ class OfiDocumento(database.Model, UniversalMixin):
         "BORRADOR": "Borrador",
         "FIRMADO": "Firmado",
         "ENVIADO": "Enviado",
-        "CANCELADO": "Cancelado",
     }
 
     # Nombre de la tabla
@@ -37,7 +36,11 @@ class OfiDocumento(database.Model, UniversalMixin):
     # Columnas
     descripcion: Mapped[str] = mapped_column(String(256))
     estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="ofi_documentos_estados", native_enum=False), index=True)
+    cadena_oficio_id: Mapped[Optional[int]] = mapped_column(nullable=True, default=None)
     esta_archivado: Mapped[bool] = mapped_column(default=False)
+    esta_cancelado: Mapped[bool] = mapped_column(default=False)
+    vencimiento_fecha: Mapped[Optional[date]] = mapped_column(nullable=True, default=None)
+    enviado_tiempo: Mapped[Optional[datetime]]
 
     # El folio es None cuando el estado es BORRADOR
     # Cuando se firma el documento, se genera un folio y se separa su año y número
@@ -82,8 +85,9 @@ class OfiDocumento(database.Model, UniversalMixin):
         # elementos.append(self.modificado.strftime("%Y-%m-%d %H:%M:%S"))
         elementos.append(str(self.usuario_id))
         elementos.append(self.descripcion)
-        elementos.append(str(self.contenido_sfdt))
         elementos.append(str(self.folio))
+        elementos.append(str(self.vencimiento_fecha))
+        elementos.append(str(self.contenido_sfdt))
         elementos.append(str(self.firma_simple_usuario_id))
         return hashlib.md5("|".join(elementos).encode("utf-8")).hexdigest()
 

@@ -15,6 +15,7 @@ from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from hercules.blueprints.ofi_plantillas.models import OfiPlantilla
 from hercules.blueprints.ofi_plantillas.forms import OfiPlantillaForm
+from hercules.blueprints.usuarios.models import Usuario
 
 
 MODULO = "OFI PLANTILLAS"
@@ -38,9 +39,16 @@ def datatable_json():
     consulta = OfiPlantilla.query
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
-        consulta = consulta.filter_by(estatus=request.form["estatus"])
+        consulta = consulta.filter(OfiPlantilla.estatus == request.form["estatus"])
     else:
-        consulta = consulta.filter_by(estatus="A")
+        consulta = consulta.filter(OfiPlantilla.estatus == "A")
+    if "descripcion" in request.form:
+        descripcion = safe_string(request.form["descripcion"], save_enie=True)
+        if descripcion:
+            consulta = consulta.filter(OfiPlantilla.descripcion.contains(descripcion))
+    if "usuario_autoridad_id" in request.form:
+        consulta = consulta.join(Usuario)
+        consulta = consulta.filter(Usuario.autoridad_id == request.form["usuario_autoridad_id"])
     # Ordenar y paginar
     registros = consulta.order_by(OfiPlantilla.descripcion).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -66,7 +74,7 @@ def list_active():
     """Listado de Ofi Plantillas activos"""
     return render_template(
         "ofi_plantillas/list.jinja2",
-        filtros=json.dumps({"estatus": "A"}),
+        filtros=json.dumps({"estatus": "A", "usuario_autoridad_id": current_user.autoridad.id}),
         titulo="Plantillas",
         estatus="A",
     )
@@ -78,7 +86,7 @@ def list_inactive():
     """Listado de Ofi Plantillas inactivos"""
     return render_template(
         "ofi_plantillas/list.jinja2",
-        filtros=json.dumps({"estatus": "B"}),
+        filtros=json.dumps({"estatus": "B", "usuario_autoridad_id": current_user.autoridad.id}),
         titulo="Plantillas inactivos",
         estatus="B",
     )

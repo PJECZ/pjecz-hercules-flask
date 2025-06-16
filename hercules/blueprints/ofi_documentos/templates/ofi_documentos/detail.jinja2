@@ -45,7 +45,7 @@
         {{ topbar.button('Mi Autoridad', url_for('ofi_documentos.list_active_mi_autoridad'), "mdi:scale-balance") }}
         {{ topbar.button('Mi Bandeja de Entrada', url_for('ofi_documentos.list_active_mi_bandeja_entrada'), "mdi:inbox-multiple") }}
         {% if current_user.can_edit('OFI DOCUMENTOS') %}
-            {% if ofi_documento.estado == "BORRADOR" %}
+            {% if ofi_documento.estado == "BORRADOR" and not ofi_documento.esta_cancelado %}
                 {{ topbar.button_edit('Editar', url_for('ofi_documentos.edit', ofi_documento_id=ofi_documento.id)) }}
             {% endif %}
         {% endif %}
@@ -58,8 +58,9 @@
 
 {% block content %}
     {% call detail.card(estatus=ofi_documento.estatus) %}
-        {{ detail.label_value('Folio', ofi_documento.folio) }}
         {{ detail.label_value('Descripción', ofi_documento.descripcion) }}
+        {{ detail.label_value('Folio', ofi_documento.folio) }}
+        {{ detail.label_value('Fecha de Vencimiento', ofi_documento.vencimiento_fecha) }}
         {% if current_user.can_view('USUARIOS') %}
             {{ detail.label_value('Usuario', ofi_documento.usuario.nombre,  url_for("usuarios.detail", usuario_id=ofi_documento.usuario.id)) }}
         {% else %}
@@ -67,14 +68,43 @@
         {% endif %}
         {# detail.label_value('Creado', moment(ofi_documento.creado, local=False).format('DD MMM YYYY HH:mm')) #}
         {# detail.label_value('Modificado', moment(ofi_documento.modificado, local=False).format('DD MMM YYYY HH:mm')) #}
-        {{ detail.label_value('Estado', ofi_documento.estado) }}
+        <div class="row">
+            <div class="col-md-3 text-end">Estado</div>
+            <div class="col-md-9">
+                {% if ofi_documento.estado == "BORRADOR" %}
+                    <span class="badge rounded-pill bg-warning text-dark">{{ ofi_documento.estado }}</span>
+                {% elif ofi_documento.estado == "FIRMADO" %}
+                    <span class="badge rounded-pill bg-success">{{ ofi_documento.estado }}</span>
+                {% elif ofi_documento.estado == "ENVIADO" %}
+                    <span class="badge rounded-pill bg-primary">{{ ofi_documento.estado }}</span>
+                {% elif ofi_documento.estado == "CANCELADO" %}
+                    <span class="badge rounded-pill bg-danger">{{ ofi_documento.estado }}</span>
+                {% else %}
+                    <strong>{{ ofi_documento.estado }}</strong>
+                {% endif %}
+            </div>
+        </div>
+        {% if ofi_documento.esta_cancelado %}
+            <div class="row">
+                <div class="col-md-3 text-end">Cancelado</div>
+                <div class="col-md-9">
+                        <span class="badge rounded-pill bg-danger">CANCELADO</span>
+                </div>
+            </div>
+        {% endif %}
         {{ detail.label_value('Firma Simple', ofi_documento.firma_simple) }}
+        {% if ofi_documento.firma_simple_tiempo %}
+            {{ detail.label_value('Firmado Simple el día', moment(ofi_documento.firma_simple_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
+        {% endif %}
         {% if usuario_firmante %}
             {% if current_user.can_view('USUARIOS') %}
                 {{ detail.label_value('Firmado por', usuario_firmante.nombre, url_for("usuarios.detail", usuario_id=usuario_firmante.id)) }}
             {% else %}
                 {{ detail.label_value('Usuario', usuario_firmante.nombre) }}
             {% endif %}
+        {% endif %}
+        {% if ofi_documento.enviado_tiempo %}
+            {{ detail.label_value('Enviado el día', moment(ofi_documento.enviado_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
         {% endif %}
         {% if ofi_documento.esta_archivado %}
             {{ detail.label_value_boolean('Está archivado', ofi_documento.esta_archivado) }}
@@ -89,12 +119,26 @@
         {% endcall %}
         {# Termina Contenido usando Syncfusion Document Editor #}
         {# Botones de acción en estado BORRADOR #}
-        {% if ofi_documento.estado == "BORRADOR" %}
-            {{ detail.button_md('Firmar', url_for('ofi_documentos.sign', ofi_documento_id=ofi_documento.id), 'mdi:file-sign',  color_class='btn-success') }}
+        {% if ofi_documento.estado == "BORRADOR" and not ofi_documento.esta_cancelado %}
+            <div class="row">
+                <div class="col-md-6">
+                    {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio? Esta acción no puede ser deshecha.",  "btn-danger") }}
+                </div>
+                <div class="col-md-6">
+                    {{ detail.button_md('Firmar', url_for('ofi_documentos.sign', ofi_documento_id=ofi_documento.id), 'mdi:file-sign',  color_class='btn-success') }}
+                </div>
+            </div>
         {% endif %}
         {# Botones de acción en estado FIRMADO #}
-        {% if ofi_documento.estado == "FIRMADO" %}
-            {{ modals.button_modal_md('Enviar', url_for('ofi_documentos.send', ofi_documento_id=ofi_documento.id), "Enviar", "mdi:send-outline", "¿Desea enviar el oficio? Esta acción no puede ser deshecha.",  "btn-primary") }}
+        {% if ofi_documento.estado == "FIRMADO"  and not ofi_documento.esta_cancelado %}
+            <div class="row">
+                <div class="col-md-6">
+                    {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio? Esta acción no puede ser deshecha.",  "btn-danger") }}
+                </div>
+                <div class="col-md-6">
+                    {{ modals.button_modal_md('Enviar', url_for('ofi_documentos.send', ofi_documento_id=ofi_documento.id), "Enviar", "mdi:send-outline", "¿Desea enviar el oficio? Esta acción no puede ser deshecha.",  "btn-primary") }}
+                </div>
+            </div>
         {% endif %}
     {% endcall %}
     {# Card para Archivos Adjuntos #}
@@ -109,7 +153,7 @@
             </thead>
         </table>
         {% if current_user.can_insert('OFI DOCUMENTOS ADJUNTOS') %}
-            {% if ofi_documento.estado != "ENVIADO" %}
+            {% if ofi_documento.estado != "ENVIADO" and not ofi_documento.esta_cancelado %}
                 <a href="{{ url_for('ofi_documentos_adjuntos.new_with_ofi_documento', ofi_documento_id=ofi_documento.id) }}" class="btn btn-primary">Agregar Archivo Adjunto</a>
             {% endif %}
         {% endif %}
@@ -124,11 +168,12 @@
                     <th>email</th>
                     <th>Nombre</th>
                     <th>Leído</th>
+                    <th>Con Copia</th>
                 </tr>
             </thead>
         </table>
         {% if current_user.can_insert('OFI DOCUMENTOS DESTINATARIOS') %}
-            {% if ofi_documento.estado != "ENVIADO" %}
+            {% if ofi_documento.estado != "ENVIADO" and not ofi_documento.esta_cancelado %}
                 <a href="{{ url_for('ofi_documentos_destinatarios.new_with_ofi_documento', ofi_documento_id=ofi_documento.id) }}" class="btn btn-primary">Agregar Destinatario</a>
             {% endif %}
         {% endif %}
@@ -178,7 +223,8 @@
             { data: 'detalle' },
             { data: 'usuario_email' },
             { data: 'usuario_nombre' },
-            { data: 'fue_leido' }
+            { data: 'fue_leido' },
+            { data: 'con_copia' }
         ];
         configDT_destinatarios['columnDefs'] = [
             {
@@ -196,7 +242,7 @@
                 }
             },
             {
-                targets: 3, // fue_leido
+                targets: [3, 4], // fue_leido
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data) {
@@ -210,8 +256,9 @@
         const filtrosDestinatarios = new FiltrosDataTable('#ofi_documentos_destinatarios_datatable', configDT_destinatarios);
         filtrosDestinatarios.precargar();
     </script>
-    {# Modal para enviar #}
+    {# Modales #}
     {{ modals.custom_javascript("Enviar", "", "Enviar") }}
+    {{ modals.custom_javascript("Cancelar", "", "Cancelar") }}
     <!-- Syncfusion EJ2 Document Editor -->
     <script>
 
@@ -276,6 +323,5 @@
         } else {
             console.error('Los componentes básicos de Syncfusion NO se han cargado. No se puede iniciar el editor de documentos.');
         }
-
     </script>
 {% endblock %}
