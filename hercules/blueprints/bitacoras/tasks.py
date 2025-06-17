@@ -41,7 +41,7 @@ app.app_context().push()
 database.app = app
 
 
-def enviar_reporte_diario(modulo_nombre: str, to_email: str) -> str:
+def enviar_reporte_diario(modulo_nombre: str, to_email: str, horas: int = 24) -> str:
     """Enviar mensaje con el reporte diario del módulo dado"""
 
     # Agregar mensaje de inicio
@@ -59,10 +59,10 @@ def enviar_reporte_diario(modulo_nombre: str, to_email: str) -> str:
         logs.error(mensaje)
         raise MyNotValidParamError(mensaje)
 
-    # Definir el tiempo para filtrar a partir de las últimas 24 horas
-    desde_dt = datetime.now() - timedelta(hours=24)
+    # Definir el tiempo para filtrar a partir de las últimas horas
+    desde_dt = datetime.now() - timedelta(hours=horas)
 
-    # Consultar la bitácora filtrando por el módulo y las últimas 24 horas
+    # Consultar la bitácora filtrando por el módulo y las últimas horas
     bitacoras = (
         Bitacora.query.filter(Bitacora.creado >= desde_dt)
         .filter(Bitacora.modulo_id == modulo.id)
@@ -70,6 +70,12 @@ def enviar_reporte_diario(modulo_nombre: str, to_email: str) -> str:
         .order_by(Bitacora.creado.desc())
         .all()
     )
+
+    # Si no hay bitácoras, entregar mensaje de término
+    if bitacoras is None or len(bitacoras) == 0:
+        mensaje_termino = f"No se encontraron bitácoras del módulo {modulo_nombre} en las últimas {horas} horas"
+        set_task_progress(100, mensaje_termino)
+        return mensaje_termino
 
     # Elaborar el asunto del mensaje
     asunto_str = f"PJECZ Plataforma Web: Bitácora diaria de {modulo_nombre}"
@@ -79,16 +85,11 @@ def enviar_reporte_diario(modulo_nombre: str, to_email: str) -> str:
     contenidos = []
     contenidos.append(f"<h2>{asunto_str}</h2>")
     contenidos.append(f"<p>Elaborado el {fecha_elaboracion}</p>")
-    if not bitacoras:
-        mensaje = f"No hay bitácoras del módulo {modulo_nombre} en las últimas 24 horas"
-        logs.info(mensaje)
-        contenidos.append(mensaje)
-    else:
-        contenidos.append("<ul>")
-        for bitacora in bitacoras:
-            contenidos.append(f"<li>{bitacora.usuario.nombre} - {bitacora.descripcion}</li>")
-        contenidos.append("</ul>")
-        logs.info(f"Se encontraron {len(bitacoras)} bitácoras del módulo {modulo_nombre} en las últimas 24 horas")
+    contenidos.append("<ul>")
+    for bitacora in bitacoras:
+        contenidos.append(f"<li>{bitacora.usuario.nombre} - {bitacora.descripcion}</li>")
+    contenidos.append("</ul>")
+    logs.info(f"Se encontraron {len(bitacoras)} bitácoras del módulo {modulo_nombre} en las últimas 24 horas")
     contenido_html = "\n".join(contenidos)
 
     # Enviar el e-mail
@@ -105,7 +106,7 @@ def enviar_reporte_diario(modulo_nombre: str, to_email: str) -> str:
     return mensaje
 
 
-def lanzar_enviar_reporte_diario(modulo_nombre: str, to_email: str) -> str:
+def lanzar_enviar_reporte_diario(modulo_nombre: str, to_email: str, horas: int = 24) -> str:
     """Lanzar la tarea de enviar el reporte diario del módulo dado"""
 
     # Iniciar la tarea en el fondo
@@ -113,7 +114,7 @@ def lanzar_enviar_reporte_diario(modulo_nombre: str, to_email: str) -> str:
 
     # Ejecutar
     try:
-        mensaje_termino = enviar_reporte_diario(modulo_nombre, to_email)
+        mensaje_termino = enviar_reporte_diario(modulo_nombre, to_email, horas)
     except MyAnyError as error:
         mensaje_error = str(error)
         set_task_error(mensaje_error)

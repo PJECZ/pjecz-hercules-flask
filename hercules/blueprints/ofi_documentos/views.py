@@ -2,15 +2,15 @@
 Ofi Documentos, vistas
 """
 
-import json
 from datetime import datetime
+import json
+
 from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-from sqlalchemy import func
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
+from lib.folio import validar_folio
 from lib.safe_string import safe_string, safe_message, safe_clave
-
 from hercules.extensions import database
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
@@ -215,6 +215,15 @@ def new(ofi_plantilla_id):
     form = OfiDocumentoNewForm()
     if form.validate_on_submit():
         es_valido = True
+        # Validar el folio, separar el número y el año
+        folio = form.folio.data.strip()
+        numero_folio = None
+        anio_folio = None
+        try:
+            numero_folio, anio_folio = validar_folio(folio)
+        except ValueError as error:
+            flash(str(error), "warning")
+            es_valido = False
         # Validar la fecha de vencimiento
         vencimiento_fecha = form.vencimiento_fecha.data
         if vencimiento_fecha is not None and vencimiento_fecha < datetime.now().date():
@@ -224,7 +233,9 @@ def new(ofi_plantilla_id):
             ofi_documento = OfiDocumento(
                 usuario=current_user,
                 descripcion=safe_string(form.descripcion.data, save_enie=True),
-                folio=form.folio.data,
+                folio=folio,
+                folio_anio=anio_folio,
+                folio_num=numero_folio,
                 vencimiento_fecha=vencimiento_fecha,
                 contenido_sfdt=form.contenido_sfdt.data.strip(),
                 estado="BORRADOR",
@@ -259,6 +270,15 @@ def edit(ofi_documento_id):
     form = OfiDocumentoEditForm()
     if form.validate_on_submit():
         es_valido = True
+        # Validar el folio, separar el número y el año
+        folio = form.folio.data.strip()
+        numero_folio = None
+        anio_folio = None
+        try:
+            numero_folio, anio_folio = validar_folio(folio)
+        except ValueError as error:
+            flash(str(error), "warning")
+            es_valido = False
         # Validar la fecha de vencimiento
         vencimiento_fecha = form.vencimiento_fecha.data
         if vencimiento_fecha is not None and vencimiento_fecha < datetime.now().date():
@@ -266,7 +286,9 @@ def edit(ofi_documento_id):
             es_valido = False
         if es_valido:
             ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
-            ofi_documento.folio = form.folio.data
+            ofi_documento.folio = folio
+            ofi_documento.folio_anio = anio_folio
+            ofi_documento.folio_num = numero_folio
             ofi_documento.vencimiento_fecha = vencimiento_fecha
             ofi_documento.contenido_sfdt = form.contenido_sfdt.data.strip()
             ofi_documento.save()
@@ -310,29 +332,26 @@ def sign(ofi_documento_id):
     if ofi_documento.vencimiento_fecha is not None and ofi_documento.vencimiento_fecha < datetime.now().date():
         flash("La fecha de vencimiento no puede ser anterior a la fecha actual", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-    # TODO: Calcular el número de folio
-    # fecha_actual = datetime(datetime.now().year, 12, 31, 23, 59, 59)
-    # numero_max_folio = (
-    #     OfiDocumento.query(func.max(OfiDocumento.folio))
-    #     .join(Usuario)
-    #     .filter(Usuario.autoridad_id == current_user.autoridad_id)
-    #     .filter(OfiDocumento.creado <= fecha_actual)
-    #     .scalar()
-    # )
-    # if numero_max_folio is None:
-    #     numero_max_folio = 0
     # Formuario
     form = OfiDocumentoSignForm()
     if form.validate_on_submit():
         es_valido = True
-        # TODO: Separar el número y el año del folio
-        folio = form.folio.data
-        # TODO: Validar que número de folio no se repita en el año actual y en la misma autoridad
+        # Validar el folio, separar el número y el año
+        folio = form.folio.data.strip()
+        numero_folio = None
+        anio_folio = None
+        try:
+            numero_folio, anio_folio = validar_folio(folio)
+        except ValueError as error:
+            flash(str(error), "warning")
+            es_valido = False
         # Si es válido
         if es_valido:
             # Guardar en la base de datos
             ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
             ofi_documento.folio = folio
+            ofi_documento.folio_anio = anio_folio
+            ofi_documento.folio_num = numero_folio
             ofi_documento.estado = "FIRMADO"
             ofi_documento.firma_simple_usuario_id = current_user.id
             ofi_documento.firma_simple_tiempo = datetime.now()
