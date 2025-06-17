@@ -7,7 +7,9 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
         {% if current_user.can_view('OFI DOCUMENTOS') %}
-            {{ topbar.button('Oficios', url_for('ofi_documentos.list_active'), "mdi:file-sign") }}
+            {{ topbar.button('Mis Oficios', url_for('ofi_documentos.list_active'), "mdi:file-sign") }}
+            {{ topbar.button('Mi Autoridad', url_for('ofi_documentos.list_active_mi_autoridad'), "mdi:scale-balance") }}
+            {{ topbar.button('Mi Bandeja de Entrada', url_for('ofi_documentos.list_active_mi_bandeja_entrada'), "mdi:inbox-multiple") }}
         {% endif %}
         {% if current_user.can_admin('OFI PLANTILLAS') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('ofi_plantillas.list_inactive')) }}{% endif %}

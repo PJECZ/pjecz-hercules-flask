@@ -122,21 +122,25 @@
         {% if ofi_documento.estado == "BORRADOR" and not ofi_documento.esta_cancelado %}
             <div class="row">
                 <div class="col-md-6">
-                    {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio? Esta acción no puede ser deshecha.",  "btn-danger") }}
-                </div>
-                <div class="col-md-6">
                     {{ detail.button_md('Firmar', url_for('ofi_documentos.sign', ofi_documento_id=ofi_documento.id), 'mdi:file-sign',  color_class='btn-success') }}
+                </div>
+                <div class="col-md-3">
+                </div>
+                <div class="col-md-3 mt-2">
+                    {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio? Esta acción no puede ser deshecha.",  "btn-danger") }}
                 </div>
             </div>
         {% endif %}
         {# Botones de acción en estado FIRMADO #}
         {% if ofi_documento.estado == "FIRMADO"  and not ofi_documento.esta_cancelado %}
             <div class="row">
-                <div class="col-md-6">
-                    {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio? Esta acción no puede ser deshecha.",  "btn-danger") }}
-                </div>
-                <div class="col-md-6">
+                <div class="col-md-6 mt-2">
                     {{ modals.button_modal_md('Enviar', url_for('ofi_documentos.send', ofi_documento_id=ofi_documento.id), "Enviar", "mdi:send-outline", "¿Desea enviar el oficio? Esta acción no puede ser deshecha.",  "btn-primary") }}
+                </div>
+                <div class="col-md-3">
+                </div>
+                <div class="col-md-3 mt-2">
+                    {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio? Esta acción no puede ser deshecha.",  "btn-danger") }}
                 </div>
             </div>
         {% endif %}
@@ -258,7 +262,7 @@
     </script>
     {# Modales #}
     {{ modals.custom_javascript("Enviar", "", "Enviar") }}
-    {{ modals.custom_javascript("Cancelar", "", "Cancelar") }}
+    {{ modals.custom_javascript("Confirmar", "", "Cancelar") }}
     <!-- Syncfusion EJ2 Document Editor -->
     <script>
 
