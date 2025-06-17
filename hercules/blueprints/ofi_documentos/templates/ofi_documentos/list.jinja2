@@ -31,25 +31,19 @@
                             <label for="filtroFolio">Folio</label>
                         </div>
                     </div>
-                    <div class="col-5">
-                        <div class="form-floating">
-                            <input id="filtroAutor" type="text" class="form-control" aria-label="Autor" style="text-transform: lowercase;">
-                            <label for="filtroAutor">Autor</label>
-                        </div>
-                    </div>
-                    <div class="col-5">
+                    <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroAutoridad" type="text" class="form-control" aria-label="Autoridad" style="text-transform: uppercase;">
                             <label for="filtroAutoridad">Autoridad</label>
                         </div>
                     </div>
-                    <div class="col-6">
+                    <div class="col-4">
                         <div class="form-floating">
                             <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
                             <label for="filtroDescripcion">Descripción</label>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-2">
                         <div class="form-floating">
                             <select class="form-select" id="estadoSelect" name="estadoSelect" aria-label="Estado" onchange="filtrosOficios.buscar(); return false;" style="flex: inherit;">
                                 <option selected value=""></option>
@@ -172,7 +166,6 @@
         // Filtros Oficios
         const filtrosOficios = new FiltrosDataTable('#ofi_documentos_datatable', configDataTable);
         filtrosOficios.agregarInput('filtroFolio', 'folio');
-        filtrosOficios.agregarInput('filtroAutor', 'autor');
         filtrosOficios.agregarInput('filtroAutoridad', 'autoridad');
         filtrosOficios.agregarInput('filtroDescripcion', 'descripcion');
         filtrosOficios.agregarInput('estadoSelect', 'estado');

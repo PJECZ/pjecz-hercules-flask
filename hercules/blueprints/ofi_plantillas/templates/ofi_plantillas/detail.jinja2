@@ -57,11 +57,11 @@
         {% set form_kwargs = {'ofi_plantilla_id': ofi_plantilla.id} %}
         {% call f.form_tag('ofi_plantillas.edit', fid='ofi_plantilla_form', **form_kwargs) %}
             {{ detail.label_value('Descripción', ofi_plantilla.descripcion) }}
+            {{ detail.label_value_boolean('Está archivado', ofi_plantilla.esta_archivado) }}
             <div style="display:none">
                 {% call f.form_group(form.contenido_sfdt) %}{% endcall %}
             </div>
             <div id='editor' style='width:100%'></div>
-            {{ detail.label_value_boolean('Está archivado', ofi_plantilla.esta_archivado) }}
             <hr>
             {{ detail.button_md('Nuevo oficio a partir de esta plantilla', url_for('ofi_documentos.new', ofi_plantilla_id=ofi_plantilla.id), 'mdi:content-copy',  color_class='btn-primary') }}
         {% endcall %}
