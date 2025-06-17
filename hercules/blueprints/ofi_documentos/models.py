@@ -36,10 +36,10 @@ class OfiDocumento(database.Model, UniversalMixin):
     # Columnas
     descripcion: Mapped[str] = mapped_column(String(256))
     estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="ofi_documentos_estados", native_enum=False), index=True)
-    cadena_oficio_id: Mapped[Optional[int]] = mapped_column(nullable=True, default=None)
+    cadena_oficio_id: Mapped[Optional[int]]
     esta_archivado: Mapped[bool] = mapped_column(default=False)
     esta_cancelado: Mapped[bool] = mapped_column(default=False)
-    vencimiento_fecha: Mapped[Optional[date]] = mapped_column(nullable=True, default=None)
+    vencimiento_fecha: Mapped[Optional[date]]
     enviado_tiempo: Mapped[Optional[datetime]]
 
     # El folio es None cuando el estado es BORRADOR
@@ -81,14 +81,9 @@ class OfiDocumento(database.Model, UniversalMixin):
         """Generate a hash representing the current sample state"""
         elementos = []
         elementos.append(str(self.id))
-        # elementos.append(self.creado.strftime("%Y-%m-%d %H:%M:%S"))
-        # elementos.append(self.modificado.strftime("%Y-%m-%d %H:%M:%S"))
-        elementos.append(str(self.usuario_id))
         elementos.append(self.descripcion)
         elementos.append(str(self.folio))
-        elementos.append(str(self.vencimiento_fecha))
         elementos.append(str(self.contenido_sfdt))
-        elementos.append(str(self.firma_simple_usuario_id))
         return hashlib.md5("|".join(elementos).encode("utf-8")).hexdigest()
 
     def __repr__(self):

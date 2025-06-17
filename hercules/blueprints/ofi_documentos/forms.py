@@ -6,7 +6,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, DateField
 from wtforms.validators import DataRequired, Length, Optional, Regexp
 
-FOLIO_REGEXP = r"^(\w.\/)*\d+\/\d{4}$"
+FOLIO_REGEXP = r"^(\w.[-\/])*\d+\/\d{4}$"
 
 
 class OfiDocumentoNewForm(FlaskForm):
