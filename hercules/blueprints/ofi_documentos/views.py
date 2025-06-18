@@ -146,6 +146,7 @@ def list_active_mi_bandeja_entrada():
         filtros=json.dumps({"estatus": "A", "estado": "ENVIADO", "usuario_destinatario_id": current_user.id}),
         titulo="Mi Bandeja de Entrada",
         estatus="A",
+        estados=OfiDocumento.ESTADOS,
     )
 
 
@@ -157,6 +158,7 @@ def list_active_mi_autoridad():
         filtros=json.dumps({"estatus": "A", "usuario_autoridad_id": current_user.autoridad.id}),
         titulo="Mi Autoridad",
         estatus="A",
+        estados=OfiDocumento.ESTADOS,
     )
 
 
@@ -169,6 +171,7 @@ def list_inactive():
         filtros=json.dumps({"estatus": "B", "usuario_id": current_user.id}),
         titulo="Mis Oficios inactivos",
         estatus="B",
+        estados=OfiDocumento.ESTADOS,
     )
 
 
@@ -176,6 +179,7 @@ def list_inactive():
 def detail(ofi_documento_id):
     """Detalle de un Ofi-Documento"""
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    mostrar_boton_responder = False
     # Consultar el usuario firmante, si lo tiene
     usuario_firmante = None
     if ofi_documento.firma_simple_usuario_id is not None:
@@ -193,6 +197,8 @@ def detail(ofi_documento_id):
             usuario_destinatario.fue_leido = True
             usuario_destinatario.fue_leido_tiempo = datetime.now()
             usuario_destinatario.save()
+        if usuario_destinatario is not None:
+            mostrar_boton_responder = True
     # Para mostrar el contenido del documento, se usa Syncfusion Document Editor con un formulario que NO se envía
     form = OfiDocumentoNewForm()
     form.descripcion.data = ofi_documento.descripcion
@@ -204,6 +210,7 @@ def detail(ofi_documento_id):
         usuario_firmante=usuario_firmante,
         form=form,
         syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
+        mostrar_boton_responder=mostrar_boton_responder,
     )
 
 
@@ -219,11 +226,12 @@ def new(ofi_plantilla_id):
         folio = form.folio.data.strip()
         numero_folio = None
         anio_folio = None
-        try:
-            numero_folio, anio_folio = validar_folio(folio)
-        except ValueError as error:
-            flash(str(error), "warning")
-            es_valido = False
+        if folio != "":
+            try:
+                numero_folio, anio_folio = validar_folio(folio)
+            except ValueError as error:
+                flash(str(error), "warning")
+                es_valido = False
         # Validar la fecha de vencimiento
         vencimiento_fecha = form.vencimiento_fecha.data
         if vencimiento_fecha is not None and vencimiento_fecha < datetime.now().date():
@@ -239,6 +247,7 @@ def new(ofi_plantilla_id):
                 vencimiento_fecha=vencimiento_fecha,
                 contenido_sfdt=form.contenido_sfdt.data.strip(),
                 estado="BORRADOR",
+                cadena_oficio_id=form.cadena_oficio_id.data if form.cadena_oficio_id.data else None,
             )
             ofi_documento.save()
             bitacora = Bitacora(
@@ -274,11 +283,12 @@ def edit(ofi_documento_id):
         folio = form.folio.data.strip()
         numero_folio = None
         anio_folio = None
-        try:
-            numero_folio, anio_folio = validar_folio(folio)
-        except ValueError as error:
-            flash(str(error), "warning")
-            es_valido = False
+        if folio != "":
+            try:
+                numero_folio, anio_folio = validar_folio(folio)
+            except ValueError as error:
+                flash(str(error), "warning")
+                es_valido = False
         # Validar la fecha de vencimiento
         vencimiento_fecha = form.vencimiento_fecha.data
         if vencimiento_fecha is not None and vencimiento_fecha < datetime.now().date():
@@ -418,7 +428,7 @@ def send(ofi_documento_id):
 
 
 @ofi_documentos.route("/ofi_documentos/cancelar/<int:ofi_documento_id>")
-@permission_required(MODULO, Permiso.ADMINISTRAR)
+@permission_required(MODULO, Permiso.MODIFICAR)
 def cancel(ofi_documento_id):
     """Cancelar Ofi Documento"""
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
@@ -438,6 +448,64 @@ def cancel(ofi_documento_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(url_for("ofi_documentos.list_active"))
+
+
+@ofi_documentos.route("/ofi_documentos/descancelar/<int:ofi_documento_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def uncancel(ofi_documento_id):
+    """Descancelar Ofi Documento"""
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # Validar si no está archivado
+    if ofi_documento.esta_archivado:
+        flash("El oficio ya está archivado", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    if ofi_documento.esta_cancelado is True:
+        ofi_documento.esta_cancelado = False
+        ofi_documento.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Descancelado Oficio Documento {ofi_documento.descripcion}"),
+            url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+    return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+
+
+@ofi_documentos.route("/ofi_documentos/responder/<int:ofi_documento_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.CREAR)
+def response(ofi_documento_id):
+    """Responder un Ofi Documento"""
+    # Verificar que tenga una plantilla base de su autoridad
+    ofi_plantilla = (
+        OfiPlantilla.query.join(Usuario)
+        .filter(Usuario.autoridad_id == current_user.autoridad_id)
+        .filter(OfiPlantilla.estatus == "A")
+        .filter(OfiPlantilla.esta_archivado == False)
+        .first()
+    )
+    if ofi_plantilla is None:
+        flash("No hay una plantilla para crear un oficio de respuesta", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_id))
+    # Validar que el ofi Documento exista
+    ofi_documento = OfiDocumento.query.get(ofi_documento_id)
+    if ofi_documento is None:
+        flash("El oficio que quiere responder no se encuentra", "warning")
+        return redirect(url_for("ofi_documentos.list_active_mi_bandeja_entrada"))
+    # Formulario
+    form = OfiDocumentoNewForm()
+    # Cargar los datos de la plantilla en el formulario
+    form.descripcion.data = "RE: " + ofi_plantilla.descripcion
+    form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
+    form.cadena_oficio_id.data = ofi_documento_id
+    # Entregar
+    return render_template(
+        "ofi_documentos/new_syncfusion_document.jinja2",
+        form=form,
+        syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
+        ofi_plantilla_id=ofi_plantilla.id,
+    )
 
 
 @ofi_documentos.route("/ofi_documentos/eliminar/<int:ofi_documento_id>")
