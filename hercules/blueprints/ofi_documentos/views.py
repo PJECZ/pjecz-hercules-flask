@@ -199,10 +199,6 @@ def detail(ofi_documento_id):
             usuario_destinatario.save()
         if usuario_destinatario is not None:
             mostrar_boton_responder = True
-    # Folio encadenado
-    cadena_oficio = None
-    if ofi_documento.cadena_oficio_id is not None:
-        cadena_oficio = OfiDocumento.query.get(ofi_documento.cadena_oficio_id)
     # Para mostrar el contenido del documento, se usa Syncfusion Document Editor con un formulario que NO se envía
     form = OfiDocumentoNewForm()
     form.descripcion.data = ofi_documento.descripcion
@@ -215,7 +211,6 @@ def detail(ofi_documento_id):
         form=form,
         syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
         mostrar_boton_responder=mostrar_boton_responder,
-        cadena_oficio=cadena_oficio,
     )
 
 
@@ -478,11 +473,27 @@ def uncancel(ofi_documento_id):
     return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
 
 
-@ofi_documentos.route("/ofi_documentos/response/<int:ofi_documento_id>", methods=["GET", "POST"])
+@ofi_documentos.route("/ofi_documentos/responder/<int:ofi_documento_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
 def response(ofi_documento_id):
     """Responder un Ofi Documento"""
-    ofi_plantilla = OfiPlantilla.query.first()
+    # Verificar que tenga una plantilla base de su autoridad
+    ofi_plantilla = (
+        OfiPlantilla.query.join(Usuario)
+        .filter(Usuario.autoridad_id == current_user.autoridad_id)
+        .filter(OfiPlantilla.estatus == "A")
+        .filter(OfiPlantilla.esta_archivado == False)
+        .first()
+    )
+    if ofi_plantilla is None:
+        flash("No hay una plantilla para crear un oficio de respuesta", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_id))
+    # Validar que el ofi Documento exista
+    ofi_documento = OfiDocumento.query.get(ofi_documento_id)
+    if ofi_documento is None:
+        flash("El oficio que quiere responder no se encuentra", "warning")
+        return redirect(url_for("ofi_documentos.list_active_mi_bandeja_entrada"))
+    # Formulario
     form = OfiDocumentoNewForm()
     # Cargar los datos de la plantilla en el formulario
     form.descripcion.data = "RE: " + ofi_plantilla.descripcion
