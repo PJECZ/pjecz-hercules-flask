@@ -3,7 +3,7 @@ Ofi Documentos, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, DateField
+from wtforms import StringField, SubmitField, TextAreaField, DateField, HiddenField
 from wtforms.validators import DataRequired, Length, Optional, Regexp
 
 FOLIO_REGEXP = r"^(\w.[-\/])*\d+\/\d{4}$"
@@ -16,6 +16,7 @@ class OfiDocumentoNewForm(FlaskForm):
     folio = StringField("Folio", validators=[Optional(), Regexp(FOLIO_REGEXP)])
     vencimiento_fecha = DateField("Fecha de Vencimiento", validators=[Optional()])
     contenido_sfdt = TextAreaField("Contenido SFDT", validators=[Optional()], render_kw={"rows": 10})
+    cadena_oficio_id = HiddenField("Cadena de Oficio", validators=[Optional()])
     guardar = SubmitField("Guardar")
 
 

@@ -66,6 +66,9 @@
         {% else %}
             {{ detail.label_value('Usuario', ofi_documento.usuario.nombre) }}
         {% endif %}
+            {% if cadena_oficio %}
+                {{ detail.label_value('En respuesta al oficio', cadena_oficio.descripcion, url_for("ofi_documentos.detail", ofi_documento_id=cadena_oficio.id)) }}
+        {% endif %}
         {# detail.label_value('Creado', moment(ofi_documento.creado, local=False).format('DD MMM YYYY HH:mm')) #}
         {# detail.label_value('Modificado', moment(ofi_documento.modificado, local=False).format('DD MMM YYYY HH:mm')) #}
         <div class="row">
@@ -125,9 +128,10 @@
                     {{ detail.button_md('Firmar', url_for('ofi_documentos.sign', ofi_documento_id=ofi_documento.id), 'mdi:file-sign',  color_class='btn-success') }}
                 </div>
                 <div class="col-md-3">
+                    {{ detail.button_md('Editar', url_for('ofi_documentos.edit', ofi_documento_id=ofi_documento.id), 'mdi:file-document-edit-outline',  color_class='btn-warning') }}
                 </div>
                 <div class="col-md-3 mt-2">
-                    {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio? Esta acción no puede ser deshecha.",  "btn-danger") }}
+                    {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio?",  "btn-danger") }}
                 </div>
             </div>
         {% endif %}
@@ -140,7 +144,23 @@
                 <div class="col-md-3">
                 </div>
                 <div class="col-md-3 mt-2">
-                    {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio? Esta acción no puede ser deshecha.",  "btn-danger") }}
+                    {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio?",  "btn-danger") }}
+                </div>
+            </div>
+        {% endif %}
+        {# Botones de acción en CANCELADO #}
+        {% if ofi_documento.esta_cancelado %}
+            <div class="row">
+                <div class="col-md-12 mt-2">
+                    {{ modals.button_modal_md('Descancelar', url_for('ofi_documentos.uncancel', ofi_documento_id=ofi_documento.id), "Descancelar", "mdi:file-undo-outline", "¿Desea descancelar el oficio?",  "btn-outline-danger") }}
+                </div>
+            </div>
+        {% endif %}
+        {# Botones de acción RESPONDER #}
+        {% if mostrar_boton_responder %}
+            <div class="row">
+                <div class="col-md-12 mt-2">
+                    {{ detail.button_md('Responder', url_for('ofi_documentos.response', ofi_documento_id=ofi_documento.id), 'mdi:email-sync-outline',  color_class='btn-outline-primary') }}
                 </div>
             </div>
         {% endif %}
@@ -263,6 +283,7 @@
     {# Modales #}
     {{ modals.custom_javascript("Enviar", "", "Enviar") }}
     {{ modals.custom_javascript("Confirmar", "", "Cancelar") }}
+    {{ modals.custom_javascript("Descancelar", "", "Descancelar") }}
     <!-- Syncfusion EJ2 Document Editor -->
     <script>
 
