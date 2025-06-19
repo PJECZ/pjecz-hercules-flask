@@ -373,6 +373,8 @@ def sign(ofi_documento_id):
             es_valido = False
         # Si es válido
         if es_valido:
+            # Cambiar el Autor al firmante
+            ofi_documento.usuario = current_user
             # Guardar en la base de datos
             ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
             ofi_documento.folio = folio
