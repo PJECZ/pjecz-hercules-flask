@@ -68,6 +68,7 @@
                     <th>ID</th>
                     <th>Creado</th>
                     <th>Folio</th>
+                    <th>Vencimiento</th>
                     <th>Autor</th>
                     <th>Autoridad</th>
                     <th>Descripción</th>
@@ -92,6 +93,7 @@
             { data: 'detalle' },
             { data: 'creado' },
             { data: 'folio' },
+            { data: 'vencimiento' },
             { data: 'autor' },
             { data: 'autoridad' },
             { data: 'descripcion' },
@@ -107,7 +109,7 @@
                 }
             },
             {
-                targets: 3, // autor
+                targets: 4, // autor
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data.email.length > 16)
@@ -116,7 +118,7 @@
                 }
             },
             {
-                targets: 4, // autoridad
+                targets: 5, // autoridad
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data.url == "" )
@@ -125,7 +127,7 @@
                 }
             },
             {
-                targets: 5, // descripcion
+                targets: 6, // descripcion
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data.length > 32)
@@ -134,7 +136,7 @@
                 }
             },
             {
-                targets: 6, // estado
+                targets: 7, // estado
                 data: null,
                 render: function(data, type, row, meta) {
                     let bgcolor = "bg-secondary";
@@ -148,7 +150,7 @@
                 }
             },
             {
-                targets: 7, // cancelado
+                targets: 8, // cancelado
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data)

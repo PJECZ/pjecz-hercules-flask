@@ -23,6 +23,9 @@ from hercules.blueprints.usuarios.models import Usuario
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.ofi_documentos_destinatarios.models import OfiDocumentoDestinatario
 
+DIAS_VENCIMIENTO_ADVERTENCIA = -3
+DIAS_VENCIMIENTO_EMERGENCIA = -1
+
 MODULO = "OFI DOCUMENTOS"
 
 ofi_documentos = Blueprint("ofi_documentos", __name__, template_folder="templates")
@@ -89,6 +92,18 @@ def datatable_json():
     # Elaborar datos para DataTable
     data = []
     for resultado in registros:
+        # Formar campo de vencimiento
+        vencimiento_fecha = resultado.vencimiento_fecha.strftime("%Y-%m-%d") if resultado.vencimiento_fecha else "-"
+        vencimiento_icono = ""
+        dias_vencimiento = ""
+        if resultado.vencimiento_fecha is not None:
+            dias_vencimiento = (datetime.now().date() - resultado.vencimiento_fecha).days
+            if DIAS_VENCIMIENTO_EMERGENCIA <= dias_vencimiento <= 0:
+                vencimiento_icono = "🚨"
+            if DIAS_VENCIMIENTO_ADVERTENCIA <= dias_vencimiento < DIAS_VENCIMIENTO_EMERGENCIA:
+                vencimiento_icono = "⚠️"
+        vencimiento = f"{vencimiento_fecha} {vencimiento_icono}"
+        # Elaborar registro
         data.append(
             {
                 "detalle": {
@@ -110,6 +125,7 @@ def datatable_json():
                     ),
                 },
                 "folio": resultado.folio,
+                "vencimiento": vencimiento,
                 "descripcion": resultado.descripcion,
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
                 "estado": resultado.estado,
