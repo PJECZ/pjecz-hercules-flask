@@ -244,6 +244,7 @@ def detail(ofi_documento_id):
     form.descripcion.data = ofi_documento.descripcion
     form.contenido_sfdt.data = ofi_documento.contenido_sfdt
     # Mostrar botones según el rol
+    mostrar_boton_otras_categorias = True
     mostrar_boton_firmar = False
     mostrar_boton_editar = True
     mostrar_boton_descancelar = True
@@ -254,6 +255,7 @@ def detail(ofi_documento_id):
         mostrar_boton_editar = False
         mostrar_boton_responder = False
         mostrar_boton_descancelar = False
+        mostrar_boton_otras_categorias = False
     # Mostrar el botón de descancelar solo al firmante si ya está firmado
     mostrar_boton_descancelar = True if ofi_documento.estado == "FIRMADO" and ROL_FIRMANTE in roles else False
     # Entregar
@@ -267,6 +269,7 @@ def detail(ofi_documento_id):
         mostrar_boton_firmar=mostrar_boton_firmar,
         mostrar_boton_editar=mostrar_boton_editar,
         mostrar_boton_descancelar=mostrar_boton_descancelar,
+        mostrar_boton_otras_categorias=mostrar_boton_otras_categorias,
     )
 
 
