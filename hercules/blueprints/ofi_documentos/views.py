@@ -23,6 +23,12 @@ from hercules.blueprints.usuarios.models import Usuario
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.ofi_documentos_destinatarios.models import OfiDocumentoDestinatario
 
+# Roles
+ROL_ESCRITOR = "OFICIOS ESCRITOR"
+ROL_FIRMANTE = "OFICIOS FIRMANTE"
+ROL_LECTOR = "OFICIOS LECTOR"
+
+# Constantes para fecha de vencimiento de oficios
 DIAS_VENCIMIENTO_ADVERTENCIA = -3
 DIAS_VENCIMIENTO_EMERGENCIA = -1
 
@@ -145,36 +151,54 @@ def list_active():
 @ofi_documentos.route("/ofi_documentos/mis_oficios")
 def list_active_mis_oficios():
     """Listado de Ofi Documentos activos"""
+    # Mostrar botones según el rol
+    mostrar_boton_nuevo = False
+    if ROL_FIRMANTE in current_user.get_roles() or ROL_ESCRITOR in current_user.get_roles():
+        mostrar_boton_nuevo = True
+    # Entregar
     return render_template(
         "ofi_documentos/list.jinja2",
         filtros=json.dumps({"estatus": "A", "usuario_id": current_user.id}),
         titulo="Mis Oficios",
         estatus="A",
         estados=OfiDocumento.ESTADOS,
+        mostrar_boton_nuevo=mostrar_boton_nuevo,
     )
 
 
 @ofi_documentos.route("/ofi_documentos/mi_bandeja_entrada")
 def list_active_mi_bandeja_entrada():
     """Listado de Ofi Documentos donde el usuario es destinatario"""
+    # Mostrar botones según el rol
+    mostrar_boton_nuevo = False
+    if ROL_FIRMANTE in current_user.get_roles() or ROL_ESCRITOR in current_user.get_roles():
+        mostrar_boton_nuevo = True
+    # Entregar
     return render_template(
         "ofi_documentos/list.jinja2",
         filtros=json.dumps({"estatus": "A", "estado": "ENVIADO", "usuario_destinatario_id": current_user.id}),
         titulo="Mi Bandeja de Entrada",
         estatus="A",
         estados=OfiDocumento.ESTADOS,
+        mostrar_boton_nuevo=mostrar_boton_nuevo,
     )
 
 
 @ofi_documentos.route("/ofi_documentos/mi_autoridad")
 def list_active_mi_autoridad():
     """Listado de Ofi Documentos de la autoridad del usuario"""
+    # Mostrar botones según el rol
+    mostrar_boton_nuevo = False
+    if ROL_FIRMANTE in current_user.get_roles() or ROL_ESCRITOR in current_user.get_roles():
+        mostrar_boton_nuevo = True
+    # Entregar
     return render_template(
         "ofi_documentos/list.jinja2",
         filtros=json.dumps({"estatus": "A", "usuario_autoridad_id": current_user.autoridad.id}),
         titulo="Mi Autoridad",
         estatus="A",
         estados=OfiDocumento.ESTADOS,
+        mostrar_boton_nuevo=mostrar_boton_nuevo,
     )
 
 
@@ -219,6 +243,19 @@ def detail(ofi_documento_id):
     form = OfiDocumentoNewForm()
     form.descripcion.data = ofi_documento.descripcion
     form.contenido_sfdt.data = ofi_documento.contenido_sfdt
+    # Mostrar botones según el rol
+    mostrar_boton_firmar = False
+    mostrar_boton_editar = True
+    mostrar_boton_descancelar = True
+    roles = current_user.get_roles()
+    if ROL_FIRMANTE in roles:
+        mostrar_boton_firmar = True
+    if ROL_ESCRITOR not in roles and ROL_FIRMANTE not in roles:
+        mostrar_boton_editar = False
+        mostrar_boton_responder = False
+        mostrar_boton_descancelar = False
+    # Mostrar el botón de descancelar solo al firmante si ya está firmado
+    mostrar_boton_descancelar = True if ofi_documento.estado == "FIRMADO" and ROL_FIRMANTE in roles else False
     # Entregar
     return render_template(
         "ofi_documentos/detail.jinja2",
@@ -227,6 +264,9 @@ def detail(ofi_documento_id):
         form=form,
         syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
         mostrar_boton_responder=mostrar_boton_responder,
+        mostrar_boton_firmar=mostrar_boton_firmar,
+        mostrar_boton_editar=mostrar_boton_editar,
+        mostrar_boton_descancelar=mostrar_boton_descancelar,
     )
 
 

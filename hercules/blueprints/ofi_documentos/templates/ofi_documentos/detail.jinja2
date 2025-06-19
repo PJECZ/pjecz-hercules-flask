@@ -45,7 +45,7 @@
         {{ topbar.button('Mi Autoridad', url_for('ofi_documentos.list_active_mi_autoridad'), "mdi:scale-balance") }}
         {{ topbar.button('Mi Bandeja de Entrada', url_for('ofi_documentos.list_active_mi_bandeja_entrada'), "mdi:inbox-multiple") }}
         {% if current_user.can_edit('OFI DOCUMENTOS') %}
-            {% if ofi_documento.estado == "BORRADOR" and not ofi_documento.esta_cancelado %}
+            {% if mostrar_boton_editar and ofi_documento.estado == "BORRADOR" and not ofi_documento.esta_cancelado %}
                 {{ topbar.button_edit('Editar', url_for('ofi_documentos.edit', ofi_documento_id=ofi_documento.id)) }}
             {% endif %}
         {% endif %}
@@ -125,13 +125,19 @@
         {% if ofi_documento.estado == "BORRADOR" and not ofi_documento.esta_cancelado %}
             <div class="row">
                 <div class="col-md-6">
-                    {{ detail.button_md('Firmar', url_for('ofi_documentos.sign', ofi_documento_id=ofi_documento.id), 'mdi:file-sign',  color_class='btn-success') }}
+                    {% if mostrar_boton_firmar %}
+                        {{ detail.button_md('Firmar', url_for('ofi_documentos.sign', ofi_documento_id=ofi_documento.id), 'mdi:file-sign',  color_class='btn-success') }}
+                    {% endif %}
                 </div>
                 <div class="col-md-3">
-                    {{ detail.button_md('Editar', url_for('ofi_documentos.edit', ofi_documento_id=ofi_documento.id), 'mdi:file-document-edit-outline',  color_class='btn-warning') }}
+                    {% if mostrar_boton_editar %}
+                        {{ detail.button_md('Editar', url_for('ofi_documentos.edit', ofi_documento_id=ofi_documento.id), 'mdi:file-document-edit-outline',  color_class='btn-warning') }}
+                    {% endif %}
                 </div>
                 <div class="col-md-3 mt-2">
-                    {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio?",  "btn-danger") }}
+                    {% if mostrar_boton_editar %}
+                        {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio?",  "btn-danger") }}
+                    {% endif %}
                 </div>
             </div>
         {% endif %}
@@ -149,7 +155,7 @@
             </div>
         {% endif %}
         {# Botones de acción en CANCELADO #}
-        {% if ofi_documento.esta_cancelado %}
+        {% if ofi_documento.esta_cancelado and mostrar_boton_descancelar %}
             <div class="row">
                 <div class="col-md-12 mt-2">
                     {{ modals.button_modal_md('Descancelar', url_for('ofi_documentos.uncancel', ofi_documento_id=ofi_documento.id), "Descancelar", "mdi:file-undo-outline", "¿Desea descancelar el oficio?",  "btn-outline-danger") }}
