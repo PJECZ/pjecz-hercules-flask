@@ -62,7 +62,7 @@
     {% call detail.card(estatus=ofi_documento.estatus) %}
         {{ detail.label_value('Descripción', ofi_documento.descripcion) }}
         {{ detail.label_value('Folio', ofi_documento.folio) }}
-        {{ detail.label_value('Fecha de Vencimiento', ofi_documento.vencimiento_fecha) }}
+        {{ detail.label_value('Fecha de vencimiento', ofi_documento.vencimiento_fecha) }}
         {% if current_user.can_view('USUARIOS') %}
             {{ detail.label_value('Usuario', ofi_documento.usuario.nombre,  url_for("usuarios.detail", usuario_id=ofi_documento.usuario.id)) }}
         {% else %}
@@ -99,13 +99,13 @@
         {% endif %}
         {{ detail.label_value('Firma Simple', ofi_documento.firma_simple) }}
         {% if ofi_documento.firma_simple_tiempo %}
-            {{ detail.label_value('Firmado Simple el día', moment(ofi_documento.firma_simple_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
+            {{ detail.label_value('Fecha de firmado simple', moment(ofi_documento.firma_simple_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
         {% endif %}
         {% if usuario_firmante %}
             {% if current_user.can_view('USUARIOS') %}
                 {{ detail.label_value('Firmado por', usuario_firmante.nombre, url_for("usuarios.detail", usuario_id=usuario_firmante.id)) }}
             {% else %}
-                {{ detail.label_value('Usuario', usuario_firmante.nombre) }}
+                {{ detail.label_value('Firmado por', usuario_firmante.nombre) }}
             {% endif %}
         {% endif %}
         {% if ofi_documento.enviado_tiempo %}
@@ -238,7 +238,7 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.id + '</a>';
+                    return '<a href="' + data.url + '">' + data.id.substring(0, 8) + '</a>';
                 }
             }
         ];
@@ -263,7 +263,7 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.id + '</a>';
+                    return '<a href="' + data.url + '">' + data.id.substring(0, 8) + '</a>';
                 }
             },
             {

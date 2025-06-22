@@ -12,14 +12,13 @@ from werkzeug.exceptions import NotFound
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.exceptions import MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError, MyUploadError
 from lib.exceptions import (
-    MyAnyError,
     MyFilenameError,
     MyMissingConfigurationError,
     MyNotAllowedExtensionError,
     MyUnknownExtensionError,
 )
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs, upload_file_to_gcs
-from lib.safe_string import safe_string, safe_message
+from lib.safe_string import safe_string, safe_message, safe_uuid
 from lib.storage import GoogleCloudStorage
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo

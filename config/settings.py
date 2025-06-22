@@ -109,7 +109,6 @@ class Settings(BaseSettings):
     MAX_CONTENT_LENGTH: int | None = None
     MAX_FORM_MEMORY_SIZE: int = 50 * MEGABYTE
 
-
     class Config:
         """Load configuration"""
 
