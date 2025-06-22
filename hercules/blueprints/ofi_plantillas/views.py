@@ -7,7 +7,7 @@ from flask import Blueprint, current_app, flash, redirect, render_template, requ
 from flask_login import current_user, login_required
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_string, safe_message
+from lib.safe_string import safe_string, safe_message, safe_uuid
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
@@ -92,9 +92,13 @@ def list_inactive():
     )
 
 
-@ofi_plantillas.route("/ofi_plantillas/<int:ofi_plantilla_id>")
+@ofi_plantillas.route("/ofi_plantillas/<ofi_plantilla_id>")
 def detail(ofi_plantilla_id):
     """Detalle de un Ofi Plantilla"""
+    ofi_plantilla_id = safe_uuid(ofi_plantilla_id)
+    if not ofi_plantilla_id:
+        flash("ID de plantilla inválido", "warning")
+        return redirect(url_for("ofi_plantillas.list_active"))
     ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
     form = OfiPlantillaForm()
     form.descripcion.data = ofi_plantilla.descripcion
@@ -136,10 +140,14 @@ def new():
     )
 
 
-@ofi_plantillas.route("/ofi_plantillas/edicion/<int:ofi_plantilla_id>", methods=["GET", "POST"])
+@ofi_plantillas.route("/ofi_plantillas/edicion/<ofi_plantilla_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.MODIFICAR)
 def edit(ofi_plantilla_id):
     """Editar Ofi Plantilla"""
+    ofi_plantilla_id = safe_uuid(ofi_plantilla_id)
+    if not ofi_plantilla_id:
+        flash("ID de plantilla inválido", "warning")
+        return redirect(url_for("ofi_plantillas.list_active"))
     ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
     form = OfiPlantillaForm()
     if form.validate_on_submit():
@@ -167,10 +175,14 @@ def edit(ofi_plantilla_id):
     )
 
 
-@ofi_plantillas.route("/ofi_plantillas/eliminar/<int:ofi_plantilla_id>")
+@ofi_plantillas.route("/ofi_plantillas/eliminar/<ofi_plantilla_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def delete(ofi_plantilla_id):
     """Eliminar Ofi Plantilla"""
+    ofi_plantilla_id = safe_uuid(ofi_plantilla_id)
+    if not ofi_plantilla_id:
+        flash("ID de plantilla inválido", "warning")
+        return redirect(url_for("ofi_plantillas.list_active"))
     ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
     if ofi_plantilla.estatus == "A":
         ofi_plantilla.delete()
@@ -185,10 +197,14 @@ def delete(ofi_plantilla_id):
     return redirect(url_for("ofi_plantillas.detail", ofi_plantilla_id=ofi_plantilla.id))
 
 
-@ofi_plantillas.route("/ofi_plantillas/recuperar/<int:ofi_plantilla_id>")
+@ofi_plantillas.route("/ofi_plantillas/recuperar/<ofi_plantilla_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def recover(ofi_plantilla_id):
     """Recuperar Ofi Plantilla"""
+    ofi_plantilla_id = safe_uuid(ofi_plantilla_id)
+    if not ofi_plantilla_id:
+        flash("ID de plantilla inválido", "warning")
+        return redirect(url_for("ofi_plantillas.list_active"))
     ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
     if ofi_plantilla.estatus == "B":
         ofi_plantilla.recover()

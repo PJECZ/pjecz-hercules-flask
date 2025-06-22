@@ -10,8 +10,7 @@ from flask_login import current_user, login_required
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.folio import validar_folio
-from lib.safe_string import safe_string, safe_message, safe_clave
-from hercules.extensions import database
+from lib.safe_string import safe_string, safe_message, safe_clave, safe_uuid
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
@@ -215,16 +214,22 @@ def list_inactive():
     )
 
 
-@ofi_documentos.route("/ofi_documentos/<int:ofi_documento_id>")
+@ofi_documentos.route("/ofi_documentos/<ofi_documento_id>")
 def detail(ofi_documento_id):
-    """Detalle de un Ofi-Documento"""
+    """Detalle de un Ofi Documento"""
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    mostrar_boton_responder = False
+    # TODO: Si el oficio está eliminado y NO es administrador, mostrar mensaje y redirigir
     # Consultar el usuario firmante, si lo tiene
     usuario_firmante = None
     if ofi_documento.firma_simple_usuario_id is not None:
         usuario_firmante = Usuario.query.get(ofi_documento.firma_simple_usuario_id)
-    # Si el usuario que lo ve es un Destinatario, se va a marcar como leído
+    # Si el usuario que lo ve es un destinatario, se va a marcar como leído
+    mostrar_boton_responder = False
     if ofi_documento.estado == "ENVIADO":
         # Buscar al usuario entre los destinatarios
         usuario_destinatario = (
@@ -239,10 +244,6 @@ def detail(ofi_documento_id):
             usuario_destinatario.save()
         if usuario_destinatario is not None:
             mostrar_boton_responder = True
-    # Para mostrar el contenido del documento, se usa Syncfusion Document Editor con un formulario que NO se envía
-    form = OfiDocumentoNewForm()
-    form.descripcion.data = ofi_documento.descripcion
-    form.contenido_sfdt.data = ofi_documento.contenido_sfdt
     # Mostrar botones según el rol
     mostrar_boton_otras_categorias = True
     mostrar_boton_firmar = False
@@ -258,6 +259,10 @@ def detail(ofi_documento_id):
         mostrar_boton_otras_categorias = False
     # Mostrar el botón de descancelar solo al firmante si ya está firmado
     mostrar_boton_descancelar = True if ofi_documento.estado == "FIRMADO" and ROL_FIRMANTE in roles else False
+    # Para mostrar el contenido del documento, se usa Syncfusion Document Editor con un formulario que NO se envía
+    form = OfiDocumentoNewForm()
+    form.descripcion.data = ofi_documento.descripcion
+    form.contenido_sfdt.data = ofi_documento.contenido_sfdt
     # Entregar
     return render_template(
         "ofi_documentos/detail.jinja2",
@@ -273,11 +278,20 @@ def detail(ofi_documento_id):
     )
 
 
-@ofi_documentos.route("/ofi_documentos/nuevo/<int:ofi_plantilla_id>", methods=["GET", "POST"])
+@ofi_documentos.route("/ofi_documentos/nuevo/<ofi_plantilla_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
 def new(ofi_plantilla_id):
     """Nuevo Ofi Documento"""
+    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE
+    # Consultar la plantilla
+    ofi_plantilla_id = safe_uuid(ofi_plantilla_id)
+    if not ofi_plantilla_id:
+        flash("ID de plantilla inválido", "warning")
+        return redirect(url_for("ofi_plantillas.list_active"))
     ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
+    # TODO: Validar que la plantilla no esté eliminada
+    # TODO: Validar que la plantilla no esté archivada
+    # Obtener el formulario
     form = OfiDocumentoNewForm()
     if form.validate_on_submit():
         es_valido = True
@@ -330,11 +344,20 @@ def new(ofi_plantilla_id):
     )
 
 
-@ofi_documentos.route("/ofi_documentos/edicion/<int:ofi_documento_id>", methods=["GET", "POST"])
+@ofi_documentos.route("/ofi_documentos/edicion/<ofi_documento_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.MODIFICAR)
 def edit(ofi_documento_id):
     """Editar Ofi Documento"""
+    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # TODO: Validar que la autoridad del oficio sea la misma que la del usuario
+    # TODO: Validar que tenga el estado BORRADOR
+    # Obtener el formulario
     form = OfiDocumentoEditForm()
     if form.validate_on_submit():
         es_valido = True
@@ -384,16 +407,23 @@ def edit(ofi_documento_id):
     )
 
 
-@ofi_documentos.route("/ofi_documentos/firmar/<int:ofi_documento_id>", methods=["GET", "POST"])
+@ofi_documentos.route("/ofi_documentos/firmar/<ofi_documento_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def sign(ofi_documento_id):
     """Firmar un Ofi Documento"""
+    # TODO: Validar que el usuario tenga el rol OFICIOS FIRMANTE
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # TODO: Validar que la autoridad del oficio sea la misma que la del usuario
     # Validar el estatus, que no esté eliminado
     if ofi_documento.estatus != "A":
         flash("El oficio está eliminado", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-    # Validar que el estado sea "BORRADOR"
+    # Validar que tenga el estado BORRADOR
     if ofi_documento.estado != "BORRADOR":
         flash("El oficio no está en estado BORRADOR, no se puede firmar", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
@@ -401,7 +431,7 @@ def sign(ofi_documento_id):
     if ofi_documento.vencimiento_fecha is not None and ofi_documento.vencimiento_fecha < datetime.now().date():
         flash("La fecha de vencimiento no puede ser anterior a la fecha actual", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-    # Formuario
+    # Obtener el formuario
     form = OfiDocumentoSignForm()
     if form.validate_on_submit():
         es_valido = True
@@ -451,19 +481,27 @@ def sign(ofi_documento_id):
     )
 
 
-@ofi_documentos.route("/ofi_documentos/enviar/<int:ofi_documento_id>")
+@ofi_documentos.route("/ofi_documentos/enviar/<ofi_documento_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def send(ofi_documento_id):
     """Enviar un Ofi Documento"""
+    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # TODO: Validar que la autoridad del oficio sea la misma que la del usuario
     # Validar el estatus, que no esté eliminado
     if ofi_documento.estatus != "A":
         flash("El oficio está eliminado", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-    # Validar que el estado sea "FIRMADO"
+    # Validar que tenga el estado FIRMADO
     if ofi_documento.estado != "FIRMADO":
         flash("El oficio no está en estado FIRMADO, no se puede firmar", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # TODO: Validar que no esté archivado
     # Validar que haya al menos un destinatario
     cantidad_destinatarios = (
         OfiDocumentoDestinatario.query.filter_by(ofi_documento_id=ofi_documento.id).filter_by(estatus="A").count()
@@ -471,7 +509,7 @@ def send(ofi_documento_id):
     if cantidad_destinatarios == 0:
         flash("Este oficio NO tiene destinatarios, no se puede enviar, debe agregarlos", "danger")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-    # Actualizar el estado del documento
+    # Actualizar el estado a ENVIADO
     ofi_documento.estado = "ENVIADO"
     ofi_documento.enviado_tiempo = datetime.now()
     ofi_documento.save()
@@ -488,56 +526,89 @@ def send(ofi_documento_id):
     return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
 
 
-@ofi_documentos.route("/ofi_documentos/cancelar/<int:ofi_documento_id>")
+@ofi_documentos.route("/ofi_documentos/cancelar/<ofi_documento_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def cancel(ofi_documento_id):
     """Cancelar Ofi Documento"""
+    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    # Validar si no está archivado
+    # TODO: Validar que la autoridad del oficio sea la misma que la del usuario
+    # Validar que no esté archivado
     if ofi_documento.esta_archivado:
         flash("El oficio ya está archivado", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-    if ofi_documento.esta_cancelado is False:
-        ofi_documento.esta_cancelado = True
-        ofi_documento.save()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Cancelado Oficio Documento {ofi_documento.descripcion}"),
-            url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
+    # Validar que SI esté cancelado
+    if ofi_documento.esta_cancelado is True:
+        flash("El oficio ya está caneclado", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Actualizar esta_cancelado a verdadero
+    ofi_documento.esta_cancelado = True
+    ofi_documento.save()
+    # Agregar registro a la bitácora
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Cancelado Oficio Documento {ofi_documento.descripcion}"),
+        url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+    )
+    bitacora.save()
+    flash(bitacora.descripcion, "success")
     return redirect(url_for("ofi_documentos.list_active"))
 
 
-@ofi_documentos.route("/ofi_documentos/descancelar/<int:ofi_documento_id>")
+@ofi_documentos.route("/ofi_documentos/descancelar/<ofi_documento_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def uncancel(ofi_documento_id):
     """Descancelar Ofi Documento"""
+    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    # Validar si no está archivado
+    # TODO: Validar que la autoridad del oficio sea la misma que la del usuario
+    # Validar que no esté archivado
     if ofi_documento.esta_archivado:
         flash("El oficio ya está archivado", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-    if ofi_documento.esta_cancelado is True:
-        ofi_documento.esta_cancelado = False
-        ofi_documento.save()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Descancelado Oficio Documento {ofi_documento.descripcion}"),
-            url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
+    # Validar que NO esté cancelado
+    if ofi_documento.esta_cancelado is False:
+        flash("El oficio no está cancelado", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Actualizar esta_cancelado a falso
+    ofi_documento.esta_cancelado = False
+    ofi_documento.save()
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Descancelado Oficio Documento {ofi_documento.descripcion}"),
+        url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+    )
+    bitacora.save()
+    flash(bitacora.descripcion, "success")
     return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
 
 
-@ofi_documentos.route("/ofi_documentos/responder/<int:ofi_documento_id>", methods=["GET", "POST"])
+@ofi_documentos.route("/ofi_documentos/responder/<ofi_documento_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
 def response(ofi_documento_id):
     """Responder un Ofi Documento"""
+    # TODO: Validar que el usuario tenga el rol ADMINISTRADOR, OFICIOS ESCRITOR o OFICIOS FIRMANTE
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # TODO: Validar que no esté eliminado
+    # TODO: Validar que el estado sea FIRMADO o ENVIADO
+    # TODO: Validar que el usuario sea un destinatario de este oficio
     # Verificar que tenga una plantilla base de su autoridad
     ofi_plantilla = (
         OfiPlantilla.query.join(Usuario)
@@ -549,11 +620,6 @@ def response(ofi_documento_id):
     if ofi_plantilla is None:
         flash("No hay una plantilla para crear un oficio de respuesta", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_id))
-    # Validar que el ofi Documento exista
-    ofi_documento = OfiDocumento.query.get(ofi_documento_id)
-    if ofi_documento is None:
-        flash("El oficio que quiere responder no se encuentra", "warning")
-        return redirect(url_for("ofi_documentos.list_active_mi_bandeja_entrada"))
     # Formulario
     form = OfiDocumentoNewForm()
     # Cargar los datos de la plantilla en el formulario
@@ -569,37 +635,55 @@ def response(ofi_documento_id):
     )
 
 
-@ofi_documentos.route("/ofi_documentos/eliminar/<int:ofi_documento_id>")
+@ofi_documentos.route("/ofi_documentos/eliminar/<ofi_documento_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def delete(ofi_documento_id):
     """Eliminar Ofi Documento"""
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    if ofi_documento.estatus == "A":
-        ofi_documento.delete()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Eliminado Oficio Documento {ofi_documento.descripcion}"),
-            url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
+    # Validar el estatus, que no esté eliminado
+    if ofi_documento.estatus != "A":
+        flash("El oficio ya está eliminado", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Eliminar el oficio
+    ofi_documento.delete()
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Eliminado Oficio Documento {ofi_documento.descripcion}"),
+        url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+    )
+    bitacora.save()
+    flash(bitacora.descripcion, "success")
     return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
 
 
-@ofi_documentos.route("/ofi_documentos/recuperar/<int:ofi_documento_id>")
+@ofi_documentos.route("/ofi_documentos/recuperar/<ofi_documento_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def recover(ofi_documento_id):
     """Recuperar Ofi Documento"""
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    if ofi_documento.estatus == "B":
-        ofi_documento.recover()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Recuperado Oficio Documento {ofi_documento.descripcion}"),
-            url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
+    # Validar el estatus, que esté eliminado
+    if ofi_documento.estatus != "B":
+        flash("El oficio no está eliminado", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Recuperar el oficio
+    ofi_documento.recover()
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Recuperado Oficio Documento {ofi_documento.descripcion}"),
+        url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+    )
+    bitacora.save()
+    flash(bitacora.descripcion, "success")
     return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))

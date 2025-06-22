@@ -2,7 +2,10 @@
 Ofi Documentos Ajuntos, modelos
 """
 
+import uuid
+
 from sqlalchemy import ForeignKey, String
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.universal_mixin import UniversalMixin
@@ -12,7 +15,6 @@ from hercules.extensions import database
 class OfiDocumentoAdjunto(database.Model, UniversalMixin):
     """OfiDocumentoAdjunto"""
 
-    # https://developer.mozilla.org/es/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
     EXTENSIONES = {
         "jpg": ("Imagen", "image/jpg"),
         "jpeg": ("Imagen", "image/jpeg"),
@@ -26,10 +28,10 @@ class OfiDocumentoAdjunto(database.Model, UniversalMixin):
     __tablename__ = "ofi_documentos_adjuntos"
 
     # Clave primaria
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     # Clave foránea
-    ofi_documento_id: Mapped[int] = mapped_column(ForeignKey("ofi_documentos.id"))
+    ofi_documento_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ofi_documentos.id"))
     ofi_documento: Mapped["OfiDocumento"] = relationship(back_populates="ofi_documentos_adjuntos")
 
     # Columnas
