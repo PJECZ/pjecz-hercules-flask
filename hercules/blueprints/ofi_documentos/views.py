@@ -92,7 +92,7 @@ def datatable_json():
         consulta = consulta.filter(OfiDocumentoDestinatario.usuario_id == request.form["usuario_destinatario_id"])
         consulta = consulta.filter(OfiDocumentoDestinatario.estatus == "A")
     # Ordenar y paginar
-    registros = consulta.order_by(OfiDocumento.id.desc()).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(OfiDocumento.creado.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -134,7 +134,10 @@ def datatable_json():
                 "descripcion": resultado.descripcion,
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
                 "estado": resultado.estado,
-                "cancelado": resultado.esta_cancelado,
+                "iconos": {
+                    "archivado": resultado.esta_archivado,
+                    "cancelado": resultado.esta_cancelado,
+                },
             }
         )
     # Entregar JSON
@@ -225,14 +228,14 @@ def detail(ofi_documento_id):
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
     # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda crear
     if (
-        ofi_documento.estado == "BORRADOR"
+        (ofi_documento.estado == "BORRADOR" or ofi_documento.estado == "FIRMADO")
         and ROL_ESCRITOR not in current_user.get_roles()
         and ROL_FIRMANTE not in current_user.get_roles()
     ):
-        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para ver un oficio en estado BORRADOR", "warning")
+        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para ver un oficio en estado BORRADOR o FIRMADO", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     # Si el oficio está eliminado y NO es administrador, mostrar mensaje y redirigir
-    if ofi_documento.estatus == "B" and current_user.can_admin(MODULO) is False:
+    if ofi_documento.estatus != "A" and current_user.can_admin(MODULO) is False:
         flash("El oficio está eliminado", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el usuario firmante, si lo tiene
@@ -268,12 +271,16 @@ def detail(ofi_documento_id):
         mostrar_boton_otras_categorias = False
     # Mostrar el botón de descancelar solo al firmante si ya está firmado
     mostrar_boton_descancelar = False
+    mostrar_boton_desarchivar = False
     if ofi_documento.estado == "BORRADOR" and ofi_documento.usuario_id == current_user.id:
         mostrar_boton_descancelar = True
+        mostrar_boton_desarchivar = True
     if ofi_documento.estado == "BORRADOR" and ROL_FIRMANTE in roles:
         mostrar_boton_descancelar = True
+        mostrar_boton_desarchivar = True
     if ofi_documento.estado == "FIRMADO" and ROL_FIRMANTE in roles:
         mostrar_boton_descancelar = True
+        mostrar_boton_desarchivar = True
     # Para mostrar el contenido del documento, se usa Syncfusion Document Editor con un formulario que NO se envía
     form = OfiDocumentoNewForm()
     form.descripcion.data = ofi_documento.descripcion
@@ -289,6 +296,7 @@ def detail(ofi_documento_id):
         mostrar_boton_firmar=mostrar_boton_firmar,
         mostrar_boton_editar=mostrar_boton_editar,
         mostrar_boton_descancelar=mostrar_boton_descancelar,
+        mostrar_boton_desarchivar=mostrar_boton_desarchivar,
         mostrar_boton_otras_categorias=mostrar_boton_otras_categorias,
     )
 
@@ -722,6 +730,87 @@ def response(ofi_documento_id):
         syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
         ofi_plantilla_id=ofi_plantilla.id,
     )
+
+
+@ofi_documentos.route("/ofi_documentos/archivar/<ofi_documento_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def archive(ofi_documento_id):
+    """Archivar Ofi Documento"""
+    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda cancelar
+    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
+        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para archivar un oficio", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # Validar que la autoridad del oficio sea la misma que la del usuario
+    if ofi_documento.usuario.autoridad_id != current_user.autoridad_id:
+        flash("No tienes permiso para archivar este oficio, pertenece a otra autoridad", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Validar que no esté archivado
+    if ofi_documento.esta_archivado is True:
+        flash("El oficio ya está archivado", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Validar que SI esté cancelado
+    if ofi_documento.esta_cancelado is True:
+        flash("El oficio ya está caneclado", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Actualizar esta_archivado a verdadero
+    ofi_documento.esta_archivado = True
+    ofi_documento.save()
+    # Agregar registro a la bitácora
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Archivando Oficio Documento {ofi_documento.descripcion}"),
+        url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+    )
+    bitacora.save()
+    flash(bitacora.descripcion, "success")
+    return redirect(url_for("ofi_documentos.list_active"))
+
+
+@ofi_documentos.route("/ofi_documentos/desarchivar/<ofi_documento_id>")
+@permission_required(MODULO, Permiso.MODIFICAR)
+def unarchive(ofi_documento_id):
+    """Desarchivar Ofi Documento"""
+    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda desarchivar
+    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
+        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para desarchivar un oficio", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # Validar que la autoridad del oficio sea la misma que la del usuario
+    if ofi_documento.usuario.autoridad_id != current_user.autoridad_id:
+        flash("No tienes permiso para desarchivar este oficio, pertenece a otra autoridad", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Validar que no esté archivado
+    if ofi_documento.esta_archivado is False:
+        flash("El oficio NO está archivado", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Validar que está cancelado
+    if ofi_documento.esta_cancelado:
+        flash("El oficio está cancelado", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Actualizar esta_archivado a falso
+    ofi_documento.esta_archivado = False
+    ofi_documento.save()
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Desarchivar Oficio Documento {ofi_documento.descripcion}"),
+        url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+    )
+    bitacora.save()
+    flash(bitacora.descripcion, "success")
+    return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
 
 
 @ofi_documentos.route("/ofi_documentos/eliminar/<ofi_documento_id>")
