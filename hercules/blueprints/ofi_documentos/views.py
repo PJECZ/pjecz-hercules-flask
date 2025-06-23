@@ -282,7 +282,7 @@ def detail(ofi_documento_id):
 @permission_required(MODULO, Permiso.CREAR)
 def new(ofi_plantilla_id):
     """Nuevo Ofi Documento"""
-    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE
+    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda crear
     # Consultar la plantilla
     ofi_plantilla_id = safe_uuid(ofi_plantilla_id)
     if not ofi_plantilla_id:
@@ -348,7 +348,7 @@ def new(ofi_plantilla_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def edit(ofi_documento_id):
     """Editar Ofi Documento"""
-    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE
+    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda editar
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
     if not ofi_documento_id:
@@ -357,6 +357,8 @@ def edit(ofi_documento_id):
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
     # TODO: Validar que la autoridad del oficio sea la misma que la del usuario
     # TODO: Validar que tenga el estado BORRADOR
+    # TODO: Validar que no esté cancelado
+    # TODO: Validar que no esté archivado
     # Obtener el formulario
     form = OfiDocumentoEditForm()
     if form.validate_on_submit():
@@ -408,10 +410,10 @@ def edit(ofi_documento_id):
 
 
 @ofi_documentos.route("/ofi_documentos/firmar/<ofi_documento_id>", methods=["GET", "POST"])
-@permission_required(MODULO, Permiso.ADMINISTRAR)
+@permission_required(MODULO, Permiso.MODIFICAR)
 def sign(ofi_documento_id):
     """Firmar un Ofi Documento"""
-    # TODO: Validar que el usuario tenga el rol OFICIOS FIRMANTE
+    # TODO: Validar que el usuario tenga el rol OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda firmar
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
     if not ofi_documento_id:
@@ -482,10 +484,10 @@ def sign(ofi_documento_id):
 
 
 @ofi_documentos.route("/ofi_documentos/enviar/<ofi_documento_id>")
-@permission_required(MODULO, Permiso.ADMINISTRAR)
+@permission_required(MODULO, Permiso.MODIFICAR)
 def send(ofi_documento_id):
     """Enviar un Ofi Documento"""
-    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE
+    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda enviar
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
     if not ofi_documento_id:
@@ -530,7 +532,7 @@ def send(ofi_documento_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def cancel(ofi_documento_id):
     """Cancelar Ofi Documento"""
-    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE
+    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda cancelar
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
     if not ofi_documento_id:
@@ -565,7 +567,7 @@ def cancel(ofi_documento_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def uncancel(ofi_documento_id):
     """Descancelar Ofi Documento"""
-    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE
+    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda descancelar
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
     if not ofi_documento_id:
@@ -599,7 +601,7 @@ def uncancel(ofi_documento_id):
 @permission_required(MODULO, Permiso.CREAR)
 def response(ofi_documento_id):
     """Responder un Ofi Documento"""
-    # TODO: Validar que el usuario tenga el rol ADMINISTRADOR, OFICIOS ESCRITOR o OFICIOS FIRMANTE
+    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda responder
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
     if not ofi_documento_id:
