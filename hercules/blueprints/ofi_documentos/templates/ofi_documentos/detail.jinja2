@@ -206,7 +206,7 @@
             </thead>
         </table>
         {% if current_user.can_insert('OFI DOCUMENTOS ADJUNTOS') %}
-            {% if ofi_documento.estado != "ENVIADO" and not ofi_documento.esta_cancelado %}
+            {% if ofi_documento.estado != "ENVIADO" and not ofi_documento.esta_cancelado and not ofi_documento.esta_archivado %}
                 <a href="{{ url_for('ofi_documentos_adjuntos.new_with_ofi_documento', ofi_documento_id=ofi_documento.id) }}" class="btn btn-primary">Agregar Archivo Adjunto</a>
             {% endif %}
         {% endif %}
@@ -226,7 +226,7 @@
             </thead>
         </table>
         {% if current_user.can_insert('OFI DOCUMENTOS DESTINATARIOS') %}
-            {% if ofi_documento.estado != "ENVIADO" and not ofi_documento.esta_cancelado %}
+            {% if ofi_documento.estado != "ENVIADO" and not ofi_documento.esta_cancelado and not ofi_documento.esta_archivado %}
                 <a href="{{ url_for('ofi_documentos_destinatarios.new_with_ofi_documento', ofi_documento_id=ofi_documento.id) }}" class="btn btn-primary">Agregar Destinatario</a>
             {% endif %}
         {% endif %}
