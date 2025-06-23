@@ -42,10 +42,10 @@ database.app = app
 
 
 def enviar_reporte_diario(modulo_nombre: str, to_email: str, horas: int = 24) -> str:
-    """Enviar mensaje con el reporte diario del módulo dado"""
+    """Enviar mensaje con el reporte del módulo dado"""
 
     # Agregar mensaje de inicio
-    mensaje = f"Inicia el envío del mensaje con reporte diario del módulo {modulo_nombre} a {to_email}"
+    mensaje = f"Inicia el envío del mensaje con reporte del módulo {modulo_nombre} en las últimas {horas} horas"
     logs.info(mensaje)
 
     # Consultar y validar el módulo
@@ -78,7 +78,7 @@ def enviar_reporte_diario(modulo_nombre: str, to_email: str, horas: int = 24) ->
         return mensaje_termino
 
     # Elaborar el asunto del mensaje
-    asunto_str = f"PJECZ Plataforma Web: Bitácora diaria de {modulo_nombre}"
+    asunto_str = f"PJECZ Plataforma Web: Reporte de Bitácora del módulo {modulo_nombre} en las últimas {horas} horas"
 
     # Elaborar el contenido del mensaje
     fecha_elaboracion = datetime.now(tz=pytz.timezone(TIMEZONE)).strftime("%d/%b/%Y %H:%M")
@@ -89,7 +89,6 @@ def enviar_reporte_diario(modulo_nombre: str, to_email: str, horas: int = 24) ->
     for bitacora in bitacoras:
         contenidos.append(f"<li>{bitacora.usuario.nombre} - {bitacora.descripcion}</li>")
     contenidos.append("</ul>")
-    logs.info(f"Se encontraron {len(bitacoras)} bitácoras del módulo {modulo_nombre} en las últimas 24 horas")
     contenido_html = "\n".join(contenidos)
 
     # Enviar el e-mail
@@ -101,7 +100,7 @@ def enviar_reporte_diario(modulo_nombre: str, to_email: str, horas: int = 24) ->
     send_grid.client.mail.send.post(request_body=mail.get())
 
     # Entregar mensaje de término
-    mensaje = f"Mensaje enviado a {to_email} con {len(bitacoras)} bitácoras del módulo {modulo_nombre}"
+    mensaje = f"Mensaje enviado a {to_email} con {len(bitacoras)} bitácoras"
     logs.info(mensaje)
     return mensaje
 
