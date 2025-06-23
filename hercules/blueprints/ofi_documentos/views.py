@@ -223,7 +223,18 @@ def detail(ofi_documento_id):
         flash("ID de oficio inválido", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    # TODO: Si el oficio está eliminado y NO es administrador, mostrar mensaje y redirigir
+    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda crear
+    if (
+        ofi_documento.estado == "BORRADOR"
+        and ROL_ESCRITOR not in current_user.get_roles()
+        and ROL_FIRMANTE not in current_user.get_roles()
+    ):
+        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para ver un oficio en estado BORRADOR", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Si el oficio está eliminado y NO es administrador, mostrar mensaje y redirigir
+    if ofi_documento.estatus == "B" and current_user.can_admin(MODULO) is False:
+        flash("El oficio está eliminado", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el usuario firmante, si lo tiene
     usuario_firmante = None
     if ofi_documento.firma_simple_usuario_id is not None:
@@ -248,17 +259,21 @@ def detail(ofi_documento_id):
     mostrar_boton_otras_categorias = True
     mostrar_boton_firmar = False
     mostrar_boton_editar = True
-    mostrar_boton_descancelar = True
     roles = current_user.get_roles()
     if ROL_FIRMANTE in roles:
         mostrar_boton_firmar = True
     if ROL_ESCRITOR not in roles and ROL_FIRMANTE not in roles:
         mostrar_boton_editar = False
         mostrar_boton_responder = False
-        mostrar_boton_descancelar = False
         mostrar_boton_otras_categorias = False
     # Mostrar el botón de descancelar solo al firmante si ya está firmado
-    mostrar_boton_descancelar = True if ofi_documento.estado == "FIRMADO" and ROL_FIRMANTE in roles else False
+    mostrar_boton_descancelar = False
+    if ofi_documento.estado == "BORRADOR" and ofi_documento.usuario_id == current_user.id:
+        mostrar_boton_descancelar = True
+    if ofi_documento.estado == "BORRADOR" and ROL_FIRMANTE in roles:
+        mostrar_boton_descancelar = True
+    if ofi_documento.estado == "FIRMADO" and ROL_FIRMANTE in roles:
+        mostrar_boton_descancelar = True
     # Para mostrar el contenido del documento, se usa Syncfusion Document Editor con un formulario que NO se envía
     form = OfiDocumentoNewForm()
     form.descripcion.data = ofi_documento.descripcion
@@ -282,15 +297,24 @@ def detail(ofi_documento_id):
 @permission_required(MODULO, Permiso.CREAR)
 def new(ofi_plantilla_id):
     """Nuevo Ofi Documento"""
-    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda crear
+    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda crear
+    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
+        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para crear un oficio", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     # Consultar la plantilla
     ofi_plantilla_id = safe_uuid(ofi_plantilla_id)
     if not ofi_plantilla_id:
         flash("ID de plantilla inválido", "warning")
         return redirect(url_for("ofi_plantillas.list_active"))
     ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
-    # TODO: Validar que la plantilla no esté eliminada
-    # TODO: Validar que la plantilla no esté archivada
+    # Validar que la plantilla no esté eliminada
+    if ofi_plantilla.estatus == "B":
+        flash("La plantilla está eliminada", "warning")
+        return redirect(url_for("ofi_plantillas.list_active"))
+    # Validar que la plantilla no esté archivada
+    if ofi_plantilla.esta_archivado:
+        flash("La plantilla está archivada", "warning")
+        return redirect(url_for("ofi_plantillas.list_active"))
     # Obtener el formulario
     form = OfiDocumentoNewForm()
     if form.validate_on_submit():
@@ -348,17 +372,32 @@ def new(ofi_plantilla_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def edit(ofi_documento_id):
     """Editar Ofi Documento"""
-    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda editar
+    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda editar
+    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
+        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para editar un oficio", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
     if not ofi_documento_id:
         flash("ID de oficio inválido", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    # TODO: Validar que la autoridad del oficio sea la misma que la del usuario
-    # TODO: Validar que tenga el estado BORRADOR
-    # TODO: Validar que no esté cancelado
-    # TODO: Validar que no esté archivado
+    # Validar que la autoridad del oficio sea la misma que la del usuario
+    if ofi_documento.usuario.autoridad_id != current_user.autoridad_id:
+        flash("No tienes permiso para editar este oficio, pertenece a otra autoridad", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Validar que tenga el estado BORRADOR
+    if ofi_documento.estado != "BORRADOR":
+        flash("El oficio no está en estado BORRADOR, no se puede editar", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Validar que no esté cancelado
+    if ofi_documento.esta_cancelado:
+        flash("El oficio está cancelado", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Validar que no esté archivado
+    if ofi_documento.esta_archivado:
+        flash("El oficio está archivado", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     # Obtener el formulario
     form = OfiDocumentoEditForm()
     if form.validate_on_submit():
@@ -413,14 +452,20 @@ def edit(ofi_documento_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def sign(ofi_documento_id):
     """Firmar un Ofi Documento"""
-    # TODO: Validar que el usuario tenga el rol OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda firmar
+    # Validar que el usuario tenga el rol OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda firmar
+    if ROL_FIRMANTE not in current_user.get_roles():
+        flash("Se necesitan roles de ROL_FIRMANTE para firmar un oficio", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
     if not ofi_documento_id:
         flash("ID de oficio inválido", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    # TODO: Validar que la autoridad del oficio sea la misma que la del usuario
+    # Validar que la autoridad del oficio sea la misma que la del usuario
+    if ofi_documento.usuario.autoridad_id != current_user.autoridad_id:
+        flash("No tienes permiso para firmar este oficio, pertenece a otra autoridad", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     # Validar el estatus, que no esté eliminado
     if ofi_documento.estatus != "A":
         flash("El oficio está eliminado", "warning")
@@ -487,23 +532,32 @@ def sign(ofi_documento_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def send(ofi_documento_id):
     """Enviar un Ofi Documento"""
-    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda enviar
+    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda enviar
+    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
+        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para enviar un oficio", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
     if not ofi_documento_id:
         flash("ID de oficio inválido", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    # TODO: Validar que la autoridad del oficio sea la misma que la del usuario
+    # Validar que la autoridad del oficio sea la misma que la del usuario
+    if ofi_documento.usuario.autoridad_id != current_user.autoridad_id:
+        flash("No tienes permiso para enviar este oficio, pertenece a otra autoridad", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     # Validar el estatus, que no esté eliminado
     if ofi_documento.estatus != "A":
         flash("El oficio está eliminado", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
     # Validar que tenga el estado FIRMADO
     if ofi_documento.estado != "FIRMADO":
-        flash("El oficio no está en estado FIRMADO, no se puede firmar", "warning")
+        flash("El oficio no está en estado FIRMADO, no se puede enviar", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-    # TODO: Validar que no esté archivado
+    # Validar que no esté archivado
+    if ofi_documento.esta_archivado:
+        flash("El oficio está archivado", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
     # Validar que haya al menos un destinatario
     cantidad_destinatarios = (
         OfiDocumentoDestinatario.query.filter_by(ofi_documento_id=ofi_documento.id).filter_by(estatus="A").count()
@@ -532,14 +586,20 @@ def send(ofi_documento_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def cancel(ofi_documento_id):
     """Cancelar Ofi Documento"""
-    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda cancelar
+    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda cancelar
+    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
+        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para cancelar un oficio", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
     if not ofi_documento_id:
         flash("ID de oficio inválido", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    # TODO: Validar que la autoridad del oficio sea la misma que la del usuario
+    # Validar que la autoridad del oficio sea la misma que la del usuario
+    if ofi_documento.usuario.autoridad_id != current_user.autoridad_id:
+        flash("No tienes permiso para cancelar este oficio, pertenece a otra autoridad", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     # Validar que no esté archivado
     if ofi_documento.esta_archivado:
         flash("El oficio ya está archivado", "warning")
@@ -547,6 +607,10 @@ def cancel(ofi_documento_id):
     # Validar que SI esté cancelado
     if ofi_documento.esta_cancelado is True:
         flash("El oficio ya está caneclado", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Validar que NO esté enviado
+    if ofi_documento.estado == "ENVIADO":
+        flash("El oficio ya está enviado, no puede ser cancelado", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
     # Actualizar esta_cancelado a verdadero
     ofi_documento.esta_cancelado = True
@@ -567,14 +631,20 @@ def cancel(ofi_documento_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def uncancel(ofi_documento_id):
     """Descancelar Ofi Documento"""
-    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda descancelar
+    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda descancelar
+    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
+        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para descancelar un oficio", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
     if not ofi_documento_id:
         flash("ID de oficio inválido", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    # TODO: Validar que la autoridad del oficio sea la misma que la del usuario
+    # Validar que la autoridad del oficio sea la misma que la del usuario
+    if ofi_documento.usuario.autoridad_id != current_user.autoridad_id:
+        flash("No tienes permiso para descancelar este oficio, pertenece a otra autoridad", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
     # Validar que no esté archivado
     if ofi_documento.esta_archivado:
         flash("El oficio ya está archivado", "warning")
@@ -601,16 +671,33 @@ def uncancel(ofi_documento_id):
 @permission_required(MODULO, Permiso.CREAR)
 def response(ofi_documento_id):
     """Responder un Ofi Documento"""
-    # TODO: Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda responder
+    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda responder
+    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
+        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para reponder un oficio", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
     if not ofi_documento_id:
         flash("ID de oficio inválido", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    # TODO: Validar que no esté eliminado
-    # TODO: Validar que el estado sea FIRMADO o ENVIADO
-    # TODO: Validar que el usuario sea un destinatario de este oficio
+    # Validar que no esté eliminado
+    if ofi_documento.estatus != "A":
+        flash("El oficio al que quiere responder está eliminado", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Validar que el estado sea FIRMADO o ENVIADO
+    if ofi_documento.estado != "FIRMADO" and ofi_documento.estado != "ENVIADO":
+        flash("El oficio al que quiere responder NO está FIRMADO o ENVIADO", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Validar que el usuario sea un destinatario de este oficio
+    usuario_destinatario = (
+        OfiDocumentoDestinatario.query.filter_by(ofi_documento_id=ofi_documento.id)
+        .filter_by(usuario_id=current_user.id)
+        .first()
+    )
+    if usuario_destinatario is None:
+        flash("No eres detinatario de este oficio NO tienes permiso para responder", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     # Verificar que tenga una plantilla base de su autoridad
     ofi_plantilla = (
         OfiPlantilla.query.join(Usuario)
