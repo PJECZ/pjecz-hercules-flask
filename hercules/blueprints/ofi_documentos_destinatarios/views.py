@@ -96,7 +96,7 @@ def list_inactive():
     )
 
 
-@ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/<int:ofi_documento_destinatario_id>")
+@ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/<ofi_documento_destinatario_id>")
 def detail(ofi_documento_destinatario_id):
     """Detalle de un Ofi-Documento-Destinatario"""
     ofi_documento_destinatario = OfiDocumentoDestinatario.query.get_or_404(ofi_documento_destinatario_id)

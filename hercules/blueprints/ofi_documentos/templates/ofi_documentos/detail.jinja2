@@ -249,7 +249,7 @@
     <script>
         let configDT_adjuntos = constructorDataTable.config();
         configDT_adjuntos['ajax']['url'] = '/ofi_documentos_adjuntos/datatable_json';
-        configDT_adjuntos['ajax']['data'] = {"estatus": "A", "ofi_documento_id": {{ ofi_documento.id }}};
+        configDT_adjuntos['ajax']['data'] = {"estatus": "A", "ofi_documento_id": "{{ ofi_documento.id }}"};
         configDT_adjuntos['columns'] = [
             { data: 'detalle' },
             { data: 'nombre' }
@@ -271,7 +271,7 @@
     <script>
         let configDT_destinatarios = constructorDataTable.config();
         configDT_destinatarios['ajax']['url'] = '/ofi_documentos_destinatarios/datatable_json';
-        configDT_destinatarios['ajax']['data'] = {"estatus": "A", "ofi_documento_id": {{ ofi_documento.id }}};
+        configDT_destinatarios['ajax']['data'] = {"estatus": "A", "ofi_documento_id": "{{ ofi_documento.id }}"};
         configDT_destinatarios['columns'] = [
             { data: 'detalle' },
             { data: 'usuario_email' },

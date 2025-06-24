@@ -103,14 +103,14 @@ def list_inactive():
     )
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/<int:ofi_documento_adjunto_id>")
+@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/<ofi_documento_adjunto_id>")
 def detail(ofi_documento_adjunto_id):
     """Detalle de un Oficio-Documento-Adjunto"""
     ofi_documento_adjunto = OfiDocumentoAdjunto.query.get_or_404(ofi_documento_adjunto_id)
     return render_template("ofi_documentos_adjuntos/detail.jinja2", ofi_documento_adjunto=ofi_documento_adjunto)
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/nuevo/<int:ofi_documento_id>", methods=["GET", "POST"])
+@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/nuevo/<ofi_documento_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_ofi_documento(ofi_documento_id):
     """Nuevo Oficio-Documento-Adjunto"""
