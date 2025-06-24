@@ -103,7 +103,7 @@ def detail(ofi_documento_destinatario_id):
     return render_template("ofi_documentos_destinatarios/detail.jinja2", ofi_documento_destinatario=ofi_documento_destinatario)
 
 
-@ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/nuevo/<int:ofi_documento_id>", methods=["GET", "POST"])
+@ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/nuevo/<ofi_documento_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
 def new_with_ofi_documento(ofi_documento_id):
     """Nuevo Ofi-Documento-Destinatario"""
