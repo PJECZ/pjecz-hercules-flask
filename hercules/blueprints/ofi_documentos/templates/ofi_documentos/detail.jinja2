@@ -112,7 +112,12 @@
             {{ detail.label_value('Enviado el día', moment(ofi_documento.enviado_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
         {% endif %}
         {% if ofi_documento.esta_archivado %}
-            {{ detail.label_value_boolean('Está archivado', ofi_documento.esta_archivado) }}
+            <div class="row">
+                <div class="col-md-3 text-end">Archivado</div>
+                <div class="col-md-9">
+                        <span class="badge rounded-pill bg-secondary">ARCHIVADO</span>
+                </div>
+            </div>
         {% endif %}
         {# Inicia Contenido usando Syncfusion Document Editor #}
         {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
@@ -124,9 +129,9 @@
         {% endcall %}
         {# Termina Contenido usando Syncfusion Document Editor #}
         {# Botones de acción en estado BORRADOR #}
-        {% if ofi_documento.estado == "BORRADOR" and not ofi_documento.esta_cancelado %}
+        {% if ofi_documento.estado == "BORRADOR" and not ofi_documento.esta_cancelado and not ofi_documento.esta_archivado %}
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-5">
                     {% if mostrar_boton_firmar %}
                         {{ detail.button_md('Firmar', url_for('ofi_documentos.sign', ofi_documento_id=ofi_documento.id), 'mdi:file-sign',  color_class='btn-success') }}
                     {% endif %}
@@ -136,7 +141,12 @@
                         {{ detail.button_md('Editar', url_for('ofi_documentos.edit', ofi_documento_id=ofi_documento.id), 'mdi:file-document-edit-outline',  color_class='btn-warning') }}
                     {% endif %}
                 </div>
-                <div class="col-md-3 mt-2">
+                <div class="col-md-2 mt-2">
+                    {% if ofi_documento.esta_archivado == false %}
+                        {{ modals.button_modal_md('Archivar', url_for('ofi_documentos.archive', ofi_documento_id=ofi_documento.id), "Archivar", "mdi:archive-outline", "¿Desea archivar el oficio?",  "btn-secondary") }}
+                    {% endif %}
+                </div>
+                <div class="col-md-2 mt-2">
                     {% if mostrar_boton_editar %}
                         {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio?",  "btn-danger") }}
                     {% endif %}
@@ -144,12 +154,15 @@
             </div>
         {% endif %}
         {# Botones de acción en estado FIRMADO #}
-        {% if ofi_documento.estado == "FIRMADO"  and not ofi_documento.esta_cancelado %}
+        {% if ofi_documento.estado == "FIRMADO" and not ofi_documento.esta_cancelado and not ofi_documento.esta_archivado %}
             <div class="row">
                 <div class="col-md-6 mt-2">
                     {{ modals.button_modal_md('Enviar', url_for('ofi_documentos.send', ofi_documento_id=ofi_documento.id), "Enviar", "mdi:send-outline", "¿Desea enviar el oficio? Esta acción no puede ser deshecha.",  "btn-primary") }}
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 mt-2">
+                    {% if ofi_documento.esta_archivado == false %}
+                        {{ modals.button_modal_md('Archivar', url_for('ofi_documentos.archive', ofi_documento_id=ofi_documento.id), "Archivar", "mdi:archive-outline", "¿Desea archivar el oficio?",  "btn-secondary") }}
+                    {% endif %}
                 </div>
                 <div class="col-md-3 mt-2">
                     {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio?",  "btn-danger") }}
@@ -161,6 +174,14 @@
             <div class="row">
                 <div class="col-md-12 mt-2">
                     {{ modals.button_modal_md('Descancelar', url_for('ofi_documentos.uncancel', ofi_documento_id=ofi_documento.id), "Descancelar", "mdi:file-undo-outline", "¿Desea descancelar el oficio?",  "btn-outline-danger") }}
+                </div>
+            </div>
+        {% endif %}
+        {# Botones de acción en ARCHIVADO #}
+        {% if ofi_documento.esta_archivado and mostrar_boton_desarchivar %}
+            <div class="row">
+                <div class="col-md-12 mt-2">
+                    {{ modals.button_modal_md('Desarchivar', url_for('ofi_documentos.unarchive', ofi_documento_id=ofi_documento.id), "Desarchivar", "mdi:archive-off-outline", "¿Desea desarchivar el oficio?",  "btn-outline-secondary") }}
                 </div>
             </div>
         {% endif %}
@@ -185,7 +206,7 @@
             </thead>
         </table>
         {% if current_user.can_insert('OFI DOCUMENTOS ADJUNTOS') %}
-            {% if ofi_documento.estado != "ENVIADO" and not ofi_documento.esta_cancelado %}
+            {% if ofi_documento.estado != "ENVIADO" and not ofi_documento.esta_cancelado and not ofi_documento.esta_archivado %}
                 <a href="{{ url_for('ofi_documentos_adjuntos.new_with_ofi_documento', ofi_documento_id=ofi_documento.id) }}" class="btn btn-primary">Agregar Archivo Adjunto</a>
             {% endif %}
         {% endif %}
@@ -205,7 +226,7 @@
             </thead>
         </table>
         {% if current_user.can_insert('OFI DOCUMENTOS DESTINATARIOS') %}
-            {% if ofi_documento.estado != "ENVIADO" and not ofi_documento.esta_cancelado %}
+            {% if ofi_documento.estado != "ENVIADO" and not ofi_documento.esta_cancelado and not ofi_documento.esta_archivado %}
                 <a href="{{ url_for('ofi_documentos_destinatarios.new_with_ofi_documento', ofi_documento_id=ofi_documento.id) }}" class="btn btn-primary">Agregar Destinatario</a>
             {% endif %}
         {% endif %}
@@ -228,7 +249,7 @@
     <script>
         let configDT_adjuntos = constructorDataTable.config();
         configDT_adjuntos['ajax']['url'] = '/ofi_documentos_adjuntos/datatable_json';
-        configDT_adjuntos['ajax']['data'] = {"estatus": "A", "ofi_documento_id": {{ ofi_documento.id }}};
+        configDT_adjuntos['ajax']['data'] = {"estatus": "A", "ofi_documento_id": "{{ ofi_documento.id }}"};
         configDT_adjuntos['columns'] = [
             { data: 'detalle' },
             { data: 'nombre' }
@@ -250,7 +271,7 @@
     <script>
         let configDT_destinatarios = constructorDataTable.config();
         configDT_destinatarios['ajax']['url'] = '/ofi_documentos_destinatarios/datatable_json';
-        configDT_destinatarios['ajax']['data'] = {"estatus": "A", "ofi_documento_id": {{ ofi_documento.id }}};
+        configDT_destinatarios['ajax']['data'] = {"estatus": "A", "ofi_documento_id": "{{ ofi_documento.id }}"};
         configDT_destinatarios['columns'] = [
             { data: 'detalle' },
             { data: 'usuario_email' },
@@ -292,6 +313,8 @@
     {{ modals.custom_javascript("Enviar", "", "Enviar") }}
     {{ modals.custom_javascript("Confirmar", "", "Cancelar") }}
     {{ modals.custom_javascript("Descancelar", "", "Descancelar") }}
+    {{ modals.custom_javascript("Archivar", "", "Archivar") }}
+    {{ modals.custom_javascript("Desarchivar", "", "Desarchivar") }}
     <!-- Syncfusion EJ2 Document Editor -->
     <script>
 

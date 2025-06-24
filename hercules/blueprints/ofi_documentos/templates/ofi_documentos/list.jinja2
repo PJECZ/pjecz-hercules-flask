@@ -75,7 +75,7 @@
                     <th>Autoridad</th>
                     <th>Descripción</th>
                     <th>Estado</th>
-                    <th>Cancelado</th>
+                    <th>Iconos</th>
                 </tr>
             </thead>
         </table>
@@ -100,7 +100,7 @@
             { data: 'autoridad' },
             { data: 'descripcion' },
             { data: 'estado' },
-            { data: 'cancelado' }
+            { data: 'iconos' }
         ];
         configDataTable['columnDefs'] = [
             {
@@ -152,18 +152,21 @@
                 }
             },
             {
-                targets: 8, // cancelado
+                targets: 8, // iconos
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data)
-                        return '🚫';
-                    return '';
+                    let iconos = '';
+                    if (data.archivado)
+                        iconos = '<span title="Archivado">📦</span>';
+                    if (data.cancelado)
+                        iconos += ' <span title="Cancelado">🚫</span>';
+                    return iconos;
                 }
             }
         ];
         // Colorear renglones
         configDataTable['rowCallback'] = function( row, data )  {
-            if (data.cancelado)    {
+            if (data.iconos.cancelado)    {
                 $(row).css("background-color", "#eceff1");
             }
         };
