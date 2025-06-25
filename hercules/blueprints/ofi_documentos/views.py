@@ -157,6 +157,9 @@ def list_active_mis_oficios():
     mostrar_boton_nuevo = False
     if ROL_FIRMANTE in current_user.get_roles() or ROL_ESCRITOR in current_user.get_roles():
         mostrar_boton_nuevo = True
+    # Si no se cuenta con los roles de FIRMANTE o ESCRITOR reenviarlo a vista de Bandeja de Entrada
+    if ROL_FIRMANTE not in current_user.get_roles() and ROL_ESCRITOR not in current_user.get_roles():
+        return redirect(url_for("ofi_documentos.list_active_mi_bandeja_entrada"))
     # Entregar
     return render_template(
         "ofi_documentos/list.jinja2",
@@ -269,6 +272,14 @@ def detail(ofi_documento_id):
         mostrar_boton_editar = False
         mostrar_boton_responder = False
         mostrar_boton_otras_categorias = False
+    # Mostrar botón de Archivar cuando se envía, no esta archivado y es el usuario creador
+    mostrar_boton_archivar = False
+    if (
+        ofi_documento.estado == "ENVIADO"
+        and ofi_documento.esta_archivado is False
+        and ofi_documento.usuario_id == current_user.id
+    ):
+        mostrar_boton_archivar = True
     # Mostrar el botón de descancelar solo al firmante si ya está firmado
     mostrar_boton_descancelar = False
     mostrar_boton_desarchivar = False
@@ -280,6 +291,8 @@ def detail(ofi_documento_id):
         mostrar_boton_desarchivar = True
     if ofi_documento.estado == "FIRMADO" and ROL_FIRMANTE in roles:
         mostrar_boton_descancelar = True
+        mostrar_boton_desarchivar = True
+    if ofi_documento.estado == "ENVIADO" and ROL_FIRMANTE in roles:
         mostrar_boton_desarchivar = True
     # Para mostrar el contenido del documento, se usa Syncfusion Document Editor con un formulario que NO se envía
     form = OfiDocumentoNewForm()
@@ -296,6 +309,7 @@ def detail(ofi_documento_id):
         mostrar_boton_firmar=mostrar_boton_firmar,
         mostrar_boton_editar=mostrar_boton_editar,
         mostrar_boton_descancelar=mostrar_boton_descancelar,
+        mostrar_boton_archivar=mostrar_boton_archivar,
         mostrar_boton_desarchivar=mostrar_boton_desarchivar,
         mostrar_boton_otras_categorias=mostrar_boton_otras_categorias,
     )
