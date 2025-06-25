@@ -107,7 +107,22 @@ def list_inactive():
 def detail(ofi_documento_adjunto_id):
     """Detalle de un Oficio-Documento-Adjunto"""
     ofi_documento_adjunto = OfiDocumentoAdjunto.query.get_or_404(ofi_documento_adjunto_id)
-    return render_template("ofi_documentos_adjuntos/detail.jinja2", ofi_documento_adjunto=ofi_documento_adjunto)
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_adjunto.ofi_documento_id)
+    # Mostrar boton de quitar
+    mostrar_boton_quitar = False
+    if (
+        ofi_documento.estado == "BORRADOR"
+        or ofi_documento.estado == "FIRMADO"
+        and not ofi_documento.esta_cancelado
+        and not ofi_documento.esta_archivado
+    ):
+        mostrar_boton_quitar = True
+    # Entregar plantilla
+    return render_template(
+        "ofi_documentos_adjuntos/detail.jinja2",
+        ofi_documento_adjunto=ofi_documento_adjunto,
+        mostrar_boton_quitar=mostrar_boton_quitar,
+    )
 
 
 @ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/nuevo/<ofi_documento_id>", methods=["GET", "POST"])
@@ -173,7 +188,7 @@ def new_with_ofi_documento(ofi_documento_id):
 # TODO: Edit
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/eliminar/<int:ofi_documento_adjunto_id>")
+@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/eliminar/<ofi_documento_adjunto_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def delete(ofi_documento_adjunto_id):
     """Eliminar Oficio-Documento-Adjunto"""
@@ -188,10 +203,10 @@ def delete(ofi_documento_adjunto_id):
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
-    return redirect(url_for("ofi_documentos_adjuntos.detail", ofi_documento_adjunto_id=ofi_documento_adjunto.id))
+    return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_adjunto.ofi_documento_id))
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/recuperar/<int:ofi_documento_adjunto_id>")
+@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/recuperar/<ofi_documento_adjunto_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def recover(ofi_documento_adjunto_id):
     """Recuperar Oficio-Documento-Adjunto"""
@@ -206,10 +221,10 @@ def recover(ofi_documento_adjunto_id):
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
-    return redirect(url_for("ofi_documentos_adjuntos.detail", ofi_documento_adjunto_id=ofi_documento_adjunto.id))
+    return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_adjunto.ofi_documento_id))
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/<int:ofi_documento_adjunto_id>/pdf")
+@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/<ofi_documento_adjunto_id>/pdf")
 def download_pdf(ofi_documento_adjunto_id):
     """Descargar el archivo PDF de un Archivo"""
 
@@ -241,7 +256,7 @@ def download_pdf(ofi_documento_adjunto_id):
     return response
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/ver_archivo_pdf/<int:ofi_documento_adjunto_id>")
+@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/ver_archivo_pdf/<ofi_documento_adjunto_id>")
 def view_file_pdf(ofi_documento_adjunto_id):
     """Ver archivo PDF de adjunto para insertarlo en un iframe en el detalle"""
 
@@ -264,7 +279,7 @@ def view_file_pdf(ofi_documento_adjunto_id):
     return response
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/ver_archivo_img/<int:ofi_documento_adjunto_id>")
+@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/ver_archivo_img/<ofi_documento_adjunto_id>")
 def view_file_img(ofi_documento_adjunto_id):
     """Ver archivo PDF de adjunto para insertarlo en un iframe en el detalle"""
 

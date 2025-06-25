@@ -147,7 +147,7 @@ def datatable_json():
 @ofi_documentos.route("/ofi_documentos")
 def list_active():
     """Listado de Ofi Documentos activos"""
-    return list_active_mis_oficios()
+    return list_active_mi_bandeja_entrada()
 
 
 @ofi_documentos.route("/ofi_documentos/mis_oficios")
@@ -646,7 +646,7 @@ def cancel(ofi_documento_id):
     )
     bitacora.save()
     flash(bitacora.descripcion, "success")
-    return redirect(url_for("ofi_documentos.list_active"))
+    return redirect(url_for("ofi_documentos.list_active_mis_oficios"))
 
 
 @ofi_documentos.route("/ofi_documentos/descancelar/<ofi_documento_id>")
@@ -784,7 +784,7 @@ def archive(ofi_documento_id):
     )
     bitacora.save()
     flash(bitacora.descripcion, "success")
-    return redirect(url_for("ofi_documentos.list_active"))
+    return redirect(url_for("ofi_documentos.list_active_mis_oficios"))
 
 
 @ofi_documentos.route("/ofi_documentos/desarchivar/<ofi_documento_id>")
