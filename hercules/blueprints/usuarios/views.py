@@ -534,6 +534,16 @@ def select2_json():
                         Usuario.puesto.contains(palabra),
                     )
                 )
+    if "workspace" in request.form:
+        workspaces_in = safe_string(request.form["workspace"])
+        if workspaces_in == "LOCAL":
+            consulta = consulta.filter(
+                or_(
+                    Usuario.workspace == "COAHUILA",
+                    Usuario.workspace == "BUSINESS STARTED",
+                    Usuario.workspace == "BUSINESS STANDARD",
+                )
+            )
     resultados = []
     for usuario in consulta.order_by(Usuario.email).limit(10).all():
         resultados.append({"id": usuario.id, "text": f"{usuario.email}: {usuario.nombre} - {usuario.puesto}"})

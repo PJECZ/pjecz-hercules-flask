@@ -100,7 +100,22 @@ def list_inactive():
 def detail(ofi_documento_destinatario_id):
     """Detalle de un Ofi-Documento-Destinatario"""
     ofi_documento_destinatario = OfiDocumentoDestinatario.query.get_or_404(ofi_documento_destinatario_id)
-    return render_template("ofi_documentos_destinatarios/detail.jinja2", ofi_documento_destinatario=ofi_documento_destinatario)
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_destinatario.ofi_documento_id)
+    # Mostrar boton de quitar
+    mostrar_boton_quitar = False
+    if (
+        ofi_documento.estado == "BORRADOR"
+        or ofi_documento.estado == "FIRMADO"
+        and not ofi_documento.esta_cancelado
+        and not ofi_documento.esta_archivado
+    ):
+        mostrar_boton_quitar = True
+    # Entregar plantilla
+    return render_template(
+        "ofi_documentos_destinatarios/detail.jinja2",
+        ofi_documento_destinatario=ofi_documento_destinatario,
+        mostrar_boton_quitar=mostrar_boton_quitar,
+    )
 
 
 @ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/nuevo/<ofi_documento_id>", methods=["GET", "POST"])
@@ -116,8 +131,12 @@ def new_with_ofi_documento(ofi_documento_id):
             ofi_documento_id=ofi_documento_id, usuario_id=form.usuario.data
         ).first()
         if destinatario_repetido:
-            flash(f"Destinatario '{destinatario_repetido.usuario.nombre}' ya se encuentra agregado", "warning")
-            es_valido = False
+            if destinatario_repetido.estatus == "B":
+                destinatario_repetido.recover()
+                return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_id))
+            else:
+                flash(f"Destinatario '{destinatario_repetido.usuario.nombre}' ya se encuentra agregado", "warning")
+                es_valido = False
         if es_valido:
             ofi_documento_destinatario = OfiDocumentoDestinatario(
                 ofi_documento=ofi_documento,
@@ -140,7 +159,7 @@ def new_with_ofi_documento(ofi_documento_id):
     return render_template("ofi_documentos_destinatarios/new.jinja2", form=form, ofi_documento=ofi_documento)
 
 
-@ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/eliminar/<int:ofi_documento_destinatario_id>")
+@ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/eliminar/<ofi_documento_destinatario_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def delete(ofi_documento_destinatario_id):
     """Eliminar Oficio-Destinatario"""
@@ -155,10 +174,10 @@ def delete(ofi_documento_destinatario_id):
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
-    return redirect(url_for("ofi_documentos_destinatarios.detail", ofi_documento_destinatario_id=ofi_documento_destinatario.id))
+    return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_destinatario.ofi_documento_id))
 
 
-@ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/recuperar/<int:ofi_documento_destinatario_id>")
+@ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/recuperar/<ofi_documento_destinatario_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def recover(ofi_documento_destinatario_id):
     """Recuperar Oficio-Destinatario"""
@@ -173,4 +192,4 @@ def recover(ofi_documento_destinatario_id):
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
-    return redirect(url_for("ofi_documentos_destinatarios.detail", ofi_documento_destinatario_id=ofi_documento_destinatario.id))
+    return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_destinatario.ofi_documento_id))

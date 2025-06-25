@@ -23,6 +23,15 @@
         {{ detail.label_value_big('Descripción', ofi_documento_adjunto.descripcion) }}
         {{ detail.label_value('Oficio', ofi_documento_adjunto.ofi_documento.descripcion, url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_adjunto.ofi_documento.id)) }}
         {{ detail.label_value('Creado', moment(ofi_documento_adjunto.creado, local=False).format('DD MMM YYYY HH:mm')) }}
+        {% if mostrar_boton_quitar %}
+            <div class="row">
+                <div class="col-md-6"></div>
+                <div class="col-md-3 mt-2"></div>
+                <div class="col-md-3">
+                    {{ modals.button_modal_md('Quitar', url_for('ofi_documentos_adjuntos.delete', ofi_documento_adjunto_id=ofi_documento_adjunto.id), "Quitar", "mdi:file-document-remove-outline", "¿Desea quitar el archivo adjunto?",  "btn-danger") }}
+                </div>
+            </div>
+        {% endif %}
     {% endcall %}
     <!-- Preview del archivo -->
     {% call detail.card('Vista previa del archivo') %}
@@ -41,4 +50,6 @@
         {% if ofi_documento_adjunto.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar Archivo Adjunto?') }}{% endif %}
         {% if ofi_documento_adjunto.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar Archivo Adjunto?') }}{% endif %}
     {% endif %}
+    {# Modales #}
+    {{ modals.custom_javascript("Quitar", "", "Quitar") }}
 {% endblock %}
