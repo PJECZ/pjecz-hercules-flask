@@ -37,7 +37,7 @@ class OfiDocumento(database.Model, UniversalMixin):
     # Columnas
     descripcion: Mapped[str] = mapped_column(String(256))
     estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="ofi_documentos_estados", native_enum=False), index=True)
-    cadena_oficio_id: Mapped[Optional[int]]
+    cadena_oficio_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True))
     esta_archivado: Mapped[bool] = mapped_column(default=False)
     esta_cancelado: Mapped[bool] = mapped_column(default=False)
     vencimiento_fecha: Mapped[Optional[date]]
