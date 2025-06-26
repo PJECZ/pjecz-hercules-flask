@@ -181,8 +181,13 @@ def new():
     """Nuevo Ofi Plantilla"""
     form = OfiPlantillaForm()
     if form.validate_on_submit():
+        # Validar autor
+        autor = Usuario.query.filter_by(id=form.autor.data).first()
+        if not autor:
+            flash("Autor inválido", "warning")
+            return redirect(url_for("ofi_plantillas.new"))
         ofi_plantilla = OfiPlantilla(
-            usuario=current_user,
+            usuario=autor,
             descripcion=safe_string(form.descripcion.data, save_enie=True),
             contenido_md=form.contenido_md.data,
             contenido_html=form.contenido_html.data,
@@ -224,21 +229,29 @@ def edit(ofi_plantilla_id):
     ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
     form = OfiPlantillaForm()
     if form.validate_on_submit():
-        ofi_plantilla.descripcion = safe_string(form.descripcion.data, save_enie=True)
-        ofi_plantilla.contenido_md = form.contenido_md.data
-        ofi_plantilla.contenido_html = form.contenido_html.data
-        ofi_plantilla.contenido_sfdt = form.contenido_sfdt.data
-        ofi_plantilla.esta_archivado = form.esta_archivado.data
-        ofi_plantilla.save()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Editado Ofi Plantilla {ofi_plantilla.descripcion}"),
-            url=url_for("ofi_plantillas.detail", ofi_plantilla_id=ofi_plantilla.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-        return redirect(bitacora.url)
+        # Validar autor
+        es_valido = True
+        autor = Usuario.query.filter_by(id=form.autor.data).first()
+        if not autor:
+            flash("Autor inválido", "warning")
+            es_valido = False
+        if es_valido:
+            ofi_plantilla.descripcion = safe_string(form.descripcion.data, save_enie=True)
+            ofi_plantilla.usuario = autor
+            ofi_plantilla.contenido_md = form.contenido_md.data
+            ofi_plantilla.contenido_html = form.contenido_html.data
+            ofi_plantilla.contenido_sfdt = form.contenido_sfdt.data
+            ofi_plantilla.esta_archivado = form.esta_archivado.data
+            ofi_plantilla.save()
+            bitacora = Bitacora(
+                modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+                usuario=current_user,
+                descripcion=safe_message(f"Editado Ofi Plantilla {ofi_plantilla.descripcion}"),
+                url=url_for("ofi_plantillas.detail", ofi_plantilla_id=ofi_plantilla.id),
+            )
+            bitacora.save()
+            flash(bitacora.descripcion, "success")
+            return redirect(bitacora.url)
     form.descripcion.data = ofi_plantilla.descripcion
     form.contenido_md.data = ofi_plantilla.contenido_md
     form.contenido_html.data = ofi_plantilla.contenido_html
@@ -255,7 +268,7 @@ def edit(ofi_plantilla_id):
         )
     # De lo contrario, entregar edit_ckeditor5.jinja2
     return render_template(
-        "ofi_plantillas/edit_syncfusion_document.jinja2",
+        "ofi_plantillas/edit_ckeditor5.jinja2",
         form=form,
         ofi_plantilla=ofi_plantilla,
     )

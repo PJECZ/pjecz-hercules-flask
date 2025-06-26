@@ -5,6 +5,9 @@
 {% block title %}Editar Plantilla {{ ofi_plantilla.descripcion }}{% endblock %}
 
 {% block custom_head %}
+    <!-- Select2 bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://storage.googleapis.com/pjecz-informatica/static/css/select2.css" rel="stylesheet" />
     <!-- CKEditor 5 -->
     <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/45.2.0/ckeditor5.css" crossorigin>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ckeditor5.css') }}">
@@ -19,6 +22,7 @@
         {% set form_kwargs = {'ofi_plantilla_id': ofi_plantilla.id} %}
         {% call f.form_tag('ofi_plantillas.edit', fid='ofi_plantilla_form', **form_kwargs) %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
+            {% call f.form_group(form.autor) %}{% endcall %}
             {% call f.form_group(form.esta_archivado) %}{% endcall %}
             <div style="display:none">
                 {% call f.form_group(form.contenido_md) %}{% endcall %}
@@ -73,6 +77,32 @@
                 console.error('ERROR al copiar y convertir el contenido');
             }
             webPaginaForm.submit(); // Enviar el formulario
+        });
+    </script>
+    <!-- Select2 bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            // --- Carga de la opción elegida --- //
+            const newAutorOption = new Option('{{ofi_plantilla.usuario.email}}: {{ofi_plantilla.usuario.nombre}} - {{ofi_plantilla.usuario.puesto}}', '{{ofi_plantilla.usuario.id}}', false, false);
+            $('#autor').append(newAutorOption).trigger('change');
+            
+            $("#autor").select2({
+                // --- Carga por Ajax --- //
+                ajax: {
+                    url: '/usuarios/select2_json',
+                    headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+                    dataType: 'json',
+                    delay: 250,
+                    type: "POST",
+                    data: function (params) {
+                        return { 'searchString': params.term, "workspace": "LOCAL" }
+                    }
+                },
+                placeholder: "{{buscar}}",
+                minimumInputLength: 3,
+                allowClear: true
+            });
         });
     </script>
 {% endblock %}
