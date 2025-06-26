@@ -48,6 +48,8 @@
             {% call f.form_group(form.descripcion) %}{% endcall %}
             {% call f.form_group(form.esta_archivado) %}{% endcall %}
             <div style="display:none">
+                {% call f.form_group(form.contenido_md) %}{% endcall %}
+                {% call f.form_group(form.contenido_html) %}{% endcall %}
                 {% call f.form_group(form.contenido_sfdt) %}{% endcall %}
             </div>
             <div id='editor' style='width:100%'></div>

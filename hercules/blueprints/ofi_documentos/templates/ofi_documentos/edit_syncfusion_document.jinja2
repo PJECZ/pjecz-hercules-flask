@@ -38,8 +38,7 @@
 {% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Editar ' + ofi_documento.descripcion) %}
-    {% endcall %}
+    {{ topbar.page('Editar Oficio ' + ofi_documento.descripcion | truncate(48)) }}
 {% endblock %}
 
 {% block content %}
@@ -50,6 +49,8 @@
             {% call f.form_group(form.folio) %}{% endcall %}
             {% call f.form_group(form.vencimiento_fecha) %}{% endcall %}
             <div style="display:none">
+                {% call f.form_group(form.contenido_md) %}{% endcall %}
+                {% call f.form_group(form.contenido_html) %}{% endcall %}
                 {% call f.form_group(form.contenido_sfdt) %}{% endcall %}
             </div>
             <div id='editor' style='width:100%'></div>

@@ -50,6 +50,8 @@
             {% call f.form_group(form.vencimiento_fecha) %}{% endcall %}
             {% call f.form_group(form.cadena_oficio_id) %}{% endcall %}
             <div style="display:none">
+                {% call f.form_group(form.contenido_md) %}{% endcall %}
+                {% call f.form_group(form.contenido_html) %}{% endcall %}
                 {% call f.form_group(form.contenido_sfdt) %}{% endcall %}
             </div>
             <div id='editor' style='width:100%'></div>
