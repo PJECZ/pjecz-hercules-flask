@@ -5,9 +5,11 @@ Ofi Plantillas, vistas
 import json
 from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import String, cast
+
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_string, safe_message, safe_uuid
+from lib.safe_string import safe_string, safe_message, safe_uuid, safe_clave
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
@@ -16,6 +18,7 @@ from hercules.blueprints.usuarios.decorators import permission_required
 from hercules.blueprints.ofi_plantillas.models import OfiPlantilla
 from hercules.blueprints.ofi_plantillas.forms import OfiPlantillaForm
 from hercules.blueprints.usuarios.models import Usuario
+from hercules.blueprints.autoridades.models import Autoridad
 
 
 MODULO = "OFI PLANTILLAS"
@@ -42,12 +45,34 @@ def datatable_json():
         consulta = consulta.filter(OfiPlantilla.estatus == request.form["estatus"])
     else:
         consulta = consulta.filter(OfiPlantilla.estatus == "A")
+    if "id" in request.form:
+        id = safe_string(request.form["id"])
+        if id:
+            consulta = consulta.filter(cast(OfiPlantilla.id, String).contains(id.lower()))
     if "descripcion" in request.form:
         descripcion = safe_string(request.form["descripcion"], save_enie=True)
         if descripcion:
             consulta = consulta.filter(OfiPlantilla.descripcion.contains(descripcion))
+    # Luego filtrar por columnas de otras tablas
+    tabla_usuario_incluida = False
+    if "autor" in request.form:
+        if tabla_usuario_incluida is False:
+            consulta = consulta.join(Usuario)
+            tabla_usuario_incluida = True
+        autor = request.form["autor"].lower()
+        consulta = consulta.filter(Usuario.email.contains(autor))
+    if "autoridad" in request.form:
+        autoridad = safe_clave(request.form["autoridad"])
+        if autoridad:
+            if tabla_usuario_incluida is False:
+                consulta = consulta.join(Usuario)
+                tabla_usuario_incluida = True
+            consulta = consulta.join(Autoridad, Usuario.autoridad_id == Autoridad.id)
+            consulta = consulta.filter(Autoridad.clave.contains(autoridad))
     if "usuario_autoridad_id" in request.form:
-        consulta = consulta.join(Usuario)
+        if tabla_usuario_incluida is False:
+            consulta = consulta.join(Usuario)
+            tabla_usuario_incluida = True
         consulta = consulta.filter(Usuario.autoridad_id == request.form["usuario_autoridad_id"])
     # Ordenar y paginar
     registros = consulta.order_by(OfiPlantilla.descripcion).offset(start).limit(rows_per_page).all()
@@ -58,9 +83,24 @@ def datatable_json():
         data.append(
             {
                 "detalle": {
-                    "descripcion": resultado.descripcion,
+                    "id": resultado.id,
                     "url": url_for("ofi_plantillas.detail", ofi_plantilla_id=resultado.id),
                 },
+                "autor": {
+                    "email": resultado.usuario.email,
+                    "nombre": resultado.usuario.nombre,
+                    "url": url_for("usuarios.detail", usuario_id=resultado.usuario.id),
+                },
+                "autoridad": {
+                    "clave": resultado.usuario.autoridad.clave,
+                    "nombre": resultado.usuario.autoridad.descripcion_corta,
+                    "url": (
+                        url_for("autoridades.detail", autoridad_id=resultado.usuario.autoridad.id)
+                        if current_user.can_view("AUTORIDADES")
+                        else ""
+                    ),
+                },
+                "descripcion": resultado.descripcion,
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
                 "esta_archivado": resultado.esta_archivado,
             }
@@ -72,6 +112,13 @@ def datatable_json():
 @ofi_plantillas.route("/ofi_plantillas")
 def list_active():
     """Listado de Ofi Plantillas activos"""
+    if current_user.can_admin(MODULO):
+        return render_template(
+            "ofi_plantillas/list_admin.jinja2",
+            filtros=json.dumps({"estatus": "A"}),
+            titulo="Plantillas",
+            estatus="A",
+        )
     return render_template(
         "ofi_plantillas/list.jinja2",
         filtros=json.dumps({"estatus": "A", "usuario_autoridad_id": current_user.autoridad.id}),
@@ -84,6 +131,13 @@ def list_active():
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
     """Listado de Ofi Plantillas inactivos"""
+    if current_user.can_admin(MODULO):
+        return render_template(
+            "ofi_plantillas/list_admin.jinja2",
+            filtros=json.dumps({"estatus": "B"}),
+            titulo="Plantillas inactivos",
+            estatus="B",
+        )
     return render_template(
         "ofi_plantillas/list.jinja2",
         filtros=json.dumps({"estatus": "B", "usuario_autoridad_id": current_user.autoridad.id}),
