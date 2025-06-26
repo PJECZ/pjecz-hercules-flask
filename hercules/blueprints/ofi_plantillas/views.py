@@ -104,11 +104,20 @@ def detail(ofi_plantilla_id):
     form.descripcion.data = ofi_plantilla.descripcion
     form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
     form.esta_archivado.data = ofi_plantilla.esta_archivado
+    # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
+    if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
+        # Entregar detail_syncfusion_document.jinja2
+        return render_template(
+            "ofi_plantillas/detail_syncfusion_document.jinja2",
+            ofi_plantilla=ofi_plantilla,
+            form=form,
+            syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
+        )
+    # De lo contrario, entregar detail.jinja2
     return render_template(
         "ofi_plantillas/detail.jinja2",
         ofi_plantilla=ofi_plantilla,
         form=form,
-        syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
     )
 
 
@@ -121,6 +130,8 @@ def new():
         ofi_plantilla = OfiPlantilla(
             usuario=current_user,
             descripcion=safe_string(form.descripcion.data, save_enie=True),
+            contenido_md=form.contenido_md.data,
+            contenido_html=form.contenido_html.data,
             contenido_sfdt=form.contenido_sfdt.data,
         )
         ofi_plantilla.save()
@@ -133,10 +144,18 @@ def new():
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
+    # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
+    if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
+        # Entregar new_syncfusion_document.jinja2
+        return render_template(
+            "ofi_plantillas/new_syncfusion_document.jinja2",
+            form=form,
+            syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
+        )
+    # De lo contrario, entregar new_ckeditor5.jinja2
     return render_template(
-        "ofi_plantillas/new_syncfusion_document.jinja2",
+        "ofi_plantillas/new_ckeditor5.jinja2",
         form=form,
-        syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
     )
 
 
@@ -152,6 +171,8 @@ def edit(ofi_plantilla_id):
     form = OfiPlantillaForm()
     if form.validate_on_submit():
         ofi_plantilla.descripcion = safe_string(form.descripcion.data, save_enie=True)
+        ofi_plantilla.contenido_md = form.contenido_md.data
+        ofi_plantilla.contenido_html = form.contenido_html.data
         ofi_plantilla.contenido_sfdt = form.contenido_sfdt.data
         ofi_plantilla.esta_archivado = form.esta_archivado.data
         ofi_plantilla.save()
@@ -165,13 +186,24 @@ def edit(ofi_plantilla_id):
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
     form.descripcion.data = ofi_plantilla.descripcion
+    form.contenido_md.data = ofi_plantilla.contenido_md
+    form.contenido_html.data = ofi_plantilla.contenido_html
     form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
     form.esta_archivado.data = ofi_plantilla.esta_archivado
+    # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
+    if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
+        # Entregar edit_syncfusion_document.jinja2
+        return render_template(
+            "ofi_plantillas/edit_syncfusion_document.jinja2",
+            form=form,
+            ofi_plantilla=ofi_plantilla,
+            syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
+        )
+    # De lo contrario, entregar edit_ckeditor5.jinja2
     return render_template(
         "ofi_plantillas/edit_syncfusion_document.jinja2",
         form=form,
         ofi_plantilla=ofi_plantilla,
-        syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
     )
 
 

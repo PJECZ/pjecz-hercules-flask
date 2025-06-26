@@ -152,13 +152,14 @@ def list_active():
 
 @ofi_documentos.route("/ofi_documentos/mis_oficios")
 def list_active_mis_oficios():
-    """Listado de Ofi Documentos activos"""
+    """Listado de Ofi Documentos Mis Oficios"""
     # Mostrar botones según el rol
     mostrar_boton_nuevo = False
-    if ROL_FIRMANTE in current_user.get_roles() or ROL_ESCRITOR in current_user.get_roles():
+    roles = current_user.get_roles()
+    if ROL_FIRMANTE in roles or ROL_ESCRITOR in roles:
         mostrar_boton_nuevo = True
     # Si no se cuenta con los roles de FIRMANTE o ESCRITOR reenviarlo a vista de Bandeja de Entrada
-    if ROL_FIRMANTE not in current_user.get_roles() and ROL_ESCRITOR not in current_user.get_roles():
+    if ROL_FIRMANTE not in roles and ROL_ESCRITOR not in roles:
         return redirect(url_for("ofi_documentos.list_active_mi_bandeja_entrada"))
     # Entregar
     return render_template(
@@ -173,10 +174,11 @@ def list_active_mis_oficios():
 
 @ofi_documentos.route("/ofi_documentos/mi_bandeja_entrada")
 def list_active_mi_bandeja_entrada():
-    """Listado de Ofi Documentos donde el usuario es destinatario"""
+    """Listado de Ofi Documentos Mi Bandeja de Entrada"""
     # Mostrar botones según el rol
     mostrar_boton_nuevo = False
-    if ROL_FIRMANTE in current_user.get_roles() or ROL_ESCRITOR in current_user.get_roles():
+    roles = current_user.get_roles()
+    if ROL_FIRMANTE in roles or ROL_ESCRITOR in roles:
         mostrar_boton_nuevo = True
     # Entregar
     return render_template(
@@ -194,7 +196,8 @@ def list_active_mi_autoridad():
     """Listado de Ofi Documentos de la autoridad del usuario"""
     # Mostrar botones según el rol
     mostrar_boton_nuevo = False
-    if ROL_FIRMANTE in current_user.get_roles() or ROL_ESCRITOR in current_user.get_roles():
+    roles = current_user.get_roles()
+    if ROL_FIRMANTE in roles or ROL_ESCRITOR in roles:
         mostrar_boton_nuevo = True
     # Entregar
     return render_template(
@@ -207,14 +210,14 @@ def list_active_mi_autoridad():
     )
 
 
-@ofi_documentos.route("/ofi_documentos/mis_oficios/inactivos")
+@ofi_documentos.route("/ofi_documentos/eliminados")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Ofi Documentos inactivos"""
+    """Listado de Ofi Documentos eliminados"""
     return render_template(
         "ofi_documentos/list.jinja2",
-        filtros=json.dumps({"estatus": "B", "usuario_id": current_user.id}),
-        titulo="Mis Oficios inactivos",
+        filtros=json.dumps({"estatus": "B"}),
+        titulo="Oficios eliminados",
         estatus="B",
         estados=OfiDocumento.ESTADOS,
     )
@@ -229,13 +232,15 @@ def detail(ofi_documento_id):
         flash("ID de oficio inválido", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda crear
+    # Validar que si es BORRADOR o FIRMADO se debe tener el rol ESCRITOR o FIRMANTE para verlo
+    # En cambio, si fue ENVIADO, ARCHIVADO o CANCELADO si debe de verse
+    roles = current_user.get_roles()
     if (
         (ofi_documento.estado == "BORRADOR" or ofi_documento.estado == "FIRMADO")
-        and ROL_ESCRITOR not in current_user.get_roles()
-        and ROL_FIRMANTE not in current_user.get_roles()
+        and ROL_ESCRITOR not in roles
+        and ROL_FIRMANTE not in roles
     ):
-        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para ver un oficio en estado BORRADOR o FIRMADO", "warning")
+        flash("Se necesitan roles de ESCRITOR o FIRMANTE para ver un oficio en estado BORRADOR o FIRMADO", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     # Si el oficio está eliminado y NO es administrador, mostrar mensaje y redirigir
     if ofi_documento.estatus != "A" and current_user.can_admin(MODULO) is False:
@@ -298,13 +303,29 @@ def detail(ofi_documento_id):
     form = OfiDocumentoNewForm()
     form.descripcion.data = ofi_documento.descripcion
     form.contenido_sfdt.data = ofi_documento.contenido_sfdt
-    # Entregar
+    # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
+    if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
+        # Entregar detail_syncfusion_document.jinja2
+        return render_template(
+            "ofi_documentos/detail_syncfusion_document.jinja2",
+            ofi_documento=ofi_documento,
+            usuario_firmante=usuario_firmante,
+            form=form,
+            mostrar_boton_responder=mostrar_boton_responder,
+            mostrar_boton_firmar=mostrar_boton_firmar,
+            mostrar_boton_editar=mostrar_boton_editar,
+            mostrar_boton_descancelar=mostrar_boton_descancelar,
+            mostrar_boton_archivar=mostrar_boton_archivar,
+            mostrar_boton_desarchivar=mostrar_boton_desarchivar,
+            mostrar_boton_otras_categorias=mostrar_boton_otras_categorias,
+            syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
+        )
+    # De lo contrario, entregar detail.jinja2
     return render_template(
         "ofi_documentos/detail.jinja2",
         ofi_documento=ofi_documento,
         usuario_firmante=usuario_firmante,
         form=form,
-        syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
         mostrar_boton_responder=mostrar_boton_responder,
         mostrar_boton_firmar=mostrar_boton_firmar,
         mostrar_boton_editar=mostrar_boton_editar,
@@ -319,9 +340,10 @@ def detail(ofi_documento_id):
 @permission_required(MODULO, Permiso.CREAR)
 def new(ofi_plantilla_id):
     """Nuevo Ofi Documento"""
-    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda crear
-    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
-        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para crear un oficio", "warning")
+    # Validar que el usuario tenga el rol ESCRITOR o FIRMANTE, para que un ADMINISTRADOR no pueda crear
+    roles = current_user.get_roles()
+    if ROL_ESCRITOR not in roles and ROL_FIRMANTE not in roles:
+        flash("Se necesitan roles de ESCRITOR o FIRMANTE para crear un oficio", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     # Consultar la plantilla
     ofi_plantilla_id = safe_uuid(ofi_plantilla_id)
@@ -364,6 +386,8 @@ def new(ofi_plantilla_id):
                 folio_anio=anio_folio,
                 folio_num=numero_folio,
                 vencimiento_fecha=vencimiento_fecha,
+                contenido_md=form.contenido_md.data.strip(),
+                contenido_html=form.contenido_html.data.strip(),
                 contenido_sfdt=form.contenido_sfdt.data.strip(),
                 estado="BORRADOR",
                 cadena_oficio_id=form.cadena_oficio_id.data if form.cadena_oficio_id.data else None,
@@ -380,12 +404,22 @@ def new(ofi_plantilla_id):
             return redirect(bitacora.url)
     # Cargar los datos de la plantilla en el formulario
     form.descripcion.data = ofi_plantilla.descripcion
+    form.contenido_md.data = ofi_plantilla.contenido_md
+    form.contenido_html.data = ofi_plantilla.contenido_html
     form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
-    # Entregar
+    # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
+    if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
+        # Entregar new_syncfusion_document.jinja2
+        return render_template(
+            "ofi_documentos/new_syncfusion_document.jinja2",
+            form=form,
+            ofi_plantilla_id=ofi_plantilla_id,
+            syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
+        )
+    # De lo contrario, entregar new_ckeditor5.jinja2
     return render_template(
-        "ofi_documentos/new_syncfusion_document.jinja2",
+        "ofi_documentos/new_ckeditor5.jinja2",
         form=form,
-        syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
         ofi_plantilla_id=ofi_plantilla_id,
     )
 
@@ -394,9 +428,10 @@ def new(ofi_plantilla_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def edit(ofi_documento_id):
     """Editar Ofi Documento"""
-    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda editar
-    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
-        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para editar un oficio", "warning")
+    # Validar que el usuario tenga el rol ESCRITOR o FIRMANTE, para que un ADMINISTRADOR no pueda editar
+    roles = current_user.get_roles()
+    if ROL_ESCRITOR not in roles and ROL_FIRMANTE not in roles:
+        flash("Se necesitan roles de ESCRITOR o FIRMANTE para editar un oficio", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
@@ -445,6 +480,8 @@ def edit(ofi_documento_id):
             ofi_documento.folio_anio = anio_folio
             ofi_documento.folio_num = numero_folio
             ofi_documento.vencimiento_fecha = vencimiento_fecha
+            ofi_documento.contenido_md = form.contenido_md.data.strip()
+            ofi_documento.contenido_html = form.contenido_html.data.strip()
             ofi_documento.contenido_sfdt = form.contenido_sfdt.data.strip()
             ofi_documento.save()
             bitacora = Bitacora(
@@ -460,13 +497,23 @@ def edit(ofi_documento_id):
     form.descripcion.data = ofi_documento.descripcion
     form.folio.data = ofi_documento.folio
     form.vencimiento_fecha.data = ofi_documento.vencimiento_fecha
+    form.contenido_md.data = ofi_documento.contenido_md
+    form.contenido_html.data = ofi_documento.contenido_html
     form.contenido_sfdt.data = ofi_documento.contenido_sfdt
-    # Entregar
+    # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
+    if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
+        # Entregar edit_syncfusion_document.jinja2
+        return render_template(
+            "ofi_documentos/edit_syncfusion_document.jinja2",
+            form=form,
+            ofi_documento=ofi_documento,
+            syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
+        )
+    # De lo contrario, entregar edit_ckeditor5.jinja2
     return render_template(
-        "ofi_documentos/edit_syncfusion_document.jinja2",
+        "ofi_documentos/edit_ckeditor5.jinja2",
         form=form,
         ofi_documento=ofi_documento,
-        syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
     )
 
 
@@ -474,9 +521,9 @@ def edit(ofi_documento_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def sign(ofi_documento_id):
     """Firmar un Ofi Documento"""
-    # Validar que el usuario tenga el rol OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda firmar
+    # Validar que el usuario tenga el rol FIRMANTE, para que un ADMINISTRADOR no pueda firmar
     if ROL_FIRMANTE not in current_user.get_roles():
-        flash("Se necesitan roles de ROL_FIRMANTE para firmar un oficio", "warning")
+        flash("Se necesita el rol de FIRMANTE para firmar un oficio", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
@@ -540,13 +587,23 @@ def sign(ofi_documento_id):
     # Cargar los datos en el formulario
     form.descripcion.data = ofi_documento.descripcion
     form.folio.data = ofi_documento.folio if ofi_documento.folio else "0/2025"
+    form.contenido_md.data = ofi_documento.contenido_md
+    form.contenido_html.data = ofi_documento.contenido_html
     form.contenido_sfdt.data = ofi_documento.contenido_sfdt
-    # Entregar
+    # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
+    if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
+        # Entregar sign_syncfusion_document.jinja2
+        return render_template(
+            "ofi_documentos/sign_syncfusion_document.jinja2",
+            form=form,
+            ofi_documento=ofi_documento,
+            syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
+        )
+    # De lo contrario, entregar sign_ckeditor5.jinja2
     return render_template(
-        "ofi_documentos/sign_syncfusion_document.jinja2",
+        "ofi_documentos/sign_ckeditor5.jinja2",
         form=form,
         ofi_documento=ofi_documento,
-        syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
     )
 
 
@@ -554,9 +611,10 @@ def sign(ofi_documento_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def send(ofi_documento_id):
     """Enviar un Ofi Documento"""
-    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda enviar
-    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
-        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para enviar un oficio", "warning")
+    # Validar que el usuario tenga el rol ESCRITOR o FIRMANTE, para que un ADMINISTRADOR no pueda enviar
+    roles = current_user.get_roles()
+    if ROL_ESCRITOR not in roles and ROL_FIRMANTE not in roles:
+        flash("Se necesitan roles de ESCRITOR o FIRMANTE para enviar un oficio", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
@@ -601,6 +659,7 @@ def send(ofi_documento_id):
     )
     bitacora.save()
     flash(bitacora.descripcion, "success")
+    # Redirigir al detalle del oficio
     return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
 
 
@@ -608,9 +667,10 @@ def send(ofi_documento_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def cancel(ofi_documento_id):
     """Cancelar Ofi Documento"""
-    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda cancelar
-    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
-        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para cancelar un oficio", "warning")
+    # Validar que el usuario tenga el rol ESCRITOR o FIRMANTE, para que un ADMINISTRADOR no pueda cancelar
+    roles = current_user.get_roles()
+    if ROL_ESCRITOR not in roles and ROL_FIRMANTE not in roles:
+        flash("Se necesitan roles de ESCRITOR o FIRMANTE para cancelar un oficio", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
@@ -646,16 +706,18 @@ def cancel(ofi_documento_id):
     )
     bitacora.save()
     flash(bitacora.descripcion, "success")
-    return redirect(url_for("ofi_documentos.list_active_mis_oficios"))
+    # Redirigir al detalle del oficio
+    return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
 
 
 @ofi_documentos.route("/ofi_documentos/descancelar/<ofi_documento_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def uncancel(ofi_documento_id):
     """Descancelar Ofi Documento"""
-    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda descancelar
-    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
-        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para descancelar un oficio", "warning")
+    # Validar que el usuario tenga el rol ESCRITOR o FIRMANTE, para que un ADMINISTRADOR no pueda descancelar
+    roles = current_user.get_roles()
+    if ROL_ESCRITOR not in roles and ROL_FIRMANTE not in roles:
+        flash("Se necesitan roles de ESCRITOR o FIRMANTE para descancelar un oficio", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
@@ -686,6 +748,7 @@ def uncancel(ofi_documento_id):
     )
     bitacora.save()
     flash(bitacora.descripcion, "success")
+    # Redirigir al detalle del oficio
     return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
 
 
@@ -693,9 +756,10 @@ def uncancel(ofi_documento_id):
 @permission_required(MODULO, Permiso.CREAR)
 def response(ofi_documento_id):
     """Responder un Ofi Documento"""
-    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda responder
-    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
-        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para reponder un oficio", "warning")
+    # Validar que el usuario tenga el rol ESCRITOR o FIRMANTE, para que un ADMINISTRADOR no pueda responder
+    roles = current_user.get_roles()
+    if ROL_ESCRITOR not in roles and ROL_FIRMANTE not in roles:
+        flash("Se necesitan roles de ESCRITOR o FIRMANTE para reponder un oficio", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
@@ -720,7 +784,8 @@ def response(ofi_documento_id):
     if usuario_destinatario is None:
         flash("No eres detinatario de este oficio NO tienes permiso para responder", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
-    # Verificar que tenga una plantilla base de su autoridad
+    # TODO: Cambiar a mostrar un formulario donde se pueda escoger una plantilla
+    # Consultar la primer plantilla de su autoridad
     ofi_plantilla = (
         OfiPlantilla.query.join(Usuario)
         .filter(Usuario.autoridad_id == current_user.autoridad_id)
@@ -735,13 +800,23 @@ def response(ofi_documento_id):
     form = OfiDocumentoNewForm()
     # Cargar los datos de la plantilla en el formulario
     form.descripcion.data = "RE: " + ofi_plantilla.descripcion
+    form.contenido_md.data = ofi_plantilla.contenido_md
+    form.contenido_html.data = ofi_plantilla.contenido_html
     form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
     form.cadena_oficio_id.data = ofi_documento_id
-    # Entregar
+    # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
+    if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
+        # Entregar new_syncfusion_document.jinja2
+        return render_template(
+            "ofi_documentos/new_syncfusion_document.jinja2",
+            form=form,
+            ofi_plantilla_id=ofi_plantilla.id,
+            syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
+        )
+    # De lo contrario, entregar new_ckeditor5.jinja2
     return render_template(
-        "ofi_documentos/new_syncfusion_document.jinja2",
+        "ofi_documentos/new_ckeditor5.jinja2",
         form=form,
-        syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
         ofi_plantilla_id=ofi_plantilla.id,
     )
 
@@ -750,9 +825,10 @@ def response(ofi_documento_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def archive(ofi_documento_id):
     """Archivar Ofi Documento"""
-    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda cancelar
-    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
-        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para archivar un oficio", "warning")
+    # Validar que el usuario tenga el rol ESCRITOR o FIRMANTE, para que un ADMINISTRADOR no pueda cancelar
+    roles = current_user.get_roles()
+    if ROL_ESCRITOR not in roles and ROL_FIRMANTE not in roles:
+        flash("Se necesitan roles de ESCRITOR o FIRMANTE para archivar un oficio", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
@@ -784,16 +860,18 @@ def archive(ofi_documento_id):
     )
     bitacora.save()
     flash(bitacora.descripcion, "success")
-    return redirect(url_for("ofi_documentos.list_active_mis_oficios"))
+    # Redirigir al detalle del oficio
+    return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
 
 
 @ofi_documentos.route("/ofi_documentos/desarchivar/<ofi_documento_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
 def unarchive(ofi_documento_id):
     """Desarchivar Ofi Documento"""
-    # Validar que el usuario tenga el rol OFICIOS ESCRITOR o OFICIOS FIRMANTE, para que un ADMINISTRADOR no pueda desarchivar
-    if ROL_ESCRITOR not in current_user.get_roles() and ROL_FIRMANTE not in current_user.get_roles():
-        flash("Se necesitan roles de ROL_ESCRITOR o ROL_FIRMANTE para desarchivar un oficio", "warning")
+    # Validar que el usuario tenga el rol ESCRITOR o FIRMANTE, para que un ADMINISTRADOR no pueda desarchivar
+    roles = current_user.get_roles()
+    if ROL_ESCRITOR not in roles and ROL_FIRMANTE not in roles:
+        flash("Se necesitan roles de ESCRITOR o FIRMANTE para desarchivar un oficio", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
@@ -824,6 +902,7 @@ def unarchive(ofi_documento_id):
     )
     bitacora.save()
     flash(bitacora.descripcion, "success")
+    # Redirigir al detalle del oficio
     return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
 
 

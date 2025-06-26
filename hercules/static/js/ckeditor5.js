@@ -1,150 +1,234 @@
-    CKEDITOR.ClassicEditor.create(document.getElementById("contenido"), {
-        // https://ckeditor.com/docs/ckeditor5/latest/features/toolbar/toolbar.html#extended-toolbar-configuration-format
-        toolbar: {
-        items: [
-    'exportPDF', 'exportWord', '|',
-    'findAndReplace', 'selectAll', '|',
-    'heading', '|',
-    'bold', 'italic', 'strikethrough', 'underline', 'code', 'subscript', 'superscript', 'removeFormat', '|',
-    'bulletedList', 'numberedList', 'todoList', '|',
-    'outdent', 'indent', '|',
-    'undo', 'redo',
-    '-',
-    'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', 'highlight', '|',
-    'alignment', '|',
-    'link', 'uploadImage', 'blockQuote', 'insertTable', 'mediaEmbed', 'codeBlock', 'htmlEmbed', '|',
-    'specialCharacters', 'horizontalLine', 'pageBreak', '|',
-    'textPartLanguage', '|',
-    'sourceEditing'
-    ],
-    shouldNotGroupWhenFull: true
-                },
-                // Changing the language of the interface requires loading the language file using the <script> tag.
-        language: 'es',
-        list: {
-            properties: {
-            styles: true,
-        startIndex: true,
-        reversed: true
-                    }
-                },
-        // https://ckeditor.com/docs/ckeditor5/latest/features/headings.html#configuration
-        heading: {
-            options: [
-        {model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
-        {model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
-        {model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
-        {model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
-        {model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
-        {model: 'heading5', view: 'h5', title: 'Heading 5', class: 'ck-heading_heading5' },
-        {model: 'heading6', view: 'h6', title: 'Heading 6', class: 'ck-heading_heading6' }
-        ]
-                },
-        // https://ckeditor.com/docs/ckeditor5/latest/features/editor-placeholder.html#using-the-editor-configuration
-        placeholder: '', //placeholder: 'Welcome to CKEditor 5!',
-        // https://ckeditor.com/docs/ckeditor5/latest/features/font.html#configuring-the-font-family-feature
-        fontFamily: {
-            options: [
-                    'default',
-                    'Arial, Helvetica, sans-serif',
-                    'Courier New, Courier, monospace',
-                    'Georgia, serif',
-                    'Lucida Sans Unicode, Lucida Grande, sans-serif',
-                    'Tahoma, Geneva, sans-serif',
-                    'Times New Roman, Times, serif',
-                    'Trebuchet MS, Helvetica, sans-serif',
-                    'Verdana, Geneva, sans-serif'
-                    ],
-        supportAllValues: true
-                },
-        // https://ckeditor.com/docs/ckeditor5/latest/features/font.html#configuring-the-font-size-feature
-        fontSize: {
-            options: [10, 12, 14, 'default', 18, 20, 22],
-        supportAllValues: true
-                },
-        // Be careful with the setting below. It instructs CKEditor to accept ALL HTML markup.
-        // https://ckeditor.com/docs/ckeditor5/latest/features/general-html-support.html#enabling-all-html-features
-        htmlSupport: {
-            allow: [
-        {
-            name: /.*/,
-        attributes: true,
-        classes: true,
-        styles: true
-                        }
-        ]
-                },
-        // Be careful with enabling previews
-        // https://ckeditor.com/docs/ckeditor5/latest/features/html-embed.html#content-previews
-        htmlEmbed: {
-            showPreviews: false
-                },
-        // https://ckeditor.com/docs/ckeditor5/latest/features/link.html#custom-link-attributes-decorators
-        link: {
-            decorators: {
-            addTargetToExternalLinks: true,
-        defaultProtocol: 'https://',
-        toggleDownloadable: {
-            mode: 'manual',
-        label: 'Downloadable',
-        attributes: {
-            download: 'file'
-                            }
-                        }
-                    }
-                },
-        // https://ckeditor.com/docs/ckeditor5/latest/features/mentions.html#configuration
-        mention: {
-            feeds: [
-        {
-            marker: '@',
-        feed: [
-        '@apple', '@bears', '@brownie', '@cake', '@cake', '@candy', '@canes', '@chocolate', '@cookie', '@cotton', '@cream',
-        '@cupcake', '@danish', '@donut', '@dragée', '@fruitcake', '@gingerbread', '@gummi', '@ice', '@jelly-o',
-        '@liquorice', '@macaroon', '@marzipan', '@oat', '@pie', '@plum', '@pudding', '@sesame', '@snaps', '@soufflé',
-        '@sugar', '@sweet', '@topping', '@wafer'
-        ],
-        minimumCharacters: 1
-                        }
-        ]
-                },
-        // The "superbuild" contains more premium features that require additional configuration, disable them below.
-        // Do not turn them on unless you read the documentation and know how to configure them and setup the editor.
-        removePlugins: [
-        // These two are commercial, but you can try them out without registering to a trial.
-        // 'ExportPdf',
-        // 'ExportWord',
-        'AIAssistant',
-        'CKBox',
-        'CKFinder',
-        'EasyImage',
-        // This sample uses the Base64UploadAdapter to handle image uploads as it requires no configuration.
-        // https://ckeditor.com/docs/ckeditor5/latest/features/images/image-upload/base64-upload-adapter.html
-        // Storing images as Base64 is usually a very bad idea.
-        // Replace it on production website with other solutions:
-        // https://ckeditor.com/docs/ckeditor5/latest/features/images/image-upload/image-upload.html
-        // 'Base64UploadAdapter',
-        'MultiLevelList',
-        'RealTimeCollaborativeComments',
-        'RealTimeCollaborativeTrackChanges',
-        'RealTimeCollaborativeRevisionHistory',
-        'PresenceList',
-        'Comments',
-        'TrackChanges',
-        'TrackChangesData',
-        'RevisionHistory',
-        'Pagination',
-        'WProofreader',
-        // Careful, with the Mathtype plugin CKEditor will not load when loading this sample
-        // from a local file system (file://) - load this site via HTTP server if you enable MathType.
-        'MathType',
-        // The following features are part of the Productivity Pack and require additional license.
-        'SlashCommand',
-        'Template',
-        'DocumentOutline',
-        'FormatPainter',
-        'TableOfContents',
-        'PasteFromOfficeEnhanced',
-        'CaseChange'
-        ]
-            });
+/**
+ * This configuration was generated using the CKEditor 5 Builder. You can modify it anytime using this link:
+ * https://ckeditor.com/ckeditor-5/builder/#installation/NoJgNARCB0Bs0EYKQBwHYQNgVlgFgGYEVtsCAGATl1lgNjT3wIvLSuO0vJBXJWQQApgGdk5MMARgJE6dPIBdSADN02AEYEAxhEVA
+ */
+
+const {
+	ClassicEditor,
+	Alignment,
+	AutoImage,
+	AutoLink,
+	Autosave,
+	BlockQuote,
+	Bold,
+	Bookmark,
+	CloudServices,
+	Code,
+	CodeBlock,
+	Essentials,
+	FontBackgroundColor,
+	FontColor,
+	FontFamily,
+	FontSize,
+	Fullscreen,
+	Heading,
+	Highlight,
+	HorizontalLine,
+	ImageBlock,
+	ImageEditing,
+	ImageInline,
+	ImageInsertViaUrl,
+	ImageToolbar,
+	ImageUpload,
+	ImageUtils,
+	Indent,
+	IndentBlock,
+	Italic,
+	Link,
+	List,
+	Markdown,
+	MediaEmbed,
+	Paragraph,
+	RemoveFormat,
+	SourceEditing,
+	Strikethrough,
+	Table,
+	TableCaption,
+	TableCellProperties,
+	TableColumnResize,
+	TableLayout,
+	TableProperties,
+	TableToolbar,
+	Underline
+} = window.CKEDITOR;
+
+/**
+ * This is a 24-hour evaluation key. Create a free account to use CDN: https://portal.ckeditor.com/checkout?plan=free
+ */
+const LICENSE_KEY =
+	'eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3ODA5NjMxOTksImp0aSI6IjYyNWUzYjIwLWNlMDAtNDZhMy1hMjhkLWU2NzEyMDExYWRmYSIsImxpY2Vuc2VkSG9zdHMiOlsiMTI3LjAuMC4xIiwibG9jYWxob3N0IiwiMTkyLjE2OC4qLioiLCIxMC4qLiouKiIsIjE3Mi4qLiouKiIsIioudGVzdCIsIioubG9jYWxob3N0IiwiKi5sb2NhbCJdLCJ1c2FnZUVuZHBvaW50IjoiaHR0cHM6Ly9wcm94eS1ldmVudC5ja2VkaXRvci5jb20iLCJkaXN0cmlidXRpb25DaGFubmVsIjpbImNsb3VkIiwiZHJ1cGFsIl0sImxpY2Vuc2VUeXBlIjoiZGV2ZWxvcG1lbnQiLCJmZWF0dXJlcyI6WyJEUlVQIiwiRTJQIiwiRTJXIl0sInZjIjoiMjFmZTJlYWQifQ.keoyKptQhX0_yURO5i5NaiLwptzf8NsMJG30cDlCphskoZQaxZDXP8aZNtLV8UmT03D8nOTZqFTV24agdofSig';
+
+const editorConfig = {
+	toolbar: {
+		items: [
+			'undo',
+			'redo',
+			'|',
+			'sourceEditing',
+			'|',
+			'heading',
+			'|',
+			'fontSize',
+			'fontFamily',
+			'fontColor',
+			'fontBackgroundColor',
+			'|',
+			'bold',
+			'italic',
+			'underline',
+			'|',
+			'bulletedList',
+			'numberedList',
+			'|',
+			'link',
+			'insertTable',
+			'insertTableLayout',
+			'highlight',
+			'blockQuote',
+			'codeBlock',
+			'|',
+			'alignment',
+			'|',
+			'outdent',
+			'indent'
+		],
+		shouldNotGroupWhenFull: false
+	},
+	plugins: [
+		Alignment,
+		AutoImage,
+		AutoLink,
+		Autosave,
+		BlockQuote,
+		Bold,
+		Bookmark,
+		CloudServices,
+		Code,
+		CodeBlock,
+		Essentials,
+		FontBackgroundColor,
+		FontColor,
+		FontFamily,
+		FontSize,
+		Fullscreen,
+		Heading,
+		Highlight,
+		HorizontalLine,
+		ImageBlock,
+		ImageEditing,
+		ImageInline,
+		ImageInsertViaUrl,
+		ImageToolbar,
+		ImageUpload,
+		ImageUtils,
+		Indent,
+		IndentBlock,
+		Italic,
+		Link,
+		List,
+		Markdown,
+		MediaEmbed,
+		Paragraph,
+		RemoveFormat,
+		SourceEditing,
+		Strikethrough,
+		Table,
+		TableCaption,
+		TableCellProperties,
+		TableColumnResize,
+		TableLayout,
+		TableProperties,
+		TableToolbar,
+		Underline
+	],
+	fontFamily: {
+		supportAllValues: true
+	},
+	fontSize: {
+		options: [10, 12, 14, 'default', 18, 20, 22],
+		supportAllValues: true
+	},
+	fullscreen: {
+		onEnterCallback: container =>
+			container.classList.add(
+				'editor-container',
+				'editor-container_classic-editor',
+				'editor-container_include-fullscreen',
+				'main-container'
+			)
+	},
+	heading: {
+		options: [
+			{
+				model: 'paragraph',
+				title: 'Paragraph',
+				class: 'ck-heading_paragraph'
+			},
+			{
+				model: 'heading1',
+				view: 'h1',
+				title: 'Heading 1',
+				class: 'ck-heading_heading1'
+			},
+			{
+				model: 'heading2',
+				view: 'h2',
+				title: 'Heading 2',
+				class: 'ck-heading_heading2'
+			},
+			{
+				model: 'heading3',
+				view: 'h3',
+				title: 'Heading 3',
+				class: 'ck-heading_heading3'
+			},
+			{
+				model: 'heading4',
+				view: 'h4',
+				title: 'Heading 4',
+				class: 'ck-heading_heading4'
+			},
+			{
+				model: 'heading5',
+				view: 'h5',
+				title: 'Heading 5',
+				class: 'ck-heading_heading5'
+			},
+			{
+				model: 'heading6',
+				view: 'h6',
+				title: 'Heading 6',
+				class: 'ck-heading_heading6'
+			}
+		]
+	},
+	image: {
+		toolbar: []
+	},
+	initialData:
+		'',
+	language: 'es',
+	licenseKey: LICENSE_KEY,
+	link: {
+		addTargetToExternalLinks: true,
+		defaultProtocol: 'https://',
+		decorators: {
+			toggleDownloadable: {
+				mode: 'manual',
+				label: 'Downloadable',
+				attributes: {
+					download: 'file'
+				}
+			}
+		}
+	},
+	menuBar: {
+		isVisible: true
+	},
+	placeholder: 'Type or paste your content here!',
+	table: {
+		contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties']
+	}
+};
+
+// ClassicEditor.create(document.querySelector('#editor'), editorConfig);
