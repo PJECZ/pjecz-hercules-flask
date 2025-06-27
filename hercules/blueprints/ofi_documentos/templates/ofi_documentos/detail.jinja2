@@ -34,9 +34,9 @@
         {{ detail.label_value('Folio', ofi_documento.folio) }}
         {{ detail.label_value('Fecha de vencimiento', ofi_documento.vencimiento_fecha) }}
         {% if current_user.can_view('USUARIOS') %}
-            {{ detail.label_value('Usuario', ofi_documento.usuario.nombre,  url_for("usuarios.detail", usuario_id=ofi_documento.usuario.id)) }}
+            {{ detail.label_value('Propietario', ofi_documento.usuario.nombre,  url_for("usuarios.detail", usuario_id=ofi_documento.usuario.id)) }}
         {% else %}
-            {{ detail.label_value('Usuario', ofi_documento.usuario.nombre) }}
+            {{ detail.label_value('Propietario', ofi_documento.usuario.nombre) }}
         {% endif %}
             {% if ofi_documento.cadena_oficio_id %}
                 {{ detail.label_value('En respuesta al oficio', ofi_documento.cadena_oficio_id, url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.cadena_oficio_id)) }}

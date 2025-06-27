@@ -22,7 +22,7 @@
         {% set form_kwargs = {'ofi_plantilla_id': ofi_plantilla.id} %}
         {% call f.form_tag('ofi_plantillas.edit', fid='ofi_plantilla_form', **form_kwargs) %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
-            {% call f.form_group(form.autor) %}{% endcall %}
+            {% call f.form_group(form.propietario) %}{% endcall %}
             {% call f.form_group(form.esta_archivado) %}{% endcall %}
             <div style="display:none">
                 {% call f.form_group(form.contenido_md) %}{% endcall %}
@@ -83,9 +83,9 @@
     <script>
         $(document).ready(function(){
             // --- Carga de la opción elegida --- //
-            const newAutorOption = new Option('{{ofi_plantilla.usuario.email}}: {{ofi_plantilla.usuario.nombre}} - {{ofi_plantilla.usuario.puesto}}', '{{ofi_plantilla.usuario.id}}', false, false);
-            $('#autor').append(newAutorOption).trigger('change');
-            $("#autor").select2({
+            const newPropietarioOption = new Option('{{ofi_plantilla.usuario.email}}: {{ofi_plantilla.usuario.nombre}} - {{ofi_plantilla.usuario.puesto}}', '{{ofi_plantilla.usuario.id}}', false, false);
+            $('#propietario').append(newPropietarioOption).trigger('change');
+            $("#propietario").select2({
                 // --- Carga por Ajax --- //
                 ajax: {
                     url: '/usuarios/select2_json',

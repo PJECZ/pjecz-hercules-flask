@@ -68,12 +68,12 @@ def datatable_json():
             consulta = consulta.filter(OfiDocumento.descripcion.contains(descripcion))
     # Luego filtrar por columnas de otras tablas
     tabla_usuario_incluida = False
-    if "autor" in request.form:
+    if "propietario" in request.form:
         if tabla_usuario_incluida is False:
             consulta = consulta.join(Usuario)
             tabla_usuario_incluida = True
-        autor = request.form["autor"].lower()
-        consulta = consulta.filter(Usuario.email.contains(autor))
+        propietario = request.form["propietario"].lower()
+        consulta = consulta.filter(Usuario.email.contains(propietario))
     if "autoridad" in request.form:
         autoridad = safe_clave(request.form["autoridad"])
         if autoridad:
@@ -115,7 +115,7 @@ def datatable_json():
                     "id": resultado.id,
                     "url": url_for("ofi_documentos.detail", ofi_documento_id=resultado.id),
                 },
-                "autor": {
+                "propietario": {
                     "email": resultado.usuario.email,
                     "nombre": resultado.usuario.nombre,
                     "url": url_for("usuarios.detail", usuario_id=resultado.usuario.id),
