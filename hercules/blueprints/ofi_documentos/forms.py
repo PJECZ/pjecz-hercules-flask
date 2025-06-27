@@ -2,9 +2,13 @@
 Ofi Documentos, formularios
 """
 
+from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, DateField, HiddenField
+from wtforms import StringField, SubmitField, TextAreaField, DateField, HiddenField, SelectField
 from wtforms.validators import DataRequired, Length, Optional, Regexp
+from hercules.blueprints.ofi_plantillas.models import OfiPlantilla
+from hercules.blueprints.usuarios.models import Usuario
+
 
 FOLIO_REGEXP = r"^(\w.[-\/])*\d+\/\d{4}$"
 
