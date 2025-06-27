@@ -35,8 +35,8 @@
                     </div>
                     <div class="col-3">
                         <div class="form-floating">
-                            <input id="filtroAutor" type="text" class="form-control" aria-label="Autor" style="text-transform: uppercase;">
-                            <label for="filtroAutor">Autor</label>
+                            <input id="filtroPropietario" type="text" class="form-control" aria-label="Propietario" style="text-transform: lowercase;">
+                            <label for="filtroPropietario">Propietario</label>
                         </div>
                     </div>
                     <div class="col-2">
@@ -63,7 +63,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Autor</th>
+                    <th>Propietario</th>
                     <th>Autoridad</th>
                     <th>Descripción</th>
                     <th>Archivada</th>
@@ -84,7 +84,7 @@
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
             { data: 'detalle' },
-            { data: 'autor' },
+            { data: 'propietario' },
             { data: 'autoridad' },
             { data: 'descripcion' },
             { data: 'esta_archivado' }
@@ -98,7 +98,7 @@
                 }
             },
             {
-                targets: 1, // autor
+                targets: 1, // propietario
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data.email.length > 16)
@@ -138,7 +138,7 @@
         // Filtros OfiPlantillas
         const filtrosPlantillas = new FiltrosDataTable('#ofi_plantillas_datatable', configDataTable);
         filtrosPlantillas.agregarInput('filtroId', 'id');
-        filtrosPlantillas.agregarInput('filtroAutor', 'autor');
+        filtrosPlantillas.agregarInput('filtroPropietario', 'propietario');
         filtrosPlantillas.agregarInput('filtroAutoridad', 'autoridad');
         filtrosPlantillas.agregarInput('filtroDescripcion', 'descripcion');
         filtrosPlantillas.precargar();

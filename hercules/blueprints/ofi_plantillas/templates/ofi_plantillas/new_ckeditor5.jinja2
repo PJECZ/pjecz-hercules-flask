@@ -21,7 +21,7 @@
     {% call f.card() %}
         {% call f.form_tag('ofi_plantillas.new', fid='ofi_plantilla_form') %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
-            {% call f.form_group(form.autor) %}{% endcall %}
+            {% call f.form_group(form.propietario) %}{% endcall %}
             <div style="display:none">
                 {% call f.form_group(form.contenido_md) %}{% endcall %}
                 {% call f.form_group(form.contenido_html) %}{% endcall %}
@@ -80,7 +80,7 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function(){
-            $("#autor").select2({
+            $("#propietario").select2({
                 // --- Carga por Ajax --- //
                 ajax: {
                     url: '/usuarios/select2_json',

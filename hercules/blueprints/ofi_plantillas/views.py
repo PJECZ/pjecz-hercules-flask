@@ -55,12 +55,12 @@ def datatable_json():
             consulta = consulta.filter(OfiPlantilla.descripcion.contains(descripcion))
     # Luego filtrar por columnas de otras tablas
     tabla_usuario_incluida = False
-    if "autor" in request.form:
+    if "propietario" in request.form:
         if tabla_usuario_incluida is False:
             consulta = consulta.join(Usuario)
             tabla_usuario_incluida = True
-        autor = request.form["autor"].lower()
-        consulta = consulta.filter(Usuario.email.contains(autor))
+        propietario = request.form["propietario"].lower()
+        consulta = consulta.filter(Usuario.email.contains(propietario))
     if "autoridad" in request.form:
         autoridad = safe_clave(request.form["autoridad"])
         if autoridad:
@@ -86,7 +86,7 @@ def datatable_json():
                     "id": resultado.id,
                     "url": url_for("ofi_plantillas.detail", ofi_plantilla_id=resultado.id),
                 },
-                "autor": {
+                "propietario": {
                     "email": resultado.usuario.email,
                     "nombre": resultado.usuario.nombre,
                     "url": url_for("usuarios.detail", usuario_id=resultado.usuario.id),
@@ -181,13 +181,13 @@ def new():
     """Nuevo Ofi Plantilla"""
     form = OfiPlantillaForm()
     if form.validate_on_submit():
-        # Validar autor
-        autor = Usuario.query.filter_by(id=form.autor.data).first()
-        if not autor:
-            flash("Autor inválido", "warning")
+        # Validar propietario
+        propietario = Usuario.query.filter_by(id=form.propietario.data).first()
+        if not propietario:
+            flash("Propietario inválido", "warning")
             return redirect(url_for("ofi_plantillas.new"))
         ofi_plantilla = OfiPlantilla(
-            usuario=autor,
+            usuario=propietario,
             descripcion=safe_string(form.descripcion.data, save_enie=True),
             contenido_md=form.contenido_md.data,
             contenido_html=form.contenido_html.data,
@@ -229,15 +229,15 @@ def edit(ofi_plantilla_id):
     ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
     form = OfiPlantillaForm()
     if form.validate_on_submit():
-        # Validar autor
+        # Validar propietario
         es_valido = True
-        autor = Usuario.query.filter_by(id=form.autor.data).first()
-        if not autor:
-            flash("Autor inválido", "warning")
+        propietario = Usuario.query.filter_by(id=form.propietario.data).first()
+        if not propietario:
+            flash("Propietario inválido", "warning")
             es_valido = False
         if es_valido:
             ofi_plantilla.descripcion = safe_string(form.descripcion.data, save_enie=True)
-            ofi_plantilla.usuario = autor
+            ofi_plantilla.usuario = propietario
             ofi_plantilla.contenido_md = form.contenido_md.data
             ofi_plantilla.contenido_html = form.contenido_html.data
             ofi_plantilla.contenido_sfdt = form.contenido_sfdt.data

@@ -71,7 +71,7 @@
                     <th>Creado</th>
                     <th>Folio</th>
                     <th>Vencimiento</th>
-                    <th>Autor</th>
+                    <th>Propietario</th>
                     <th>Autoridad</th>
                     <th>Descripción</th>
                     <th>Estado</th>
@@ -96,7 +96,7 @@
             { data: 'creado' },
             { data: 'folio' },
             { data: 'vencimiento' },
-            { data: 'autor' },
+            { data: 'propietario' },
             { data: 'autoridad' },
             { data: 'descripcion' },
             { data: 'estado' },
@@ -111,7 +111,7 @@
                 }
             },
             {
-                targets: 4, // autor
+                targets: 4, // propietario
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data.email.length > 16)

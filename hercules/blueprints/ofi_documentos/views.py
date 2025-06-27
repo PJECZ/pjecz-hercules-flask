@@ -16,7 +16,11 @@ from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from hercules.blueprints.ofi_documentos.models import OfiDocumento
-from hercules.blueprints.ofi_documentos.forms import OfiDocumentoNewForm, OfiDocumentoEditForm, OfiDocumentoSignForm
+from hercules.blueprints.ofi_documentos.forms import (
+    OfiDocumentoNewForm,
+    OfiDocumentoEditForm,
+    OfiDocumentoSignForm,
+)
 from hercules.blueprints.ofi_plantillas.models import OfiPlantilla
 from hercules.blueprints.usuarios.models import Usuario
 from hercules.blueprints.autoridades.models import Autoridad
@@ -68,12 +72,12 @@ def datatable_json():
             consulta = consulta.filter(OfiDocumento.descripcion.contains(descripcion))
     # Luego filtrar por columnas de otras tablas
     tabla_usuario_incluida = False
-    if "autor" in request.form:
+    if "propietario" in request.form:
         if tabla_usuario_incluida is False:
             consulta = consulta.join(Usuario)
             tabla_usuario_incluida = True
-        autor = request.form["autor"].lower()
-        consulta = consulta.filter(Usuario.email.contains(autor))
+        propietario = request.form["propietario"].lower()
+        consulta = consulta.filter(Usuario.email.contains(propietario))
     if "autoridad" in request.form:
         autoridad = safe_clave(request.form["autoridad"])
         if autoridad:
@@ -115,7 +119,7 @@ def datatable_json():
                     "id": resultado.id,
                     "url": url_for("ofi_documentos.detail", ofi_documento_id=resultado.id),
                 },
-                "autor": {
+                "propietario": {
                     "email": resultado.usuario.email,
                     "nombre": resultado.usuario.nombre,
                     "url": url_for("usuarios.detail", usuario_id=resultado.usuario.id),
@@ -252,6 +256,7 @@ def detail(ofi_documento_id):
         usuario_firmante = Usuario.query.get(ofi_documento.firma_simple_usuario_id)
     # Si el usuario que lo ve es un destinatario, se va a marcar como leído
     mostrar_boton_responder = False
+    platillas_opciones = None  # Si se va a responder, se van a consultar las plantillas
     if ofi_documento.estado == "ENVIADO":
         # Buscar al usuario entre los destinatarios
         usuario_destinatario = (
@@ -266,6 +271,17 @@ def detail(ofi_documento_id):
             usuario_destinatario.save()
         if usuario_destinatario is not None:
             mostrar_boton_responder = True
+            # Consultar las plantillas para responder
+            platillas_opciones = (
+                OfiPlantilla.query.join(Usuario)
+                .filter(Usuario.autoridad == current_user.autoridad)
+                .filter(OfiPlantilla.estatus == "A")
+                .filter(OfiPlantilla.esta_archivado == False)
+                .order_by(OfiPlantilla.descripcion)
+                .all()
+            )
+        if usuario_destinatario.con_copia:
+            mostrar_boton_responder = False
     # Mostrar botones según el rol
     mostrar_boton_otras_categorias = True
     mostrar_boton_firmar = False
@@ -299,10 +315,6 @@ def detail(ofi_documento_id):
         mostrar_boton_desarchivar = True
     if ofi_documento.estado == "ENVIADO" and ROL_FIRMANTE in roles:
         mostrar_boton_desarchivar = True
-    # Para mostrar el contenido del documento, se usa Syncfusion Document Editor con un formulario que NO se envía
-    form = OfiDocumentoNewForm()
-    form.descripcion.data = ofi_documento.descripcion
-    form.contenido_sfdt.data = ofi_documento.contenido_sfdt
     # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
     if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
         # Entregar detail_syncfusion_document.jinja2
@@ -310,7 +322,7 @@ def detail(ofi_documento_id):
             "ofi_documentos/detail_syncfusion_document.jinja2",
             ofi_documento=ofi_documento,
             usuario_firmante=usuario_firmante,
-            form=form,
+            platillas_opciones=platillas_opciones,
             mostrar_boton_responder=mostrar_boton_responder,
             mostrar_boton_firmar=mostrar_boton_firmar,
             mostrar_boton_editar=mostrar_boton_editar,
@@ -325,7 +337,7 @@ def detail(ofi_documento_id):
         "ofi_documentos/detail.jinja2",
         ofi_documento=ofi_documento,
         usuario_firmante=usuario_firmante,
-        form=form,
+        platillas_opciones=platillas_opciones,
         mostrar_boton_responder=mostrar_boton_responder,
         mostrar_boton_firmar=mostrar_boton_firmar,
         mostrar_boton_editar=mostrar_boton_editar,
@@ -393,6 +405,14 @@ def new(ofi_plantilla_id):
                 cadena_oficio_id=form.cadena_oficio_id.data if form.cadena_oficio_id.data else None,
             )
             ofi_documento.save()
+            # Si trae una cadena de oficio, copiar el destinatario propietario
+            if ofi_documento.cadena_oficio_id:
+                ofi_documento_responder = OfiDocumento.query.get(form.cadena_oficio_id.data)
+                if ofi_documento_responder:
+                    OfiDocumentoDestinatario(
+                        ofi_documento=ofi_documento,
+                        usuario=ofi_documento_responder.usuario,
+                    ).save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
@@ -784,18 +804,19 @@ def response(ofi_documento_id):
     if usuario_destinatario is None:
         flash("No eres detinatario de este oficio NO tienes permiso para responder", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
-    # TODO: Cambiar a mostrar un formulario donde se pueda escoger una plantilla
-    # Consultar la primer plantilla de su autoridad
-    ofi_plantilla = (
-        OfiPlantilla.query.join(Usuario)
-        .filter(Usuario.autoridad_id == current_user.autoridad_id)
-        .filter(OfiPlantilla.estatus == "A")
-        .filter(OfiPlantilla.esta_archivado == False)
-        .first()
-    )
-    if ofi_plantilla is None:
-        flash("No hay una plantilla para crear un oficio de respuesta", "warning")
-        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_id))
+    if usuario_destinatario.estatus != "A":
+        flash("No eres detinatario de este oficio NO tienes permiso para responder", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    if usuario_destinatario.con_copia:
+        flash("Eres destinatario con copia, NO tienes permiso para responder", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Si viene el id de la plantilla
+    ofi_plantilla = None
+    ofi_plantilla_id = request.args.get("plantilla_id")
+    if ofi_plantilla_id is not None:
+        ofi_plantilla_id = safe_uuid(ofi_plantilla_id)
+        if ofi_plantilla_id:
+            ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
     # Formulario
     form = OfiDocumentoNewForm()
     # Cargar los datos de la plantilla en el formulario

@@ -21,6 +21,7 @@
             {% call f.form_group(form.ofi_documento, readonly=true) %}{% endcall %}
             {% call f.form_group(form.usuario) %}{% endcall %}
             {% call f.form_group(form.con_copia) %}{% endcall %}
+            <p>Si indica enviar como copia, el destinatario no podrá responder.</p>
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}
     {% endcall %}

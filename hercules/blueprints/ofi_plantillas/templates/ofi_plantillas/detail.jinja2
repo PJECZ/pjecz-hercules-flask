@@ -25,9 +25,9 @@
     {% call detail.card(estatus=ofi_plantilla.estatus) %}
         {{ detail.label_value('Descripción', ofi_plantilla.descripcion) }}
         {% if current_user.can_view('USUARIOS')%}
-            {{ detail.label_value('Autor', ofi_plantilla.usuario.nombre, url_for('usuarios.detail', usuario_id=ofi_plantilla.usuario.id)) }}
+            {{ detail.label_value('Propietario', ofi_plantilla.usuario.nombre, url_for('usuarios.detail', usuario_id=ofi_plantilla.usuario.id)) }}
         {% else %}
-            {{ detail.label_value('Autor', ofi_plantilla.usuario.nombre) }}
+            {{ detail.label_value('Propietario', ofi_plantilla.usuario.nombre) }}
         {% endif %}
         {% if current_user.can_view('AUTORIDADES')%}
             {{ detail.label_value('Autoridad', ofi_plantilla.usuario.autoridad.clave, url_for('autoridades.detail', autoridad_id=ofi_plantilla.usuario.autoridad.id)) }}
