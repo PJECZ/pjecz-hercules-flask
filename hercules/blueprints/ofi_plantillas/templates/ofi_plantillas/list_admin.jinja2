@@ -27,13 +27,25 @@
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosPlantillas.buscar(); return false;">
-                    <div class="col-4">
+                    <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroId" type="text" class="form-control" aria-label="Id" style="text-transform: lowercase;">
                             <label for="filtroId">Id</label>
                         </div>
                     </div>
-                    <div class="col-6">
+                    <div class="col-3">
+                        <div class="form-floating">
+                            <input id="filtroAutor" type="text" class="form-control" aria-label="Autor" style="text-transform: uppercase;">
+                            <label for="filtroAutor">Autor</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroAutoridad" type="text" class="form-control" aria-label="Autoridad" style="text-transform: uppercase;">
+                            <label for="filtroAutoridad">Autoridad</label>
+                        </div>
+                    </div>
+                    <div class="col-3">
                         <div class="form-floating">
                             <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
                             <label for="filtroDescripcion">Descripción</label>
@@ -51,6 +63,8 @@
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Autor</th>
+                    <th>Autoridad</th>
                     <th>Descripción</th>
                     <th>Archivada</th>
                 </tr>
@@ -70,6 +84,8 @@
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
             { data: 'detalle' },
+            { data: 'autor' },
+            { data: 'autoridad' },
             { data: 'descripcion' },
             { data: 'esta_archivado' }
         ];
@@ -82,7 +98,25 @@
                 }
             },
             {
-                targets: 1, // descripcion
+                targets: 1, // autor
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.email.length > 16)
+                        return '<span title="' + data.nombre + '"><a href="' + data.url + '">' + data.email.substring(0, 16) + '…</a></span>';
+                    return data;
+                }
+            },
+            {
+                targets: 2, // autoridad
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.url == "" )
+                        return '<span title="' + data.nombre + '">' + data.clave + '</span>';
+                    return '<span title="' + data.nombre + '"><a href="' + data.url + '">' + data.clave + '</a></span>';
+                }
+            },
+            {
+                targets: 3, // descripcion
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data.length > 32)
@@ -91,7 +125,7 @@
                 }
             },
             {
-                targets: 2, // esta_archivado
+                targets: 4, // esta_archivado
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data) {
@@ -104,6 +138,8 @@
         // Filtros OfiPlantillas
         const filtrosPlantillas = new FiltrosDataTable('#ofi_plantillas_datatable', configDataTable);
         filtrosPlantillas.agregarInput('filtroId', 'id');
+        filtrosPlantillas.agregarInput('filtroAutor', 'autor');
+        filtrosPlantillas.agregarInput('filtroAutoridad', 'autoridad');
         filtrosPlantillas.agregarInput('filtroDescripcion', 'descripcion');
         filtrosPlantillas.precargar();
     </script>
