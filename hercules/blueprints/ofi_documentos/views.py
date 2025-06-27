@@ -269,7 +269,7 @@ def detail(ofi_documento_id):
             usuario_destinatario.fue_leido = True
             usuario_destinatario.fue_leido_tiempo = datetime.now()
             usuario_destinatario.save()
-        if usuario_destinatario is not None:
+        if usuario_destinatario is not None and usuario_destinatario.con_copia is False:
             mostrar_boton_responder = True
             # Consultar las plantillas para responder
             platillas_opciones = (
@@ -280,8 +280,6 @@ def detail(ofi_documento_id):
                 .order_by(OfiPlantilla.descripcion)
                 .all()
             )
-        if usuario_destinatario.con_copia:
-            mostrar_boton_responder = False
     # Mostrar botones según el rol
     mostrar_boton_otras_categorias = True
     mostrar_boton_firmar = False
