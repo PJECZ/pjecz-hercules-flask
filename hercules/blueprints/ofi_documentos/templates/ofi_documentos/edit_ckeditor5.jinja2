@@ -6,8 +6,8 @@
 
 {% block custom_head %}
     <!-- CKEditor 5 -->
-    <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/45.2.0/ckeditor5.css" crossorigin>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ckeditor5.css') }}">
+    <link rel="stylesheet" href="https://storage.googleapis.com/pjecz-informatica/static/css/ckeditor5-editor.css" crossorigin>
+    <link rel="stylesheet" href="https://storage.googleapis.com/pjecz-informatica/static/css/ckeditor5-justicia-digital-gob-mx.css">
 {% endblock %}
 
 {% block topbar_actions %}
@@ -42,9 +42,9 @@
     <!-- Marked -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- CKEditor 5 -->
-    <script src="https://cdn.ckeditor.com/ckeditor5/45.2.0/ckeditor5.umd.js" crossorigin></script>
-    <script src="https://cdn.ckeditor.com/ckeditor5/45.2.0/translations/es.umd.js" crossorigin></script>
-    <script src="{{ url_for('static', filename='js/ckeditor5.js') }}"></script>
+    <script src="https://storage.googleapis.com/pjecz-informatica/static/js/ckeditor5.umd.js" crossorigin></script>
+    <script src="https://storage.googleapis.com/pjecz-informatica/static/js/ckeditor5_translations/es.umd.js" crossorigin></script>
+    <script src="https://storage.googleapis.com/pjecz-informatica/static/js/ckeditor5-justicia-digital-gob-mx.js"></script>
     <script>
         // Obtener los elementos del formulario y del componente
         const editorElement = document.getElementById('editor');
@@ -57,7 +57,6 @@
             .create(editorElement, editorConfig)
             .then( editor => {
                 ckEditorInstance = editor;
-                console.log('editor inicializado');
                 editor.setData(contenidoMdTextArea.value); // Al inicializar copiamos el contenido
             })
             .catch( error => {
