@@ -66,7 +66,7 @@ def get_secret(secret_id: str) -> str:
 
     # If not in google cloud, return environment variable
     if PROJECT_ID == "":
-        return os.getenv(secret_id.upper(), "")
+        return os.getenv(secret_id.upper().strip(), "")
 
     # Create the secret manager client
     client = secretmanager.SecretManagerServiceClient()
@@ -79,7 +79,7 @@ def get_secret(secret_id: str) -> str:
     response = client.access_secret_version(name=name)
 
     # Return the decoded payload
-    return response.payload.data.decode("UTF-8")
+    return response.payload.data.decode("UTF-8").strip()
 
 
 class Settings(BaseSettings):
