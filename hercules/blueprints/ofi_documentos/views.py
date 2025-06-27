@@ -390,6 +390,13 @@ def new(ofi_plantilla_id):
         if vencimiento_fecha is not None and vencimiento_fecha < datetime.now().date():
             flash("La fecha de vencimiento no puede ser anterior a la fecha actual", "warning")
             es_valido = False
+        # Validar que el oficio cadena exista
+        ofi_documento_responder = None
+        if form.cadena_oficio_id.data:
+            ofi_documento_responder = OfiDocumento.query.get(form.cadena_oficio_id.data)
+            if ofi_documento_responder is None:
+                flash("El oficio cadena no existe", "warning")
+                es_valido = False
         if es_valido:
             ofi_documento = OfiDocumento(
                 usuario=current_user,
@@ -406,13 +413,11 @@ def new(ofi_plantilla_id):
             )
             ofi_documento.save()
             # Si trae una cadena de oficio, copiar el destinatario propietario
-            if ofi_documento.cadena_oficio_id:
-                ofi_documento_responder = OfiDocumento.query.get(form.cadena_oficio_id.data)
-                if ofi_documento_responder:
-                    OfiDocumentoDestinatario(
-                        ofi_documento=ofi_documento,
-                        usuario=ofi_documento_responder.usuario,
-                    ).save()
+            if ofi_documento_responder:
+                OfiDocumentoDestinatario(
+                    ofi_documento=ofi_documento,
+                    usuario=ofi_documento_responder.usuario,
+                ).save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
