@@ -90,6 +90,7 @@
             </div>
         {% endif %}
         {# Inicia Contenido HTML #}
+        <hr />
         {% if ofi_documento.contenido_html %}
             {{ ofi_documento.contenido_html | safe }}
         {% else %}
@@ -97,6 +98,7 @@
                 <strong>Aviso:</strong> Este oficio no tiene contenido HTML.
             </div>
         {% endif %}
+        <hr />
         {# Termina Contenido HTML #}
         {# Botones de acción en estado BORRADOR #}
         {% if ofi_documento.estado == "BORRADOR" and not ofi_documento.esta_cancelado and not ofi_documento.esta_archivado %}
