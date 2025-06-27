@@ -405,6 +405,14 @@ def new(ofi_plantilla_id):
                 cadena_oficio_id=form.cadena_oficio_id.data if form.cadena_oficio_id.data else None,
             )
             ofi_documento.save()
+            # Si trae una cadena de oficio, copiar el destinatario propietario
+            if ofi_documento.cadena_oficio_id:
+                ofi_documento_responder = OfiDocumento.query.get(form.cadena_oficio_id.data)
+                if ofi_documento_responder:
+                    OfiDocumentoDestinatario(
+                        ofi_documento=ofi_documento,
+                        usuario=ofi_documento_responder.usuario,
+                    ).save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
