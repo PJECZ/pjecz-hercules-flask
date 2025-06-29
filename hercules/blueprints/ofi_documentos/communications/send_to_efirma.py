@@ -1,5 +1,5 @@
 """
-Communications, enviar al motor de firma electrónica para crear un archivo PDF con firma electrónica avanzada
+Communications, enviar al motor de firma electrónica
 """
 
 import requests
@@ -17,7 +17,7 @@ TIMEOUT = 60  # segundos
 
 
 def enviar_a_efirma(ofi_documento_id: int) -> tuple[str, str, str]:
-    """Enviar al motor de firma electrónica para crear un archivo PDF con firma electrónica avanzada"""
+    """Enviar al motor de firma electrónica"""
     mensajes = []
     mensaje_info = "Inicia enviar al motor de firma electrónica."
     mensajes.append(mensaje_info)

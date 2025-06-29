@@ -1,5 +1,5 @@
 """
-Communications, enviar a Whatsapp para enviar un mensaje
+Communications, enviar un mensaje por WhatsApp
 """
 
 import requests
@@ -17,14 +17,14 @@ TIMEOUT = 60  # segundos
 
 
 def enviar_a_whatsapp(ofi_documento_id: int) -> tuple[str, str, str]:
-    """Enviar a Whatsapp para enviar un mensaje"""
+    """Enviar un mensaje por WhatsApp"""
     mensajes = []
-    mensaje_info = "Inicia enviar a Whatsapp."
+    mensaje_info = "Inicia enviar un mensaje por WhatsApp."
     mensajes.append(mensaje_info)
     bitacora.info(mensaje_info)
 
     # Elaborar mensaje_termino
-    mensaje_termino = f"Termina enviar a Whatsapp."
+    mensaje_termino = f"Termina enviar un mensaje por WhatsApp."
     mensajes.append(mensaje_termino)
     bitacora.info(mensaje_termino)
 
