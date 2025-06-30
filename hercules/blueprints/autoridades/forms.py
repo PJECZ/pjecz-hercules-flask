@@ -4,7 +4,7 @@ Autoridades, formularios
 
 from flask import current_app
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, IntegerField, SelectField, StringField, SubmitField
+from wtforms import BooleanField, IntegerField, SelectField, StringField, SubmitField, ColorField
 from wtforms.validators import DataRequired, Length, NumberRange, Optional, Regexp
 
 from hercules.blueprints.autoridades.models import Autoridad
@@ -86,6 +86,10 @@ class AutoridadEditForm(FlaskForm):
     directorio_listas_de_acuerdos = StringField("Directorio para listas de acuerdos")  # Read only
     directorio_sentencias = StringField("Directorio para sentencias")  # Read only
     limite_dias_listas_de_acuerdos = IntegerField("Límite días para listas de acuerdos", validators=[NumberRange(0, 365)])
+    pagina_cabecera_url = StringField("URL imagen página cabecera")
+    pagina_pie_url = StringField("URL imagen página pie")
+    tabla_renglon_color = ColorField("Color renglon tabla")
+    tablero_icono = StringField("Icono tablero")
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
