@@ -74,6 +74,9 @@ class OfiDocumento(database.Model, UniversalMixin):
     firma_avanzada_cancelo_motivo: Mapped[Optional[str]] = mapped_column(String(256))
     firma_avanzada_cancelo_error: Mapped[Optional[str]] = mapped_column(String(512))
 
+    # Columna para el archivo PDF en Google Cloud Storage, se genera al firmar el documento
+    archivo_pdf_url: Mapped[Optional[str]] = mapped_column(String(512))
+
     # Hijos
     ofi_documentos_adjuntos: Mapped[List["OfiDocumentoAdjunto"]] = relationship(back_populates="ofi_documento")
     ofi_documentos_destinatarios: Mapped[List["OfiDocumentoDestinatario"]] = relationship(back_populates="ofi_documento")
