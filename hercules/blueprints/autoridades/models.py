@@ -2,7 +2,7 @@
 Autoridad
 """
 
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy import Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -85,9 +85,11 @@ class Autoridad(database.Model, UniversalMixin):
         default="NO DEFINIDO",
     )
     limite_dias_listas_de_acuerdos: Mapped[int] = mapped_column(default=0)
-    sede: Mapped[str] = mapped_column(
-        Enum(*SEDES, name="autoridades_sedes", native_enum=False), index=True
-    )  # Clave del distrito judicial geografico
+    sede: Mapped[str] = mapped_column(Enum(*SEDES, name="autoridades_sedes", native_enum=False), index=True)
+    pagina_cabecera_url: Mapped[Optional[str]]
+    pagina_pie_url: Mapped[Optional[str]]
+    tabla_renglon_color: Mapped[Optional[str]]
+    tablero_icono: Mapped[Optional[str]]
 
     # Hijos
     arc_documentos: Mapped[List["ArcDocumento"]] = relationship(back_populates="autoridad")
