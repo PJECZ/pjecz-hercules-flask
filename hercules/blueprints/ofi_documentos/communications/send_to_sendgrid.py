@@ -40,11 +40,11 @@ def enviar_a_sendgrid(ofi_documento_id: int) -> tuple[str, str, str]:
     mensajes.append(mensaje_info)
     bitacora.info(mensaje_info)
 
-    # TODO: Validar que esté definida la variable de entorno SENDGRID_API_KEY
+    # Validar que esté definida la variable de entorno SENDGRID_API_KEY
     if not SENDGRID_API_KEY:
         raise MyMissingConfigurationError("La variable de entorno SENDGRID_API_KEY no está definida")
 
-    # TODO: Validar que esté definida la variable de entorno SENDGRID_FROM_EMAIL
+    # Validar que esté definida la variable de entorno SENDGRID_FROM_EMAIL
     if not SENDGRID_FROM_EMAIL:
         raise MyMissingConfigurationError("La variable de entorno SENDGRID_FROM_EMAIL no está definida")
 
@@ -59,6 +59,10 @@ def enviar_a_sendgrid(ofi_documento_id: int) -> tuple[str, str, str]:
     # Validar el estatus, que no esté eliminado
     if ofi_documento.estatus != "A":
         raise MyIsDeletedError("El oficio está eliminado")
+
+    # Validar que el estado sea ENVIADO
+    if ofi_documento.estado != "ENVIADO":
+        raise MyNotValidParamError("El oficio no está en estado ENVIADO")
 
     # Consultar los destinatarios
     ofi_destinatarios = (
