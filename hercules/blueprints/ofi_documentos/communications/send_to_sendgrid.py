@@ -33,7 +33,7 @@ database.app = app
 TIMEOUT = 60  # segundos
 
 
-def enviar_a_sendgrid(ofi_documento_id: int) -> tuple[str, str, str]:
+def enviar_a_sendgrid(ofi_documento_id: str) -> tuple[str, str, str]:
     """Enviar un mensaje por Sendgrid"""
     mensajes = []
     mensaje_info = f"Inicia enviar un mensaje por Sendgrid el oficio {ofi_documento_id}"
@@ -60,7 +60,7 @@ def enviar_a_sendgrid(ofi_documento_id: int) -> tuple[str, str, str]:
     if ofi_documento.estatus != "A":
         raise MyIsDeletedError("El oficio está eliminado")
 
-    # Validar que el estado sea ENVIADO
+    # Validar que el estado NO sea ENVIADO
     if ofi_documento.estado != "ENVIADO":
         raise MyNotValidParamError("El oficio no está en estado ENVIADO")
 

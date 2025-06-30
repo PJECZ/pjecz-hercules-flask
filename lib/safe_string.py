@@ -266,5 +266,5 @@ def safe_uuid(input_str: str) -> str:
     try:
         uuid.UUID(input_str)
         return input_str
-    except ValueError:
-        return ""
+    except ValueError as error:
+        raise error

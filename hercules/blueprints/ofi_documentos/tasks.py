@@ -11,7 +11,7 @@ from lib.exceptions import MyAnyError
 from lib.tasks import set_task_error, set_task_progress
 
 
-def lanzar_enviar_a_efirma(ofi_documento_id: int) -> str:
+def lanzar_enviar_a_efirma(ofi_documento_id: str) -> str:
     """Lanzar tarea en el fondo para enviar al motor de firma electrónica"""
     # Iniciar la tarea en el fondo
     set_task_progress(0, "Se ha lanzado la tarea en el fondo enviar al motor de firma electrónica")
@@ -32,7 +32,7 @@ def lanzar_enviar_a_efirma(ofi_documento_id: int) -> str:
     return mensaje_termino
 
 
-def lanzar_enviar_a_gemini(ofi_documento_id: int) -> str:
+def lanzar_enviar_a_gemini(ofi_documento_id: str) -> str:
     """Lanzar tarea en el fondo para enviar contenido a Gemini"""
     # Iniciar la tarea en el fondo
     set_task_progress(0, "Se ha lanzado la tarea en el fondo para enviar contenido a Gemini")
@@ -53,7 +53,7 @@ def lanzar_enviar_a_gemini(ofi_documento_id: int) -> str:
     return mensaje_termino
 
 
-def lanzar_enviar_a_sendgrid(ofi_documento_id: int) -> str:
+def lanzar_enviar_a_sendgrid(ofi_documento_id: str) -> str:
     """Lanzar tarea en el fondo para enviar un mensaje por Sendgrid"""
     # Iniciar la tarea en el fondo
     set_task_progress(0, "Se ha lanzado la tarea en el fondo para enviar un mensaje por Sendgrid")
@@ -74,7 +74,7 @@ def lanzar_enviar_a_sendgrid(ofi_documento_id: int) -> str:
     return mensaje_termino
 
 
-def lanzar_enviar_a_whatsapp(ofi_documento_id: int) -> str:
+def lanzar_enviar_a_whatsapp(ofi_documento_id: str) -> str:
     """Lanzar tarea en el fondo para enviar un mensaje por WhatsApp"""
     # Iniciar la tarea en el fondo
     set_task_progress(0, "Se ha lanzado la tarea en el fondo para enviar un mensaje por WhatsApp")
@@ -95,7 +95,7 @@ def lanzar_enviar_a_whatsapp(ofi_documento_id: int) -> str:
     return mensaje_termino
 
 
-def lanzar_convertir_a_pdf(ofi_documento_id: int) -> str:
+def lanzar_convertir_a_pdf(ofi_documento_id: str) -> str:
     """Lanzar tarea en el fondo para convertir a PDF"""
     # Iniciar la tarea en el fondo
     set_task_progress(0, "Se ha lanzado la tarea en el fondo para convertir a PDF")
