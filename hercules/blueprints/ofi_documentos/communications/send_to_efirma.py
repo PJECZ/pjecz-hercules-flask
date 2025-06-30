@@ -18,7 +18,7 @@ database.app = app
 TIMEOUT = 60  # segundos
 
 
-def enviar_a_efirma(ofi_documento_id: int) -> tuple[str, str, str]:
+def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
     """Enviar al motor de firma electrónica"""
     mensajes = []
     mensaje_info = f"Inicia enviar al motor de firma electrónica el oficio {ofi_documento_id}"

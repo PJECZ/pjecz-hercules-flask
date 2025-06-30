@@ -18,7 +18,7 @@ database.app = app
 TIMEOUT = 60  # segundos
 
 
-def enviar_a_whatsapp(ofi_documento_id: int) -> tuple[str, str, str]:
+def enviar_a_whatsapp(ofi_documento_id: str) -> tuple[str, str, str]:
     """Enviar un mensaje por WhatsApp"""
     mensajes = []
     mensaje_info = f"Inicia enviar un mensaje por WhatsApp el oficio {ofi_documento_id}"

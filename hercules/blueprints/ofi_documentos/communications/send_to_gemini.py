@@ -18,7 +18,7 @@ database.app = app
 TIMEOUT = 60  # segundos
 
 
-def enviar_a_gemini(ofi_documento_id: int) -> tuple[str, str, str]:
+def enviar_a_gemini(ofi_documento_id: str) -> tuple[str, str, str]:
     """Enviar contenido a Gemini"""
     mensajes = []
     mensaje_info = f"Inicia enviar contenido a Gemini el oficio {ofi_documento_id}"
