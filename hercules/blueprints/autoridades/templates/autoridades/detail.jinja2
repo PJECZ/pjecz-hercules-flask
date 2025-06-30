@@ -49,6 +49,34 @@
                 {{ detail.label_value_boolean('Es revisor de escrituras', autoridad.es_revisor_escrituras) }}
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-12">
+                {{ detail.label_value('URL de la página de cabecera', autoridad.pagina_cabecera_url) }}
+                {{ detail.label_value('URL de la página de pie', autoridad.pagina_pie_url) }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                {% if autoridad.tablero_icono %}
+                <div class="row">
+                    <div class="col-md-3 text-end">Icono</div>
+                    <div class="col-md-9">   
+                        <strong>{{autoridad.tablero_icono}}</strong> <span class="iconify" data-icon="{{autoridad.tablero_icono}}"></span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                {% if autoridad.tabla_renglon_color %}
+                <div class="row">
+                    <div class="col-md-3 text-end">Color</div>
+                    <div class="col-md-9">   
+                        <strong>{{autoridad.tabla_renglon_color}}</strong> <span class="iconify" data-icon="mdi:square" style="color: {{autoridad.tabla_renglon_color}};"></span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
     {% endcall %}
     {% if autoridad.es_jurisdiccional and not autoridad.es_notaria %}
         <div class="row">

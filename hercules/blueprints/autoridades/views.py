@@ -246,11 +246,15 @@ def edit(autoridad_id):
             autoridad.es_revisor_escrituras = form.es_revisor_escrituras.data
             autoridad.organo_jurisdiccional = form.organo_jurisdiccional.data
             autoridad.sede = form.sede.data
-            autoridad.directorio_edictos = (directorio_edictos,)
-            autoridad.directorio_glosas = (directorio_glosas,)
-            autoridad.directorio_listas_de_acuerdos = (directorio_listas_de_acuerdos,)
-            autoridad.directorio_sentencias = (directorio_sentencias,)
+            autoridad.directorio_edictos = directorio_edictos
+            autoridad.directorio_glosas = directorio_glosas
+            autoridad.directorio_listas_de_acuerdos = directorio_listas_de_acuerdos
+            autoridad.directorio_sentencias = directorio_sentencias
             autoridad.limite_dias_listas_de_acuerdos = form.limite_dias_listas_de_acuerdos.data
+            autoridad.pagina_cabecera_url = form.pagina_cabecera_url.data
+            autoridad.pagina_pie_url = form.pagina_pie_url.data
+            autoridad.tabla_renglon_color = form.tabla_renglon_color.data
+            autoridad.tablero_icono = form.tablero_icono.data
             autoridad.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -284,6 +288,10 @@ def edit(autoridad_id):
     form.directorio_listas_de_acuerdos.data = autoridad.directorio_listas_de_acuerdos
     form.directorio_sentencias.data = autoridad.directorio_sentencias
     form.limite_dias_listas_de_acuerdos.data = autoridad.limite_dias_listas_de_acuerdos
+    form.pagina_cabecera_url.data = autoridad.pagina_cabecera_url
+    form.pagina_pie_url.data = autoridad.pagina_pie_url
+    form.tabla_renglon_color.data = autoridad.tabla_renglon_color
+    form.tablero_icono.data = autoridad.tablero_icono
     return render_template("autoridades/edit.jinja2", form=form, autoridad=autoridad)
 
 
