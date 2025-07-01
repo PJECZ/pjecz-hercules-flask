@@ -724,10 +724,6 @@ def cancel(ofi_documento_id):
     if ofi_documento.esta_cancelado is True:
         flash("El oficio ya está caneclado", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-    # Validar que NO esté enviado
-    if ofi_documento.estado == "ENVIADO":
-        flash("El oficio ya está enviado, no puede ser cancelado", "warning")
-        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
     # Actualizar esta_cancelado a verdadero
     ofi_documento.esta_cancelado = True
     ofi_documento.save()
