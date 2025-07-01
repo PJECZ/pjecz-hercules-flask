@@ -91,6 +91,20 @@
                     {% endif %}
                     {{ detail.label_value('Firma guardada', ofi_documento.firma_simple) }}
                     {{ detail.label_value('Firma al vuelo ', ofi_documento.elaborar_hash()) }}
+                    {% if ofi_documento.firma_simple %}
+                    <div class="row">
+                        <div class="col-md-3 text-end">Integridad</div>
+                        {% if ofi_documento.firma_simple == ofi_documento.elaborar_hash() %}
+                            <div class="col-md-9">
+                                <span class="badge rounded-pill bg-success">VALIDO <span class="iconify" data-icon="mdi:shield-check">></span></span>
+                            </div>
+                        {% else %}
+                            <div class="col-md-9">
+                                <span class="badge rounded-pill bg-danger">CORRUPTO <span class="iconify" data-icon="mdi:alert-octagon"></span>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
                 {% endif %}
             </div>
         </div>
