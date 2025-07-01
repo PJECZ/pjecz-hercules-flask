@@ -152,7 +152,7 @@
             </div>
         {% endif %}
         {# Botones de acción en CANCELADO #}
-        {% if ofi_documento.esta_cancelado %}
+        {% if ofi_documento.esta_cancelado and current_user == ofi_documento.usuario %}
             <div class="row">
                 <div class="col-md-6">
                 </div>
