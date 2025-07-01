@@ -81,13 +81,13 @@ class OfiDocumento(database.Model, UniversalMixin):
     ofi_documentos_adjuntos: Mapped[List["OfiDocumentoAdjunto"]] = relationship(back_populates="ofi_documento")
     ofi_documentos_destinatarios: Mapped[List["OfiDocumentoDestinatario"]] = relationship(back_populates="ofi_documento")
 
-    def elaborar_firma(self):
+    def elaborar_hash(self):
         """Generate a hash representing the current sample state"""
         elementos = []
         elementos.append(str(self.id))
-        elementos.append(self.descripcion)
-        elementos.append(str(self.folio))
-        elementos.append(str(self.contenido_sfdt))
+        elementos.append(str(self.folio_num))
+        elementos.append(str(self.folio_anio))
+        elementos.append(str(self.contenido_html))
         return hashlib.md5("|".join(elementos).encode("utf-8")).hexdigest()
 
     def __repr__(self):

@@ -30,65 +30,70 @@
 
 {% block content %}
     {% call detail.card(estatus=ofi_documento.estatus) %}
-        {{ detail.label_value('Descripción', ofi_documento.descripcion) }}
-        {{ detail.label_value('Folio', ofi_documento.folio) }}
-        {{ detail.label_value('Fecha de vencimiento', ofi_documento.vencimiento_fecha) }}
-        {% if current_user.can_view('USUARIOS') %}
-            {{ detail.label_value('Propietario', ofi_documento.usuario.nombre,  url_for("usuarios.detail", usuario_id=ofi_documento.usuario.id)) }}
-        {% else %}
-            {{ detail.label_value('Propietario', ofi_documento.usuario.nombre) }}
-        {% endif %}
-            {% if ofi_documento.cadena_oficio_id %}
-                {{ detail.label_value('En respuesta al oficio', ofi_documento.cadena_oficio_id, url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.cadena_oficio_id)) }}
-        {% endif %}
-        {# detail.label_value('Creado', moment(ofi_documento.creado, local=False).format('DD MMM YYYY HH:mm')) #}
-        {# detail.label_value('Modificado', moment(ofi_documento.modificado, local=False).format('DD MMM YYYY HH:mm')) #}
         <div class="row">
-            <div class="col-md-3 text-end">Estado</div>
-            <div class="col-md-9">
-                {% if ofi_documento.estado == "BORRADOR" %}
-                    <span class="badge rounded-pill bg-warning text-dark">{{ ofi_documento.estado }}</span>
-                {% elif ofi_documento.estado == "FIRMADO" %}
-                    <span class="badge rounded-pill bg-success">{{ ofi_documento.estado }}</span>
-                {% elif ofi_documento.estado == "ENVIADO" %}
-                    <span class="badge rounded-pill bg-primary">{{ ofi_documento.estado }}</span>
-                {% elif ofi_documento.estado == "CANCELADO" %}
-                    <span class="badge rounded-pill bg-danger">{{ ofi_documento.estado }}</span>
+            <div class="col-md-6">
+                {{ detail.label_value('Descripción', ofi_documento.descripcion) }}
+                {{ detail.label_value('Folio', ofi_documento.folio) }}
+                {{ detail.label_value('Fecha de vencimiento', ofi_documento.vencimiento_fecha) }}
+                {% if current_user.can_view('USUARIOS') %}
+                    {{ detail.label_value('Propietario', ofi_documento.usuario.nombre,  url_for("usuarios.detail", usuario_id=ofi_documento.usuario.id)) }}
                 {% else %}
-                    <strong>{{ ofi_documento.estado }}</strong>
+                    {{ detail.label_value('Propietario', ofi_documento.usuario.nombre) }}
+                {% endif %}
+                {% if ofi_documento.cadena_oficio_id %}
+                    {{ detail.label_value('En respuesta al oficio', ofi_documento.cadena_oficio_id, url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.cadena_oficio_id)) }}
+                {% endif %}
+                <div class="row">
+                    <div class="col-md-3 text-end">Estado</div>
+                    <div class="col-md-9">
+                        {% if ofi_documento.estado == "BORRADOR" %}
+                            <span class="badge rounded-pill bg-warning text-dark">{{ ofi_documento.estado }}</span>
+                        {% elif ofi_documento.estado == "FIRMADO" %}
+                            <span class="badge rounded-pill bg-success">{{ ofi_documento.estado }}</span>
+                        {% elif ofi_documento.estado == "ENVIADO" %}
+                            <span class="badge rounded-pill bg-primary">{{ ofi_documento.estado }}</span>
+                        {% elif ofi_documento.estado == "CANCELADO" %}
+                            <span class="badge rounded-pill bg-danger">{{ ofi_documento.estado }}</span>
+                        {% else %}
+                            <strong>{{ ofi_documento.estado }}</strong>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if ofi_documento.enviado_tiempo %}
+                    {{ detail.label_value('Fecha de envío', moment(ofi_documento.enviado_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
+                {% endif %}
+                {% if ofi_documento.esta_cancelado %}
+                    <div class="row">
+                        <div class="col-md-3 text-end">Cancelado</div>
+                        <div class="col-md-9">
+                            <span class="badge rounded-pill bg-danger">CANCELADO</span>
+                        </div>
+                    </div>
+                {% endif %}
+                {% if ofi_documento.esta_archivado %}
+                    <div class="row">
+                        <div class="col-md-3 text-end">Archivado</div>
+                        <div class="col-md-9">
+                                <span class="badge rounded-pill bg-secondary">ARCHIVADO</span>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                {% if ofi_documento.firma_simple %}
+                    {{ detail.label_value('Fecha', moment(ofi_documento.firma_simple_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
+                    {% if usuario_firmante %}
+                        {% if current_user.can_view('USUARIOS') %}
+                            {{ detail.label_value('Firmante', usuario_firmante.nombre, url_for("usuarios.detail", usuario_id=usuario_firmante.id)) }}
+                        {% else %}
+                            {{ detail.label_value('Firmante', usuario_firmante.nombre) }}
+                        {% endif %}
+                    {% endif %}
+                    {{ detail.label_value('Firma guardada', ofi_documento.firma_simple) }}
+                    {{ detail.label_value('Firma al vuelo ', ofi_documento.elaborar_hash()) }}
                 {% endif %}
             </div>
         </div>
-        {% if ofi_documento.esta_cancelado %}
-            <div class="row">
-                <div class="col-md-3 text-end">Cancelado</div>
-                <div class="col-md-9">
-                        <span class="badge rounded-pill bg-danger">CANCELADO</span>
-                </div>
-            </div>
-        {% endif %}
-        {{ detail.label_value('Firma Simple', ofi_documento.firma_simple) }}
-        {% if ofi_documento.firma_simple_tiempo %}
-            {{ detail.label_value('Fecha de firmado simple', moment(ofi_documento.firma_simple_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
-        {% endif %}
-        {% if usuario_firmante %}
-            {% if current_user.can_view('USUARIOS') %}
-                {{ detail.label_value('Firmado por', usuario_firmante.nombre, url_for("usuarios.detail", usuario_id=usuario_firmante.id)) }}
-            {% else %}
-                {{ detail.label_value('Firmado por', usuario_firmante.nombre) }}
-            {% endif %}
-        {% endif %}
-        {% if ofi_documento.enviado_tiempo %}
-            {{ detail.label_value('Enviado el día', moment(ofi_documento.enviado_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
-        {% endif %}
-        {% if ofi_documento.esta_archivado %}
-            <div class="row">
-                <div class="col-md-3 text-end">Archivado</div>
-                <div class="col-md-9">
-                        <span class="badge rounded-pill bg-secondary">ARCHIVADO</span>
-                </div>
-            </div>
-        {% endif %}
         {# Inicia Contenido HTML #}
         <hr />
         {% if ofi_documento.contenido_html %}
@@ -159,7 +164,7 @@
                                 {% for plantilla in platillas_opciones %}
                                     <option value="{{plantilla.id}}">{{plantilla.descripcion | truncate(32)}}</option>
                                 {% endfor %}
-                            </select>                       
+                            </select>
                          </div>
                         <div class="col-auto">
                             <button type="submit" class="btn btn-primary mb-3"><span class="iconify" data-icon="mdi:email-sync-outline"></span> Responder</button>
