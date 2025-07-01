@@ -26,7 +26,7 @@ app.app_context().push()
 database.app = app
 
 
-def convertir_a_pdf(ofi_documento_id: int) -> tuple[str, str, str]:
+def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
     """Convertir a PDF"""
     mensajes = []
     mensaje_info = "Inicia convertir a PDF."
@@ -58,7 +58,7 @@ def convertir_a_pdf(ofi_documento_id: int) -> tuple[str, str, str]:
         raise MyIsDeletedError(error)
 
     # Validar que el estado sea FIRMADO
-    if ofi_documento.estado != "FIRMADO":
+    if ofi_documento.estado not in ["FIRMADO", "ENVIADO"]:
         error = "El oficio no está en estado FIRMADO"
         bitacora.error(error)
         raise MyNotValidParamError(error)
@@ -81,7 +81,8 @@ def convertir_a_pdf(ofi_documento_id: int) -> tuple[str, str, str]:
     contenidos.append("<head>")
 
     # Agregar tag style con el CSS para definir la hoja tamaño carta, la cabecera, el contenido y el pie de página
-    contenidos.append("""
+    contenidos.append(
+        """
         <style>
             @page {
                 size: letter portrait; /* La hoja carta mide 612pt x 792pt */
@@ -101,7 +102,8 @@ def convertir_a_pdf(ofi_documento_id: int) -> tuple[str, str, str]:
                 }
             }
         </style>
-    """)
+    """
+    )
 
     # Agregar el cierre del tag head e iniciar el tag body
     contenidos.append("</head>")
@@ -158,7 +160,7 @@ def convertir_a_pdf(ofi_documento_id: int) -> tuple[str, str, str]:
     ofi_documento.save()
 
     # Elaborar mensaje_termino
-    mensaje_termino = f"Termina convertir a PDF."
+    mensaje_termino = "Termina convertir a PDF."
     mensajes.append(mensaje_termino)
     bitacora.info(mensaje_termino)
 

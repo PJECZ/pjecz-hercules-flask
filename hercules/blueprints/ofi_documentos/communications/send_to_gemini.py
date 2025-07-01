@@ -38,7 +38,7 @@ def enviar_a_gemini(ofi_documento_id: str) -> tuple[str, str, str]:
         raise MyIsDeletedError("El oficio está eliminado")
 
     # Elaborar mensaje_termino
-    mensaje_termino = f"Termina enviar contenido a Gemini."
+    mensaje_termino = "Termina enviar contenido a Gemini."
     mensajes.append(mensaje_termino)
     bitacora.info(mensaje_termino)
 

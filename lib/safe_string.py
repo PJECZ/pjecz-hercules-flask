@@ -263,8 +263,9 @@ def safe_url(input_str):
 
 def safe_uuid(input_str: str) -> str:
     """Safe UUID"""
+    input_str = input_str.strip()
     try:
         uuid.UUID(input_str)
         return input_str
     except ValueError as error:
-        raise error
+        return ""

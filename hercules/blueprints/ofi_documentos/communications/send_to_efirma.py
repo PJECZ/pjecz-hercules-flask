@@ -38,7 +38,7 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
         raise MyIsDeletedError("El oficio está eliminado")
 
     # Elaborar mensaje_termino
-    mensaje_termino = f"Termina enviar al motor de firma electrónica."
+    mensaje_termino = "Termina enviar al motor de firma electrónica."
     mensajes.append(mensaje_termino)
     bitacora.info(mensaje_termino)
 
