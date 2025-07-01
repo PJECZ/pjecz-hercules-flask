@@ -595,7 +595,7 @@ def sign(ofi_documento_id):
             ofi_documento.estado = "FIRMADO"
             ofi_documento.firma_simple_usuario_id = current_user.id
             ofi_documento.firma_simple_tiempo = datetime.now()
-            ofi_documento.firma_simple = OfiDocumento.elaborar_firma(ofi_documento)
+            ofi_documento.firma_simple = OfiDocumento.elaborar_hash(ofi_documento)
             ofi_documento.save()
             # Lanzar la tarea en el fondo para convertir a archivo PDF
             current_user.launch_task(
