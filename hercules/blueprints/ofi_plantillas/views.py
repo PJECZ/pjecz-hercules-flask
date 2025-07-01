@@ -85,6 +85,7 @@ def datatable_json():
                 "detalle": {
                     "id": resultado.id,
                     "url": url_for("ofi_plantillas.detail", ofi_plantilla_id=resultado.id),
+                    "url_nuevo": url_for("ofi_documentos.new", ofi_plantilla_id=resultado.id),
                 },
                 "propietario": {
                     "email": resultado.usuario.email,
