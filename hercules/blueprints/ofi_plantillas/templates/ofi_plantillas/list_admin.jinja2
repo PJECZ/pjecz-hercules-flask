@@ -94,7 +94,7 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.id.substring(0, 8) + '</a> <a href="' + data.url_nuevo + '"><span class="iconify" data-icon="mdi:file-document-plus"></span></a>';
+                    return '<a class="btn btn-outline-primary btn-sm" href="' + data.url_nuevo + '"><span class="iconify" data-icon="mdi:file-document-plus"></span></a> <a href="' + data.url + '">' + data.id.substring(0, 8) + '</a>';
                 }
             },
             {
