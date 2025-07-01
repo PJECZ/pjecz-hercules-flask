@@ -134,16 +134,17 @@ def datatable_json():
                         if current_user.can_view("AUTORIDADES")
                         else ""
                     ),
+                    "icono": resultado.usuario.autoridad.tablero_icono if resultado.usuario.autoridad.tablero_icono else "",
                 },
                 "folio": resultado.folio,
                 "vencimiento": vencimiento,
                 "descripcion": resultado.descripcion,
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
                 "estado": resultado.estado,
-                "iconos": {
-                    "archivado": resultado.esta_archivado,
-                    "cancelado": resultado.esta_cancelado,
-                },
+                "cancelado": resultado.esta_cancelado,
+                "color_renglon_autoridad": (
+                    resultado.usuario.autoridad.tabla_renglon_color if resultado.usuario.autoridad.tabla_renglon_color else ""
+                ),
             }
         )
     # Entregar JSON

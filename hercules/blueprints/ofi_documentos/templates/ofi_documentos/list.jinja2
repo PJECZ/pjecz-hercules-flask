@@ -127,8 +127,8 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data.url == "" )
-                        return '<span title="' + data.nombre + '">' + data.clave + '</span>';
-                    return '<span title="' + data.nombre + '"><a href="' + data.url + '">' + data.clave + '</a></span>';
+                        return '<span class="iconify" data-icon="' + data.icono + '"></span> <span title="' + data.nombre + '">' + data.clave + '</span>';
+                    return '<span class="iconify" data-icon="' + data.icono + '"></span> <span title="' + data.nombre + '"><a href="' + data.url + '">' + data.clave + '</a></span>';
                 }
             },
             {
@@ -157,7 +157,10 @@
         ];
         // Colorear renglones
         configDataTable['rowCallback'] = function( row, data )  {
-            if (data.iconos.cancelado)    {
+            if (data.color_renglon_autoridad)   {
+                $(row).css("background-color", data.color_renglon_autoridad);
+            }
+            if (data.cancelado)    {
                 $(row).css("background-color", "#eceff1");
             }
         };
