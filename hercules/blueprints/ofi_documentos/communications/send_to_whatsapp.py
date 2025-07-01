@@ -38,7 +38,7 @@ def enviar_a_whatsapp(ofi_documento_id: str) -> tuple[str, str, str]:
         raise MyIsDeletedError("El oficio está eliminado")
 
     # Elaborar mensaje_termino
-    mensaje_termino = f"Termina enviar un mensaje por WhatsApp."
+    mensaje_termino = "Termina enviar un mensaje por WhatsApp."
     mensajes.append(mensaje_termino)
     bitacora.info(mensaje_termino)
 

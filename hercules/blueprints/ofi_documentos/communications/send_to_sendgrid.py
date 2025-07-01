@@ -8,14 +8,14 @@ import os
 from dotenv import load_dotenv
 import pytz
 import sendgrid
-from sendgrid.helpers.mail import Content, Email, Mail, To
+from sendgrid.helpers.mail import Content, Email, Mail
 
 from hercules.app import create_app
 from hercules.blueprints.ofi_documentos.communications import bitacora
 from hercules.blueprints.ofi_documentos.models import OfiDocumento
 from hercules.blueprints.ofi_documentos_destinatarios.models import OfiDocumentoDestinatario
 from hercules.extensions import database
-from lib.exceptions import MyIsDeletedError, MyMissingConfigurationError, MyNotExistsError, MyNotValidParamError
+from lib.exceptions import MyIsDeletedError, MyMissingConfigurationError, MyNotExistsError, MyNotValidParamError, MyRequestError
 from lib.safe_string import safe_uuid
 
 # Cargar variables de entorno
@@ -30,8 +30,6 @@ app = create_app()
 app.app_context().push()
 database.app = app
 
-TIMEOUT = 60  # segundos
-
 
 def enviar_a_sendgrid(ofi_documento_id: str) -> tuple[str, str, str]:
     """Enviar un mensaje por Sendgrid"""
@@ -42,27 +40,39 @@ def enviar_a_sendgrid(ofi_documento_id: str) -> tuple[str, str, str]:
 
     # Validar que esté definida la variable de entorno SENDGRID_API_KEY
     if not SENDGRID_API_KEY:
-        raise MyMissingConfigurationError("La variable de entorno SENDGRID_API_KEY no está definida")
+        mensaje_error = "La variable de entorno SENDGRID_API_KEY no está definida"
+        bitacora.error(mensaje_error)
+        raise MyMissingConfigurationError(mensaje_error)
 
     # Validar que esté definida la variable de entorno SENDGRID_FROM_EMAIL
     if not SENDGRID_FROM_EMAIL:
-        raise MyMissingConfigurationError("La variable de entorno SENDGRID_FROM_EMAIL no está definida")
+        mensaje_error = "La variable de entorno SENDGRID_FROM_EMAIL no está definida"
+        bitacora.error(mensaje_error)
+        raise MyMissingConfigurationError(mensaje_error)
 
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
     if not ofi_documento_id:
-        raise MyNotValidParamError("ID de oficio inválido")
+        mensaje_error = "ID de oficio inválido"
+        bitacora.error(mensaje_error)
+        raise MyNotValidParamError(mensaje_error)
     ofi_documento = OfiDocumento.query.get(ofi_documento_id)
     if not ofi_documento:
-        raise MyNotExistsError("El oficio no existe")
+        mensaje_error = "El oficio no existe"
+        bitacora.error(mensaje_error)
+        raise MyNotExistsError(mensaje_error)
 
     # Validar el estatus, que no esté eliminado
     if ofi_documento.estatus != "A":
-        raise MyIsDeletedError("El oficio está eliminado")
+        mensaje_error = "El oficio está eliminado"
+        bitacora.error(mensaje_error)
+        raise MyIsDeletedError(mensaje_error)
 
-    # Validar que el estado NO sea ENVIADO
-    if ofi_documento.estado != "ENVIADO":
-        raise MyNotValidParamError("El oficio no está en estado ENVIADO")
+    # Validar que el estado sea FIRMADO o ENVIADO
+    if ofi_documento.estado not in ["FIRMADO", "ENVIADO"]:
+        mensaje_error = "El oficio no está en estado FIRMADO o ENVIADO"
+        bitacora.error(mensaje_error)
+        raise MyNotValidParamError(mensaje_error)
 
     # Consultar los destinatarios
     ofi_destinatarios = (
@@ -111,10 +121,15 @@ def enviar_a_sendgrid(ofi_documento_id: str) -> tuple[str, str, str]:
             mensajes.append(f"- Con copia: {destinatario.usuario.email}")
 
     # Enviar mensaje de correo electrónico
-    send_grid.client.mail.send.post(request_body=mail.get())
+    try:
+        send_grid.client.mail.send.post(request_body=mail.get())
+    except Exception as error:
+        mensaje_error = f"Error al enviar el mensaje por Sendgrid: {str(error)}"
+        bitacora.error(mensaje_error)
+        raise MyRequestError(mensaje_error)
 
     # Elaborar mensaje_termino
-    mensaje_termino = f"Termina enviar un mensaje por Sendgrid."
+    mensaje_termino = "Termina enviar un mensaje por Sendgrid."
     mensajes.append(mensaje_termino)
     bitacora.info(mensaje_termino)
 

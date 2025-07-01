@@ -597,18 +597,12 @@ def sign(ofi_documento_id):
             ofi_documento.firma_simple_tiempo = datetime.now()
             ofi_documento.firma_simple = OfiDocumento.elaborar_firma(ofi_documento)
             ofi_documento.save()
-            # Lanzar la tarea en el fondo para convertir un oficio a PDF
-            try:
-                current_user.launch_task(
-                    comando="ofi_documentos.tasks.lanzar_convertir_a_pdf",
-                    mensaje="Convertir oficio a PDF...",
-                    ofi_documento_id=str(ofi_documento.id),
-                )
-            except Exception as error:
-                flash(f"No se pudo convertir el oficio a PDF. Error: {str(error)}", "danger")
-                ofi_documento.estado = "BORRADOR"
-                ofi_documento.save()
-                return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+            # Lanzar la tarea en el fondo para convertir a archivo PDF
+            current_user.launch_task(
+                comando="ofi_documentos.tasks.lanzar_convertir_a_pdf",
+                mensaje="Convirtiendo a archivo PDF...",
+                ofi_documento_id=str(ofi_documento.id),
+            )
             # Agregar registro a la bitácora
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -684,18 +678,12 @@ def send(ofi_documento_id):
     ofi_documento.estado = "ENVIADO"
     ofi_documento.enviado_tiempo = datetime.now()
     ofi_documento.save()
-    # Lanzar la tarea en el fondo para enviar un mensaje a cada destinatario
-    try:
-        current_user.launch_task(
-            comando="ofi_documentos.tasks.lanzar_enviar_a_sendgrid",
-            mensaje="Enviado oficio a los correos de los destinatarios...",
-            ofi_documento_id=str(ofi_documento.id),
-        )
-    except Exception as error:
-        flash(f"No se pudo enviar el oficio. Error: {str(error)}", "danger")
-        ofi_documento.estado = "FIRMADO"
-        ofi_documento.save()
-        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Lanzar la tarea en el fondo para enviar mensajes por correo electrónico a los destinatarios por SendGrid
+    current_user.launch_task(
+        comando="ofi_documentos.tasks.lanzar_enviar_a_sendgrid",
+        mensaje="Enviado mensajes por correo electrónico a los destinatarios por SendGrid...",
+        ofi_documento_id=str(ofi_documento.id),
+    )
     # Agregar registro a la bitácora
     bitacora = Bitacora(
         modulo=Modulo.query.filter_by(nombre=MODULO).first(),
