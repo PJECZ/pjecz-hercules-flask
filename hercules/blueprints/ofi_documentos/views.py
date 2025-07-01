@@ -118,6 +118,8 @@ def datatable_json():
                 "detalle": {
                     "id": resultado.id,
                     "url": url_for("ofi_documentos.detail", ofi_documento_id=resultado.id),
+                    "icono_archivado": resultado.esta_archivado,
+                    "icono_cancelado": resultado.esta_cancelado,
                 },
                 "propietario": {
                     "email": resultado.usuario.email,
