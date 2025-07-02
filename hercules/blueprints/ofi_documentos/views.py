@@ -549,22 +549,21 @@ def new(ofi_plantilla_id):
         .order_by(OfiDocumento.folio_num.desc())
         .first()
     )
+    folio = f"1/{datetime.now().year}"
     if num_oficio:
-        form.folio.data = f"{num_oficio.usuario.autoridad.clave}-{num_oficio.folio_num + 1}/{datetime.now().year}"
-    else:
-        form.folio.data = f"1/{datetime.now().year}"
+        folio = f"{num_oficio.usuario.autoridad.clave}-{num_oficio.folio_num + 1}/{datetime.now().year}"
     # Remplazo de palabras claves en la plantilla
     texto = ofi_plantilla.contenido_md
     texto = texto.replace("[[DIA]]", str(datetime.now().day))
     texto = texto.replace("[[MES]]", str(datetime.now().strftime("%B")))
     texto = texto.replace("[[AÑO]]", str(datetime.now().year))
-    texto = texto.replace("[[NUMERO]]", str(num_oficio.folio_num + 1))
-    texto = texto.replace("[[AUTORIDAD]]", num_oficio.usuario.autoridad.descripcion)
+    texto = texto.replace("[[FOLIO]]", folio)
     # Cargar los datos de la plantilla en el formulario
     form.descripcion.data = ofi_plantilla.descripcion
     form.contenido_md.data = texto
     form.contenido_html.data = ofi_plantilla.contenido_html
     form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
+    form.folio.data = folio
     # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
     if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
         # Entregar new_syncfusion_document.jinja2
