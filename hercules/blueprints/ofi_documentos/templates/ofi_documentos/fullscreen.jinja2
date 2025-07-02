@@ -1,0 +1,56 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Oficio {{ ofi_documento.descripcion }}{% endblock %}
+
+{% block custom_head %}
+    <style>
+        /* Pantalla Completa */
+        #work, #work-row, #work-row-main {
+            display: flex;
+            flex-direction: column;
+            height: calc(100% - 64px);
+        }
+    </style>
+{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Oficio ' + ofi_documento.descripcion | truncate(48)) %}
+        {{ topbar.button('Ver a Pantalla Pequeña', url_for('ofi_documentos.detail', ofi_documento_id=ofi_documento.id), "mdi:cellphone") }}
+        {{ topbar.button('Mi Bandeja de Entrada', url_for('ofi_documentos.list_active_mi_bandeja_entrada'), "mdi:inbox-multiple") }}
+        {% if mostrar_boton_mis_oficios %}
+            {{ topbar.button_previous('Mis Oficios', url_for('ofi_documentos.list_active_mis_oficios')) }}
+        {% endif %}
+        {% if mostrar_boton_mi_autoridad %}
+            {{ topbar.button('Mi Autoridad', url_for('ofi_documentos.list_active_mi_autoridad'), "mdi:scale-balance") }}
+        {% endif %}
+        {% if mostrar_boton_editar %}
+            {{ topbar.button_edit('Editar', url_for('ofi_documentos.edit', ofi_documento_id=ofi_documento.id)) }}
+        {% endif %}
+        {% if current_user.can_admin('OFI DOCUMENTOS') %}
+            {% if ofi_documento.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('ofi_documentos.delete', ofi_documento_id=ofi_documento.id)) }}{% endif %}
+            {% if ofi_documento.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('ofi_documentos.recover', ofi_documento_id=ofi_documento.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    <div class="row h-100">
+        <div class="col-md-8 h-100">
+            <iframe id="iframe1" src="{{ url_for('ofi_documentos.fullscreen_document', ofi_documento_id=ofi_documento.id) }}" width="100%" height="100%" frameborder="0"></iframe>
+        </div>
+        <div class="col-md-4 h-100">
+            <iframe id="iframe2" src="{{ url_for('ofi_documentos.fullscreen_attachments', ofi_documento_id=ofi_documento.id) }}" width="100%" height="49%" frameborder="0"></iframe>
+            <iframe id="iframe3" src="{{ url_for('ofi_documentos.fullscreen_recipients', ofi_documento_id=ofi_documento.id) }}" width="100%" height="49%" frameborder="0"></iframe>
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_admin('OFI DOCUMENTOS') %}
+        {% if ofi_documento.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar Oficio?') }}{% endif %}
+        {% if ofi_documento.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar Oficio?') }}{% endif %}
+    {% endif %}
+{% endblock %}
