@@ -433,6 +433,18 @@ def new(ofi_plantilla_id):
     form.contenido_md.data = ofi_plantilla.contenido_md
     form.contenido_html.data = ofi_plantilla.contenido_html
     form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
+    # Sugerencia del nuevo número de folio
+    num_oficio = (
+        OfiDocumento.query.join(Usuario)
+        .filter(Usuario.autoridad_id == current_user.autoridad_id)
+        .filter(OfiDocumento.folio_anio == datetime.now().year)
+        .order_by(OfiDocumento.folio_num.desc())
+        .first()
+    )
+    if num_oficio:
+        form.folio.data = f"{num_oficio.folio_num + 1}/{datetime.now().year}"
+    else:
+        form.folio.data = f"1/{datetime.now().year}"
     # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
     if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
         # Entregar new_syncfusion_document.jinja2
@@ -521,11 +533,25 @@ def edit(ofi_documento_id):
             return redirect(bitacora.url)
     # Cargar los datos en el formulario
     form.descripcion.data = ofi_documento.descripcion
-    form.folio.data = ofi_documento.folio
     form.vencimiento_fecha.data = ofi_documento.vencimiento_fecha
     form.contenido_md.data = ofi_documento.contenido_md
     form.contenido_html.data = ofi_documento.contenido_html
     form.contenido_sfdt.data = ofi_documento.contenido_sfdt
+    # Sugerencia del nuevo número de folio
+    if ofi_documento.folio is None or ofi_documento.folio == "":
+        num_oficio = (
+            OfiDocumento.query.join(Usuario)
+            .filter(Usuario.autoridad_id == current_user.autoridad_id)
+            .filter(OfiDocumento.folio_anio == datetime.now().year)
+            .order_by(OfiDocumento.folio_num.desc())
+            .first()
+        )
+        if num_oficio:
+            form.folio.data = f"{num_oficio.folio_num + 1}/{datetime.now().year}"
+        else:
+            form.folio.data = f"1/{datetime.now().year}"
+    else:
+        form.folio.data = ofi_documento.folio
     # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
     if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
         # Entregar edit_syncfusion_document.jinja2
