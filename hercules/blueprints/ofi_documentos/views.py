@@ -105,14 +105,17 @@ def datatable_json():
         # Formar campo de vencimiento
         vencimiento_fecha = resultado.vencimiento_fecha.strftime("%Y-%m-%d") if resultado.vencimiento_fecha else "-"
         vencimiento_icono = ""
+        vencimiento_titulo = ""
         dias_vencimiento = ""
         if resultado.vencimiento_fecha is not None:
             dias_vencimiento = (datetime.now().date() - resultado.vencimiento_fecha).days
             if DIAS_VENCIMIENTO_EMERGENCIA <= dias_vencimiento <= 0:
                 vencimiento_icono = "🚨"
+                vencimiento_titulo = "URGENTE"
             if DIAS_VENCIMIENTO_ADVERTENCIA <= dias_vencimiento < DIAS_VENCIMIENTO_EMERGENCIA:
                 vencimiento_icono = "⚠️"
-        vencimiento = f"{vencimiento_fecha} {vencimiento_icono}"
+                vencimiento_titulo = "FALTA POCO"
+        vencimiento = f"{vencimiento_fecha} <span title='{vencimiento_titulo}'>{vencimiento_icono}</span>"
         # Icono en detalle
         icono_detalle = None
         if resultado.esta_archivado:
@@ -549,22 +552,21 @@ def new(ofi_plantilla_id):
         .order_by(OfiDocumento.folio_num.desc())
         .first()
     )
+    folio = f"1/{datetime.now().year}"
     if num_oficio:
-        form.folio.data = f"{num_oficio.usuario.autoridad.clave}-{num_oficio.folio_num + 1}/{datetime.now().year}"
-    else:
-        form.folio.data = f"1/{datetime.now().year}"
+        folio = f"{num_oficio.usuario.autoridad.clave}-{num_oficio.folio_num + 1}/{datetime.now().year}"
     # Remplazo de palabras claves en la plantilla
     texto = ofi_plantilla.contenido_md
     texto = texto.replace("[[DIA]]", str(datetime.now().day))
     texto = texto.replace("[[MES]]", str(datetime.now().strftime("%B")))
     texto = texto.replace("[[AÑO]]", str(datetime.now().year))
-    texto = texto.replace("[[NUMERO]]", str(num_oficio.folio_num + 1))
-    texto = texto.replace("[[AUTORIDAD]]", num_oficio.usuario.autoridad.descripcion)
+    texto = texto.replace("[[FOLIO]]", folio)
     # Cargar los datos de la plantilla en el formulario
     form.descripcion.data = ofi_plantilla.descripcion
     form.contenido_md.data = texto
     form.contenido_html.data = ofi_plantilla.contenido_html
     form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
+    form.folio.data = folio
     # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
     if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
         # Entregar new_syncfusion_document.jinja2

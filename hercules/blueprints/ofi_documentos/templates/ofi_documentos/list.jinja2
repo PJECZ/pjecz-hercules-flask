@@ -105,11 +105,11 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    let html = '<a class="text-decoration-none" href="' + data.url_fullscreen + '"><span title="FullScreen">🖥️</span></a>';
+                    let html = '<a class="btn btn-outline-primary btn-sm" href="' + data.url_fullscreen + '" title="ABRIR EN FULLSCREEN">🖥️</a>';
                     if (data.icono == "CANCELADO")
-                        html = '<span title="Cancelado">🚫</span>';
+                        html = '<a class="btn btn-sm" title="CANCELADO" style="cursor: default;">🚫</a>';
                     if (data.icono == "ARCHIVADO")
-                        html = '<span title="Archivado">📦</span>';
+                        html = '<a class="btn btn-sm" title="ARCHIVADO" style="cursor: default;">📦</a>';
                     return html + ' <a href="' + data.url + '">' + data.id.substring(0, 8) + '</a>';
                 }
             },
@@ -162,6 +162,8 @@
             }
             if (data.detalle.icono == "CANCELADO")    {
                 $(row).css("background-color", "#eceff1");
+                $(row).css("color", "#6c757d");
+                $(row).find('a').css('color', '#6c757d');
             }
         };
         // Filtros Oficios
