@@ -535,11 +535,6 @@ def new(ofi_plantilla_id):
             bitacora.save()
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
-    # Cargar los datos de la plantilla en el formulario
-    form.descripcion.data = ofi_plantilla.descripcion
-    form.contenido_md.data = ofi_plantilla.contenido_md
-    form.contenido_html.data = ofi_plantilla.contenido_html
-    form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
     # Sugerencia del nuevo número de folio
     num_oficio = (
         OfiDocumento.query.join(Usuario)
@@ -552,6 +547,18 @@ def new(ofi_plantilla_id):
         form.folio.data = f"{num_oficio.usuario.autoridad.clave}-{num_oficio.folio_num + 1}/{datetime.now().year}"
     else:
         form.folio.data = f"1/{datetime.now().year}"
+    # Remplazo de palabras claves en la plantilla
+    texto = ofi_plantilla.contenido_md
+    texto = texto.replace("[[DIA]]", str(datetime.now().day))
+    texto = texto.replace("[[MES]]", str(datetime.now().strftime("%B")))
+    texto = texto.replace("[[AÑO]]", str(datetime.now().year))
+    texto = texto.replace("[[NUMERO]]", str(num_oficio.folio_num + 1))
+    texto = texto.replace("[[AUTORIDAD]]", num_oficio.usuario.autoridad.descripcion)
+    # Cargar los datos de la plantilla en el formulario
+    form.descripcion.data = ofi_plantilla.descripcion
+    form.contenido_md.data = texto
+    form.contenido_html.data = ofi_plantilla.contenido_html
+    form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
     # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
     if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
         # Entregar new_syncfusion_document.jinja2
