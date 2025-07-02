@@ -105,14 +105,17 @@ def datatable_json():
         # Formar campo de vencimiento
         vencimiento_fecha = resultado.vencimiento_fecha.strftime("%Y-%m-%d") if resultado.vencimiento_fecha else "-"
         vencimiento_icono = ""
+        vencimiento_titulo = ""
         dias_vencimiento = ""
         if resultado.vencimiento_fecha is not None:
             dias_vencimiento = (datetime.now().date() - resultado.vencimiento_fecha).days
             if DIAS_VENCIMIENTO_EMERGENCIA <= dias_vencimiento <= 0:
                 vencimiento_icono = "🚨"
+                vencimiento_titulo = "URGENTE"
             if DIAS_VENCIMIENTO_ADVERTENCIA <= dias_vencimiento < DIAS_VENCIMIENTO_EMERGENCIA:
                 vencimiento_icono = "⚠️"
-        vencimiento = f"{vencimiento_fecha} {vencimiento_icono}"
+                vencimiento_titulo = "FALTA POCO"
+        vencimiento = f"{vencimiento_fecha} <span title='{vencimiento_titulo}'>{vencimiento_icono}</span>"
         # Icono en detalle
         icono_detalle = None
         if resultado.esta_archivado:
