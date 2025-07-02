@@ -32,7 +32,17 @@
     {% call detail.card(estatus=ofi_documento.estatus) %}
         <div class="row">
             <div class="col-md-6">
-                {{ detail.label_value('Descripción', ofi_documento.descripcion) }}
+                <div class="row">
+                    <div class="col-md-3 text-end">Descripción</div>
+                    <div class="col-md-8">
+                        <strong>{{ ofi_documento.descripcion }}</strong>
+                    </div>
+                    <div class="col-md-1">
+                        {% if current_user == ofi_documento.usuario %}
+                            <a class="btn btn-outline-warning text-dark btn-sm" href="{{url_for('ofi_documentos.rename', ofi_documento_id=ofi_documento.id)}}" title="Renombrar"><span class="iconify" data-icon="mdi:pencil"></span></a>
+                        {% endif %}
+                    </div>
+                </div>
                 {{ detail.label_value('Folio', ofi_documento.folio) }}
                 {{ detail.label_value('Fecha de vencimiento', ofi_documento.vencimiento_fecha) }}
                 {% if current_user.can_view('USUARIOS') %}

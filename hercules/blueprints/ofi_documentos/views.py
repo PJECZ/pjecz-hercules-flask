@@ -20,6 +20,7 @@ from hercules.blueprints.ofi_documentos.forms import (
     OfiDocumentoNewForm,
     OfiDocumentoEditForm,
     OfiDocumentoSignForm,
+    OfiDocumentoRenameForm,
 )
 from hercules.blueprints.ofi_plantillas.models import OfiPlantilla
 from hercules.blueprints.usuarios.models import Usuario
@@ -564,6 +565,53 @@ def edit(ofi_documento_id):
     # De lo contrario, entregar edit_ckeditor5.jinja2
     return render_template(
         "ofi_documentos/edit_ckeditor5.jinja2",
+        form=form,
+        ofi_documento=ofi_documento,
+    )
+
+
+@ofi_documentos.route("/ofi_documentos/renombrar/<ofi_documento_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def rename(ofi_documento_id):
+    """Renombrar Ofi Documento"""
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # Validar que el usuario sea el propietario del documento
+    if current_user != ofi_documento.usuario:
+        flash("Solo el propietario del oficio puede renombrarlo", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Validar que la autoridad del oficio sea la misma que la del usuario
+    if ofi_documento.usuario.autoridad_id != current_user.autoridad_id:
+        flash("No tienes permiso para editar este oficio, pertenece a otra autoridad", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Obtener el formulario
+    form = OfiDocumentoEditForm()
+    if form.validate_on_submit():
+        ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
+        ofi_documento.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Renombrado Oficio Documento {ofi_documento.descripcion}"),
+            url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    # Cargar los datos en el formulario
+    form.descripcion.data = ofi_documento.descripcion
+    form.vencimiento_fecha.data = ofi_documento.vencimiento_fecha
+    form.contenido_md.data = ofi_documento.contenido_md
+    form.contenido_html.data = ofi_documento.contenido_html
+    form.contenido_sfdt.data = ofi_documento.contenido_sfdt
+    form.folio.data = ofi_documento.folio
+    # Entregar jinja2
+    return render_template(
+        "ofi_documentos/rename.jinja2",
         form=form,
         ofi_documento=ofi_documento,
     )

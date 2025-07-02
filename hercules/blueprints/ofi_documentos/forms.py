@@ -47,3 +47,15 @@ class OfiDocumentoSignForm(FlaskForm):
     contenido_html = TextAreaField("Contenido HTML", validators=[Optional()], render_kw={"rows": 10})
     contenido_sfdt = TextAreaField("Contenido SFDT", validators=[Optional()], render_kw={"rows": 10})  # Read Only
     firmar = SubmitField("Firmar")
+
+
+class OfiDocumentoRenameForm(FlaskForm):
+    """Formulario para editar OfiDocumento"""
+
+    descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=256)])
+    folio = StringField("Folio (DD-NN/AAAA)")
+    vencimiento_fecha = DateField("Fecha de vencimiento")
+    contenido_md = TextAreaField("Contenido MD", validators=[Optional()], render_kw={"rows": 10})
+    contenido_html = TextAreaField("Contenido HTML", validators=[Optional()], render_kw={"rows": 10})
+    contenido_sfdt = TextAreaField("Contenido SFDT", validators=[Optional()], render_kw={"rows": 10})
+    guardar = SubmitField("Guardar")

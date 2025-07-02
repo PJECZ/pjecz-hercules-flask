@@ -1,0 +1,33 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Renombrar {{ ofi_documento.descripcion }}{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Renombrar Oficio ' + ofi_documento.descripcion | truncate(48)) }}
+{% endblock %}
+
+{% block content %}
+    {% call f.card() %}
+        {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
+        {% call f.form_tag('ofi_documentos.rename', fid='ofi_documento_form', **form_kwargs) %}
+            {% call f.form_group(form.descripcion) %}{% endcall %}
+            {% call f.form_group(form.folio, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.vencimiento_fecha, readonly=true) %}{% endcall %}
+            {# Inicia Contenido HTML #}
+            <hr />
+            {% if ofi_documento.contenido_html %}
+                {{ ofi_documento.contenido_html | safe }}
+            {% else %}
+                <div class="alert alert-warning" role="alert">
+                    <strong>Aviso:</strong> Este oficio no tiene contenido HTML.
+                </div>
+            {% endif %}
+            <hr />
+            {# Termina Contenido HTML #}
+            {% call f.form_group(form.guardar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}
+
