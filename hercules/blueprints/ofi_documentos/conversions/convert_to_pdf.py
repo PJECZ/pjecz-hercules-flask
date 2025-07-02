@@ -97,7 +97,7 @@ def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
                 }
                 @frame footer_frame {
                     -pdf-frame-content: footer_content;
-                    left: 50pt; width: 512pt; bottom: 40pt; height: 60pt;
+                    left: 50pt; width: 512pt; bottom: 40pt; height: 80pt;
                     /* -pdf-frame-border: 1; Borde alrededor del contenido para ver sus dimensiones */
                 }
             }
@@ -118,7 +118,7 @@ def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
     # Agregar la imagen de pie de página de la autoridad del usuario
     if ofi_documento.usuario.autoridad.pagina_pie_url:
         contenidos.append("<div id='footer_content'>")
-        contenidos.append(f"<small>Este documento tiene la firma electrónica simple {ofi_documento.firma_simple}</small>")
+        contenidos.append(f"<small>Este documento tiene la firma electrónica simple {ofi_documento.firma_simple}</small><br>")
         contenidos.append(f"<img src='{ofi_documento.usuario.autoridad.pagina_pie_url}' alt='Pie de página'>")
         contenidos.append("</div>")
 
