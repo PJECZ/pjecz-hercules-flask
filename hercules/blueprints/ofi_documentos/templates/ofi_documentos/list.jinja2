@@ -157,10 +157,10 @@
         ];
         // Colorear renglones
         configDataTable['rowCallback'] = function( row, data )  {
-            if (data.color_renglon_autoridad)   {
-                $(row).css("background-color", data.color_renglon_autoridad);
+            if (data.autoridad.color_renglon)   {
+                $(row).css("background-color", data.autoridad.color_renglon);
             }
-            if (data.cancelado)    {
+            if (data.detalle.icono_cancelado)    {
                 $(row).css("background-color", "#eceff1");
             }
         };

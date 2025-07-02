@@ -135,6 +135,12 @@
                 }
             }
         ];
+        // Colorear renglones
+        configDataTable['rowCallback'] = function( row, data )  {
+            if (data.autoridad.color_renglon)   {
+                $(row).css("background-color", data.autoridad.color_renglon);
+            }
+        };
         // Filtros OfiPlantillas
         const filtrosPlantillas = new FiltrosDataTable('#ofi_plantillas_datatable', configDataTable);
         filtrosPlantillas.agregarInput('filtroId', 'id');

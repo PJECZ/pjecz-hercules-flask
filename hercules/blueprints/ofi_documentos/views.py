@@ -136,16 +136,17 @@ def datatable_json():
                         else ""
                     ),
                     "icono": resultado.usuario.autoridad.tablero_icono if resultado.usuario.autoridad.tablero_icono else "",
+                    "color_renglon": (
+                        resultado.usuario.autoridad.tabla_renglon_color
+                        if resultado.usuario.autoridad.tabla_renglon_color
+                        else ""
+                    ),
                 },
                 "folio": resultado.folio,
                 "vencimiento": vencimiento,
                 "descripcion": resultado.descripcion,
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
                 "estado": resultado.estado,
-                "cancelado": resultado.esta_cancelado,
-                "color_renglon_autoridad": (
-                    resultado.usuario.autoridad.tabla_renglon_color if resultado.usuario.autoridad.tabla_renglon_color else ""
-                ),
             }
         )
     # Entregar JSON
