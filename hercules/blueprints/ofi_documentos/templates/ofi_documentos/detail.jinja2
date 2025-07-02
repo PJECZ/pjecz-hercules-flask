@@ -36,13 +36,11 @@
             <div class="col-md-6">
                 <div class="row">
                     <div class="col-md-3 text-end">Descripción</div>
-                    <div class="col-md-8">
-                        <strong>{{ ofi_documento.descripcion }}</strong>
-                    </div>
-                    <div class="col-md-1">
-                        {% if current_user == ofi_documento.usuario %}
-                            <a class="btn btn-outline-warning text-dark btn-sm" href="{{url_for('ofi_documentos.rename', ofi_documento_id=ofi_documento.id)}}" title="Renombrar"><span class="iconify" data-icon="mdi:pencil"></span></a>
+                    <div class="col-md-9">
+                        {% if current_user == ofi_documento.usuario and ofi_documento.estado != "BORRADOR" %}
+                            <a class="btn btn-warning text-dark btn-sm" href="{{url_for('ofi_documentos.rename', ofi_documento_id=ofi_documento.id)}}" title="Renombrar"><span class="iconify" data-icon="mdi:pencil"></span></a>
                         {% endif %}
+                        <strong>{{ ofi_documento.descripcion }}</strong>
                     </div>
                 </div>
                 {{ detail.label_value('Folio', ofi_documento.folio) }}

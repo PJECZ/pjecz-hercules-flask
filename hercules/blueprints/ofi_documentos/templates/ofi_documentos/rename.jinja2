@@ -2,7 +2,7 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Renombrar {{ ofi_documento.descripcion }}{% endblock %}
+{% block title %}Renombrar Oficio {{ ofi_documento.descripcion }}{% endblock %}
 
 {% block topbar_actions %}
     {{ topbar.page('Renombrar Oficio ' + ofi_documento.descripcion | truncate(48)) }}

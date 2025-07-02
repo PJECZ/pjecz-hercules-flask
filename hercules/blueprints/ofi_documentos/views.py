@@ -548,7 +548,7 @@ def new(ofi_plantilla_id):
         .first()
     )
     if num_oficio:
-        form.folio.data = f"{num_oficio.folio_num + 1}/{datetime.now().year}"
+        form.folio.data = f"{num_oficio.usuario.autoridad.clave}-{num_oficio.folio_num + 1}/{datetime.now().year}"
     else:
         form.folio.data = f"1/{datetime.now().year}"
     # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
@@ -653,7 +653,7 @@ def edit(ofi_documento_id):
             .first()
         )
         if num_oficio:
-            form.folio.data = f"{num_oficio.folio_num + 1}/{datetime.now().year}"
+            form.folio.data = f"{num_oficio.usuario.autoridad.clave}-{num_oficio.folio_num + 1}/{datetime.now().year}"
         else:
             form.folio.data = f"1/{datetime.now().year}"
     else:
@@ -701,7 +701,7 @@ def rename(ofi_documento_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Renombrado Oficio Documento {ofi_documento.descripcion}"),
+            descripcion=safe_message(f"Renombrado Oficio Documento descripción {ofi_documento.descripcion}"),
             url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
         )
         bitacora.save()
@@ -710,9 +710,6 @@ def rename(ofi_documento_id):
     # Cargar los datos en el formulario
     form.descripcion.data = ofi_documento.descripcion
     form.vencimiento_fecha.data = ofi_documento.vencimiento_fecha
-    form.contenido_md.data = ofi_documento.contenido_md
-    form.contenido_html.data = ofi_documento.contenido_html
-    form.contenido_sfdt.data = ofi_documento.contenido_sfdt
     form.folio.data = ofi_documento.folio
     # Entregar jinja2
     return render_template(
