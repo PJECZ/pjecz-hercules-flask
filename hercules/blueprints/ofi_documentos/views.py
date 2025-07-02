@@ -241,7 +241,6 @@ def detail(ofi_documento_id):
         return redirect(url_for("ofi_documentos.list_active"))
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
     # Validar que si es BORRADOR o FIRMADO se debe tener el rol ESCRITOR o FIRMANTE para verlo
-    # En cambio, si fue ENVIADO, ARCHIVADO o CANCELADO si debe de verse
     roles = current_user.get_roles()
     if (
         (ofi_documento.estado == "BORRADOR" or ofi_documento.estado == "FIRMADO")
@@ -284,19 +283,24 @@ def detail(ofi_documento_id):
                 .order_by(OfiPlantilla.descripcion)
                 .all()
             )
-    # Mostrar botones según el rol
-    mostrar_boton_otras_categorias = True
+    # Inicializar valores por defecto de los boleanos de los botones
+    mostrar_boton_mis_oficios = True
+    mostrar_boton_mi_autoridad = True
     mostrar_boton_firmar = False
     mostrar_boton_editar = True
+    mostrar_boton_archivar = False
+    mostrar_boton_desarchivar = False
+    mostrar_boton_descancelar = False
+    # Mostrar botones según el rol
     roles = current_user.get_roles()
     if ROL_FIRMANTE in roles:
         mostrar_boton_firmar = True
     if ROL_ESCRITOR not in roles and ROL_FIRMANTE not in roles:
         mostrar_boton_editar = False
         mostrar_boton_responder = False
-        mostrar_boton_otras_categorias = False
+        mostrar_boton_mis_oficios = False
+        mostrar_boton_mi_autoridad = False
     # Mostrar botón de Archivar cuando se envía, no esta archivado y es el usuario creador
-    mostrar_boton_archivar = False
     if (
         ofi_documento.estado == "ENVIADO"
         and ofi_documento.esta_archivado is False
@@ -304,8 +308,6 @@ def detail(ofi_documento_id):
     ):
         mostrar_boton_archivar = True
     # Mostrar el botón de descancelar solo al firmante si ya está firmado
-    mostrar_boton_descancelar = False
-    mostrar_boton_desarchivar = False
     if ofi_documento.estado == "BORRADOR" and ofi_documento.usuario_id == current_user.id:
         mostrar_boton_descancelar = True
         mostrar_boton_desarchivar = True
@@ -331,7 +333,8 @@ def detail(ofi_documento_id):
             mostrar_boton_descancelar=mostrar_boton_descancelar,
             mostrar_boton_archivar=mostrar_boton_archivar,
             mostrar_boton_desarchivar=mostrar_boton_desarchivar,
-            mostrar_boton_otras_categorias=mostrar_boton_otras_categorias,
+            mostrar_boton_mis_oficios=mostrar_boton_mis_oficios,
+            mostrar_boton_mi_autoridad=mostrar_boton_mi_autoridad,
             syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
         )
     # De lo contrario, entregar detail.jinja2
@@ -346,8 +349,110 @@ def detail(ofi_documento_id):
         mostrar_boton_descancelar=mostrar_boton_descancelar,
         mostrar_boton_archivar=mostrar_boton_archivar,
         mostrar_boton_desarchivar=mostrar_boton_desarchivar,
-        mostrar_boton_otras_categorias=mostrar_boton_otras_categorias,
+        mostrar_boton_mis_oficios=mostrar_boton_mis_oficios,
+        mostrar_boton_mi_autoridad=mostrar_boton_mi_autoridad,
     )
+
+
+@ofi_documentos.route("/ofi_documentos/pantalla_completa/<ofi_documento_id>")
+def fullscreen(ofi_documento_id):
+    """Pantalla completa de un Ofi Documento"""
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # Validar que si es BORRADOR o FIRMADO se debe tener el rol ESCRITOR o FIRMANTE para verlo
+    roles = current_user.get_roles()
+    if (
+        (ofi_documento.estado == "BORRADOR" or ofi_documento.estado == "FIRMADO")
+        and ROL_ESCRITOR not in roles
+        and ROL_FIRMANTE not in roles
+    ):
+        flash("Se necesitan roles de ESCRITOR o FIRMANTE para ver un oficio en estado BORRADOR o FIRMADO", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Si el oficio está eliminado y NO es administrador, mostrar mensaje y redirigir
+    if ofi_documento.estatus != "A" and current_user.can_admin(MODULO) is False:
+        flash("El oficio está eliminado", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Entregar
+    return render_template(
+        "ofi_documentos/fullscreen.jinja2",
+        ofi_documento=ofi_documento,
+        mostrar_boton_mis_oficios=True,
+        mostrar_boton_mi_autoridad=True,
+        mostrar_boton_editar=True,
+    )
+
+
+@ofi_documentos.route("/ofi_documentos/pantalla_completa/documento/<ofi_documento_id>")
+def fullscreen_document(ofi_documento_id):
+    """Pantalla completa: contenido del frame para el documento"""
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # Validar que si es BORRADOR o FIRMADO se debe tener el rol ESCRITOR o FIRMANTE para verlo
+    roles = current_user.get_roles()
+    if (
+        (ofi_documento.estado == "BORRADOR" or ofi_documento.estado == "FIRMADO")
+        and ROL_ESCRITOR not in roles
+        and ROL_FIRMANTE not in roles
+    ):
+        flash("Se necesitan roles de ESCRITOR o FIRMANTE para ver un oficio en estado BORRADOR o FIRMADO", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Si el oficio está eliminado y NO es administrador, mostrar mensaje y redirigir
+    if ofi_documento.estatus != "A" and current_user.can_admin(MODULO) is False:
+        flash("El oficio está eliminado", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Si el usuario que lo ve es un destinatario, se va a marcar como leído
+    mostrar_boton_responder = False
+    platillas_opciones = None  # Si se va a responder, se van a consultar las plantillas
+    if ofi_documento.estado == "ENVIADO":
+        # Buscar al usuario entre los destinatarios
+        usuario_destinatario = (
+            OfiDocumentoDestinatario.query.filter_by(ofi_documento_id=ofi_documento.id)
+            .filter_by(usuario_id=current_user.id)
+            .first()
+        )
+        # Marcar como leído si es que no lo ha sido
+        if usuario_destinatario is not None and usuario_destinatario.fue_leido is False:
+            usuario_destinatario.fue_leido = True
+            usuario_destinatario.fue_leido_tiempo = datetime.now()
+            usuario_destinatario.save()
+        if usuario_destinatario is not None and usuario_destinatario.con_copia is False:
+            mostrar_boton_responder = True
+            # Consultar las plantillas para responder
+            platillas_opciones = (
+                OfiPlantilla.query.join(Usuario)
+                .filter(Usuario.autoridad == current_user.autoridad)
+                .filter(OfiPlantilla.estatus == "A")
+                .filter(OfiPlantilla.esta_archivado == False)
+                .order_by(OfiPlantilla.descripcion)
+                .all()
+            )
+    # Entregar
+    return render_template(
+        "ofi_documentos/fullscreen_document.jinja2",
+        ofi_documento=ofi_documento,
+        mostrar_boton_responder=mostrar_boton_responder,
+        platillas_opciones=platillas_opciones,
+    )
+
+
+@ofi_documentos.route("/ofi_documentos/pantalla_completa/adjuntos/<ofi_documento_id>")
+def fullscreen_attachments(ofi_documento_id):
+    """Pantalla completa: contenido del frame para los adjuntos"""
+    return render_template("ofi_documentos/fullscreen_attachments.jinja2")
+
+
+@ofi_documentos.route("/ofi_documentos/pantalla_completa/destinatarios/<ofi_documento_id>")
+def fullscreen_recipients(ofi_documento_id):
+    """Pantalla completa: contenido del frame para los destinatarios"""
+    return render_template("ofi_documentos/fullscreen_recipients.jinja2")
 
 
 @ofi_documentos.route("/ofi_documentos/nuevo/<ofi_plantilla_id>", methods=["GET", "POST"])

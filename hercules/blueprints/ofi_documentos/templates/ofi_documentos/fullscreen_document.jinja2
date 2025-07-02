@@ -1,0 +1,34 @@
+{% extends 'layouts/base.jinja2' %}
+
+{% block custom_head %}
+    <style>
+        .cabecera {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .contenido {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .pie_de_pagina {
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            margin-top: 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <div class="container">
+        <div class="cabecera"><img src="{{ ofi_documento.usuario.autoridad.pagina_cabecera_url }}" alt="cabecera" style="width: 100%;"></div>
+        <div class="contenido">{{ ofi_documento.contenido_html }}</div>
+        <div class="pie_de_pagina">
+            <small>Este documento tiene la firma electrónica simple {{ofi_documento.firma_simple}}</small><br>
+            <img src="{{ ofi_documento.usuario.autoridad.pagina_pie_url }}" alt="cabecera" style="width: 100%;">
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_javascript %}{% endblock %}
