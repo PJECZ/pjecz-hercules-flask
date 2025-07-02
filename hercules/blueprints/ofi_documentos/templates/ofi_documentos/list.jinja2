@@ -105,11 +105,11 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    let html = "";
-                    if (data.icono_cancelado)
-                        html += '<span title="Cancelado">🚫</span>';
-                    if (data.icono_archivado)
-                        html += '<span title="Archivado">📦</span>';
+                    let html = '<a class="text-decoration-none" href="' + data.url_fullscreen + '"><span title="FullScreen">🖥️</span></a>';
+                    if (data.icono == "CANCELADO")
+                        html = '<span title="Cancelado">🚫</span>';
+                    if (data.icono == "ARCHIVADO")
+                        html = '<span title="Archivado">📦</span>';
                     return html + ' <a href="' + data.url + '">' + data.id.substring(0, 8) + '</a>';
                 }
             },
@@ -160,7 +160,7 @@
             if (data.autoridad.color_renglon)   {
                 $(row).css("background-color", data.autoridad.color_renglon);
             }
-            if (data.detalle.icono_cancelado)    {
+            if (data.detalle.icono == "CANCELADO")    {
                 $(row).css("background-color", "#eceff1");
             }
         };
