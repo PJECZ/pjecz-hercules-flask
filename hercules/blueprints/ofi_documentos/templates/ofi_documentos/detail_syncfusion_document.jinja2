@@ -42,8 +42,10 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons('Oficio ' + ofi_documento.descripcion | truncate(48)) %}
         {{ topbar.button('Mi Bandeja de Entrada', url_for('ofi_documentos.list_active_mi_bandeja_entrada'), "mdi:inbox-multiple") }}
-        {% if mostrar_boton_otras_categorias %}
+        {% if mostrar_boton_mis_oficios %}
             {{ topbar.button_previous('Mis Oficios', url_for('ofi_documentos.list_active_mis_oficios')) }}
+        {% endif %}
+        {% if mostrar_boton_mi_autoridad %}
             {{ topbar.button('Mi Autoridad', url_for('ofi_documentos.list_active_mi_autoridad'), "mdi:scale-balance") }}
         {% endif %}
         {% if current_user.can_edit('OFI DOCUMENTOS') %}
