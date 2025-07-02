@@ -113,14 +113,20 @@ def datatable_json():
             if DIAS_VENCIMIENTO_ADVERTENCIA <= dias_vencimiento < DIAS_VENCIMIENTO_EMERGENCIA:
                 vencimiento_icono = "⚠️"
         vencimiento = f"{vencimiento_fecha} {vencimiento_icono}"
+        # Icono en detalle
+        icono_detalle = None
+        if resultado.esta_archivado:
+            icono_detalle = "ARCHIVADO"
+        elif resultado.esta_cancelado:
+            icono_detalle = "CANCELADO"
         # Elaborar registro
         data.append(
             {
                 "detalle": {
                     "id": resultado.id,
                     "url": url_for("ofi_documentos.detail", ofi_documento_id=resultado.id),
-                    "icono_archivado": resultado.esta_archivado,
-                    "icono_cancelado": resultado.esta_cancelado,
+                    "icono": icono_detalle,
+                    "url_fullscreen": url_for("ofi_documentos.fullscreen", ofi_documento_id=resultado.id),
                 },
                 "propietario": {
                     "email": resultado.usuario.email,
