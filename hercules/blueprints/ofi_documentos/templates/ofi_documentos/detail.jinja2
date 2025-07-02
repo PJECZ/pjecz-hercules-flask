@@ -34,7 +34,15 @@
     {% call detail.card(estatus=ofi_documento.estatus) %}
         <div class="row">
             <div class="col-md-6">
-                {{ detail.label_value('Descripción', ofi_documento.descripcion) }}
+                <div class="row">
+                    <div class="col-md-3 text-end">Descripción</div>
+                    <div class="col-md-9">
+                        {% if current_user == ofi_documento.usuario and ofi_documento.estado != "BORRADOR" %}
+                            <a class="btn btn-warning text-dark btn-sm" href="{{url_for('ofi_documentos.rename', ofi_documento_id=ofi_documento.id)}}" title="Renombrar"><span class="iconify" data-icon="mdi:pencil"></span></a>
+                        {% endif %}
+                        <strong>{{ ofi_documento.descripcion }}</strong>
+                    </div>
+                </div>
                 {{ detail.label_value('Folio', ofi_documento.folio) }}
                 {{ detail.label_value('Fecha de vencimiento', ofi_documento.vencimiento_fecha) }}
                 {% if current_user.can_view('USUARIOS') %}
@@ -83,7 +91,6 @@
             </div>
             <div class="col-md-6">
                 {% if ofi_documento.firma_simple %}
-                    {{ detail.label_value('Fecha', moment(ofi_documento.firma_simple_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
                     {% if usuario_firmante %}
                         {% if current_user.can_view('USUARIOS') %}
                             {{ detail.label_value('Firmante', usuario_firmante.nombre, url_for("usuarios.detail", usuario_id=usuario_firmante.id)) }}
@@ -93,6 +100,20 @@
                     {% endif %}
                     {{ detail.label_value('Firma guardada', ofi_documento.firma_simple) }}
                     {{ detail.label_value('Firma al vuelo ', ofi_documento.elaborar_hash()) }}
+                    {% if ofi_documento.firma_simple %}
+                    <div class="row">
+                        <div class="col-md-3 text-end">Integridad</div>
+                        {% if ofi_documento.firma_simple == ofi_documento.elaborar_hash() %}
+                            <div class="col-md-9">
+                                <span class="badge rounded-pill bg-success">VALIDO <span class="iconify" data-icon="mdi:shield-check">></span></span>
+                            </div>
+                        {% else %}
+                            <div class="col-md-9">
+                                <span class="badge rounded-pill bg-danger">CORRUPTO <span class="iconify" data-icon="mdi:alert-octagon"></span>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
                 {% endif %}
             </div>
         </div>
@@ -154,7 +175,7 @@
             </div>
         {% endif %}
         {# Botones de acción en CANCELADO #}
-        {% if ofi_documento.esta_cancelado %}
+        {% if ofi_documento.esta_cancelado and current_user == ofi_documento.usuario %}
             <div class="row">
                 <div class="col-md-6">
                 </div>

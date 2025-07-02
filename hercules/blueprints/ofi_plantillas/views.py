@@ -100,6 +100,11 @@ def datatable_json():
                         if current_user.can_view("AUTORIDADES")
                         else ""
                     ),
+                    "color_renglon": (
+                        resultado.usuario.autoridad.tabla_renglon_color
+                        if resultado.usuario.autoridad.tabla_renglon_color
+                        else ""
+                    ),
                 },
                 "descripcion": resultado.descripcion,
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),

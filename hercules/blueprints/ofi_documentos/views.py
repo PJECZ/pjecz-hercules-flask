@@ -20,6 +20,7 @@ from hercules.blueprints.ofi_documentos.forms import (
     OfiDocumentoNewForm,
     OfiDocumentoEditForm,
     OfiDocumentoSignForm,
+    OfiDocumentoRenameForm,
 )
 from hercules.blueprints.ofi_plantillas.models import OfiPlantilla
 from hercules.blueprints.usuarios.models import Usuario
@@ -118,6 +119,8 @@ def datatable_json():
                 "detalle": {
                     "id": resultado.id,
                     "url": url_for("ofi_documentos.detail", ofi_documento_id=resultado.id),
+                    "icono_archivado": resultado.esta_archivado,
+                    "icono_cancelado": resultado.esta_cancelado,
                 },
                 "propietario": {
                     "email": resultado.usuario.email,
@@ -132,16 +135,18 @@ def datatable_json():
                         if current_user.can_view("AUTORIDADES")
                         else ""
                     ),
+                    "icono": resultado.usuario.autoridad.tablero_icono if resultado.usuario.autoridad.tablero_icono else "",
+                    "color_renglon": (
+                        resultado.usuario.autoridad.tabla_renglon_color
+                        if resultado.usuario.autoridad.tabla_renglon_color
+                        else ""
+                    ),
                 },
                 "folio": resultado.folio,
                 "vencimiento": vencimiento,
                 "descripcion": resultado.descripcion,
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
                 "estado": resultado.estado,
-                "iconos": {
-                    "archivado": resultado.esta_archivado,
-                    "cancelado": resultado.esta_cancelado,
-                },
             }
         )
     # Entregar JSON
@@ -535,6 +540,18 @@ def new(ofi_plantilla_id):
     form.contenido_md.data = ofi_plantilla.contenido_md
     form.contenido_html.data = ofi_plantilla.contenido_html
     form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
+    # Sugerencia del nuevo número de folio
+    num_oficio = (
+        OfiDocumento.query.join(Usuario)
+        .filter(Usuario.autoridad_id == current_user.autoridad_id)
+        .filter(OfiDocumento.folio_anio == datetime.now().year)
+        .order_by(OfiDocumento.folio_num.desc())
+        .first()
+    )
+    if num_oficio:
+        form.folio.data = f"{num_oficio.usuario.autoridad.clave}-{num_oficio.folio_num + 1}/{datetime.now().year}"
+    else:
+        form.folio.data = f"1/{datetime.now().year}"
     # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
     if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
         # Entregar new_syncfusion_document.jinja2
@@ -623,11 +640,25 @@ def edit(ofi_documento_id):
             return redirect(bitacora.url)
     # Cargar los datos en el formulario
     form.descripcion.data = ofi_documento.descripcion
-    form.folio.data = ofi_documento.folio
     form.vencimiento_fecha.data = ofi_documento.vencimiento_fecha
     form.contenido_md.data = ofi_documento.contenido_md
     form.contenido_html.data = ofi_documento.contenido_html
     form.contenido_sfdt.data = ofi_documento.contenido_sfdt
+    # Sugerencia del nuevo número de folio
+    if ofi_documento.folio is None or ofi_documento.folio == "":
+        num_oficio = (
+            OfiDocumento.query.join(Usuario)
+            .filter(Usuario.autoridad_id == current_user.autoridad_id)
+            .filter(OfiDocumento.folio_anio == datetime.now().year)
+            .order_by(OfiDocumento.folio_num.desc())
+            .first()
+        )
+        if num_oficio:
+            form.folio.data = f"{num_oficio.usuario.autoridad.clave}-{num_oficio.folio_num + 1}/{datetime.now().year}"
+        else:
+            form.folio.data = f"1/{datetime.now().year}"
+    else:
+        form.folio.data = ofi_documento.folio
     # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
     if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
         # Entregar edit_syncfusion_document.jinja2
@@ -640,6 +671,50 @@ def edit(ofi_documento_id):
     # De lo contrario, entregar edit_ckeditor5.jinja2
     return render_template(
         "ofi_documentos/edit_ckeditor5.jinja2",
+        form=form,
+        ofi_documento=ofi_documento,
+    )
+
+
+@ofi_documentos.route("/ofi_documentos/renombrar/<ofi_documento_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def rename(ofi_documento_id):
+    """Renombrar Ofi Documento"""
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # Validar que el usuario sea el propietario del documento
+    if current_user != ofi_documento.usuario:
+        flash("Solo el propietario del oficio puede renombrarlo", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Validar que la autoridad del oficio sea la misma que la del usuario
+    if ofi_documento.usuario.autoridad_id != current_user.autoridad_id:
+        flash("No tienes permiso para editar este oficio, pertenece a otra autoridad", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    # Obtener el formulario
+    form = OfiDocumentoEditForm()
+    if form.validate_on_submit():
+        ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
+        ofi_documento.save()
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Renombrado Oficio Documento descripción {ofi_documento.descripcion}"),
+            url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    # Cargar los datos en el formulario
+    form.descripcion.data = ofi_documento.descripcion
+    form.vencimiento_fecha.data = ofi_documento.vencimiento_fecha
+    form.folio.data = ofi_documento.folio
+    # Entregar jinja2
+    return render_template(
+        "ofi_documentos/rename.jinja2",
         form=form,
         ofi_documento=ofi_documento,
     )

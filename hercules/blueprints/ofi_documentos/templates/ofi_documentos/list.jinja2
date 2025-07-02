@@ -75,7 +75,6 @@
                     <th>Autoridad</th>
                     <th>Descripción</th>
                     <th>Estado</th>
-                    <th>Iconos</th>
                 </tr>
             </thead>
         </table>
@@ -99,15 +98,19 @@
             { data: 'propietario' },
             { data: 'autoridad' },
             { data: 'descripcion' },
-            { data: 'estado' },
-            { data: 'iconos' }
+            { data: 'estado' }
         ];
         configDataTable['columnDefs'] = [
             {
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.id.substring(0, 8) + '</a>';
+                    let html = "";
+                    if (data.icono_cancelado)
+                        html += '<span title="Cancelado">🚫</span>';
+                    if (data.icono_archivado)
+                        html += '<span title="Archivado">📦</span>';
+                    return html + ' <a href="' + data.url + '">' + data.id.substring(0, 8) + '</a>';
                 }
             },
             {
@@ -124,8 +127,8 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data.url == "" )
-                        return '<span title="' + data.nombre + '">' + data.clave + '</span>';
-                    return '<span title="' + data.nombre + '"><a href="' + data.url + '">' + data.clave + '</a></span>';
+                        return '<span class="iconify" data-icon="' + data.icono + '"></span> <span title="' + data.nombre + '">' + data.clave + '</span>';
+                    return '<span class="iconify" data-icon="' + data.icono + '"></span> <span title="' + data.nombre + '"><a href="' + data.url + '">' + data.clave + '</a></span>';
                 }
             },
             {
@@ -150,23 +153,14 @@
                     }
                     return '<span class="badge rounded-pill ' + bgcolor + '">' + data + '</span>';
                 }
-            },
-            {
-                targets: 8, // iconos
-                data: null,
-                render: function(data, type, row, meta) {
-                    let iconos = '';
-                    if (data.archivado)
-                        iconos = '<span title="Archivado">📦</span>';
-                    if (data.cancelado)
-                        iconos += ' <span title="Cancelado">🚫</span>';
-                    return iconos;
-                }
             }
         ];
         // Colorear renglones
         configDataTable['rowCallback'] = function( row, data )  {
-            if (data.iconos.cancelado)    {
+            if (data.autoridad.color_renglon)   {
+                $(row).css("background-color", data.autoridad.color_renglon);
+            }
+            if (data.detalle.icono_cancelado)    {
                 $(row).css("background-color", "#eceff1");
             }
         };

@@ -8,7 +8,7 @@
     {% call topbar.page_buttons(titulo) %}
         {% if current_user.can_view('OFI DOCUMENTOS') %}
             {{ topbar.button('Mi Bandeja de Entrada', url_for('ofi_documentos.list_active_mi_bandeja_entrada'), "mdi:inbox-multiple") }}
-            {{ topbar.button('Mis Oficios', url_for('ofi_documentos.list_active'), "mdi:file-sign") }}
+            {{ topbar.button('Mis Oficios', url_for('ofi_documentos.list_active_mis_oficios'), "mdi:file-sign") }}
             {{ topbar.button('Mi Autoridad', url_for('ofi_documentos.list_active_mi_autoridad'), "mdi:scale-balance") }}
         {% endif %}
         {% if current_user.can_admin('OFI PLANTILLAS') %}
@@ -94,7 +94,7 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.id.substring(0, 8) + '</a> <a href="' + data.url_nuevo + '"><span class="iconify" data-icon="mdi:file-document-plus"></span></a>';
+                    return '<a class="btn btn-outline-primary btn-sm" href="' + data.url_nuevo + '"><span class="iconify" data-icon="mdi:file-document-plus"></span></a> <a href="' + data.url + '">' + data.id.substring(0, 8) + '</a>';
                 }
             },
             {
@@ -135,6 +135,12 @@
                 }
             }
         ];
+        // Colorear renglones
+        configDataTable['rowCallback'] = function( row, data )  {
+            if (data.autoridad.color_renglon)   {
+                $(row).css("background-color", data.autoridad.color_renglon);
+            }
+        };
         // Filtros OfiPlantillas
         const filtrosPlantillas = new FiltrosDataTable('#ofi_plantillas_datatable', configDataTable);
         filtrosPlantillas.agregarInput('filtroId', 'id');
