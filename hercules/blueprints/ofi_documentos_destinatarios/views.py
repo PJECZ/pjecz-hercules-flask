@@ -196,18 +196,8 @@ def new_with_ofi_documento(ofi_documento_id):
     # Llenar Campos ReadOnly
     form.ofi_documento.data = ofi_documento.descripcion
     form.con_copia.data = False
-    # listado de autoridades
-    autoridades = (
-        Autoridad.query.filter_by(es_notaria=False)
-        .filter_by(es_extinto=False)
-        .filter_by(estatus="A")
-        .order_by(Autoridad.clave)
-        .all()
-    )
     # Entregar plantilla
-    return render_template(
-        "ofi_documentos_destinatarios/new.jinja2", form=form, ofi_documento=ofi_documento, autoridades=autoridades
-    )
+    return render_template("ofi_documentos_destinatarios/new.jinja2", form=form, ofi_documento=ofi_documento)
 
 
 @ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/eliminar_todos/<ofi_documento_id>")

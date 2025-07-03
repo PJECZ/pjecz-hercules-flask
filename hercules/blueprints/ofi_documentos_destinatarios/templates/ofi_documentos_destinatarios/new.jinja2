@@ -51,12 +51,7 @@
             <div class="row">
                 <div class="col-8">
                     <label for="autoridad" class="visually-hidden">Autoridad</label>
-                    <select class="form-control" id="autoridad" name="autoridad" placeholder="Autoridad">
-                        <option value="" selected></option>
-                        {% for autoridad in autoridades %}
-                            <option value="{{autoridad.id}}">{{autoridad.clave}}: {{autoridad.descripcion_corta}}</option>
-                        {% endfor %}
-                    </select>
+                    <select class="form-control" id="autoridad" name="autoridad" placeholder="Autoridad"></select>
                 </div>
                 <div class="col-2">
                     <div class="checkbox ">
@@ -112,6 +107,27 @@
                     type: "POST",
                     data: function (params) {
                         return { 'searchString': params.term, "workspace": "LOCAL" }
+                    }
+                },
+                placeholder: "{{buscar}}",
+                minimumInputLength: 3,
+                allowClear: true
+            });
+        });
+    </script>
+    <!-- Select2 para Autoridades -->
+    <script>
+        $(document).ready(function(){
+            $("#autoridad").select2({
+                // --- Carga por Ajax --- //
+                ajax: {
+                    url: '/autoridades/select_json',
+                    headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+                    dataType: 'json',
+                    delay: 250,
+                    type: "POST",
+                    data: function (params) {
+                        return { 'clave': params.term, "es_extinto": false, "es_jurisdiccional": false, "es_notaria": false }
                     }
                 },
                 placeholder: "{{buscar}}",

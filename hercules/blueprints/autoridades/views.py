@@ -6,6 +6,7 @@ import json
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import or_
 
 from hercules.blueprints.autoridades.forms import AutoridadEditForm, AutoridadNewForm
 from hercules.blueprints.autoridades.models import Autoridad
@@ -394,10 +395,12 @@ def select_autoridades_json():
         consulta = consulta.filter_by(es_extinto=request.form["es_extinto"] == "true")
     if "es_jurisdiccional" in request.form:
         consulta = consulta.filter_by(es_jurisdiccional=request.form["es_jurisdiccional"] == "true")
+    if "es_notaria" in request.form:
+        consulta = consulta.filter_by(es_notaria=request.form["es_notaria"] == "true")
     if "clave" in request.form:
         clave = safe_clave(request.form["clave"])
         if clave != "":
-            consulta = consulta.filter(Autoridad.clave.contains(clave))
+            consulta = consulta.filter(or_(Autoridad.clave.contains(clave), Autoridad.descripcion_corta.contains(clave)))
     results = []
     for autoridad in consulta.order_by(Autoridad.id).limit(15).all():
         results.append(
