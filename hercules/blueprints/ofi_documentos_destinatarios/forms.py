@@ -10,7 +10,7 @@ from wtforms.validators import DataRequired, Optional
 class OfiDocumentoDestinatarioForm(FlaskForm):
     """Formulario OfiDocumentoDestinatario"""
 
-    ofi_documento = StringField("Oficio")  # Read-Only
+    ofi_documento = StringField("Descripción")  # Read-Only
     usuario = SelectField("Usuario", coerce=int, validate_choice=False, validators=[Optional()])
     autoridad = SelectField("Autoridad", coerce=int, validate_choice=False, validators=[Optional()])
     con_copia = BooleanField("Con Copia", validators=[Optional()])

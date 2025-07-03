@@ -51,7 +51,8 @@ def datatable_json():
     #     consulta = consulta.join(Persona)
     #     consulta = consulta.filter(Persona.rfc.contains(safe_rfc(request.form["persona_rfc"], search_fragment=True)))
     # Ordenar y paginar
-    registros = consulta.order_by(OfiDocumentoDestinatario.id).offset(start).limit(rows_per_page).all()
+    consulta = consulta.join(Usuario)
+    registros = consulta.order_by(Usuario.email).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -129,38 +130,36 @@ def new_with_ofi_documento(ofi_documento_id):
     form = OfiDocumentoDestinatarioForm()
     if form.validate_on_submit():
         es_valido = True
-        # Verificar si se quiere agregar un destinatario por usuario o por autoridad
+        # Si se eligió agregar todos los usuarios de una autoridad
         if form.autoridad.data:
             # Validar la autoridad
             autoridad = Autoridad.query.get_or_404(form.autoridad.data)
-            # Consultar los destinatarios de la autoridad
-            destinatarios = Usuario.query.filter_by(autoridad_id=autoridad.id).filter_by(estatus="A").all()
-            for destinatario in destinatarios:
-                es_valido = True
-                # Validar que el usuario no esté entre los destinatarios
-                destinatario_repetido = OfiDocumentoDestinatario.query.filter_by(
-                    ofi_documento_id=ofi_documento_id, usuario_id=destinatario.id
-                ).first()
-                if destinatario_repetido:
-                    if destinatario_repetido.estatus == "B":
-                        destinatario_repetido.con_copia = form.con_copia_autoridad.data
-                        destinatario_repetido.recover()
-                else:
+            # Consultar los usuarios de la autoridad
+            usuarios = Usuario.query.filter_by(autoridad_id=autoridad.id).filter_by(estatus="A").all()
+            # Consultar los destinatarios del Oficio
+            destinatarios = OfiDocumentoDestinatario.query.filter_by(ofi_documento_id=ofi_documento_id).all()
+            # Bucle por los usuarios
+            for usuario in usuarios:
+                # Bucle por los destinatarios
+                fue_encontrado = False
+                for destinatario in destinatarios:
+                    # Si éste destinatario es un usuario...
+                    if destinatario.usuario_id == usuario.id:
+                        fue_encontrado = True
+                        # Si está eliminado, lo recuperamos
+                        if destinatario.estatus == "B":
+                            destinatario.con_copia = form.con_copia_autoridad.data
+                            destinatario.recover()
+                        break  # Salirse del bucle destinatarios
+                # Si no fue encontrado lo insertamos
+                if fue_encontrado is False:
                     ofi_documento_destinatario = OfiDocumentoDestinatario(
                         ofi_documento=ofi_documento,
-                        usuario=destinatario,
+                        usuario=usuario,
                         con_copia=form.con_copia_autoridad.data,
                     )
                     ofi_documento_destinatario.save()
-            if es_valido:
-                bitacora = Bitacora(
-                    modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-                    usuario=current_user,
-                    descripcion=safe_message(f"Nuevos Ofi-Documento-Destinatarios por autoridad {autoridad.clave}"),
-                    url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_id),
-                )
-                bitacora.save()
-                flash(bitacora.descripcion, "success")
+        # Si en el formulario se eligió el agregar un usuario
         elif form.usuario.data:
             # Validar que el destinatario no esté ya listado en este ofi-documento
             destinatario_repetido = OfiDocumentoDestinatario.query.filter_by(
@@ -179,26 +178,10 @@ def new_with_ofi_documento(ofi_documento_id):
                     usuario_id=form.usuario.data,
                     con_copia=form.con_copia.data,
                 )
-                ofi_documento_destinatario.save()
-                bitacora = Bitacora(
-                    modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-                    usuario=current_user,
-                    descripcion=safe_message(f"Nuevo Ofi-Documento-Destinatario {ofi_documento_destinatario.usuario}"),
-                    url=url_for(
-                        "ofi_documentos_destinatarios.detail", ofi_documento_destinatario_id=ofi_documento_destinatario.id
-                    ),
-                )
-                bitacora.save()
-                flash(bitacora.descripcion, "success")
-    # Llenar Campos ReadOnly
-    form.ofi_documento.data = ofi_documento.descripcion
-    form.con_copia.data = False
-    # listado de autoridades
-    autoridades = Autoridad.query.filter_by(es_notaria=False).filter_by(es_extinto=False).filter_by(estatus="A").all()
-    # Entregar plantilla
-    return render_template(
-        "ofi_documentos_destinatarios/new.jinja2", form=form, ofi_documento=ofi_documento, autoridades=autoridades
-    )
+    # Definir los valores del formulario
+    form.ofi_documento.data = ofi_documento.descripcion  # Read-only
+    # Entregar
+    return render_template("ofi_documentos_destinatarios/new.jinja2", form=form, ofi_documento=ofi_documento)
 
 
 @ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/eliminar_todos/<ofi_documento_id>")

@@ -4,7 +4,7 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/detail.jinja2' as detail %}
 
-{% block title %}Oficio Destinatarios{% endblock %}
+{% block title %}Agregar Destinatarios{% endblock %}
 
 {% block custom_head %}
     <!-- Select2 bootstrap -->
@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Oficio Destinatarios') }}
+    {{ topbar.page('Agregar Destinatarios') }}
 {% endblock %}
 
 {% block content %}
@@ -23,7 +23,7 @@
             {% call f.form_group(form.ofi_documento, readonly=true) %}{% endcall %}
             <!-- Inicia mini-Formulario para agregar un destinatario -->
             <div class="form-group mb-2">
-                <label><strong>Agregar un destinatario</strong></label>
+                <label><strong>Agregar un usuario</strong></label>
             </div>
             <div class="row">
                 <div class="col-8">
@@ -39,24 +39,16 @@
                     <a class="btn btn-primary" id="guardar" name="guardar" type="submit" onclick="ofi_documento_destinatario_form.submit()"><span class="iconify" data-icon="mdi:plus"></span> Agregar</a>
                 </div>
             </div>
-            <p>
-                <figcaption class="blockquote-footer">Si indica enviar como copia, el destinatario no podrá responder.</figcaption>
-            </p>
             <!-- Termina mini-Formulario para agregar un destinatario -->
             <!-- Iniciar mini-Formulario para agregar una Autoridad -->
             <hr />
             <div class="form-group mb-2">
-                <label><strong>Agregar todos los destinatarios de una autoridad</strong></label>
+                <label><strong>Agregar todos los usuarios de una autoridad</strong></label>
             </div>
             <div class="row">
                 <div class="col-8">
                     <label for="autoridad" class="visually-hidden">Autoridad</label>
-                    <select class="form-control" id="autoridad" name="autoridad" placeholder="Autoridad">
-                        <option value="" selected></option>
-                        {% for autoridad in autoridades %}
-                            <option value="{{autoridad.id}}">{{autoridad.clave}}: {{autoridad.descripcion_corta}}</option>
-                        {% endfor %}
-                    </select>
+                    <select class="form-control" id="autoridad" name="autoridad" placeholder="Autoridad"></select>
                 </div>
                 <div class="col-2">
                     <div class="checkbox ">
@@ -67,14 +59,10 @@
                     <a class="btn btn-primary" id="guardar" name="guardar" type="submit" onclick="ofi_documento_destinatario_form.submit()"><span class="iconify" data-icon="mdi:account-multiple-plus"></span> Agregar</a>
                 </div>
             </div>
-            <p>
-                <figcaption class="blockquote-footer">Si indica enviar como copia, los destinatarios no podrán responder.</figcaption>
-            </p>
             <!-- Termina mini-Formulario para agregar una Autoridad -->
         {% endcall %}
         <hr />
         <!-- DataTable Destinatarios -->
-        <h4>Listado de Destinatarios</h4>
         <table id="ofi_documentos_destinatarios_datatable" class="table display nowrap" style="width:100%">
             <thead>
                 <tr>
@@ -112,6 +100,27 @@
                     type: "POST",
                     data: function (params) {
                         return { 'searchString': params.term, "workspace": "LOCAL" }
+                    }
+                },
+                placeholder: "{{buscar}}",
+                minimumInputLength: 3,
+                allowClear: true
+            });
+        });
+    </script>
+    <!-- Select2 para Autoridades -->
+    <script>
+        $(document).ready(function(){
+            $("#autoridad").select2({
+                // --- Carga por Ajax --- //
+                ajax: {
+                    url: '/autoridades/select_json',
+                    headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+                    dataType: 'json',
+                    delay: 250,
+                    type: "POST",
+                    data: function (params) {
+                        return { 'clave': params.term, "es_extinto": false, "es_jurisdiccional": false, "es_notaria": false }
                     }
                 },
                 placeholder: "{{buscar}}",
