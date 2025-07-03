@@ -16,6 +16,8 @@ from hercules.blueprints.usuarios.decorators import permission_required
 from hercules.blueprints.ofi_documentos_destinatarios.models import OfiDocumentoDestinatario
 from hercules.blueprints.ofi_documentos_destinatarios.forms import OfiDocumentoDestinatarioForm
 from hercules.blueprints.ofi_documentos.models import OfiDocumento
+from hercules.blueprints.autoridades.models import Autoridad
+from hercules.blueprints.usuarios.models import Usuario
 
 
 MODULO = "OFI DOCUMENTOS DESTINATARIOS"
@@ -67,6 +69,7 @@ def datatable_json():
                 },
                 "fue_leido": resultado.fue_leido,
                 "con_copia": resultado.con_copia,
+                "acciones": url_for("ofi_documentos_destinatarios.delete", ofi_documento_destinatario_id=resultado.id),
             }
         )
     # Entregar JSON
@@ -126,37 +129,99 @@ def new_with_ofi_documento(ofi_documento_id):
     form = OfiDocumentoDestinatarioForm()
     if form.validate_on_submit():
         es_valido = True
-        # Validar que el destinatario no esté ya listado en este ofi-documento
-        destinatario_repetido = OfiDocumentoDestinatario.query.filter_by(
-            ofi_documento_id=ofi_documento_id, usuario_id=form.usuario.data
-        ).first()
-        if destinatario_repetido:
-            if destinatario_repetido.estatus == "B":
-                destinatario_repetido.recover()
-                return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_id))
-            else:
-                flash(f"Destinatario '{destinatario_repetido.usuario.nombre}' ya se encuentra agregado", "warning")
+        # Verificar si se quiere agregar un destinatario por usuario o por autoridad
+        if form.autoridad.data:
+            # Validar la autoridad
+            autoridad = Autoridad.query.get_or_404(form.autoridad.data)
+            # Consultar los destinatarios de la autoridad
+            destinatarios = Usuario.query.filter_by(autoridad_id=autoridad.id).filter_by(estatus="A").all()
+            for destinatario in destinatarios:
+                es_valido = True
+                # Validar que el usuario no esté entre los destinatarios
+                destinatario_repetido = OfiDocumentoDestinatario.query.filter_by(
+                    ofi_documento_id=ofi_documento_id, usuario_id=destinatario.id
+                ).first()
+                if destinatario_repetido:
+                    if destinatario_repetido.estatus == "B":
+                        destinatario_repetido.con_copia = form.con_copia_autoridad.data
+                        destinatario_repetido.recover()
+                else:
+                    ofi_documento_destinatario = OfiDocumentoDestinatario(
+                        ofi_documento=ofi_documento,
+                        usuario=destinatario,
+                        con_copia=form.con_copia_autoridad.data,
+                    )
+                    ofi_documento_destinatario.save()
+            if es_valido:
+                bitacora = Bitacora(
+                    modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+                    usuario=current_user,
+                    descripcion=safe_message(f"Nuevos Ofi-Documento-Destinatarios por autoridad {autoridad.clave}"),
+                    url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_id),
+                )
+                bitacora.save()
+                flash(bitacora.descripcion, "success")
+        elif form.usuario.data:
+            # Validar que el destinatario no esté ya listado en este ofi-documento
+            destinatario_repetido = OfiDocumentoDestinatario.query.filter_by(
+                ofi_documento_id=ofi_documento_id, usuario_id=form.usuario.data
+            ).first()
+            if destinatario_repetido:
                 es_valido = False
-        if es_valido:
-            ofi_documento_destinatario = OfiDocumentoDestinatario(
-                ofi_documento=ofi_documento,
-                usuario_id=form.usuario.data,
-                con_copia=form.con_copia.data,
-            )
-            ofi_documento_destinatario.save()
-            bitacora = Bitacora(
-                modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-                usuario=current_user,
-                descripcion=safe_message(f"Nuevo Ofi-Documento-Destinatario {ofi_documento_destinatario.usuario}"),
-                url=url_for("ofi_documentos_destinatarios.detail", ofi_documento_destinatario_id=ofi_documento_destinatario.id),
-            )
-            bitacora.save()
-            flash(bitacora.descripcion, "success")
-            return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_id))
+                if destinatario_repetido.estatus == "B":
+                    destinatario_repetido.con_copia = form.con_copia.data
+                    destinatario_repetido.recover()
+                else:
+                    flash(f"Destinatario '{destinatario_repetido.usuario.nombre}' ya se encuentra agregado", "warning")
+            if es_valido:
+                ofi_documento_destinatario = OfiDocumentoDestinatario(
+                    ofi_documento=ofi_documento,
+                    usuario_id=form.usuario.data,
+                    con_copia=form.con_copia.data,
+                )
+                ofi_documento_destinatario.save()
+                bitacora = Bitacora(
+                    modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+                    usuario=current_user,
+                    descripcion=safe_message(f"Nuevo Ofi-Documento-Destinatario {ofi_documento_destinatario.usuario}"),
+                    url=url_for(
+                        "ofi_documentos_destinatarios.detail", ofi_documento_destinatario_id=ofi_documento_destinatario.id
+                    ),
+                )
+                bitacora.save()
+                flash(bitacora.descripcion, "success")
     # Llenar Campos ReadOnly
     form.ofi_documento.data = ofi_documento.descripcion
+    form.con_copia.data = False
+    # listado de autoridades
+    autoridades = Autoridad.query.filter_by(es_notaria=False).filter_by(es_extinto=False).filter_by(estatus="A").all()
     # Entregar plantilla
-    return render_template("ofi_documentos_destinatarios/new.jinja2", form=form, ofi_documento=ofi_documento)
+    return render_template(
+        "ofi_documentos_destinatarios/new.jinja2", form=form, ofi_documento=ofi_documento, autoridades=autoridades
+    )
+
+
+@ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/eliminar_todos/<ofi_documento_id>")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def remove_all(ofi_documento_id):
+    """Eliminar Todos los Oficio-Destinatarios"""
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    destinatarios = OfiDocumentoDestinatario.query.filter_by(ofi_documento_id=ofi_documento_id).filter_by(estatus="A").all()
+    if not destinatarios:
+        flash("No hay destinatarios para eliminar", "warning")
+        return redirect(url_for("ofi_documentos_destinatarios.new_with_ofi_documento", ofi_documento_id=ofi_documento_id))
+    for destinatario in destinatarios:
+        destinatario.delete()
+
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Eliminado Todos los Destinatarios del Oficio {ofi_documento.descripcion}"),
+        url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+    )
+    bitacora.save()
+    flash(bitacora.descripcion, "success")
+    return redirect(url_for("ofi_documentos_destinatarios.new_with_ofi_documento", ofi_documento_id=ofi_documento_id))
 
 
 @ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/eliminar/<ofi_documento_destinatario_id>")
@@ -174,7 +239,11 @@ def delete(ofi_documento_destinatario_id):
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
-    return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_destinatario.ofi_documento_id))
+    return redirect(
+        url_for(
+            "ofi_documentos_destinatarios.new_with_ofi_documento", ofi_documento_id=ofi_documento_destinatario.ofi_documento_id
+        )
+    )
 
 
 @ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/recuperar/<ofi_documento_destinatario_id>")

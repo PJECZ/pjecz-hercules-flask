@@ -105,11 +105,11 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    let html = '<a class="btn btn-outline-primary btn-sm" href="' + data.url_fullscreen + '" title="ABRIR EN FULLSCREEN">🖥️</a>';
+                    let html = '<a class="btn btn-outline-primary btn-sm" href="' + data.url_fullscreen + '" title="ABRIR EN FULLSCREEN"><span class="iconify" data-icon="mdi:monitor"></span></a>';
                     if (data.icono == "CANCELADO")
-                        html = '<a class="btn btn-sm" title="CANCELADO" style="cursor: default;">🚫</a>';
+                        html = '<a class="btn btn-sm" title="CANCELADO" style="cursor: default;"><span class="iconify" data-icon="mdi:cancel" style="color: red;"></span></a>';
                     if (data.icono == "ARCHIVADO")
-                        html = '<a class="btn btn-sm" title="ARCHIVADO" style="cursor: default;">📦</a>';
+                        html = '<a class="btn btn-sm" title="ARCHIVADO" style="cursor: default;"><span class="iconify" data-icon="mdi:archive" style="color: olive;"></a>';
                     return html + ' <a href="' + data.url + '">' + data.id.substring(0, 8) + '</a>';
                 }
             },
