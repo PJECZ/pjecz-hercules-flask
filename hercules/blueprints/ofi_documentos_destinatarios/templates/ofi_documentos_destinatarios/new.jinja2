@@ -4,7 +4,7 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/detail.jinja2' as detail %}
 
-{% block title %}Oficio Destinatarios{% endblock %}
+{% block title %}Agregar Destinatarios{% endblock %}
 
 {% block custom_head %}
     <!-- Select2 bootstrap -->
@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Oficio Destinatarios') }}
+    {{ topbar.page('Agregar Destinatarios') }}
 {% endblock %}
 
 {% block content %}
@@ -23,7 +23,7 @@
             {% call f.form_group(form.ofi_documento, readonly=true) %}{% endcall %}
             <!-- Inicia mini-Formulario para agregar un destinatario -->
             <div class="form-group mb-2">
-                <label><strong>Agregar un destinatario</strong></label>
+                <label><strong>Agregar un usuario</strong></label>
             </div>
             <div class="row">
                 <div class="col-8">
@@ -46,7 +46,7 @@
             <!-- Iniciar mini-Formulario para agregar una Autoridad -->
             <hr />
             <div class="form-group mb-2">
-                <label><strong>Agregar todos los destinatarios de una autoridad</strong></label>
+                <label><strong>Agregar todos los usuarios de una autoridad</strong></label>
             </div>
             <div class="row">
                 <div class="col-8">
