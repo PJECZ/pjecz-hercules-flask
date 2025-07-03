@@ -1,8 +1,10 @@
 {% extends 'layouts/app.jinja2' %}
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/detail.jinja2' as detail %}
 
-{% block title %}Nuevo Oficio Destinatario{% endblock %}
+{% block title %}Oficio Destinatarios{% endblock %}
 
 {% block custom_head %}
     <!-- Select2 bootstrap -->
@@ -11,7 +13,7 @@
 {% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Nuevo Oficio Destinatario') }}
+    {{ topbar.page('Oficio Destinatarios') }}
 {% endblock %}
 
 {% block content %}
@@ -19,16 +21,83 @@
         {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
         {% call f.form_tag('ofi_documentos_destinatarios.new_with_ofi_documento', fid='ofi_documento_destinatario_form', **form_kwargs) %}
             {% call f.form_group(form.ofi_documento, readonly=true) %}{% endcall %}
-            {% call f.form_group(form.usuario) %}{% endcall %}
-            {% call f.form_group(form.con_copia) %}{% endcall %}
-            <p>Si indica enviar como copia, el destinatario no podrá responder.</p>
-            {% call f.form_group(form.guardar) %}{% endcall %}
+            <!-- Inicia mini-Formulario para agregar un destinatario -->
+            <div class="form-group mb-2">
+                <label><strong>Agregar un destinatario</strong></label>
+            </div>
+            <div class="row">
+                <div class="col-8">
+                    <label for="usuario" class="visually-hidden">Usuario</label>
+                    <select class="form-control" id="usuario" name="usuario" placeholder="Usuario"></select>
+                </div>
+                <div class="col-2">
+                    <div class="checkbox ">
+                        <input id="con_copia" name="con_copia" type="checkbox"> <label for="con_copia">Con Copia</label>
+                    </div>
+                </div>
+                <div class="col-2 text-end">
+                    <a class="btn btn-primary" id="guardar" name="guardar" type="submit" onclick="ofi_documento_destinatario_form.submit()"><span class="iconify" data-icon="mdi:plus"></span> Agregar</a>
+                </div>
+            </div>
+            <p>
+                <figcaption class="blockquote-footer">Si indica enviar como copia, el destinatario no podrá responder.</figcaption>
+            </p>
+            <!-- Termina mini-Formulario para agregar un destinatario -->
+            <!-- Iniciar mini-Formulario para agregar una Autoridad -->
+            <hr />
+            <div class="form-group mb-2">
+                <label><strong>Agregar todos los destinatarios de una autoridad</strong></label>
+            </div>
+            <div class="row">
+                <div class="col-8">
+                    <label for="autoridad" class="visually-hidden">Autoridad</label>
+                    <select class="form-control" id="autoridad" name="autoridad" placeholder="Autoridad">
+                        <option value="" selected></option>
+                        {% for autoridad in autoridades %}
+                            <option value="{{autoridad.id}}">{{autoridad.clave}}: {{autoridad.descripcion_corta}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-2">
+                    <div class="checkbox ">
+                        <input id="con_copia_autoridad" name="con_copia_autoridad" type="checkbox"> <label for="con_copia_autoridad">Con Copia</label>
+                    </div>
+                </div>
+                <div class="col-2 text-end">
+                    <a class="btn btn-primary" id="guardar" name="guardar" type="submit" onclick="ofi_documento_destinatario_form.submit()"><span class="iconify" data-icon="mdi:account-multiple-plus"></span> Agregar</a>
+                </div>
+            </div>
+            <p>
+                <figcaption class="blockquote-footer">Si indica enviar como copia, los destinatarios no podrán responder.</figcaption>
+            </p>
+            <!-- Termina mini-Formulario para agregar una Autoridad -->
         {% endcall %}
+        <hr />
+        <!-- DataTable Destinatarios -->
+        <h4>Listado de Destinatarios</h4>
+        <table id="ofi_documentos_destinatarios_datatable" class="table display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>email</th>
+                    <th>Nombre</th>
+                    <th>Con Copia</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+        </table>
+        <!-- Botones de acción -->
+        <div class="row mt-3">
+            <div class="col-md-3">{{ detail.button_md('Regresar al Oficio', url_for('ofi_documentos.detail', ofi_documento_id=ofi_documento.id), 'mdi:arrow-left',  color_class='btn-secondary') }}</div>
+            <div class="col-md-6"></div>
+            <div class="col-md-3 text-end">{{ modals.button_modal_md('Quitar Todos', url_for('ofi_documentos_destinatarios.remove_all', ofi_documento_id=ofi_documento.id), "QuitarTodos", "mdi:trash-can-outline", "¿Desea quitar todos los destinatarios?",  "btn-danger") }}</div>
+        </div>
     {% endcall %}
 {% endblock %}
 
 
 {% block custom_javascript %}
+    {# Modales #}
+    {{ modals.custom_javascript("Quitar Todos", "", "QuitarTodos") }}
     <!-- Select2 bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
@@ -50,5 +119,53 @@
                 allowClear: true
             });
         });
+    </script>
+    {# Importación de DataTables #}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    {# Configuración de DataTables #}
+    <script>
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+    </script>
+    {# DataTable Destinatarios #}
+    <script>
+        let configDT_destinatarios = constructorDataTable.config();
+        configDT_destinatarios['ajax']['url'] = '/ofi_documentos_destinatarios/datatable_json';
+        configDT_destinatarios['ajax']['data'] = {"estatus": "A", "ofi_documento_id": "{{ ofi_documento.id }}"};
+        configDT_destinatarios['columns'] = [
+            { data: 'usuario_email' },
+            { data: 'usuario_nombre' },
+            { data: 'con_copia' },
+            { data: 'acciones' }
+        ];
+        configDT_destinatarios['columnDefs'] = [
+            {
+                targets: 0, // email
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.email + '</a>';
+                }
+            },
+            {
+                targets: 2, // con_copia
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data) {
+                        return '<span class="iconify" data-icon="mdi:checkbox-marked" style="font-size: 1.4em"></span>';
+                    }
+                    return '<span class="iconify text-secondary" data-icon="mdi:checkbox-blank-outline" style="font-size: 1.4em"></span>';
+                }
+            },
+            {
+                targets: 3, // acciones
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a class="btn btn-outline-danger btn-sm" href="' + data + '"><span class="iconify" data-icon="mdi:trash-can-outline"></a>';
+                }
+            },
+        ];
+        // Filtros Destinatarios
+        const filtrosDestinatarios = new FiltrosDataTable('#ofi_documentos_destinatarios_datatable', configDT_destinatarios);
+        filtrosDestinatarios.precargar();
     </script>
 {% endblock %}
