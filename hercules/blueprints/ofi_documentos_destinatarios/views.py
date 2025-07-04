@@ -177,7 +177,7 @@ def new_with_ofi_documento(ofi_documento_id):
                     ofi_documento=ofi_documento,
                     usuario_id=form.usuario.data,
                     con_copia=form.con_copia.data,
-                )
+                ).save()
     # Definir los valores del formulario
     form.ofi_documento.data = ofi_documento.descripcion  # Read-only
     # Entregar
@@ -185,7 +185,7 @@ def new_with_ofi_documento(ofi_documento_id):
 
 
 @ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/eliminar_todos/<ofi_documento_id>")
-@permission_required(MODULO, Permiso.ADMINISTRAR)
+@permission_required(MODULO, Permiso.MODIFICAR)
 def remove_all(ofi_documento_id):
     """Eliminar Todos los Oficio-Destinatarios"""
     ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
@@ -208,7 +208,7 @@ def remove_all(ofi_documento_id):
 
 
 @ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/eliminar/<ofi_documento_destinatario_id>")
-@permission_required(MODULO, Permiso.ADMINISTRAR)
+@permission_required(MODULO, Permiso.MODIFICAR)
 def delete(ofi_documento_destinatario_id):
     """Eliminar Oficio-Destinatario"""
     ofi_documento_destinatario = OfiDocumentoDestinatario.query.get_or_404(ofi_documento_destinatario_id)
