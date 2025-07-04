@@ -275,6 +275,7 @@ def detail(ofi_documento_id):
         usuario_destinatario = (
             OfiDocumentoDestinatario.query.filter_by(ofi_documento_id=ofi_documento.id)
             .filter_by(usuario_id=current_user.id)
+            .filter_by(estatus="A")
             .first()
         )
         # Marcar como leído si es que no lo ha sido
@@ -1024,12 +1025,30 @@ def response(ofi_documento_id):
             ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
     # Formulario
     form = OfiDocumentoNewForm()
+    # Sugerencia del nuevo número de folio
+    num_oficio = (
+        OfiDocumento.query.join(Usuario)
+        .filter(Usuario.autoridad_id == current_user.autoridad_id)
+        .filter(OfiDocumento.folio_anio == datetime.now().year)
+        .order_by(OfiDocumento.folio_num.desc())
+        .first()
+    )
+    folio = f"1/{datetime.now().year}"
+    if num_oficio:
+        folio = f"{num_oficio.usuario.autoridad.clave}-{num_oficio.folio_num + 1}/{datetime.now().year}"
+    # Remplazo de palabras claves en la plantilla
+    texto = ofi_plantilla.contenido_md
+    texto = texto.replace("[[DIA]]", str(datetime.now().day))
+    texto = texto.replace("[[MES]]", str(datetime.now().strftime("%B")))
+    texto = texto.replace("[[AÑO]]", str(datetime.now().year))
+    texto = texto.replace("[[FOLIO]]", folio)
     # Cargar los datos de la plantilla en el formulario
     form.descripcion.data = "RE: " + ofi_plantilla.descripcion
-    form.contenido_md.data = ofi_plantilla.contenido_md
+    form.contenido_md.data = texto
     form.contenido_html.data = ofi_plantilla.contenido_html
     form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
     form.cadena_oficio_id.data = ofi_documento_id
+    form.folio.data = folio
     # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
     if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
         # Entregar new_syncfusion_document.jinja2
