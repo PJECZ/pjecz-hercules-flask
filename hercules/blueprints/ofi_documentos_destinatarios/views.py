@@ -41,15 +41,11 @@ def datatable_json():
     consulta = OfiDocumentoDestinatario.query
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
-        consulta = consulta.filter_by(estatus=request.form["estatus"])
+        consulta = consulta.filter(OfiDocumentoDestinatario.estatus == request.form["estatus"])
     else:
-        consulta = consulta.filter_by(estatus="A")
+        consulta = consulta.filter(OfiDocumentoDestinatario.estatus == "A")
     if "ofi_documento_id" in request.form:
-        consulta = consulta.filter_by(ofi_documento_id=request.form["ofi_documento_id"])
-    # Luego filtrar por columnas de otras tablas
-    # if "persona_rfc" in request.form:
-    #     consulta = consulta.join(Persona)
-    #     consulta = consulta.filter(Persona.rfc.contains(safe_rfc(request.form["persona_rfc"], search_fragment=True)))
+        consulta = consulta.filter(OfiDocumentoDestinatario.ofi_documento_id == request.form["ofi_documento_id"])
     # Ordenar y paginar
     consulta = consulta.join(Usuario)
     registros = consulta.order_by(Usuario.email).offset(start).limit(rows_per_page).all()
@@ -75,6 +71,33 @@ def datatable_json():
         )
     # Entregar JSON
     return output_datatable_json(draw, total, data)
+
+
+@ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/fullscreen_json/<ofi_documento_id>", methods=["GET", "POST"])
+def fullscreen_json(ofi_documento_id):
+    """Entregar JSON para la vista de pantalla completa"""
+    # Consultar
+    consulta = (
+        OfiDocumentoDestinatario.query.
+        join(Usuario).
+        filter(OfiDocumentoDestinatario.ofi_documento_id == ofi_documento_id).
+        filter(OfiDocumentoDestinatario.estatus == "A").
+        order_by(Usuario.email).
+        all()
+    )
+    # Si no hay destinatarios, entregar mensaje fallido
+    if not consulta:
+        return {
+            "success": False,
+            "message": "No se encontraron destinatarios para este oficio.",
+            "data": [],
+        }
+    # Entregar JSON
+    return {
+        "success": True,
+        "message": f"Se encontraron {len(consulta)} destinatarios.",
+        "data": [{"email": item.usuario.email, "nombre": item.usuario.nombre, "fue_leido": item.fue_leido} for item in consulta],
+    }
 
 
 @ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios")

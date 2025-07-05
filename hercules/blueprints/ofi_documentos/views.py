@@ -461,13 +461,13 @@ def fullscreen_document(ofi_documento_id):
 @ofi_documentos.route("/ofi_documentos/pantalla_completa/adjuntos/<ofi_documento_id>")
 def fullscreen_attachments(ofi_documento_id):
     """Pantalla completa: contenido del frame para los adjuntos"""
-    return render_template("ofi_documentos/fullscreen_attachments.jinja2")
+    return render_template("ofi_documentos/fullscreen_attachments.jinja2", ofi_documento_id=ofi_documento_id)
 
 
 @ofi_documentos.route("/ofi_documentos/pantalla_completa/destinatarios/<ofi_documento_id>")
 def fullscreen_recipients(ofi_documento_id):
     """Pantalla completa: contenido del frame para los destinatarios"""
-    return render_template("ofi_documentos/fullscreen_recipients.jinja2")
+    return render_template("ofi_documentos/fullscreen_recipients.jinja2", ofi_documento_id=ofi_documento_id)
 
 
 @ofi_documentos.route("/ofi_documentos/nuevo/<ofi_plantilla_id>", methods=["GET", "POST"])
