@@ -3,17 +3,19 @@
 {% block custom_head %}{% endblock %}
 
 {% block main %}
-    <div id="work-recipients">
-        <ul class="list-group" id="work-recipients-list">
-        </ul>
+    <div class="container-fluid">
+        <div id="work-recipients">
+            <p class="mt-2"><strong>Destinatarios</strong></p>
+            <ul class="list-group" id="work-recipients-list"></ul>
+        </div>
     </div>
 {% endblock %}
 
 {% block custom_javascript %}
     <script>
-        // Cuando se haya cargado la página
+        // Cuando se haya cargado
         $(document).ready(function() {
-            // Obtener el elemento donde se mostrarán los destinatarios
+            // Obtener los elementos donde se mostrarán los destinatarios
             const workRecipients = document.getElementById('work-recipients');
             const workRecipientsList = document.getElementById('work-recipients-list');
             // Consultar /ofi_documentos_destinatarios/fullscreen_json para obtener los datos
@@ -38,7 +40,7 @@
                         // Si hubo un error, mostrar un mensaje
                         const errorItem = document.createElement('li');
                         errorItem.className = 'list-group-item list-group-item-danger';
-                        errorItem.textContent = 'Error: ' + data.error;
+                        errorItem.textContent = data.message;
                         workRecipientsList.appendChild(errorItem);
                     }
                 })

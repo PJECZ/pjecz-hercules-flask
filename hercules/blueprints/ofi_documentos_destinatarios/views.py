@@ -76,6 +76,14 @@ def datatable_json():
 @ofi_documentos_destinatarios.route("/ofi_documentos_destinatarios/fullscreen_json/<ofi_documento_id>", methods=["GET", "POST"])
 def fullscreen_json(ofi_documento_id):
     """Entregar JSON para la vista de pantalla completa"""
+    # Validar el UUID del oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        return {
+            "success": False,
+            "message": "ID de oficio inválido.",
+            "data": None,
+        }
     # Consultar
     consulta = (
         OfiDocumentoDestinatario.query.
@@ -89,8 +97,8 @@ def fullscreen_json(ofi_documento_id):
     if not consulta:
         return {
             "success": False,
-            "message": "No se encontraron destinatarios para este oficio.",
-            "data": [],
+            "message": "Este oficio no tiene destinatarios.",
+            "data": None,
         }
     # Entregar JSON
     return {

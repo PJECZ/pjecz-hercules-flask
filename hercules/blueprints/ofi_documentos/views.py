@@ -162,6 +162,65 @@ def datatable_json():
     return output_datatable_json(draw, total, data)
 
 
+@ofi_documentos.route("/ofi_documentos/fullscreen_json/<ofi_documento_id>", methods=["GET", "POST"])
+def fullscreen_json(ofi_documento_id):
+    """Entregar JSON para la vista de pantalla completa"""
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        return {
+            "success": False,
+            "message": "ID de oficio inválido.",
+            "data": None,
+        }
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # Validar que si es BORRADOR o FIRMADO se debe tener el rol ESCRITOR o FIRMANTE para verlo
+    roles = current_user.get_roles()
+    if (
+        (ofi_documento.estado == "BORRADOR" or ofi_documento.estado == "FIRMADO")
+        and ROL_ESCRITOR not in roles
+        and ROL_FIRMANTE not in roles
+    ):
+        return {
+            "success": False,
+            "message": "Se necesitan roles de ESCRITOR o FIRMANTE para ver un oficio en estado BORRADOR o FIRMADO.",
+            "data": None,
+        }
+    # Si el oficio está eliminado y NO es administrador, mostrar mensaje y redirigir
+    if ofi_documento.estatus != "A" and current_user.can_admin(MODULO) is False:
+        return {
+            "success": False,
+            "message": "Este oficio está eliminado.",
+            "data": None,
+        }
+    # Si el estado es ENVIADO y quien lo ve es un destinatario, se va a marcar como leído
+    if ofi_documento.estado == "ENVIADO":
+        # Buscar al usuario entre los destinatarios
+        usuario_destinatario = (
+            OfiDocumentoDestinatario.query.filter_by(ofi_documento_id=ofi_documento.id)
+            .filter_by(usuario_id=current_user.id)
+            .first()
+        )
+        # Marcar como leído si es que no lo ha sido
+        if usuario_destinatario is not None and usuario_destinatario.fue_leido is False:
+            usuario_destinatario.fue_leido = True
+            usuario_destinatario.fue_leido_tiempo = datetime.now()
+            usuario_destinatario.save()
+    # Entregar JSON
+    return {
+        "success": True,
+        "message": "Se encontró el documento.",
+        "data":
+            {
+                "pagina_cabecera_url": ofi_documento.usuario.autoridad.pagina_cabecera_url,
+                "contenido_html": ofi_documento.contenido_html,
+                "pagina_pie_url": ofi_documento.usuario.autoridad.pagina_pie_url,
+                "firma_simple": ofi_documento.firma_simple,
+                "estado": ofi_documento.estado,
+            },
+    }
+
+
 @ofi_documentos.route("/ofi_documentos")
 def list_active():
     """Listado de Ofi Documentos activos"""
@@ -400,58 +459,7 @@ def fullscreen(ofi_documento_id):
 @ofi_documentos.route("/ofi_documentos/pantalla_completa/documento/<ofi_documento_id>")
 def fullscreen_document(ofi_documento_id):
     """Pantalla completa: contenido del frame para el documento"""
-    # Consultar el oficio
-    ofi_documento_id = safe_uuid(ofi_documento_id)
-    if not ofi_documento_id:
-        flash("ID de oficio inválido", "warning")
-        return redirect(url_for("ofi_documentos.list_active"))
-    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    # Validar que si es BORRADOR o FIRMADO se debe tener el rol ESCRITOR o FIRMANTE para verlo
-    roles = current_user.get_roles()
-    if (
-        (ofi_documento.estado == "BORRADOR" or ofi_documento.estado == "FIRMADO")
-        and ROL_ESCRITOR not in roles
-        and ROL_FIRMANTE not in roles
-    ):
-        flash("Se necesitan roles de ESCRITOR o FIRMANTE para ver un oficio en estado BORRADOR o FIRMADO", "warning")
-        return redirect(url_for("ofi_documentos.list_active"))
-    # Si el oficio está eliminado y NO es administrador, mostrar mensaje y redirigir
-    if ofi_documento.estatus != "A" and current_user.can_admin(MODULO) is False:
-        flash("El oficio está eliminado", "warning")
-        return redirect(url_for("ofi_documentos.list_active"))
-    # Si el usuario que lo ve es un destinatario, se va a marcar como leído
-    mostrar_boton_responder = False
-    platillas_opciones = None  # Si se va a responder, se van a consultar las plantillas
-    if ofi_documento.estado == "ENVIADO":
-        # Buscar al usuario entre los destinatarios
-        usuario_destinatario = (
-            OfiDocumentoDestinatario.query.filter_by(ofi_documento_id=ofi_documento.id)
-            .filter_by(usuario_id=current_user.id)
-            .first()
-        )
-        # Marcar como leído si es que no lo ha sido
-        if usuario_destinatario is not None and usuario_destinatario.fue_leido is False:
-            usuario_destinatario.fue_leido = True
-            usuario_destinatario.fue_leido_tiempo = datetime.now()
-            usuario_destinatario.save()
-        if usuario_destinatario is not None and usuario_destinatario.con_copia is False:
-            mostrar_boton_responder = True
-            # Consultar las plantillas para responder
-            platillas_opciones = (
-                OfiPlantilla.query.join(Usuario)
-                .filter(Usuario.autoridad == current_user.autoridad)
-                .filter(OfiPlantilla.estatus == "A")
-                .filter(OfiPlantilla.esta_archivado == False)
-                .order_by(OfiPlantilla.descripcion)
-                .all()
-            )
-    # Entregar
-    return render_template(
-        "ofi_documentos/fullscreen_document.jinja2",
-        ofi_documento=ofi_documento,
-        mostrar_boton_responder=mostrar_boton_responder,
-        platillas_opciones=platillas_opciones,
-    )
+    return render_template("ofi_documentos/fullscreen_document.jinja2", ofi_documento_id=ofi_documento_id)
 
 
 @ofi_documentos.route("/ofi_documentos/pantalla_completa/adjuntos/<ofi_documento_id>")
