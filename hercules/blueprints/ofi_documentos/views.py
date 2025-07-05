@@ -92,11 +92,8 @@ def datatable_json():
             consulta = consulta.join(Usuario)
             tabla_usuario_incluida = True
         consulta = consulta.filter(Usuario.autoridad_id == request.form["usuario_autoridad_id"])
-    # Verificar si el oficio ya fue leído
-    consulta = consulta.join(
-        OfiDocumentoDestinatario, OfiDocumentoDestinatario.ofi_documento_id == OfiDocumento.id
-    ).add_columns(OfiDocumentoDestinatario)
     if "usuario_destinatario_id" in request.form:
+        consulta = consulta.join(OfiDocumentoDestinatario, OfiDocumentoDestinatario.ofi_documento_id == OfiDocumento.id)
         consulta = consulta.filter(OfiDocumentoDestinatario.usuario_id == request.form["usuario_destinatario_id"])
         consulta = consulta.filter(OfiDocumentoDestinatario.estatus == "A")
     # Ordenar y paginar
@@ -104,7 +101,7 @@ def datatable_json():
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
-    for resultado, destinatario in registros:
+    for resultado in registros:
         # Formar campo de vencimiento
         vencimiento_fecha = resultado.vencimiento_fecha.strftime("%Y-%m-%d") if resultado.vencimiento_fecha else "-"
         vencimiento_icono = ""
@@ -159,7 +156,6 @@ def datatable_json():
                 "descripcion": resultado.descripcion,
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
                 "estado": resultado.estado,
-                "leido": destinatario.fue_leido,
             }
         )
     # Entregar JSON
