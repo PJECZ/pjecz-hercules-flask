@@ -57,10 +57,6 @@ def datatable_json():
         consulta = consulta.filter_by(estatus="A")
     if "ofi_documento_id" in request.form:
         consulta = consulta.filter_by(ofi_documento_id=request.form["ofi_documento_id"])
-    # Luego filtrar por columnas de otras tablas
-    # if "persona_rfc" in request.form:
-    #     consulta = consulta.join(Persona)
-    #     consulta = consulta.filter(Persona.rfc.contains(safe_rfc(request.form["persona_rfc"], search_fragment=True)))
     # Ordenar y paginar
     registros = consulta.order_by(OfiDocumentoAdjunto.id).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -78,6 +74,40 @@ def datatable_json():
         )
     # Entregar JSON
     return output_datatable_json(draw, total, data)
+
+
+@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/fullscreen_json/<ofi_documento_id>", methods=["GET", "POST"])
+def fullscreen_json(ofi_documento_id):
+    """Entregar JSON para la vista de pantalla completa"""
+    # Validar el UUID del oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        return {
+            "success": False,
+            "message": "ID de oficio inválido.",
+            "data": None,
+        }
+    # Consultar
+    consulta = (
+        OfiDocumentoAdjunto.query.
+        filter_by(ofi_documento_id=ofi_documento_id).
+        filter_by(estatus="A").
+        order_by(OfiDocumentoAdjunto.descripcion).
+        all()
+    )
+    # Si no hay adjuntos, entregar mensaje fallido
+    if not consulta:
+        return {
+            "success": False,
+            "message": "Este oficio no tiene archivos adjuntos.",
+            "data": None,
+        }
+    # Entregar JSON
+    return {
+        "success": True,
+        "message": f"Se encontraron {len(consulta)} documentos adjuntos.",
+        "data": [{"descripcion": item.descripcion, "archivo": item.archivo, "url": item.url} for item in consulta],
+    }
 
 
 @ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos")

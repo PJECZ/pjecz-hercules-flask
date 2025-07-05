@@ -3,8 +3,47 @@
 {% block custom_head %}{% endblock %}
 
 {% block main %}
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat. Duis semper. Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim. Pellentesque congue. Ut in risus volutpat libero pharetra tempor. Cras vestibulum bibendum augue. Praesent egestas leo in pede. Praesent blandit odio eu enim. Pellentesque sed dui ut augue blandit sodales. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam nibh.</p>
-    <p>Mauris ac mauris sed pede pellentesque fermentum. Maecenas adipiscing ante non diam. Sorbi et magna. Sed nulla ante, iaculis nec, eleifend non, dapibus rutrum, justo. Praesent luctus. Curabitur egestas nunc sed libero. Proin sed turpis nec mauris blandit fringilla. Praesent lorem! Sed nec elit. Suspendisse commodo tempor sagittis. Integer ut justo. In hac habitasse platea dictumst. Integer quis tortor. Ut addui. Curabitur consequat, lectus sit amet luctus vulputate, nisi sem semper erat, in consectetuer ipsum nunc id enim. Curabitur massa. Vestibulum accumsan, elit quis consectetur ultricies, dolor nulla egestas nulla, et sollicitudin sem purus nec purus.</p>
+    <div class="container-fluid">
+        <div id="work-recipients">
+            <p class="mt-2"><strong>Destinatarios</strong></p>
+            <ul class="list-group" id="work-recipients-list"></ul>
+        </div>
+    </div>
 {% endblock %}
 
-{% block custom_javascript %}{% endblock %}
+{% block custom_javascript %}
+    <script>
+        // Cuando se haya cargado
+        $(document).ready(function() {
+            // Obtener los elementos donde se mostrarán los destinatarios
+            const workRecipients = document.getElementById('work-recipients');
+            const workRecipientsList = document.getElementById('work-recipients-list');
+            // Consultar /ofi_documentos_destinatarios/fullscreen_json para obtener los datos
+            fetch('/ofi_documentos_destinatarios/fullscreen_json/{{ ofi_documento_id }}')
+                .then(response => response.json())
+                .then(data => {
+                    // Si success es verdadero, crear la lista de destinatarios
+                    if (data.success) {
+                        // Crear un elemento de lista para cada destinatario
+                        data.data.forEach(destinatario => {
+                            const listItem = document.createElement('li');
+                            listItem.className = 'list-group-item';
+                            if (destinatario.fue_leido) {
+                                listItem.classList.add('list-group-item-info');
+                            } else {
+                                listItem.classList.add('list-group-item-warning');
+                            }
+                            listItem.textContent = `${destinatario.nombre}`
+                            workRecipientsList.appendChild(listItem);
+                        });
+                    } else {
+                        // Si hubo un error, mostrar un mensaje
+                        const errorItem = document.createElement('li');
+                        errorItem.className = 'list-group-item list-group-item-danger';
+                        errorItem.textContent = data.message;
+                        workRecipientsList.appendChild(errorItem);
+                    }
+                })
+        });
+    </script>
+{% endblock %}
