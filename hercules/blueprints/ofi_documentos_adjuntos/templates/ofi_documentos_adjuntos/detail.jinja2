@@ -41,6 +41,13 @@
             <object data="{{ url_for('ofi_documentos_adjuntos.view_file_pdf', ofi_documento_adjunto_id=ofi_documento_adjunto.id) }}" type="application/pdf" width="100%" height="600px">
                 <p class="mb-0">El navegador no puede mostrar el archivo PDF o no existe en el depósito.</p>
             </object>
+        {% elif ofi_documento_adjunto.type_format(ofi_documento_adjunto.archivo) == "DOC" %}
+            <div class="row">
+                <div class="col-md-4">
+                    {{ detail.button_md('Descargar', url_for('ofi_documentos_adjuntos.download_doc', ofi_documento_adjunto_id=ofi_documento_adjunto.id), "mdi:download", "", "btn-success") }}
+                </div>
+                <div class="col-md-8"></div>
+            </div>
         {% endif %}
     {% endcall %}
 {% endblock %}

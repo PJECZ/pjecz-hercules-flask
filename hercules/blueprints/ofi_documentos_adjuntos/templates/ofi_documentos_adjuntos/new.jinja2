@@ -17,6 +17,7 @@
         {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
         {% call f.form_tag_multipart('ofi_documentos_adjuntos.new_with_ofi_documento', fid='ofi_documento_adjunto_form', **form_kwargs) %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
+            <p>Los formatos permitidos son: JPEG, JPG, PNG para imágenes. PDF y DOCX para documentos y XLSX para hojas de cálculo.</p>
             {% call f.drop_zone_wrapper() %}
                 {% call f.form_group(form.archivo, class="dropzone") %}{% endcall %}
             {% endcall %}

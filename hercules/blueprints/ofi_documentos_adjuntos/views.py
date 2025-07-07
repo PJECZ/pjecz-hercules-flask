@@ -89,11 +89,10 @@ def fullscreen_json(ofi_documento_id):
         }
     # Consultar
     consulta = (
-        OfiDocumentoAdjunto.query.
-        filter_by(ofi_documento_id=ofi_documento_id).
-        filter_by(estatus="A").
-        order_by(OfiDocumentoAdjunto.descripcion).
-        all()
+        OfiDocumentoAdjunto.query.filter_by(ofi_documento_id=ofi_documento_id)
+        .filter_by(estatus="A")
+        .order_by(OfiDocumentoAdjunto.descripcion)
+        .all()
     )
     # Si no hay adjuntos, entregar mensaje fallido
     if not consulta:
@@ -329,4 +328,36 @@ def view_file_img(ofi_documento_adjunto_id):
     # Entregar el archivo
     response = make_response(archivo)
     response.headers["Content-Type"] = "image/jpeg"
+    return response
+
+
+@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/<ofi_documento_adjunto_id>/doc")
+def download_doc(ofi_documento_adjunto_id):
+    """Descargar el archivo PDF de un Archivo"""
+
+    # Consultar
+    adjunto = OfiDocumentoAdjunto.query.get_or_404(ofi_documento_adjunto_id)
+
+    # Si el estatus es B, no se puede descargar
+    if adjunto.estatus == "B":
+        flash("No se puede descargar un archivo inactivo", "warning")
+        return redirect(url_for("personas_adjuntos.detail", ofi_documento_adjunto_id=adjunto.id))
+
+    # Tomar el nombre del archivo con el que sera descargado
+    descarga_nombre = adjunto.archivo
+
+    # Obtener el contenido del archivo desde Google Storage
+    try:
+        descarga_contenido = get_file_from_gcs(
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO"],
+            blob_name=get_blob_name_from_url(adjunto.url),
+        )
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        flash(str(error), "danger")
+        return redirect(url_for("ofi_documentos_adjuntos.detail", ofi_documento_adjunto_id=adjunto.id))
+
+    # Descargar un archivo DOC
+    response = make_response(descarga_contenido)
+    response.headers["Content-Type"] = "application/docx"
+    response.headers["Content-Disposition"] = f"attachment; filename={descarga_nombre}"
     return response
