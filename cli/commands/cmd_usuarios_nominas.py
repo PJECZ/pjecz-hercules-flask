@@ -103,7 +103,9 @@ def actualizar():
         # Bucle para añadir nuevos o actualizar timbres
         for dato in datos:
             # Verificar si timbrado_id es nuevo
-            usuario_nomina = UsuarioNomina.query.filter_by(timbrado_id=dato["id"]).filter_by(usuario=usuario).filter_by(estatus="A").first()
+            usuario_nomina = (
+                UsuarioNomina.query.filter_by(timbrado_id=dato["id"]).filter_by(usuario=usuario).filter_by(estatus="A").first()
+            )
 
             # Añadimos un nuevo timbre a nóminas
             if dato["id"] != "" and usuario_nomina is None:

@@ -5,8 +5,9 @@ Ofi Documentos, vistas
 from datetime import datetime
 import json
 
-from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from werkzeug.exceptions import NotFound
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.folio import validar_folio
@@ -20,12 +21,13 @@ from hercules.blueprints.ofi_documentos.forms import (
     OfiDocumentoNewForm,
     OfiDocumentoEditForm,
     OfiDocumentoSignForm,
-    OfiDocumentoRenameForm,
 )
 from hercules.blueprints.ofi_plantillas.models import OfiPlantilla
 from hercules.blueprints.usuarios.models import Usuario
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.ofi_documentos_destinatarios.models import OfiDocumentoDestinatario
+from lib.exceptions import MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError
+from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
 
 # Roles
 ROL_ESCRITOR = "OFICIOS ESCRITOR"
@@ -61,41 +63,41 @@ def datatable_json():
     else:
         consulta = consulta.filter(OfiDocumento.estatus == "A")
     if "usuario_id" in request.form:
-        consulta = consulta.filter(OfiDocumento.usuario_id == request.form["usuario_id"])
+        usuario_id = int(request.form["usuario_id"])
+        if usuario_id:
+            consulta = consulta.filter(OfiDocumento.usuario_id == usuario_id)
     if "estado" in request.form:
-        consulta = consulta.filter(OfiDocumento.estado == request.form["estado"])
+        estado = safe_string(request.form["estado"])
+        if estado:
+            consulta = consulta.filter(OfiDocumento.estado == estado)
     if "folio" in request.form:
-        folio = request.form["folio"]
-        consulta = consulta.filter(OfiDocumento.folio.contains(folio))
+        folio = safe_string(request.form["folio"])
+        if folio:
+            consulta = consulta.filter(OfiDocumento.folio.contains(folio))
     if "descripcion" in request.form:
         descripcion = safe_string(request.form["descripcion"])
         if descripcion:
             consulta = consulta.filter(OfiDocumento.descripcion.contains(descripcion))
-    # Luego filtrar por columnas de otras tablas
-    tabla_usuario_incluida = False
-    if "propietario" in request.form:
-        if tabla_usuario_incluida is False:
+    # Filtrar por ID de autoridad
+    if "autoridad_id" in request.form:
+        autoridad_id = int(request.form["autoridad_id"])
+        if autoridad_id:
             consulta = consulta.join(Usuario)
-            tabla_usuario_incluida = True
-        propietario = request.form["propietario"].lower()
-        consulta = consulta.filter(Usuario.email.contains(propietario))
-    if "autoridad" in request.form:
-        autoridad = safe_clave(request.form["autoridad"])
-        if autoridad:
-            if tabla_usuario_incluida is False:
-                consulta = consulta.join(Usuario)
-                tabla_usuario_incluida = True
+            consulta = consulta.filter(Usuario.autoridad_id == autoridad_id)
+    # Filtrar por clave de la autoridad
+    elif "autoridad_clave" in request.form:
+        autoridad_clave = safe_clave(request.form["autoridad_clave"])
+        if autoridad_clave:
+            consulta = consulta.join(Usuario)
             consulta = consulta.join(Autoridad, Usuario.autoridad_id == Autoridad.id)
-            consulta = consulta.filter(Autoridad.clave.contains(autoridad))
-    if "usuario_autoridad_id" in request.form:
-        if tabla_usuario_incluida is False:
-            consulta = consulta.join(Usuario)
-            tabla_usuario_incluida = True
-        consulta = consulta.filter(Usuario.autoridad_id == request.form["usuario_autoridad_id"])
+            consulta = consulta.filter(Autoridad.clave.contains(autoridad_clave))
+    # Filtrar para Mi Bandeja de Entrada
     if "usuario_destinatario_id" in request.form:
-        consulta = consulta.join(OfiDocumentoDestinatario, OfiDocumentoDestinatario.ofi_documento_id == OfiDocumento.id)
-        consulta = consulta.filter(OfiDocumentoDestinatario.usuario_id == request.form["usuario_destinatario_id"])
-        consulta = consulta.filter(OfiDocumentoDestinatario.estatus == "A")
+        usuario_destinatario_id = int(request.form["usuario_destinatario_id"])
+        if usuario_destinatario_id:
+            consulta = consulta.join(OfiDocumentoDestinatario, OfiDocumentoDestinatario.ofi_documento_id == OfiDocumento.id)
+            consulta = consulta.filter(OfiDocumentoDestinatario.usuario_id == request.form["usuario_destinatario_id"])
+            consulta = consulta.filter(OfiDocumentoDestinatario.estatus == "A")
     # Ordenar y paginar
     registros = consulta.order_by(OfiDocumento.creado.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -122,6 +124,12 @@ def datatable_json():
             icono_detalle = "ARCHIVADO"
         elif resultado.esta_cancelado:
             icono_detalle = "CANCELADO"
+        # Obtener los destinatarios del oficio que tengan estatus 'A'
+        destinatarios = [dest for dest in resultado.ofi_documentos_destinatarios if dest.estatus == "A"]
+        # Filtrar por los destinatarios que NO han leído el oficio
+        destinatarios_que_no_han_leido = [dest for dest in destinatarios if dest.fue_leido is False]
+        # Si el ID del usuario esta en esta consulta, poner fila en negritas
+        fila_en_negritas = current_user.id in [dest.usuario_id for dest in destinatarios_que_no_han_leido]
         # Elaborar registro
         data.append(
             {
@@ -156,6 +164,7 @@ def datatable_json():
                 "descripcion": resultado.descripcion,
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
                 "estado": resultado.estado,
+                "fila_en_negritas": fila_en_negritas,
             }
         )
     # Entregar JSON
@@ -210,31 +219,43 @@ def fullscreen_json(ofi_documento_id):
     return {
         "success": True,
         "message": "Se encontró el documento.",
-        "data":
-            {
-                "pagina_cabecera_url": ofi_documento.usuario.autoridad.pagina_cabecera_url,
-                "contenido_html": ofi_documento.contenido_html,
-                "pagina_pie_url": ofi_documento.usuario.autoridad.pagina_pie_url,
-                "firma_simple": ofi_documento.firma_simple,
-                "estado": ofi_documento.estado,
-            },
+        "data": {
+            "pagina_cabecera_url": ofi_documento.usuario.autoridad.pagina_cabecera_url,
+            "contenido_html": ofi_documento.contenido_html,
+            "pagina_pie_url": ofi_documento.usuario.autoridad.pagina_pie_url,
+            "firma_simple": ofi_documento.firma_simple,
+            "estado": ofi_documento.estado,
+        },
     }
 
 
 @ofi_documentos.route("/ofi_documentos")
 def list_active():
-    """Listado de Ofi Documentos activos"""
+    """Listado de Ofi Documentos Mi Bandeja de Entrada"""
     return list_active_mi_bandeja_entrada()
+
+
+@ofi_documentos.route("/ofi_documentos/mi_bandeja_entrada")
+def list_active_mi_bandeja_entrada():
+    """Listado de Ofi Documentos Mi Bandeja de Entrada"""
+    # Obtener los roles del usuario
+    roles = current_user.get_roles()
+    # Entregar
+    return render_template(
+        "ofi_documentos/list.jinja2",
+        filtros=json.dumps({"estatus": "A", "estado": "ENVIADO", "usuario_destinatario_id": current_user.id}),
+        titulo="Mi Bandeja de Entrada",
+        estatus="A",
+        estados=OfiDocumento.ESTADOS,
+        mostrar_boton_nuevo=ROL_FIRMANTE in roles or ROL_ESCRITOR in roles,
+    )
 
 
 @ofi_documentos.route("/ofi_documentos/mis_oficios")
 def list_active_mis_oficios():
     """Listado de Ofi Documentos Mis Oficios"""
-    # Mostrar botones según el rol
-    mostrar_boton_nuevo = False
+    # Obtener los roles del usuario
     roles = current_user.get_roles()
-    if ROL_FIRMANTE in roles or ROL_ESCRITOR in roles:
-        mostrar_boton_nuevo = True
     # Si no se cuenta con los roles de FIRMANTE o ESCRITOR reenviarlo a vista de Bandeja de Entrada
     if ROL_FIRMANTE not in roles and ROL_ESCRITOR not in roles:
         return redirect(url_for("ofi_documentos.list_active_mi_bandeja_entrada"))
@@ -245,45 +266,26 @@ def list_active_mis_oficios():
         titulo="Mis Oficios",
         estatus="A",
         estados=OfiDocumento.ESTADOS,
-        mostrar_boton_nuevo=mostrar_boton_nuevo,
-    )
-
-
-@ofi_documentos.route("/ofi_documentos/mi_bandeja_entrada")
-def list_active_mi_bandeja_entrada():
-    """Listado de Ofi Documentos Mi Bandeja de Entrada"""
-    # Mostrar botones según el rol
-    mostrar_boton_nuevo = False
-    roles = current_user.get_roles()
-    if ROL_FIRMANTE in roles or ROL_ESCRITOR in roles:
-        mostrar_boton_nuevo = True
-    # Entregar
-    return render_template(
-        "ofi_documentos/list.jinja2",
-        filtros=json.dumps({"estatus": "A", "estado": "ENVIADO", "usuario_destinatario_id": current_user.id}),
-        titulo="Mi Bandeja de Entrada",
-        estatus="A",
-        estados=OfiDocumento.ESTADOS,
-        mostrar_boton_nuevo=mostrar_boton_nuevo,
+        mostrar_boton_nuevo=ROL_FIRMANTE in roles or ROL_ESCRITOR in roles,
     )
 
 
 @ofi_documentos.route("/ofi_documentos/mi_autoridad")
 def list_active_mi_autoridad():
     """Listado de Ofi Documentos de la autoridad del usuario"""
-    # Mostrar botones según el rol
-    mostrar_boton_nuevo = False
+    # Obtener los roles del usuario
     roles = current_user.get_roles()
-    if ROL_FIRMANTE in roles or ROL_ESCRITOR in roles:
-        mostrar_boton_nuevo = True
+    # Si no se cuenta con los roles de FIRMANTE o ESCRITOR reenviarlo a vista de Bandeja de Entrada
+    if ROL_FIRMANTE not in roles and ROL_ESCRITOR not in roles:
+        return redirect(url_for("ofi_documentos.list_active_mi_bandeja_entrada"))
     # Entregar
     return render_template(
         "ofi_documentos/list.jinja2",
-        filtros=json.dumps({"estatus": "A", "usuario_autoridad_id": current_user.autoridad.id}),
-        titulo="Mi Autoridad",
+        filtros=json.dumps({"estatus": "A", "autoridad_id": current_user.autoridad.id}),
+        titulo=f"Mi Autoridad {current_user.autoridad.descripcion_corta}",
         estatus="A",
         estados=OfiDocumento.ESTADOS,
-        mostrar_boton_nuevo=mostrar_boton_nuevo,
+        mostrar_boton_nuevo=ROL_FIRMANTE in roles or ROL_ESCRITOR in roles,
     )
 
 
@@ -291,12 +293,16 @@ def list_active_mi_autoridad():
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
     """Listado de Ofi Documentos eliminados"""
+    # Obtener los roles del usuario
+    roles = current_user.get_roles()
+    # Entregar
     return render_template(
         "ofi_documentos/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
         titulo="Oficios eliminados",
         estatus="B",
         estados=OfiDocumento.ESTADOS,
+        mostrar_boton_nuevo=ROL_FIRMANTE in roles or ROL_ESCRITOR in roles,
     )
 
 
@@ -353,42 +359,52 @@ def detail(ofi_documento_id):
                 .order_by(OfiPlantilla.descripcion)
                 .all()
             )
-    # Inicializar valores por defecto de los boleanos de los botones
-    mostrar_boton_mis_oficios = True
-    mostrar_boton_mi_autoridad = True
+    # Inicializar los valores por defecto de los boleanos de los botones
+    mostrar_boton_editar = False
     mostrar_boton_firmar = False
-    mostrar_boton_editar = True
-    mostrar_boton_archivar = False
-    mostrar_boton_desarchivar = False
-    mostrar_boton_descancelar = False
-    # Mostrar botones según el rol
+    mostrar_boton_enviar = False
+    mostrar_boton_responder = False
+    mostrar_boton_archivar_desarchivar = False
+    mostrar_boton_cancelar_descancelar = False
+    # Definir si el usuario es de la autoridad del documento
+    usuario_es_de_la_autoridad = current_user.autoridad_id == ofi_documento.usuario.autoridad_id
+    # Obtener los roles
     roles = current_user.get_roles()
-    if ROL_FIRMANTE in roles:
-        mostrar_boton_firmar = True
-    if ROL_ESCRITOR not in roles and ROL_FIRMANTE not in roles:
-        mostrar_boton_editar = False
-        mostrar_boton_responder = False
-        mostrar_boton_mis_oficios = False
-        mostrar_boton_mi_autoridad = False
-    # Mostrar botón de Archivar cuando se envía, no esta archivado y es el usuario creador
-    if (
-        ofi_documento.estado == "ENVIADO"
-        and ofi_documento.esta_archivado is False
-        and ofi_documento.usuario_id == current_user.id
-    ):
-        mostrar_boton_archivar = True
-    # Mostrar el botón de descancelar solo al firmante si ya está firmado
-    if ofi_documento.estado == "BORRADOR" and ofi_documento.usuario_id == current_user.id:
-        mostrar_boton_descancelar = True
-        mostrar_boton_desarchivar = True
-    if ofi_documento.estado == "BORRADOR" and ROL_FIRMANTE in roles:
-        mostrar_boton_descancelar = True
-        mostrar_boton_desarchivar = True
-    if ofi_documento.estado == "FIRMADO" and ROL_FIRMANTE in roles:
-        mostrar_boton_descancelar = True
-        mostrar_boton_desarchivar = True
-    if ofi_documento.estado == "ENVIADO" and ROL_FIRMANTE in roles:
-        mostrar_boton_desarchivar = True
+    # Si el usuario es FIRMANTE y es de la autoridad del documento
+    if ROL_FIRMANTE in roles and usuario_es_de_la_autoridad:
+        # Si el documento está en BORRADOR, se puede editar o firmar
+        if ofi_documento.estado == "BORRADOR":
+            mostrar_boton_editar = True
+            mostrar_boton_firmar = True
+        # Si el documento está en FIRMADO o enviado, se puede enviar o archivar/desarchivar
+        elif ofi_documento.estado in ["FIRMADO", "ENVIADO"]:
+            mostrar_boton_enviar = True
+        # Si el documento NO está cancelado y NO es BORRADOR, se puede archivar/desarchivar
+        if ofi_documento.esta_cancelado is False and ofi_documento.estado != "BORRADOR":
+            mostrar_boton_archivar_desarchivar = True
+        # Si el documento NO está en archivado, se puede cancelar o descancelar
+        if ofi_documento.esta_archivado is False:
+            mostrar_boton_cancelar_descancelar = True
+    # Si el usuario es ESCRITOR y es de la autoridad del documento
+    elif ROL_ESCRITOR in roles and usuario_es_de_la_autoridad:
+        # Si el documento está en BORRADOR, se puede editar
+        if ofi_documento.estado == "BORRADOR":
+            mostrar_boton_editar = True
+        # Si el documento está en FIRMADO o enviado, se puede enviar o archivar/desarchivar
+        elif ofi_documento.estado in ["FIRMADO", "ENVIADO"]:
+            mostrar_boton_enviar = True
+        # Si el documento NO está cancelado y NO es BORRADOR, se puede archivar/desarchivar
+        if ofi_documento.esta_cancelado is False and ofi_documento.estado != "BORRADOR":
+            mostrar_boton_archivar_desarchivar = True
+        # Si el documento NO está en archivado, se puede cancelar o descancelar
+        if ofi_documento.esta_archivado is False:
+            mostrar_boton_cancelar_descancelar = True
+    # Si el usuario es ESCRITOR o FIRMANTE, mostrar botones Mis Oficios y Mi Autoridad
+    mostrar_boton_mis_oficios = False
+    mostrar_boton_mi_autoridad = False
+    if ROL_ESCRITOR in roles or ROL_FIRMANTE in roles:
+        mostrar_boton_mis_oficios = True
+        mostrar_boton_mi_autoridad = True
     # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
     if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
         # Entregar detail_syncfusion_document.jinja2
@@ -397,14 +413,14 @@ def detail(ofi_documento_id):
             ofi_documento=ofi_documento,
             usuario_firmante=usuario_firmante,
             platillas_opciones=platillas_opciones,
-            mostrar_boton_responder=mostrar_boton_responder,
-            mostrar_boton_firmar=mostrar_boton_firmar,
-            mostrar_boton_editar=mostrar_boton_editar,
-            mostrar_boton_descancelar=mostrar_boton_descancelar,
-            mostrar_boton_archivar=mostrar_boton_archivar,
-            mostrar_boton_desarchivar=mostrar_boton_desarchivar,
             mostrar_boton_mis_oficios=mostrar_boton_mis_oficios,
             mostrar_boton_mi_autoridad=mostrar_boton_mi_autoridad,
+            mostrar_boton_editar=mostrar_boton_editar,
+            mostrar_boton_firmar=mostrar_boton_firmar,
+            mostrar_boton_enviar=mostrar_boton_enviar,
+            mostrar_boton_responder=mostrar_boton_responder,
+            mostrar_boton_archivar_desarchivar=mostrar_boton_archivar_desarchivar,
+            mostrar_boton_cancelar_descancelar=mostrar_boton_cancelar_descancelar,
             syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
         )
     # De lo contrario, entregar detail.jinja2
@@ -413,14 +429,14 @@ def detail(ofi_documento_id):
         ofi_documento=ofi_documento,
         usuario_firmante=usuario_firmante,
         platillas_opciones=platillas_opciones,
-        mostrar_boton_responder=mostrar_boton_responder,
-        mostrar_boton_firmar=mostrar_boton_firmar,
-        mostrar_boton_editar=mostrar_boton_editar,
-        mostrar_boton_descancelar=mostrar_boton_descancelar,
-        mostrar_boton_archivar=mostrar_boton_archivar,
-        mostrar_boton_desarchivar=mostrar_boton_desarchivar,
         mostrar_boton_mis_oficios=mostrar_boton_mis_oficios,
         mostrar_boton_mi_autoridad=mostrar_boton_mi_autoridad,
+        mostrar_boton_editar=mostrar_boton_editar,
+        mostrar_boton_firmar=mostrar_boton_firmar,
+        mostrar_boton_enviar=mostrar_boton_enviar,
+        mostrar_boton_responder=mostrar_boton_responder,
+        mostrar_boton_archivar_desarchivar=mostrar_boton_archivar_desarchivar,
+        mostrar_boton_cancelar_descancelar=mostrar_boton_cancelar_descancelar,
     )
 
 
@@ -1159,6 +1175,42 @@ def unarchive(ofi_documento_id):
     return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
 
 
+@ofi_documentos.route("/ofi_documentos/descargar_archivo_pdf/<ofi_documento_id>")
+def download_file_pdf(ofi_documento_id):
+    """Descargar archivo PDF"""
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        flash("ID de oficio inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # Validar el estatus, que no esté eliminado
+    if ofi_documento.estatus != "A":
+        flash("El oficio está eliminado", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Validar que tenga el estado FIRMADO o ENVIADO
+    if ofi_documento.estado not in ["FIRMADO", "ENVIADO"]:
+        flash("El oficio no está en estado FIRMADO o ENVIADO, no se puede descargar", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Validar que tenga archivo_pdf_url
+    if ofi_documento.archivo_pdf_url is None or ofi_documento.archivo_pdf_url == "":
+        flash("El oficio no tiene archivo PDF, no se puede descargar", "warning")
+        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+    # Obtener el contenido del archivo
+    try:
+        archivo = get_file_from_gcs(
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_OFICIOS"],
+            blob_name=get_blob_name_from_url(ofi_documento.archivo_pdf_url),
+        )
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        raise NotFound("No se encontró el archivo.")
+    # Entregar el archivo PDF
+    response = make_response(archivo)
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = f"attachment; filename='{ofi_documento.folio} {ofi_documento.descripcion}.pdf'"
+    return response
+
+
 @ofi_documentos.route("/ofi_documentos/eliminar/<ofi_documento_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def delete(ofi_documento_id):
@@ -1174,6 +1226,9 @@ def delete(ofi_documento_id):
         flash("El oficio ya está eliminado", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
     # Eliminar el oficio
+    ofi_documento.folio = None
+    ofi_documento.folio_anio = None
+    ofi_documento.folio_num = None
     ofi_documento.delete()
     bitacora = Bitacora(
         modulo=Modulo.query.filter_by(nombre=MODULO).first(),

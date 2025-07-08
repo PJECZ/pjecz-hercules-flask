@@ -18,7 +18,7 @@ from lib.safe_string import safe_uuid
 
 # Cargar variables de entorno
 load_dotenv()
-CLOUD_STORAGE_DEPOSITO = os.getenv("CLOUD_STORAGE_DEPOSITO", "")
+CLOUD_STORAGE_DEPOSITO_OFICIOS = os.getenv("CLOUD_STORAGE_DEPOSITO_OFICIOS", "")
 
 # Cargar la aplicación para tener acceso a la base de datos
 app = create_app()
@@ -33,9 +33,9 @@ def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
     mensajes.append(mensaje_info)
     bitacora.info(mensaje_info)
 
-    # Validar que esté definida la variable de entorno CLOUD_STORAGE_DEPOSITO
-    if not CLOUD_STORAGE_DEPOSITO:
-        error = "La variable de entorno CLOUD_STORAGE_DEPOSITO no está definida"
+    # Validar que esté definida la variable de entorno CLOUD_STORAGE_DEPOSITO_OFICIOS
+    if not CLOUD_STORAGE_DEPOSITO_OFICIOS:
+        error = "La variable de entorno CLOUD_STORAGE_DEPOSITO_OFICIOS no está definida"
         bitacora.error(error)
         raise MyNotValidParamError(error)
 
@@ -117,8 +117,8 @@ def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
 
     # Agregar la imagen de pie de página de la autoridad del usuario
     if ofi_documento.usuario.autoridad.pagina_pie_url:
-        contenidos.append("<div id='footer_content'>")
-        contenidos.append(f"<small>Este documento tiene la firma electrónica simple {ofi_documento.firma_simple}</small><br>")
+        contenidos.append("<div id='footer_content' style='text-align: center;'>")
+        contenidos.append(f"Firma electrónica simple: {ofi_documento.firma_simple}<br>")
         contenidos.append(f"<img src='{ofi_documento.usuario.autoridad.pagina_pie_url}' alt='Pie de página'>")
         contenidos.append("</div>")
 
@@ -147,7 +147,7 @@ def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
     # Subir el archivo en Google Storage
     try:
         archivo_pdf_url = upload_file_to_gcs(
-            bucket_name=CLOUD_STORAGE_DEPOSITO,
+            bucket_name=CLOUD_STORAGE_DEPOSITO_OFICIOS,
             blob_name=blob_name,
             content_type="application/pdf",
             data=archivo_pdf,

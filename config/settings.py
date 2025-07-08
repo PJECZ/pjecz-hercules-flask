@@ -8,6 +8,7 @@ Para producción, configure los siguientes secretos en Google Cloud Secret Manag
 - pjecz_hercules_flask_cloud_storage_deposito_edictos
 - pjecz_hercules_flask_cloud_storage_deposito_glosas
 - pjecz_hercules_flask_cloud_storage_deposito_listas_de_acuerdos
+- pjecz_hercules_flask_cloud_storage_deposito_oficios
 - pjecz_hercules_flask_cloud_storage_deposito_perseo
 - pjecz_hercules_flask_cloud_storage_deposito_sentencias
 - pjecz_hercules_flask_cloud_storage_deposito_usuarios
@@ -31,6 +32,7 @@ Para desarrollo, debe crear un archivo .env con las variables de entorno:
 - CLOUD_STORAGE_DEPOSITO_EDICTOS
 - CLOUD_STORAGE_DEPOSITO_GLOSAS
 - CLOUD_STORAGE_DEPOSITO_LISTAS_DE_ACUERDOS
+- CLOUD_STORAGE_DEPOSITO_OFICIOS
 - CLOUD_STORAGE_DEPOSITO_PERSEO
 - CLOUD_STORAGE_DEPOSITO_SENTENCIAS
 - CLOUD_STORAGE_DEPOSITO_USUARIOS
@@ -90,6 +92,7 @@ class Settings(BaseSettings):
     CLOUD_STORAGE_DEPOSITO_EDICTOS: str = get_secret("cloud_storage_deposito_edictos")
     CLOUD_STORAGE_DEPOSITO_GLOSAS: str = get_secret("cloud_storage_deposito_glosas")
     CLOUD_STORAGE_DEPOSITO_LISTAS_DE_ACUERDOS: str = get_secret("cloud_storage_deposito_listas_de_acuerdos")
+    CLOUD_STORAGE_DEPOSITO_OFICIOS: str = get_secret("cloud_storage_deposito_oficios")
     CLOUD_STORAGE_DEPOSITO_PERSEO: str = get_secret("cloud_storage_deposito_perseo")
     CLOUD_STORAGE_DEPOSITO_SENTENCIAS: str = get_secret("cloud_storage_deposito_sentencias")
     CLOUD_STORAGE_DEPOSITO_USUARIOS: str = get_secret("cloud_storage_deposito_usuarios")

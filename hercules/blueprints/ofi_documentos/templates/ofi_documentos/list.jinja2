@@ -35,8 +35,8 @@
                     </div>
                     <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroAutoridad" type="text" class="form-control" aria-label="Autoridad" style="text-transform: uppercase;">
-                            <label for="filtroAutoridad">Autoridad</label>
+                            <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad" style="text-transform: uppercase;">
+                            <label for="filtroAutoridadClave">Autoridad</label>
                         </div>
                     </div>
                     <div class="col-4">
@@ -169,7 +169,7 @@
         // Filtros Oficios
         const filtrosOficios = new FiltrosDataTable('#ofi_documentos_datatable', configDataTable);
         filtrosOficios.agregarInput('filtroFolio', 'folio');
-        filtrosOficios.agregarInput('filtroAutoridad', 'autoridad');
+        filtrosOficios.agregarInput('filtroAutoridadClave', 'autoridad_clave');
         filtrosOficios.agregarInput('filtroDescripcion', 'descripcion');
         filtrosOficios.agregarInput('estadoSelect', 'estado');
         filtrosOficios.precargar();
