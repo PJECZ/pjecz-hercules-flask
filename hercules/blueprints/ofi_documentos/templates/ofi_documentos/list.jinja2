@@ -165,6 +165,9 @@
                 $(row).css("color", "#6c757d");
                 $(row).find('a').css('color', '#6c757d');
             }
+            if (data.fila_en_negritas) {
+                $(row).css("font-weight", "bold");
+            }
         };
         // Filtros Oficios
         const filtrosOficios = new FiltrosDataTable('#ofi_documentos_datatable', configDataTable);
