@@ -86,12 +86,11 @@ def fullscreen_json(ofi_documento_id):
         }
     # Consultar
     consulta = (
-        OfiDocumentoDestinatario.query.
-        join(Usuario).
-        filter(OfiDocumentoDestinatario.ofi_documento_id == ofi_documento_id).
-        filter(OfiDocumentoDestinatario.estatus == "A").
-        order_by(Usuario.email).
-        all()
+        OfiDocumentoDestinatario.query.join(Usuario)
+        .filter(OfiDocumentoDestinatario.ofi_documento_id == ofi_documento_id)
+        .filter(OfiDocumentoDestinatario.estatus == "A")
+        .order_by(Usuario.email)
+        .all()
     )
     # Si no hay destinatarios, entregar mensaje fallido
     if not consulta:
@@ -104,7 +103,9 @@ def fullscreen_json(ofi_documento_id):
     return {
         "success": True,
         "message": f"Se encontraron {len(consulta)} destinatarios.",
-        "data": [{"email": item.usuario.email, "nombre": item.usuario.nombre, "fue_leido": item.fue_leido} for item in consulta],
+        "data": [
+            {"email": item.usuario.email, "nombre": item.usuario.nombre, "fue_leido": item.fue_leido} for item in consulta
+        ],
     }
 
 

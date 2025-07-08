@@ -89,11 +89,10 @@ def fullscreen_json(ofi_documento_id):
         }
     # Consultar
     consulta = (
-        OfiDocumentoAdjunto.query.
-        filter_by(ofi_documento_id=ofi_documento_id).
-        filter_by(estatus="A").
-        order_by(OfiDocumentoAdjunto.descripcion).
-        all()
+        OfiDocumentoAdjunto.query.filter_by(ofi_documento_id=ofi_documento_id)
+        .filter_by(estatus="A")
+        .order_by(OfiDocumentoAdjunto.descripcion)
+        .all()
     )
     # Si no hay adjuntos, entregar mensaje fallido
     if not consulta:
