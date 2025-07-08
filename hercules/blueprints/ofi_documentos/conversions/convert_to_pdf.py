@@ -57,9 +57,9 @@ def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
         bitacora.error(error)
         raise MyIsDeletedError(error)
 
-    # Validar que el estado sea FIRMADO
+    # Validar que el estado sea FIRMADO o ENVIADO
     if ofi_documento.estado not in ["FIRMADO", "ENVIADO"]:
-        error = "El oficio no está en estado FIRMADO"
+        error = "El oficio no está en estado FIRMADO o ENVIADO"
         bitacora.error(error)
         raise MyNotValidParamError(error)
 
@@ -156,7 +156,7 @@ def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
         bitacora.error(f"Error al subir el archivo PDF a Google Cloud Storage: {error}")
         raise error
 
-    # Actualizar el oficio con la URL del archivo PDF
+    # Actualizar el documento con la URL del archivo PDF
     ofi_documento.archivo_pdf_url = archivo_pdf_url
     ofi_documento.save()
 
