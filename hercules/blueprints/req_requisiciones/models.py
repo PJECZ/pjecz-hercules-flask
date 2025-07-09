@@ -21,9 +21,6 @@ class ReqRequisicion(database.Model, UniversalMixin):
     ESTADOS = {
         "BORRADOR": "borrador",
         "SOLICITADO": "Solicitado",
-        "CANCELADO POR SOLICITANTE": "Cancelado por Solicitante",
-        "CANCELADO POR AUTORIZANTE": "Cancelado por Autorizante",
-        "CANCELADO POR REVISOR": "Cancelado por Revisor",
         "AUTORIZADO": "Autorizado",
         "REVISADO": "Revisado",
         "ENTREGADO": "Entregado",
