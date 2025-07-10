@@ -1207,7 +1207,7 @@ def download_file_pdf(ofi_documento_id):
     # Entregar el archivo PDF
     response = make_response(archivo)
     response.headers["Content-Type"] = "application/pdf"
-    response.headers["Content-Disposition"] = f"attachment; filename='{ofi_documento.folio} {ofi_documento.descripcion}.pdf'"
+    response.headers["Content-Disposition"] = f"attachment; filename={ofi_documento.folio} {ofi_documento.descripcion}.pdf"
     return response
 
 
