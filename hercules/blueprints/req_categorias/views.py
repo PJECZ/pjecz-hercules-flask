@@ -50,7 +50,7 @@ def datatable_json():
         if descripcion:
             consulta = consulta.filter(ReqCategoria.descripcion.contains(descripcion))
     # Ordenar y paginar
-    registros = consulta.order_by(ReqCategoria.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ReqCategoria.clave).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -62,6 +62,7 @@ def datatable_json():
                     "url": url_for("req_categorias.detail", req_categoria_id=resultado.id),
                 },
                 "descripcion": resultado.descripcion,
+                "btn_agregar_catalogo": url_for("req_catalogos.new_with_categoria", req_categoria_id=resultado.id),
             }
         )
     # Entregar JSON
@@ -139,7 +140,7 @@ def edit(req_categoria_id):
         es_valido = True
         # Validar que la clave no esté repetida
         clave = safe_clave(form.clave.data)
-        clave_repetida = ReqCategoria.query.filter_by(clave=clave).filter(ReqCategoria.id != req_categoria.id).first()
+        clave_repetida = ReqCategoria.query.filter_by(clave=clave).filter(ReqCategoria.id != req_categoria_id).first()
         if clave_repetida:
             flash(f"La clave '{clave}' ya está en uso.", "warning")
             es_valido = False

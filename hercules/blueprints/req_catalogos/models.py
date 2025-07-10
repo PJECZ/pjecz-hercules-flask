@@ -42,6 +42,16 @@ class ReqCatalogo(database.Model, UniversalMixin):
     # Hijos
     req_requisiciones_registros: Mapped[List["ReqRequisicionRegistro"]] = relationship(back_populates="req_catalogo")
 
+    @property
+    def clave_descripcion(self):
+        """Junta clave y descripcion"""
+        return self.clave + ": " + self.descripcion
+
+    @property
+    def unidad_medida_descripcion(self):
+        """Descripción de las unidades de medida"""
+        return self.unidad_medida + ": " + self.UNIDADES_MEDIDAS[self.unidad_medida]
+
     def __repr__(self):
         """Representación"""
         return f"<ReqCatalogo {self.id}>"

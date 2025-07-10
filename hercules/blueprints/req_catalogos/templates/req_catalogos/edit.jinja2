@@ -2,18 +2,20 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Editar Reqisición Categoría {{ req_categoria.clave }}{% endblock %}
+{% block title %}Editar Requisición Catálogo {{ req_catalogo.clave }}{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Editar Requisición Categoría: ' + req_categoria.clave) }}
+    {{ topbar.page('Editar ' + req_catalogo.clave) }}
 {% endblock %}
 
 {% block content %}
     {% call f.card() %}
-        {% set form_kwargs = {'req_categoria_id': req_categoria.id} %}
-        {% call f.form_tag('req_categorias.edit', fid='req_categoria_form', **form_kwargs) %}
+        {% set form_kwargs = {'req_catalogo_id': req_catalogo.id} %}
+        {% call f.form_tag('req_catalogos.edit', fid='req_catalogo_form', **form_kwargs) %}
             {% call f.form_group(form.clave) %}{% endcall %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
+            {% call f.form_group(form.categoria) %}{% endcall %}
+            {% call f.form_group(form.unidad_medida) %}{% endcall %}
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}
     {% endcall %}

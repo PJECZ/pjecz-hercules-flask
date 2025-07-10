@@ -9,6 +9,9 @@
         {% if current_user.can_view('REQ REQUISICIONES') %}
             {{ topbar.button('Requisiciones', url_for('req_requisiciones.list_active'), "mdi:paperclip") }}
         {% endif %}
+        {% if current_user.can_view('REQ CATALOGOS') %}
+            {{ topbar.button('Catálogos', url_for('req_catalogos.list_active'), "mdi:shape") }}
+        {% endif %}
         {% if current_user.can_admin('REQ CATEGORIAS') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('req_categorias.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('req_categorias.list_active')) }}{% endif %}
@@ -50,6 +53,7 @@
                 <tr>
                     <th>Clave</th>
                     <th>Descripción</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
         </table>
@@ -67,7 +71,8 @@
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
             { data: 'detalle' },
-            { data: 'descripcion' }
+            { data: 'descripcion' },
+            { data: 'btn_agregar_catalogo' }
         ];
         configDataTable['columnDefs'] = [
             {
@@ -75,6 +80,13 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.clave + '</a>';
+                }
+            },
+            {
+                targets: 2, // btn_agregar_catalogo
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a class="btn btn-outline-primary btn-sm" title="Agregar nuevo producto a esta categoría" href="' + data + '"><span class="iconify" data-icon="mdi:plus"></span></a>';
                 }
             }
         ];
