@@ -1,0 +1,33 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Requisición Categoría {{ req_categoria.clave }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Requisición Categoría ' + req_categoria.clave) %}
+        {{ topbar.button_previous('Categorías', url_for('req_categorias.list_active')) }}
+        {% if current_user.can_edit('REQ CATEGORIAS') %}
+            {{ topbar.button_edit('Editar', url_for('req_categorias.edit', req_categoria_id=req_categoria.id)) }}
+        {% endif %}
+        {% if current_user.can_admin('REQ CATEGORIAS') %}
+            {% if req_categoria.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('req_categorias.delete', req_categoria_id=req_categoria.id)) }}{% endif %}
+            {% if req_categoria.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('req_categorias.recover', req_categoria_id=req_categoria.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=req_categoria.estatus) %}
+        {{ detail.label_value_big('Clave', req_categoria.clave) }}
+        {{ detail.label_value('Descripción', req_categoria.descripcion) }}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_admin('REQ CATEGORIAS') %}
+        {% if req_categoria.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + req_categoria.clave + '?') }}{% endif %}
+        {% if req_categoria.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + req_categoria.clave + '?') }}{% endif %}
+    {% endif %}
+{% endblock %}
