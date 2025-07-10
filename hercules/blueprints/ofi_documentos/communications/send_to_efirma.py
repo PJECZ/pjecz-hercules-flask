@@ -209,15 +209,15 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
         )
         respuesta.raise_for_status()
     except requests.exceptions.ConnectionError as error:
-        mensaje = f"Error de conexion. {str(error)}"
+        mensaje = f"Error de conexion con el motor de efirma. {str(error)}"
         bitacora.error(mensaje)
         raise MyConnectionError(mensaje)
     except requests.exceptions.HTTPError as error:
-        mensaje = f"Error porque la respuesta no tiene el estado 200. {str(error)}"
+        mensaje = f"Error porque la respuesta no tiene el estado 200 del motor de efirma. {str(error)}"
         bitacora.error(mensaje)
         raise MyStatusCodeError(mensaje)
     except requests.exceptions.RequestException as error:
-        mensaje = f"Error desconocido al solicitar el vale. {str(error)}"
+        mensaje = f"Error desconocido al enviar el archivo PDF al motor de efirma. {str(error)}"
         bitacora.error(mensaje)
         raise MyRequestError(mensaje)
 
@@ -296,6 +296,31 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
     # Descargar el archivo PDF firmado en urlDescarga
     #
 
+    # Descargar el archivo PDF desde el motor de firma electrónica
+    try:
+        respuesta_pdf = requests.get(
+            url=datos["urlDescarga"],
+            timeout=TIMEOUT,
+            verify=False,
+            stream=True,
+        )
+        respuesta_pdf.raise_for_status()
+    except requests.exceptions.ConnectionError as error:
+        mensaje = f"Error de conexion al descargar el archivo PDF. {str(error)}"
+        bitacora.error(mensaje)
+        raise MyConnectionError(mensaje)
+    except requests.exceptions.HTTPError as error:
+        mensaje = f"Error porque la respuesta no tiene el estado 200 al descargar el archivo PDF. {str(error)}"
+        bitacora.error(mensaje)
+        raise MyStatusCodeError(mensaje)
+    except requests.exceptions.RequestException as error:
+        mensaje = f"Error desconocido al descargar el archivo PDF. {str(error)}"
+        bitacora.error(mensaje)
+        raise MyRequestError(mensaje)
+
+    # Tomar el nuevo archivo PDF con firmado electrónico
+    archivo_pdf_efirma = respuesta_pdf.content
+
     #
     # Subir a Google Cloud Storage el archivo PDF
     #
@@ -310,17 +335,20 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
 
     # Subir el archivo en Google Storage
     try:
-        archivo_pdf_url = upload_file_to_gcs(
+        archivo_pdf_efirma_url = upload_file_to_gcs(
             bucket_name=CLOUD_STORAGE_DEPOSITO_OFICIOS,
             blob_name=blob_name,
             content_type="application/pdf",
-            data=archivo_pdf,
+            data=archivo_pdf_efirma,
         )
     except (MyBucketNotFoundError, MyUploadError) as error:
         bitacora.error(f"Error al subir el archivo PDF a Google Cloud Storage: {error}")
         raise error
 
     # Actualizar el documento con la URL del archivo PDF
+    ofi_documento.archivo_pdf_url = archivo_pdf_efirma_url
+
+    # Actualizar el documento con los datos de la firma electrónica avanzada
     ofi_documento.firma_avanzada_nombre = ofi_documento.usuario.nombre
     ofi_documento.firma_avanzada_puesto = ofi_documento.usuario.puesto
     ofi_documento.firma_avanzada_email = ofi_documento.usuario.email
