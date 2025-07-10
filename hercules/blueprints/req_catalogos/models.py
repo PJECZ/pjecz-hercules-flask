@@ -15,11 +15,11 @@ class ReqCatalogo(database.Model, UniversalMixin):
     """ReqCatalogo"""
 
     UNIDADES_MEDIDAS = {
-        "M": "Metros",
-        "KG": "Kilogramos",
-        "GRS": "Gramos",
+        "METROS": "Metros",
+        "KILOGRAMOS": "Kilogramos",
+        "GRAMOS": "Gramos",
         "PIEZA": "Pieza",
-        "LTS": "Litros",
+        "LITROS": "Litros",
     }
 
     # Nombre de la tabla
@@ -46,11 +46,6 @@ class ReqCatalogo(database.Model, UniversalMixin):
     def clave_descripcion(self):
         """Junta clave y descripcion"""
         return self.clave + ": " + self.descripcion
-
-    @property
-    def unidad_medida_descripcion(self):
-        """Descripción de las unidades de medida"""
-        return self.unidad_medida + ": " + self.UNIDADES_MEDIDAS[self.unidad_medida]
 
     def __repr__(self):
         """Representación"""
