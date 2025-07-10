@@ -27,6 +27,11 @@ class ReqCategoria(database.Model, UniversalMixin):
     # Hijos
     req_catalogos: Mapped[List["ReqCatalogo"]] = relationship(back_populates="req_categoria")
 
+    @property
+    def clave_descripcion(self):
+        """Junta clave y descripcion"""
+        return self.clave + ": " + self.descripcion
+
     def __repr__(self):
         """Representación"""
         return f"<ReqCategoria {self.id}>"
