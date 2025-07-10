@@ -105,11 +105,11 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    let html = '<a class="btn btn-outline-primary btn-sm" href="' + data.url_fullscreen + '" title="ABRIR EN FULLSCREEN"><span class="iconify" data-icon="mdi:monitor"></span></a>';
-                    if (data.icono == "CANCELADO")
-                        html = '<a class="btn btn-sm" title="CANCELADO" style="cursor: default;"><span class="iconify" data-icon="mdi:cancel" style="color: red;"></span></a>';
+                    let html = '<a class="btn btn-outline-primary btn-sm" href="' + data.url_fullscreen + '"><span class="iconify" data-icon="mdi:monitor"></span></a>';
                     if (data.icono == "ARCHIVADO")
-                        html = '<a class="btn btn-sm" title="ARCHIVADO" style="cursor: default;"><span class="iconify" data-icon="mdi:archive" style="color: olive;"></a>';
+                        html = '<a class="btn btn-outline-primary btn-sm" href="' + data.url_fullscreen + '"><span class="iconify" data-icon="mdi:archive" style="color: #808080;"></span></a>';
+                    if (data.icono == "CANCELADO")
+                        html = '<a class="btn btn-outline-primary btn-sm" href="' + data.url_fullscreen + '"><span class="iconify" data-icon="mdi:cancel" style="color: #000000;"></span></a>';
                     return html + ' <a href="' + data.url + '">' + data.id.substring(0, 8) + '</a>';
                 }
             },
@@ -146,10 +146,10 @@
                 render: function(data, type, row, meta) {
                     let bgcolor = "bg-secondary";
                     switch (data)    {
-                        case "BORRADOR":        bgcolor = "bg-warning text-dark";   break;
-                        case "CANCELADO":       bgcolor = "bg-danger";              break;
-                        case "FIRMADO":         bgcolor = "bg-success";             break;
-                        case "ENVIADO":         bgcolor = "bg-primary";             break;
+                        case "BORRADOR":  bgcolor = "bg-warning text-dark"; break;
+                        case "CANCELADO": bgcolor = "bg-danger";            break;
+                        case "FIRMADO":   bgcolor = "bg-success";           break;
+                        case "ENVIADO":   bgcolor = "bg-primary";           break;
                     }
                     return '<span class="badge rounded-pill ' + bgcolor + '">' + data + '</span>';
                 }
@@ -157,13 +157,16 @@
         ];
         // Colorear renglones
         configDataTable['rowCallback'] = function( row, data )  {
-            if (data.autoridad.color_renglon)   {
+            if (data.detalle.icono == "ARCHIVADO") {
+                $(row).css("background-color", darkenColor(data.autoridad.color_renglon, 0.2));
+                // $(row).css("color", "#6c757d");
+                // $(row).find('a').css('color', '#6c757d');
+            } else if (data.detalle.icono == "CANCELADO") {
+                $(row).css("background-color", "#C0C0C0");
+                $(row).css("color", "#808080");
+                $(row).find('a').css('color', '#808080');
+            } else if (data.autoridad.color_renglon) {
                 $(row).css("background-color", data.autoridad.color_renglon);
-            }
-            if (data.detalle.icono == "CANCELADO")    {
-                $(row).css("background-color", "#eceff1");
-                $(row).css("color", "#6c757d");
-                $(row).find('a').css('color', '#6c757d');
             }
             if (data.fila_en_negritas) {
                 $(row).css("font-weight", "bold");
@@ -176,5 +179,19 @@
         filtrosOficios.agregarInput('filtroDescripcion', 'descripcion');
         filtrosOficios.agregarInput('estadoSelect', 'estado');
         filtrosOficios.precargar();
+        // Oscurecer un color en hexadecimal con un porcentaje dado
+        function darkenColor(hex, percent) {
+            hex = hex.replace('#', '');
+            if (hex.length === 3) {
+                hex = hex.split('').map(x => x + x).join('');
+            }
+            let r = parseInt(hex.substring(0,2), 16);
+            let g = parseInt(hex.substring(2,4), 16);
+            let b = parseInt(hex.substring(4,6), 16);
+            r = Math.floor(r * (1 - percent));
+            g = Math.floor(g * (1 - percent));
+            b = Math.floor(b * (1 - percent));
+            return "#" + [r,g,b].map(x => x.toString(16).padStart(2, '0')).join('');
+        }
     </script>
 {% endblock %}
