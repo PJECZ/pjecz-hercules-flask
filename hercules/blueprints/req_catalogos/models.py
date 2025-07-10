@@ -15,11 +15,11 @@ class ReqCatalogo(database.Model, UniversalMixin):
     """ReqCatalogo"""
 
     UNIDADES_MEDIDAS = {
-        "M": "Metros",
-        "KG": "Kilogramos",
-        "GRS": "Gramos",
+        "METROS": "Metros",
+        "KILOGRAMOS": "Kilogramos",
+        "GRAMOS": "Gramos",
         "PIEZA": "Pieza",
-        "LTS": "Litros",
+        "LITROS": "Litros",
     }
 
     # Nombre de la tabla
