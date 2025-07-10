@@ -78,6 +78,7 @@ class Usuario(database.Model, UserMixin, UniversalMixin):
         "OfiDocumentoDestinatario", back_populates="usuario"
     )
     ofi_plantillas: Mapped[List["OfiPlantilla"]] = relationship("OfiPlantilla", back_populates="usuario")
+    req_requisiciones: Mapped[List["ReqRequisicion"]] = relationship("ReqRequisicion", back_populates="usuario")
     tareas: Mapped[List["Tarea"]] = relationship("Tarea", back_populates="usuario")
     usuarios_nominas: Mapped[List["UsuarioNomina"]] = relationship("UsuarioNomina", back_populates="usuario")
     usuarios_roles: Mapped[List["UsuarioRol"]] = relationship("UsuarioRol", back_populates="usuario")
