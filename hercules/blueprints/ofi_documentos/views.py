@@ -805,7 +805,7 @@ def sign(ofi_documento_id):
         ofi_documento.firma_simple = OfiDocumento.elaborar_hash(ofi_documento)
         ofi_documento.save()
         # Lanzar la tarea en el fondo para convertir a archivo PDF de acuerdo al tipo de firma
-        if ofi_documento.tipo == "avanzada":
+        if form.tipo.data == "avanzada":
             current_user.launch_task(
                 comando="ofi_documentos.tasks.lanzar_enviar_a_efirma",
                 mensaje="Convirtiendo a archivo PDF con firma electrónica avanzada...",
@@ -833,6 +833,7 @@ def sign(ofi_documento_id):
     form.descripcion.data = ofi_documento.descripcion
     form.folio.data = ofi_documento.folio  # Read only
     form.vencimiento_fecha.data = ofi_documento.vencimiento_fecha  # Read only
+    form.tipo.data = "simple"
     # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
     if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
         # Entregar sign_syncfusion_document.jinja2
