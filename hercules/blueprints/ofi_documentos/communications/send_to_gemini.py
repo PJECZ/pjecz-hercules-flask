@@ -7,13 +7,12 @@ import requests
 from hercules.app import create_app
 from hercules.blueprints.ofi_documentos.communications import bitacora
 from hercules.blueprints.ofi_documentos.models import OfiDocumento
-from hercules.extensions import database
 from lib.exceptions import MyConnectionError, MyNotExistsError, MyIsDeletedError, MyNotValidParamError
 from lib.safe_string import safe_uuid
 
+# Cargar la aplicación para tener acceso a la base de datos
 app = create_app()
 app.app_context().push()
-database.app = app
 
 TIMEOUT = 60  # segundos
 
