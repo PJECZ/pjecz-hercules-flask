@@ -53,6 +53,8 @@ def before_request():
 @ofi_documentos.route("/ofi_documentos/datatable_json", methods=["GET", "POST"])
 def datatable_json():
     """DataTable JSON para listado de Ofi Documentos"""
+    # Determinar si se puede firmar
+    puede_firmar = "OFICIOS FIRMANTE" in current_user.get_roles()
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
@@ -124,6 +126,10 @@ def datatable_json():
             icono_detalle = "ARCHIVADO"
         elif resultado.esta_cancelado:
             icono_detalle = "CANCELADO"
+        # Si puede_firmar, el documento es de su autoridad y el estado es BORRADOR, se define sign_url
+        sign_url = None
+        if puede_firmar and resultado.usuario.autoridad_id == current_user.autoridad_id and resultado.estado == "BORRADOR":
+            sign_url = url_for("ofi_documentos.sign", ofi_documento_id=resultado.id)
         # Obtener los destinatarios del oficio que tengan estatus 'A'
         destinatarios = [dest for dest in resultado.ofi_documentos_destinatarios if dest.estatus == "A"]
         # Filtrar por los destinatarios que NO han leído el oficio
@@ -135,9 +141,10 @@ def datatable_json():
             {
                 "detalle": {
                     "id": resultado.id,
-                    "url": url_for("ofi_documentos.detail", ofi_documento_id=resultado.id),
                     "icono": icono_detalle,
-                    "url_fullscreen": url_for("ofi_documentos.fullscreen", ofi_documento_id=resultado.id),
+                    "detail_url": url_for("ofi_documentos.detail", ofi_documento_id=resultado.id),
+                    "fullscreen_url": url_for("ofi_documentos.fullscreen", ofi_documento_id=resultado.id),
+                    "sign_url": sign_url,
                 },
                 "propietario": {
                     "email": resultado.usuario.email,
@@ -786,59 +793,47 @@ def sign(ofi_documento_id):
     if ofi_documento.estado != "BORRADOR":
         flash("El oficio no está en estado BORRADOR, no se puede firmar", "warning")
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
-    # Validar la fecha de vencimiento
-    if ofi_documento.vencimiento_fecha is not None and ofi_documento.vencimiento_fecha < datetime.now().date():
-        flash("La fecha de vencimiento no puede ser anterior a la fecha actual", "warning")
-        return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
     # Obtener el formuario
     form = OfiDocumentoSignForm()
     if form.validate_on_submit():
-        es_valido = True
-        # Validar el folio, separar el número y el año
-        folio = form.folio.data.strip()
-        numero_folio = None
-        anio_folio = None
-        try:
-            numero_folio, anio_folio = validar_folio(folio)
-        except ValueError as error:
-            flash(str(error), "warning")
-            es_valido = False
-        # Si es válido
-        if es_valido:
-            # Cambiar el Autor al firmante
-            ofi_documento.usuario = current_user
-            # Guardar en la base de datos
-            ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
-            ofi_documento.folio = folio
-            ofi_documento.folio_anio = anio_folio
-            ofi_documento.folio_num = numero_folio
-            ofi_documento.estado = "FIRMADO"
-            ofi_documento.firma_simple_usuario_id = current_user.id
-            ofi_documento.firma_simple_tiempo = datetime.now()
-            ofi_documento.firma_simple = OfiDocumento.elaborar_hash(ofi_documento)
-            ofi_documento.save()
-            # Lanzar la tarea en el fondo para convertir a archivo PDF
+        # Actualizar
+        ofi_documento.usuario = current_user  # El usuario que firma es el propietario del oficio
+        ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
+        ofi_documento.estado = "FIRMADO"
+        ofi_documento.firma_simple_usuario_id = current_user.id
+        ofi_documento.firma_simple_tiempo = datetime.now()
+        ofi_documento.firma_simple = OfiDocumento.elaborar_hash(ofi_documento)
+        ofi_documento.save()
+        # Lanzar la tarea en el fondo para convertir a archivo PDF de acuerdo al tipo de firma
+        if form.tipo.data == "avanzada":
             current_user.launch_task(
-                comando="ofi_documentos.tasks.lanzar_convertir_a_pdf",
-                mensaje="Convirtiendo a archivo PDF...",
+                comando="ofi_documentos.tasks.lanzar_enviar_a_efirma",
+                mensaje="Convirtiendo a archivo PDF con firma electrónica avanzada...",
                 ofi_documento_id=str(ofi_documento.id),
             )
-            # Agregar registro a la bitácora
-            bitacora = Bitacora(
-                modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-                usuario=current_user,
-                descripcion=safe_message(f"Firmado simple del Oficio {ofi_documento.descripcion}"),
-                url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+            descripcion = f"Oficio firmado con firma electrónica avanzada {ofi_documento.folio} {ofi_documento.descripcion}"
+        else:
+            current_user.launch_task(
+                comando="ofi_documentos.tasks.lanzar_convertir_a_pdf",
+                mensaje="Convirtiendo a archivo PDF con firma simple...",
+                ofi_documento_id=str(ofi_documento.id),
             )
-            bitacora.save()
-            flash(bitacora.descripcion, "success")
-            return redirect(bitacora.url)
+            descripcion = f"Oficio firmado con firma simple {ofi_documento.folio} {ofi_documento.descripcion}"
+        # Agregar registro a la bitácora
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(descripcion),
+            url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
     # Cargar los datos en el formulario
     form.descripcion.data = ofi_documento.descripcion
-    form.folio.data = ofi_documento.folio if ofi_documento.folio else "0/2025"
-    form.contenido_md.data = ofi_documento.contenido_md
-    form.contenido_html.data = ofi_documento.contenido_html
-    form.contenido_sfdt.data = ofi_documento.contenido_sfdt
+    form.folio.data = ofi_documento.folio  # Read only
+    form.vencimiento_fecha.data = ofi_documento.vencimiento_fecha  # Read only
+    form.tipo.data = "simple"
     # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
     if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
         # Entregar sign_syncfusion_document.jinja2
@@ -1173,6 +1168,43 @@ def unarchive(ofi_documento_id):
     flash(bitacora.descripcion, "success")
     # Redirigir al detalle del oficio
     return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
+
+
+@ofi_documentos.route("/ofi_documentos/obtener_archivo_pdf_url_json/<ofi_documento_id>", methods=["GET", "POST"])
+def get_file_pdf_url_json(ofi_documento_id):
+    """Obtener el URL del archivo PDF en formato JSON, para usar en el botón de descarga"""
+    # Consultar el oficio
+    ofi_documento_id = safe_uuid(ofi_documento_id)
+    if not ofi_documento_id:
+        return {
+            "success": False,
+            "message": "ID de oficio inválido",
+        }
+    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
+    # Validar el estatus, que no esté eliminado
+    if ofi_documento.estatus != "A":
+        return {
+            "success": False,
+            "message": "El oficio está eliminado",
+        }
+    # Validar que tenga el estado FIRMADO o ENVIADO
+    if ofi_documento.estado not in ["FIRMADO", "ENVIADO"]:
+        return {
+            "success": False,
+            "message": "El oficio no está en estado FIRMADO o ENVIADO, no se puede descargar",
+        }
+    # Validar que tenga archivo_pdf_url
+    if ofi_documento.archivo_pdf_url is None or ofi_documento.archivo_pdf_url == "":
+        return {
+            "success": False,
+            "message": "El oficio no tiene archivo PDF, no se puede descargar. Refresque la página nuevamente.",
+        }
+    # Entregar el URL del archivo PDF
+    return {
+        "success": True,
+        "message": "Archivo PDF disponible",
+        "url": url_for("ofi_documentos.download_file_pdf", ofi_documento_id=ofi_documento.id),
+    }
 
 
 @ofi_documentos.route("/ofi_documentos/descargar_archivo_pdf/<ofi_documento_id>")

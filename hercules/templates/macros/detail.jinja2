@@ -266,3 +266,41 @@
         {{ label }}
     </a>
 {%- endmacro -%}
+
+{# Button medium progress bar #}
+{%- macro button_md_progress_bar(label, url, icon='mdi:download', target='_blank', color='success', id='download') -%}
+    <div id="{{ id }}-button-md-progress-bar" class="progress my-2" href="{{ url }}" style="height: 36px;">
+        <div class="progress-bar bg-{{ color }}" role="progressbar" style="width: 0%; height: 36px;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+    <a id="{{ id }}-button-md-link" class="btn btn-block btn-md btn-{{ color }} w-100 my-2" href="#" {% if target %}target="{{ target }}"{% endif %} style="display: None;">
+        {% if icon %}<span class="iconify" data-icon="{{ icon }}"></span>{% endif %}
+        {{ label }}
+    </a>
+    <script>
+        // Barra de progreso con incremento del 1% cada 10ms
+        const progressDiv = document.getElementById('{{ id }}-button-md-progress-bar');
+        const progressBar = progressDiv.querySelector('.progress-bar');
+        const buttonLink = document.getElementById('{{ id }}-button-md-link');
+        var width = 1;
+        var interval = setInterval(function() {
+            width += 100/(10*1000/10);  // Increase by 1% every 10ms
+            progressBar.style.width = width + '%';
+            if (width >= 100) {
+                clearInterval(interval);
+                // Llamar a la URL para obtener el enlace del archivo
+                fetch('{{ url }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            buttonLink.href = data.url;
+                        } else {
+                            console.error(data.message);
+                        }
+                    })
+                    .catch(error => console.error('Error fetching file URL:', error));
+                buttonLink.style.display = 'block'; // Mostrar el botón
+                progressDiv.style.display = 'none'; // Ocultar la barra de progreso
+            }
+        }, 10);
+    </script>
+{%- endmacro -%}
