@@ -4,8 +4,10 @@ Communications, enviar al motor de firma electrónica
 
 from datetime import datetime
 import json
+from io import BytesIO
 import os
 
+from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 import requests
 from xhtml2pdf import pisa
@@ -13,6 +15,7 @@ from xhtml2pdf import pisa
 from hercules.app import create_app
 from hercules.blueprints.ofi_documentos.communications import bitacora
 from hercules.blueprints.ofi_documentos.models import OfiDocumento
+from hercules.blueprints.usuarios.models import Usuario
 from hercules.extensions import database
 from lib.exceptions import (
     MyBucketNotFoundError,
@@ -38,12 +41,13 @@ EFIRMA_APLICACION_IDENTIFICADOR = int(os.getenv("EFIRMA_APLICACION_IDENTIFICADOR
 EFIRMA_APLICACION_CONTRASENA = os.getenv("EFIRMA_APLICACION_CONTRASENA", "")
 EFIRMA_REGISTRO_IDENTIFICADOR = int(os.getenv("EFIRMA_REGISTRO_IDENTIFICADOR", 0))
 EFIRMA_REGISTRO_CONTRASENA = os.getenv("EFIRMA_REGISTRO_CONTRASENA", "")
+FERNET_KEY = os.getenv("FERNET_KEY", "")
 TIMEOUT = 60  # segundos
 
 # Cargar la aplicación para tener acceso a la base de datos
 app = create_app()
 app.app_context().push()
-database.app = app
+# database.app = app
 
 
 def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
@@ -89,12 +93,6 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
         bitacora.error(error)
         raise MyNotValidParamError(error)
 
-    # Validar que esté definida la variable de entorno EFIRMA_REGISTRO_CONTRASENA
-    if not EFIRMA_REGISTRO_CONTRASENA:
-        error = "La variable de entorno EFIRMA_REGISTRO_CONTRASENA no está definida"
-        bitacora.error(error)
-        raise MyNotValidParamError(error)
-
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
     if not ofi_documento_id:
@@ -118,6 +116,34 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
         error = "El oficio ya tiene un archivo PDF asociado."
         bitacora.error(error)
         raise MyNotValidParamError(error)
+
+    # Por defecto, la contraseña del registro de firma electrónica es la variable de entorno EFIRMA_REGISTRO_CONTRASENA
+    efirma_contrasena = EFIRMA_REGISTRO_CONTRASENA
+
+    # Si no está definida, se descifra del registro del usuario con la clave FERNET_KEY
+    if efirma_contrasena is None or efirma_contrasena == "":
+
+        # Validar que esté definida la variable de entorno FERNET_KEY
+        if not FERNET_KEY:
+            error = "La variable de entorno FERNET_KEY no está definida"
+            bitacora.error(error)
+            raise MyNotValidParamError(error)
+
+        # Validar que el usuario tenga la contraseña de firma electrónica
+        if not ofi_documento.usuario.efirma_contrasena:
+            mensaje = "El usuario no tiene una contraseña de firma electrónica definida."
+            bitacora.error(mensaje)
+            raise MyNotValidParamError(mensaje)
+
+        # Descifrar la contraseña del registro de firma electrónica del usuario
+        try:
+            fernet = Fernet(FERNET_KEY.encode("utf-8"))  # Asegurarse de que sean bytes
+            efirma_contrasena_bytes = fernet.decrypt(ofi_documento.usuario.efirma_contrasena)
+            efirma_contrasena = efirma_contrasena_bytes.decode("utf-8")
+        except Exception as error:
+            mensaje = f"Error al descifrar la contraseña del registro de firma electrónica del usuario: {error}"
+            bitacora.error(mensaje)
+            raise MyNotValidParamError(mensaje)
 
     #
     # Convertir el contenido HTML a archivo PDF
@@ -180,7 +206,10 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
     contenidos.append("</html>")
 
     # Convertir el contenido HTML a archivo PDF
-    archivo_pdf = pisa.CreatePDF("\n".join(contenidos), dest_bytes=True, encoding="UTF-8")
+    pdf_buffer = BytesIO()
+    pisa_status = pisa.CreatePDF("\n".join(contenidos), dest=pdf_buffer, encoding="UTF-8")
+    pdf_buffer.seek(0)
+    archivo_pdf_bytes = pdf_buffer.read()
 
     #
     # Enviar el archivo PDF al motor de firma electrónica
@@ -189,7 +218,7 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
     # Definir los datos a enviar
     payload_for_data = {
         "idRegistro": EFIRMA_REGISTRO_IDENTIFICADOR,
-        "contrasenaRegistro": EFIRMA_REGISTRO_CONTRASENA,
+        "contrasenaRegistro": efirma_contrasena,
         "idAplicacion": EFIRMA_APLICACION_IDENTIFICADOR,
         "contrasenaAplicacion": EFIRMA_APLICACION_CONTRASENA,
         "referencia": "",
@@ -203,7 +232,7 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
         respuesta = requests.post(
             url=EFIRMA_SER_FIRMAR_DOC_PDF_URL,
             timeout=TIMEOUT,
-            files={"archivo": ("oficio.pdf", archivo_pdf, "application/pdf")},
+            files={"archivo": ("oficio.pdf", archivo_pdf_bytes, "application/pdf")},
             data=payload_for_data,
             verify=False,
         )

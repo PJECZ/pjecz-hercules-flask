@@ -46,8 +46,11 @@ class Usuario(database.Model, UserMixin, UniversalMixin):
     apellido_materno: Mapped[str] = mapped_column(String(256))
     curp: Mapped[str] = mapped_column(String(18), default="")
     puesto: Mapped[str] = mapped_column(String(256), default="")
-    efirma_registro_id: Mapped[Optional[int]]
     workspace: Mapped[str] = mapped_column(Enum(*WORKSPACES, name="usuarios_workspaces", native_enum=False), index=True)
+
+    # Columnas para el motor de firma electrónica
+    efirma_registro_id: Mapped[Optional[int]]
+    efirma_contrasena: Mapped[Optional[str]] = mapped_column(String(256), default="")
 
     # Columnas que NO aparecen en nuevo o editar porque vienen de otros lugares
     email_personal: Mapped[str] = mapped_column(String(256), default="")
