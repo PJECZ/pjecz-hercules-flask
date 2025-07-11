@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 
 from hercules.app import create_app
 from hercules.blueprints.usuarios.models import Usuario
-from hercules.extensions import database, pwd_context
+from hercules.extensions import pwd_context
 from lib.cryptography import convert_string_to_fernet_key, simmetric_crypt, simmetric_decrypt
 from lib.pwgen import generar_api_key
 
@@ -35,7 +35,6 @@ SALT = os.getenv("SALT", "")
 # Cargar la app de Hercules para usar SQLAlchemy ORMs
 app = create_app()
 app.app_context().push()
-# database.app = app
 
 
 @click.group()
@@ -89,7 +88,6 @@ def mostrar_efirma_contrasena(email):
     try:
         efirma_contrasena = simmetric_decrypt(usuario.efirma_contrasena, FERNET_KEY)
     except Exception as error:
-        raise error
         click.echo(f"ERROR: No se pudo descifrar la contraseña de efirma: {error}")
         sys.exit(1)
     click.echo(f"Contraseña de efirma: {efirma_contrasena}")

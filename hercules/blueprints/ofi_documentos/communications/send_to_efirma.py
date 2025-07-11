@@ -7,7 +7,6 @@ import json
 from io import BytesIO
 import os
 
-from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 import requests
 from xhtml2pdf import pisa
@@ -15,8 +14,7 @@ from xhtml2pdf import pisa
 from hercules.app import create_app
 from hercules.blueprints.ofi_documentos.communications import bitacora
 from hercules.blueprints.ofi_documentos.models import OfiDocumento
-from hercules.blueprints.usuarios.models import Usuario
-from hercules.extensions import database
+from lib.cryptography import simmetric_decrypt
 from lib.exceptions import (
     MyBucketNotFoundError,
     MyConnectionError,
@@ -47,7 +45,6 @@ TIMEOUT = 60  # segundos
 # Cargar la aplicación para tener acceso a la base de datos
 app = create_app()
 app.app_context().push()
-# database.app = app
 
 
 def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
@@ -129,21 +126,19 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
             bitacora.error(error)
             raise MyNotValidParamError(error)
 
-        # Validar que el usuario tenga la contraseña de firma electrónica
+        # Validar que el usuario tenga una contraseña de efirma
         if not ofi_documento.usuario.efirma_contrasena:
-            mensaje = "El usuario no tiene una contraseña de firma electrónica definida."
-            bitacora.error(mensaje)
-            raise MyNotValidParamError(mensaje)
+            error = f"El usuario {ofi_documento.usuario.email} no tiene una contraseña de efirma definida."
+            bitacora.error(error)
+            raise MyNotValidParamError(error)
 
-        # Descifrar la contraseña del registro de firma electrónica del usuario
+        # Descifrar la contraseña de efirma del usuario
         try:
-            fernet = Fernet(FERNET_KEY.encode("utf-8"))  # Asegurarse de que sean bytes
-            efirma_contrasena_bytes = fernet.decrypt(ofi_documento.usuario.efirma_contrasena)
-            efirma_contrasena = efirma_contrasena_bytes.decode("utf-8")
+            efirma_contrasena = simmetric_decrypt(ofi_documento.usuario.efirma_contrasena, FERNET_KEY)
         except Exception as error:
-            mensaje = f"Error al descifrar la contraseña del registro de firma electrónica del usuario: {error}"
-            bitacora.error(mensaje)
-            raise MyNotValidParamError(mensaje)
+            error = f"ERROR: No se pudo descifrar la contraseña de efirma: {error}"
+            bitacora.error(error)
+            raise MyNotValidParamError(error)
 
     #
     # Convertir el contenido HTML a archivo PDF
@@ -207,7 +202,7 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
 
     # Convertir el contenido HTML a archivo PDF
     pdf_buffer = BytesIO()
-    pisa_status = pisa.CreatePDF("\n".join(contenidos), dest=pdf_buffer, encoding="UTF-8")
+    _ = pisa.CreatePDF("\n".join(contenidos), dest=pdf_buffer, encoding="UTF-8")
     pdf_buffer.seek(0)
     archivo_pdf_bytes = pdf_buffer.read()
 
