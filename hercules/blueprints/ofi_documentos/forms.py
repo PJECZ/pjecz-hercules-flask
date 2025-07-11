@@ -42,10 +42,9 @@ class OfiDocumentoSignForm(FlaskForm):
     """Formulario para firmar un OfiDocumento"""
 
     descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=256)])
-    folio = StringField("Folio (DD-NN/AAAA)", validators=[DataRequired(), Regexp(FOLIO_REGEXP)])
-    contenido_md = TextAreaField("Contenido MD", validators=[Optional()], render_kw={"rows": 10})
-    contenido_html = TextAreaField("Contenido HTML", validators=[Optional()], render_kw={"rows": 10})
-    contenido_sfdt = TextAreaField("Contenido SFDT", validators=[Optional()], render_kw={"rows": 10})  # Read Only
+    folio = StringField("Folio (DD-NN/AAAA)")  # Read Only
+    vencimiento_fecha = DateField("Fecha de vencimiento")  # Read Only
+    tipo = HiddenField("Tipo", default="simple")
     firmar = SubmitField("Firmar")
 
 

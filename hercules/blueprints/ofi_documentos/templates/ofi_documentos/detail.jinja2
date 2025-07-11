@@ -134,12 +134,12 @@
             <div class="row">
                 <div class="col-md-4">
                     {% if mostrar_boton_editar %}
-                        {{ detail.button_md('Editar', url_for('ofi_documentos.edit', ofi_documento_id=ofi_documento.id), 'mdi:file-document-edit-outline',  color_class='btn-warning') }}
+                        {{ detail.button_md('Editar', url_for('ofi_documentos.edit', ofi_documento_id=ofi_documento.id), 'mdi:file-document-edit-outline', color_class='btn-warning') }}
                     {% endif %}
                 </div>
                 <div class="col-md-4">
                     {% if mostrar_boton_firmar %}
-                        {{ detail.button_md('Firmar', url_for('ofi_documentos.sign', ofi_documento_id=ofi_documento.id), 'mdi:file-sign',  color_class='btn-success') }}
+                        {{ detail.button_md('Firmar', url_for('ofi_documentos.sign', ofi_documento_id=ofi_documento.id), 'mdi:file-sign', color_class='btn-success') }}
                     {% endif %}
                 </div>
                 <div class="col-md-2">
@@ -148,7 +148,7 @@
                 <div class="col-md-2">
                     {% if mostrar_boton_cancelar_descancelar %}
                         {% if ofi_documento.esta_cancelado == false %}
-                            {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio?",  "btn-danger") }}
+                            {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio?", "btn-danger") }}
                         {% else %}
                             {{ modals.button_modal_md('Descancelar', url_for('ofi_documentos.uncancel', ofi_documento_id=ofi_documento.id), "Descancelar", "mdi:file-undo-outline", "¿Desea descancelar el oficio?",  "btn-outline-danger") }}
                         {% endif %}
@@ -162,28 +162,30 @@
                 <div class="col-md-4">
                     {% if ofi_documento.archivo_pdf_url %}
                         {{ detail.button_md('Descargar PDF', url_for('ofi_documentos.download_file_pdf', ofi_documento_id=ofi_documento.id), 'mdi:download', "_blank", color_class='btn-success') }}
+                    {% else %}
+                        {{ detail.button_md_progress_bar('Descargar PDF', url_for('ofi_documentos.get_file_pdf_url_json', ofi_documento_id=ofi_documento.id)) }}
                     {% endif %}
                 </div>
                 <div class="col-md-4">
                     {% if mostrar_boton_enviar %}
-                        {{ modals.button_modal_md('Enviar', url_for('ofi_documentos.send', ofi_documento_id=ofi_documento.id), "Enviar", "mdi:send-outline", "¿Desea enviar el oficio? Esta acción no puede ser deshecha.",  "btn-primary") }}
+                        {{ modals.button_modal_md('Enviar', url_for('ofi_documentos.send', ofi_documento_id=ofi_documento.id), "Enviar", "mdi:send-outline", "¿Desea enviar el oficio? Esta acción no puede ser deshecha.", "btn-primary") }}
                     {% endif %}
                 </div>
                 <div class="col-md-2">
                     {% if mostrar_boton_archivar_desarchivar %}
                         {% if ofi_documento.esta_archivado == false %}
-                            {{ modals.button_modal_md('Archivar', url_for('ofi_documentos.archive', ofi_documento_id=ofi_documento.id), "Archivar", "mdi:archive-outline", "¿Desea archivar el oficio?",  "btn-secondary") }}
+                            {{ modals.button_modal_md('Archivar', url_for('ofi_documentos.archive', ofi_documento_id=ofi_documento.id), "Archivar", "mdi:archive-outline", "¿Desea archivar el oficio?", "btn-secondary") }}
                         {% else %}
-                            {{ modals.button_modal_md('Desarchivar', url_for('ofi_documentos.unarchive', ofi_documento_id=ofi_documento.id), "Desarchivar", "mdi:archive-off-outline", "¿Desea desarchivar el oficio?",  "btn-outline-secondary") }}
+                            {{ modals.button_modal_md('Desarchivar', url_for('ofi_documentos.unarchive', ofi_documento_id=ofi_documento.id), "Desarchivar", "mdi:archive-off-outline", "¿Desea desarchivar el oficio?", "btn-outline-secondary") }}
                         {% endif %}
                     {% endif %}
                 </div>
                 <div class="col-md-2">
                     {% if mostrar_boton_cancelar_descancelar %}
                         {% if ofi_documento.esta_cancelado == false %}
-                            {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio?",  "btn-danger") }}
+                            {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio?", "btn-danger") }}
                         {% else %}
-                            {{ modals.button_modal_md('Descancelar', url_for('ofi_documentos.uncancel', ofi_documento_id=ofi_documento.id), "Descancelar", "mdi:file-undo-outline", "¿Desea descancelar el oficio?",  "btn-outline-danger") }}
+                            {{ modals.button_modal_md('Descancelar', url_for('ofi_documentos.uncancel', ofi_documento_id=ofi_documento.id), "Descancelar", "mdi:file-undo-outline", "¿Desea descancelar el oficio?", "btn-outline-danger") }}
                         {% endif %}
                     {% endif %}
                 </div>
@@ -216,18 +218,18 @@
                 <div class="col-md-2">
                     {% if mostrar_boton_archivar_desarchivar %}
                         {% if ofi_documento.esta_archivado == false %}
-                            {{ modals.button_modal_md('Archivar', url_for('ofi_documentos.archive', ofi_documento_id=ofi_documento.id), "Archivar", "mdi:archive-outline", "¿Desea archivar el oficio?",  "btn-secondary") }}
+                            {{ modals.button_modal_md('Archivar', url_for('ofi_documentos.archive', ofi_documento_id=ofi_documento.id), "Archivar", "mdi:archive-outline", "¿Desea archivar el oficio?", "btn-secondary") }}
                         {% else %}
-                            {{ modals.button_modal_md('Desarchivar', url_for('ofi_documentos.unarchive', ofi_documento_id=ofi_documento.id), "Desarchivar", "mdi:archive-off-outline", "¿Desea desarchivar el oficio?",  "btn-outline-secondary") }}
+                            {{ modals.button_modal_md('Desarchivar', url_for('ofi_documentos.unarchive', ofi_documento_id=ofi_documento.id), "Desarchivar", "mdi:archive-off-outline", "¿Desea desarchivar el oficio?", "btn-outline-secondary") }}
                         {% endif %}
                     {% endif %}
                 </div>
                 <div class="col-md-2">
                     {% if mostrar_boton_cancelar_descancelar %}
                         {% if ofi_documento.esta_cancelado == false %}
-                            {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio?",  "btn-danger") }}
+                            {{ modals.button_modal_md('Cancelar', url_for('ofi_documentos.cancel', ofi_documento_id=ofi_documento.id), "Cancelar", "mdi:cancel", "¿Desea cancelar el oficio?", "btn-danger") }}
                         {% else %}
-                            {{ modals.button_modal_md('Descancelar', url_for('ofi_documentos.uncancel', ofi_documento_id=ofi_documento.id), "Descancelar", "mdi:file-undo-outline", "¿Desea descancelar el oficio?",  "btn-outline-danger") }}
+                            {{ modals.button_modal_md('Descancelar', url_for('ofi_documentos.uncancel', ofi_documento_id=ofi_documento.id), "Descancelar", "mdi:file-undo-outline", "¿Desea descancelar el oficio?", "btn-outline-danger") }}
                         {% endif %}
                     {% endif %}
                 </div>
