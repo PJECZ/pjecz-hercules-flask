@@ -15,6 +15,15 @@ from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from hercules.blueprints.req_requisiciones.models import ReqRequisicion
 
+# Roles necesarios
+ROL_LECTOR = "REQUISICIONES LECTOR"
+ROL_ESCRITOR = "REQUISICIONES ESCRITOR"
+ROL_SOLICITANTE = "REQUISICIONES SOLICITANTE"
+ROL_AUTORIZANTE = "REQUISICIONES AUTORIZANTE"
+ROL_REVISOR = "REQUISICIONES REVISOR"
+ROL_MATERIALES = "REQUISICIONES MATERIALES"
+
+
 MODULO = "REQ REQUISICIONES"
 
 req_requisiciones = Blueprint("req_requisiciones", __name__, template_folder="templates")

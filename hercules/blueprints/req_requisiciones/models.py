@@ -6,7 +6,7 @@ from datetime import datetime, date
 import uuid
 from typing import List, Optional
 
-from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, JSON, Integer, String, Text, Uuid
+from sqlalchemy import Date, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.functions import now
@@ -56,16 +56,23 @@ class ReqRequisicion(database.Model, UniversalMixin):
     folio_num: Mapped[Optional[int]]
 
     # Columnas firma electrónica simple
-    firma_simple: Mapped[str] = mapped_column(String(256), default="")
-    firma_simple_tiempo: Mapped[Optional[datetime]]
+    firma_simple: Mapped[Optional[str]] = mapped_column(String(256), default="")
+
+    # Columnas solicito (Usuarios)
+    solicito_id: Mapped[Optional[int]]
+    solicito_tiempo: Mapped[Optional[datetime]]
 
     # Columnas autorizo (Usuarios)
-    autorizo_id: Mapped[int]
+    autorizo_id: Mapped[Optional[int]]
     autorizo_tiempo: Mapped[Optional[datetime]]
 
     # Columnas reviso (Usuarios)
-    reviso_id: Mapped[int]
+    reviso_id: Mapped[Optional[int]]
     reviso_tiempo: Mapped[Optional[datetime]]
+
+    # Columnas entrego (Usuarios)
+    entrego_id: Mapped[Optional[int]]
+    entrego_tiempo: Mapped[Optional[datetime]]
 
     # Hijos
     req_requisiciones_registros: Mapped[List["ReqRequisicionRegistro"]] = relationship(back_populates="req_requisicion")
