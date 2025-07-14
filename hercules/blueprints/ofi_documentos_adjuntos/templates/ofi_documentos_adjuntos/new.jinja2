@@ -21,6 +21,10 @@
             {% call f.form_group(form.ofi_documento, readonly=true) %}{% endcall %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
             <strong>Agregar Adjunto</strong>
+            <div class="alert alert-primary d-flex align-items-center" role="alert">
+                <p class="mb-0"><span class="iconify" data-icon="mdi:alert-circle-outline"></span> <strong> Advertencia: </strong>
+                Puede subir archivos de imagen (jpg, jpeg, png) de Office (doc, docx, xls, xlsx) y de pdf.</p>
+            </div>
             {% call f.drop_zone_wrapper() %}
                 {% call f.form_group(form.archivo, class="dropzone") %}{% endcall %}
             {% endcall %}
