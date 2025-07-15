@@ -392,6 +392,11 @@ def detail(ofi_documento_id):
         # Si el documento NO está en archivado, se puede cancelar o descancelar
         if ofi_documento.esta_archivado is False:
             mostrar_boton_cancelar_descancelar = True
+    # Si el usuario es FIRMANTE y NO es de la autoridad del documento
+    elif ROL_FIRMANTE in roles and not usuario_es_de_la_autoridad:
+        # Si el documento está en ENVIADO, se puede responder
+        if ofi_documento.estado == "ENVIADO":
+            mostrar_boton_responder = True
     # Si el usuario es ESCRITOR y es de la autoridad del documento
     elif ROL_ESCRITOR in roles and usuario_es_de_la_autoridad:
         # Si el documento está en BORRADOR, se puede editar
@@ -406,31 +411,18 @@ def detail(ofi_documento_id):
         # Si el documento NO está en archivado, se puede cancelar o descancelar
         if ofi_documento.esta_archivado is False:
             mostrar_boton_cancelar_descancelar = True
+    # Si el usuario es ESCRITOR y NO es de la autoridad del documento
+    elif ROL_ESCRITOR in roles and not usuario_es_de_la_autoridad:
+        # Si el documento está en ENVIADO, se puede responder
+        if ofi_documento.estado == "ENVIADO":
+            mostrar_boton_responder = True
     # Si el usuario es ESCRITOR o FIRMANTE, mostrar botones Mis Oficios y Mi Autoridad
     mostrar_boton_mis_oficios = False
     mostrar_boton_mi_autoridad = False
     if ROL_ESCRITOR in roles or ROL_FIRMANTE in roles:
         mostrar_boton_mis_oficios = True
         mostrar_boton_mi_autoridad = True
-    # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
-    if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
-        # Entregar detail_syncfusion_document.jinja2
-        return render_template(
-            "ofi_documentos/detail_syncfusion_document.jinja2",
-            ofi_documento=ofi_documento,
-            usuario_firmante=usuario_firmante,
-            platillas_opciones=platillas_opciones,
-            mostrar_boton_mis_oficios=mostrar_boton_mis_oficios,
-            mostrar_boton_mi_autoridad=mostrar_boton_mi_autoridad,
-            mostrar_boton_editar=mostrar_boton_editar,
-            mostrar_boton_firmar=mostrar_boton_firmar,
-            mostrar_boton_enviar=mostrar_boton_enviar,
-            mostrar_boton_responder=mostrar_boton_responder,
-            mostrar_boton_archivar_desarchivar=mostrar_boton_archivar_desarchivar,
-            mostrar_boton_cancelar_descancelar=mostrar_boton_cancelar_descancelar,
-            syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
-        )
-    # De lo contrario, entregar detail.jinja2
+    # Entregar el detalle
     return render_template(
         "ofi_documentos/detail.jinja2",
         ofi_documento=ofi_documento,
@@ -576,39 +568,31 @@ def new(ofi_plantilla_id):
             bitacora.save()
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
-    # Sugerencia del nuevo número de folio
-    num_oficio = (
+    # Sugerir el folio consultando el último documento de la autoridad del usuario
+    ultimo_documento = (
         OfiDocumento.query.join(Usuario)
         .filter(Usuario.autoridad_id == current_user.autoridad_id)
         .filter(OfiDocumento.folio_anio == datetime.now().year)
         .order_by(OfiDocumento.folio_num.desc())
         .first()
     )
-    folio = f"1/{datetime.now().year}"
-    if num_oficio:
-        folio = f"{num_oficio.usuario.autoridad.clave}-{num_oficio.folio_num + 1}/{datetime.now().year}"
-    # Remplazo de palabras claves en la plantilla
-    texto = ofi_plantilla.contenido_md
-    texto = texto.replace("[[DIA]]", str(datetime.now().day))
-    texto = texto.replace("[[MES]]", str(datetime.now().strftime("%B")))
-    texto = texto.replace("[[AÑO]]", str(datetime.now().year))
-    texto = texto.replace("[[FOLIO]]", folio)
+    if ultimo_documento:
+        folio = f"{ultimo_documento.usuario.autoridad.clave}-{ultimo_documento.folio_num + 1}/{datetime.now().year}"
+    else:
+        folio = f"{current_user.autoridad.clave}-1/{datetime.now().year}"  # Tal vez sea el primer oficio del año
+    # Reemplazar las palabras claves en el contenido HTML
+    contenido_html = ofi_plantilla.contenido_html
+    contenido_html = contenido_html.replace("[[DIA]]", str(datetime.now().day))
+    contenido_html = contenido_html.replace("[[MES]]", str(datetime.now().strftime("%B")))
+    contenido_html = contenido_html.replace("[[AÑO]]", str(datetime.now().year))
+    contenido_html = contenido_html.replace("[[FOLIO]]", folio)
     # Cargar los datos de la plantilla en el formulario
     form.descripcion.data = ofi_plantilla.descripcion
-    form.contenido_md.data = texto
-    form.contenido_html.data = ofi_plantilla.contenido_html
+    form.contenido_md.data = ofi_plantilla.contenido_md
+    form.contenido_html.data = contenido_html
     form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
     form.folio.data = folio
-    # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
-    if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
-        # Entregar new_syncfusion_document.jinja2
-        return render_template(
-            "ofi_documentos/new_syncfusion_document.jinja2",
-            form=form,
-            ofi_plantilla_id=ofi_plantilla_id,
-            syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
-        )
-    # De lo contrario, entregar new_ckeditor5.jinja2
+    # Entregar el formulario
     return render_template(
         "ofi_documentos/new_ckeditor5.jinja2",
         form=form,
@@ -687,35 +671,26 @@ def edit(ofi_documento_id):
             return redirect(bitacora.url)
     # Cargar los datos en el formulario
     form.descripcion.data = ofi_documento.descripcion
+    form.folio.data = ofi_documento.folio
     form.vencimiento_fecha.data = ofi_documento.vencimiento_fecha
     form.contenido_md.data = ofi_documento.contenido_md
     form.contenido_html.data = ofi_documento.contenido_html
     form.contenido_sfdt.data = ofi_documento.contenido_sfdt
-    # Sugerencia del nuevo número de folio
+    # Si no tiene folio, sugerir el folio consultando el último documento de la autoridad del usuario
     if ofi_documento.folio is None or ofi_documento.folio == "":
-        num_oficio = (
+        ultimo_documento = (
             OfiDocumento.query.join(Usuario)
             .filter(Usuario.autoridad_id == current_user.autoridad_id)
             .filter(OfiDocumento.folio_anio == datetime.now().year)
             .order_by(OfiDocumento.folio_num.desc())
             .first()
         )
-        if num_oficio:
-            form.folio.data = f"{num_oficio.usuario.autoridad.clave}-{num_oficio.folio_num + 1}/{datetime.now().year}"
+        if ultimo_documento:
+            folio = f"{ultimo_documento.usuario.autoridad.clave}-{ultimo_documento.folio_num + 1}/{datetime.now().year}"
         else:
-            form.folio.data = f"1/{datetime.now().year}"
-    else:
-        form.folio.data = ofi_documento.folio
-    # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
-    if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
-        # Entregar edit_syncfusion_document.jinja2
-        return render_template(
-            "ofi_documentos/edit_syncfusion_document.jinja2",
-            form=form,
-            ofi_documento=ofi_documento,
-            syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
-        )
-    # De lo contrario, entregar edit_ckeditor5.jinja2
+            folio = f"{current_user.autoridad.clave}-1/{datetime.now().year}"  # Tal vez sea el primer oficio del año
+        form.folio.data = folio
+    # Entregar el formulario
     return render_template(
         "ofi_documentos/edit_ckeditor5.jinja2",
         form=form,
@@ -804,9 +779,9 @@ def sign(ofi_documento_id):
         ofi_documento.usuario = current_user  # El usuario que firma es el propietario del oficio
         ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
         ofi_documento.estado = "FIRMADO"
-        ofi_documento.firma_simple_usuario_id = current_user.id
-        ofi_documento.firma_simple_tiempo = datetime.now()
         ofi_documento.firma_simple = OfiDocumento.elaborar_hash(ofi_documento)
+        ofi_documento.firma_simple_tiempo = datetime.now()
+        ofi_documento.firma_simple_usuario_id = current_user.id
         ofi_documento.save()
         # Lanzar la tarea en el fondo para convertir a archivo PDF de acuerdo al tipo de firma
         if form.tipo.data == "avanzada":
@@ -837,17 +812,7 @@ def sign(ofi_documento_id):
     form.descripcion.data = ofi_documento.descripcion
     form.folio.data = ofi_documento.folio  # Read only
     form.vencimiento_fecha.data = ofi_documento.vencimiento_fecha  # Read only
-    # form.tipo.data = "simple"
-    # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
-    if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
-        # Entregar sign_syncfusion_document.jinja2
-        return render_template(
-            "ofi_documentos/sign_syncfusion_document.jinja2",
-            form=form,
-            ofi_documento=ofi_documento,
-            syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
-        )
-    # De lo contrario, entregar sign_ckeditor5.jinja2
+    # Entregar el formulario
     return render_template(
         "ofi_documentos/sign_ckeditor5.jinja2",
         form=form,
@@ -1039,53 +1004,67 @@ def response(ofi_documento_id):
     if usuario_destinatario.con_copia:
         flash("Eres destinatario con copia, NO tienes permiso para responder", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
-    # Si viene el id de la plantilla
-    ofi_plantilla = None
+    # Si viene el UUID de la plantilla en el URL
     ofi_plantilla_id = request.args.get("plantilla_id")
     if ofi_plantilla_id is not None:
+        # Validar que el UUID de la plantilla sea válido
         ofi_plantilla_id = safe_uuid(ofi_plantilla_id)
-        if ofi_plantilla_id:
-            ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
+        if not ofi_plantilla_id:
+            flash("ID de plantilla inválido", "warning")
+            return redirect(url_for("ofi_documentos.list_active"))
+    else:
+        # No viene la plantilla, tomar la plantilla mas reciente de la autoridad del usuario
+        ultima_plantilla = (
+            OfiPlantilla.query.
+            filter_by(autoridad_id=current_user.autoridad_id).
+            filter_by(estatus="A").
+            order_by(OfiPlantilla.creado.desc()).
+            first()
+        )
+        if ultima_plantilla is None:
+            flash("No hay plantillas disponibles en su autoridad para responder", "warning")
+            return redirect(url_for("ofi_documentos.list_active"))
+        ofi_plantilla_id = ultima_plantilla.id
+    # Consultar la plantilla
+    ofi_plantilla = OfiPlantilla.query.get(ofi_plantilla_id)
+    if ofi_plantilla is None:
+        flash("ID de plantilla inválido", "warning")
+        return redirect(url_for("ofi_documentos.list_active"))
     # Formulario
     form = OfiDocumentoNewForm()
-    # Sugerencia del nuevo número de folio
-    num_oficio = (
+    # Sugerir el folio consultando el último documento de la autoridad del usuario
+    ultimo_documento = (
         OfiDocumento.query.join(Usuario)
         .filter(Usuario.autoridad_id == current_user.autoridad_id)
         .filter(OfiDocumento.folio_anio == datetime.now().year)
         .order_by(OfiDocumento.folio_num.desc())
         .first()
     )
-    folio = f"1/{datetime.now().year}"
-    if num_oficio:
-        folio = f"{num_oficio.usuario.autoridad.clave}-{num_oficio.folio_num + 1}/{datetime.now().year}"
-    # Remplazo de palabras claves en la plantilla
-    texto = ofi_plantilla.contenido_md
-    texto = texto.replace("[[DIA]]", str(datetime.now().day))
-    texto = texto.replace("[[MES]]", str(datetime.now().strftime("%B")))
-    texto = texto.replace("[[AÑO]]", str(datetime.now().year))
-    texto = texto.replace("[[FOLIO]]", folio)
+    if ultimo_documento:
+        folio = f"{ultimo_documento.usuario.autoridad.clave}-{ultimo_documento.folio_num + 1}/{datetime.now().year}"
+    else:
+        folio = f"{current_user.autoridad.clave}-1/{datetime.now().year}"  # Tal vez sea el primer oficio del año
+    # Reemplazar las palabras claves en el contenido HTML
+    contenido_html = ofi_plantilla.contenido_html
+    contenido_html = contenido_html.replace("[[DIA]]", str(datetime.now().day))
+    contenido_html = contenido_html.replace("[[MES]]", str(datetime.now().strftime("%B")))
+    contenido_html = contenido_html.replace("[[AÑO]]", str(datetime.now().year))
+    contenido_html = contenido_html.replace("[[FOLIO]]", folio)
+    contenido_html = contenido_html.replace("[[USUARIO]]", ofi_documento.usuario.nombre)
+    contenido_html = contenido_html.replace("[[PUESTO]]", ofi_documento.usuario.puesto)
+    contenido_html = contenido_html.replace("[[AUTORIDAD]]", ofi_documento.usuario.autoridad.descripcion)
     # Cargar los datos de la plantilla en el formulario
-    form.descripcion.data = "RE: " + ofi_plantilla.descripcion
-    form.contenido_md.data = texto
-    form.contenido_html.data = ofi_plantilla.contenido_html
+    form.descripcion.data = "RESPUESTA A " + ofi_plantilla.descripcion
+    form.contenido_md.data = ofi_plantilla.contenido_md
+    form.contenido_html.data = contenido_html
     form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
     form.cadena_oficio_id.data = ofi_documento_id
     form.folio.data = folio
-    # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
-    if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
-        # Entregar new_syncfusion_document.jinja2
-        return render_template(
-            "ofi_documentos/new_syncfusion_document.jinja2",
-            form=form,
-            ofi_plantilla_id=ofi_plantilla.id,
-            syncfusion_license_key=current_app.config["SYNCFUSION_LICENSE_KEY"],
-        )
-    # De lo contrario, entregar new_ckeditor5.jinja2
+    # Entregar el formulario
     return render_template(
         "ofi_documentos/new_ckeditor5.jinja2",
         form=form,
-        ofi_plantilla_id=ofi_plantilla.id,
+        ofi_plantilla_id=ofi_plantilla_id,
     )
 
 
