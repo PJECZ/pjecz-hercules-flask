@@ -42,8 +42,11 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    <!-- Marked -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Turndown sirve para convertir el HTML a markdown-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.0.0/turndown.js"></script>
+    <script>
+        var turndownService = new TurndownService();
+    </script>
     <!-- CKEditor 5 -->
     <script src="https://storage.googleapis.com/pjecz-informatica/static/js/ckeditor5.umd.js" crossorigin></script>
     <script src="https://storage.googleapis.com/pjecz-informatica/static/js/ckeditor5_translations/es.umd.js" crossorigin></script>
@@ -60,7 +63,7 @@
             .create(editorElement, editorConfig)
             .then( editor => {
                 ckEditorInstance = editor;
-                editor.setData(contenidoMdTextArea.value); // Al inicializar copiamos el contenido
+                editor.setData(contenidoHtmlTextArea.value); // Al inicializar copiamos el contenido HTML
             })
             .catch( error => {
                 console.error('ERROR al inicializar el editor', error);
@@ -68,10 +71,10 @@
         // Cambiar la forma de enviar el formulario
         webPaginaForm.addEventListener('submit', function(event) {
             event.preventDefault(); // Prevenir la sumisión inmediata del formulario
-            if (ckEditorInstance && typeof marked !== 'undefined') {
-                const contenidoMd = ckEditorInstance.getData();
-                contenidoMdTextArea.value = contenidoMd; // Actualizar el valor de textarea con markdown
-                contenidoHtmlTextArea.value = marked.parse(contenidoMd); // Actualizar el valor de textarea con HTML
+            if (ckEditorInstance && typeof turndownService !== 'undefined') {
+                const ckEditorContenidoHTML = ckEditorInstance.getData();
+                contenidoHtmlTextArea.value = ckEditorContenidoHTML;
+                contenidoMdTextArea.value = turndownService.turndown(ckEditorContenidoHTML); // Convertir HTML a Markdown
             } else {
                 console.error('ERROR al copiar y convertir el contenido');
             }
