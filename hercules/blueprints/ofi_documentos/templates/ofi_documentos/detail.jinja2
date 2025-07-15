@@ -101,20 +101,32 @@
                     {{ detail.label_value('Tiempo', moment(ofi_documento.firma_simple_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
                     {{ detail.label_value('Guardada', ofi_documento.firma_simple) }}
                     {{ detail.label_value('Al vuelo ', ofi_documento.elaborar_hash()) }}
-                    {% if ofi_documento.firma_simple %}
-                        <div class="row">
-                            <div class="col-md-3 text-end">Integridad</div>
-                            {% if ofi_documento.firma_simple == ofi_documento.elaborar_hash() %}
-                                <div class="col-md-9">
-                                    <span class="badge rounded-pill bg-success">VALIDO <span class="iconify" data-icon="mdi:shield-check">></span></span>
-                                </div>
-                            {% else %}
-                                <div class="col-md-9">
-                                    <span class="badge rounded-pill bg-danger">CORRUPTO <span class="iconify" data-icon="mdi:alert-octagon"></span>
-                                </div>
-                            {% endif %}
+                    <div class="row">
+                        <div class="col-md-3 text-end">Integridad</div>
+                        {% if ofi_documento.firma_simple == ofi_documento.elaborar_hash() %}
+                            <div class="col-md-9">
+                                <span class="badge rounded-pill bg-success">VALIDO <span class="iconify" data-icon="mdi:shield-check">></span></span>
+                            </div>
+                        {% else %}
+                            <div class="col-md-9">
+                                <span class="badge rounded-pill bg-danger">CORRUPTO <span class="iconify" data-icon="mdi:alert-octagon"></span>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                {% if ofi_documento.firma_avanzada_efirma_sello_digital %}
+                    {{ detail.label_value('F. Nombre', ofi_documento.firma_avanzada_nombre)}}
+                    {{ detail.label_value('F. Puesto', ofi_documento.firma_avanzada_puesto)}}
+                    {{ detail.label_value('F. e-mail', ofi_documento.firma_avanzada_email)}}
+                    {{ detail.label_value('Tiempo', moment(ofi_documento.firma_avanzada_efirma_tiempo, local=False).format('DD MMM YYYY HH:mm')) }}
+                    <div class="row">
+                        <div class="col-md-3 text-end">Sello Digital</div>
+                        <div class="col-md-9">
+                            <a title="{{ ofi_documento.firma_avanzada_efirma_sello_digital }}">
+                                {{ ofi_documento.firma_avanzada_efirma_sello_digital | truncate(32) }}
+                            </a>
                         </div>
-                    {% endif %}
+                    </div>
                 {% endif %}
             </div>
         </div>

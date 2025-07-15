@@ -771,7 +771,7 @@ def rename(ofi_documento_id):
 @permission_required(MODULO, Permiso.MODIFICAR)
 def sign(ofi_documento_id):
     """Firmar un Ofi Documento"""
-    # Validar que el usuario tenga el rol FIRMANTE, para que un ADMINISTRADOR no pueda firmar
+    # Validar que el usuario tenga el rol FIRMANTE
     if ROL_FIRMANTE not in current_user.get_roles():
         flash("Se necesita el rol de FIRMANTE para firmar un oficio", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
@@ -796,6 +796,10 @@ def sign(ofi_documento_id):
     # Obtener el formuario
     form = OfiDocumentoSignForm()
     if form.validate_on_submit():
+        # Validar el tipo de firma
+        if form.tipo.data not in ["simple", "avanzada"]:
+            flash("Tipo de firma inválido, debe ser 'simple' o 'avanzada'", "warning")
+            return redirect(url_for("ofi_documentos.sign", ofi_documento_id=ofi_documento.id))
         # Actualizar
         ofi_documento.usuario = current_user  # El usuario que firma es el propietario del oficio
         ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
@@ -812,7 +816,7 @@ def sign(ofi_documento_id):
                 ofi_documento_id=str(ofi_documento.id),
             )
             descripcion = f"Oficio firmado con firma electrónica avanzada {ofi_documento.folio} {ofi_documento.descripcion}"
-        else:
+        elif form.tipo.data == "simple":
             current_user.launch_task(
                 comando="ofi_documentos.tasks.lanzar_convertir_a_pdf",
                 mensaje="Convirtiendo a archivo PDF con firma simple...",
@@ -833,7 +837,7 @@ def sign(ofi_documento_id):
     form.descripcion.data = ofi_documento.descripcion
     form.folio.data = ofi_documento.folio  # Read only
     form.vencimiento_fecha.data = ofi_documento.vencimiento_fecha  # Read only
-    form.tipo.data = "simple"
+    # form.tipo.data = "simple"
     # Si está definida la variable de entorno SYNCFUSION_LICENSE_KEY
     if current_app.config.get("SYNCFUSION_LICENSE_KEY"):
         # Entregar sign_syncfusion_document.jinja2
