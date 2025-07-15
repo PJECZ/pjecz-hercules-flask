@@ -44,7 +44,7 @@ class OfiDocumentoSignForm(FlaskForm):
     descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=256)])
     folio = StringField("Folio (DD-NN/AAAA)", validators=[Optional()])  # Read Only
     vencimiento_fecha = DateField("Fecha de vencimiento", validators=[Optional()])  # Read Only
-    tipo = HiddenField("Tipo", default="simple")
+    tipo = HiddenField("Tipo")
     firmar = SubmitField("Firmar")
 
 
