@@ -189,7 +189,8 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
     # Agregar la imagen de pie de página de la autoridad del usuario
     if ofi_documento.usuario.autoridad.pagina_pie_url:
         contenidos.append("<div id='footer_content' style='text-align: center;'>")
-        contenidos.append(f"Firma electrónica simple: {ofi_documento.firma_simple}<br>")
+        if ofi_documento.firma_simple:
+            contenidos.append(f"Firma electrónica simple: {ofi_documento.firma_simple}<br>")
         contenidos.append(f"<img src='{ofi_documento.usuario.autoridad.pagina_pie_url}' alt='Pie de página'>")
         contenidos.append("</div>")
 
