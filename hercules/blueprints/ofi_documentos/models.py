@@ -65,7 +65,7 @@ class OfiDocumento(database.Model, UniversalMixin):
     firma_avanzada_email: Mapped[Optional[str]] = mapped_column(String(256))
     firma_avanzada_efirma_tiempo: Mapped[Optional[datetime]]
     firma_avanzada_efirma_folio: Mapped[Optional[int]]
-    firma_avanzada_efirma_sello_digital: Mapped[Optional[str]] = mapped_column(String(256))
+    firma_avanzada_efirma_sello_digital: Mapped[Optional[str]] = mapped_column(String(512))
     firma_avanzada_efirma_url: Mapped[Optional[str]] = mapped_column(String(256))
     firma_avanzada_efirma_qr_url: Mapped[Optional[str]] = mapped_column(String(256))
     firma_avanzada_efirma_mensaje: Mapped[Optional[str]] = mapped_column(String(512))
