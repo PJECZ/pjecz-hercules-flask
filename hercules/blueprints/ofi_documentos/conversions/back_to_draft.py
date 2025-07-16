@@ -10,7 +10,7 @@ from hercules.app import create_app
 from hercules.blueprints.ofi_documentos.conversions import bitacora
 from hercules.blueprints.ofi_documentos.models import OfiDocumento
 from lib.exceptions import MyBucketNotFoundError, MyIsDeletedError, MyFileNotFoundError, MyNotExistsError, MyNotValidParamError
-from lib.google_cloud_storage import delete_file_from_gcs
+from lib.google_cloud_storage import get_blob_name_from_url, delete_file_from_gcs
 from lib.safe_string import safe_uuid
 
 # Cargar variables de entorno
@@ -98,20 +98,22 @@ def regresar_a_borrador(ofi_documento_id: str) -> tuple[str, str, str]:
         try:
             delete_file_from_gcs(
                 bucket_name=CLOUD_STORAGE_DEPOSITO_OFICIOS,
-                blob_name=ofi_documento.archivo_pdf_url,
+                blob_name=get_blob_name_from_url(ofi_documento.archivo_pdf_url),
             )
-            ofi_documento.archivo_pdf_url = None
             mensaje = "Se ha eliminado el archivo PDF del almacenamiento."
             bitacora.info(mensaje)
             mensajes.append(mensaje)
         except MyBucketNotFoundError as error:
-            error = f"El depósito de oficios no existe: {error}"
+            error = f"El depósito de archivos PDF no existe: {error}"
             bitacora.error(error)
             raise MyBucketNotFoundError(error)
-        except MyFileNotFoundError as warning:
+        except (MyFileNotFoundError, MyNotValidParamError) as warning:
             advertencia = f"AVISO: El archivo PDF no existe en el depósito de oficios: {warning}"
             bitacora.warning(advertencia)
             mensajes.append(advertencia)
+
+    # Quitar la URL al archivo PDF
+    ofi_documento.archivo_pdf_url = None
 
     # Poner en falso el archivado
     if ofi_documento.esta_archivado:
