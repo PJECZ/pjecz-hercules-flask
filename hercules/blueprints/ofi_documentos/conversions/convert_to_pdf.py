@@ -28,7 +28,7 @@ app.app_context().push()
 def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
     """Convertir a PDF"""
     mensajes = []
-    mensaje_info = "Inicia convertir a PDF."
+    mensaje_info = f"Inicia convertir a PDF {ofi_documento_id}"
     mensajes.append(mensaje_info)
     bitacora.info(mensaje_info)
 
