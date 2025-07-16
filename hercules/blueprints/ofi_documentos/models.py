@@ -52,7 +52,7 @@ class OfiDocumento(database.Model, UniversalMixin):
     # Columnas contenido
     contenido_html: Mapped[Optional[str]] = mapped_column(Text)
     contenido_md: Mapped[Optional[str]] = mapped_column(Text)
-    contenido_sfdt: Mapped[Optional[JSONB]] = mapped_column(JSONB)  # Syncfusion Document Editor
+    contenido_sfdt: Mapped[Optional[JSONB]] = mapped_column(JSONB)
 
     # Columnas firma simple
     firma_simple: Mapped[str] = mapped_column(String(256), default="")
@@ -87,7 +87,7 @@ class OfiDocumento(database.Model, UniversalMixin):
         elementos.append(str(self.id))
         elementos.append(str(self.folio_num))
         elementos.append(str(self.folio_anio))
-        elementos.append(str(self.contenido_html))
+        elementos.append(str(self.contenido_md))
         return hashlib.md5("|".join(elementos).encode("utf-8")).hexdigest()
 
     def __repr__(self):

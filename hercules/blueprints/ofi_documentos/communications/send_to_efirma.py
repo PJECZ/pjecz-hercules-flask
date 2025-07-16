@@ -172,6 +172,10 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
                     /* -pdf-frame-border: 1; Borde alrededor del contenido para ver sus dimensiones */
                 }
             }
+            body {
+                font-family: Arial, sans-serif;
+                font-size: 12pt;
+            }
         </style>
     """
     )
