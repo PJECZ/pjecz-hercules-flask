@@ -201,3 +201,30 @@ def upload_file_to_gcs(
 
     # Return public URL
     return blob.public_url
+
+
+def delete_file_from_gcs(
+    bucket_name: str,
+    blob_name: str,
+) -> None:
+    """
+    Delete file from Google Cloud Storage
+
+    :param bucket_name: Name of the bucket
+    :param blob_name: Path to the file
+    """
+
+    # Get bucket
+    storage_client = storage.Client()
+    try:
+        bucket = storage_client.get_bucket(bucket_name)
+    except NotFound as error:
+        raise MyBucketNotFoundError("Bucket not found") from error
+
+    # Delete file
+    blob = bucket.blob(blob_name)
+    if not blob.exists():
+        raise MyFileNotFoundError("File not found")
+
+    # Delete the file
+    blob.delete()

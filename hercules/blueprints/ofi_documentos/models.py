@@ -54,12 +54,12 @@ class OfiDocumento(database.Model, UniversalMixin):
     contenido_md: Mapped[Optional[str]] = mapped_column(Text)
     contenido_sfdt: Mapped[Optional[JSONB]] = mapped_column(JSONB)  # Syncfusion Document Editor
 
-    # Columnas firma electronica simple
+    # Columnas firma simple
     firma_simple: Mapped[str] = mapped_column(String(256), default="")
     firma_simple_tiempo: Mapped[Optional[datetime]]
     firma_simple_usuario_id: Mapped[Optional[int]]
 
-    # Columnas firma electronica avanzada
+    # Columnas firma electrónica avanzada
     firma_avanzada_nombre: Mapped[Optional[str]] = mapped_column(String(256))
     firma_avanzada_puesto: Mapped[Optional[str]] = mapped_column(String(256))
     firma_avanzada_email: Mapped[Optional[str]] = mapped_column(String(256))
