@@ -8,6 +8,7 @@ from flask_login import current_user, login_required
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_string, safe_message, safe_clave
+from sqlalchemy import or_
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
@@ -42,22 +43,50 @@ def datatable_json():
         consulta = consulta.filter(ReqRequisicion.estatus == request.form["estatus"])
     else:
         consulta = consulta.filter(ReqRequisicion.estatus == "A")
+    if "folio" in request.form:
+        folio = safe_string(request.form["folio"])
+        if folio:
+            consulta = consulta.filter(ReqRequisicion.folio.contains(folio))
+    if "justificacion" in request.form:
+        justificacion = safe_string(request.form["justificacion"])
+        if justificacion:
+            consulta = consulta.filter(ReqRequisicion.justificacion.contains(justificacion))
+    if "estado" in request.form:
+        consulta = consulta.filter(ReqRequisicion.estado == request.form["estado"])
     # Filtrar por usuario id
     if "usuario_id" in request.form:
         consulta = consulta.filter(ReqRequisicion.usuario_id == request.form["usuario_id"])
     # Filtrar por ID de autoridad
+    tabla_usuario_incluida = False
     if "autoridad_id" in request.form:
         autoridad_id = int(request.form["autoridad_id"])
         if autoridad_id:
             consulta = consulta.join(Usuario)
+            tabla_usuario_incluida = True
             consulta = consulta.filter(Usuario.autoridad_id == autoridad_id)
     # Filtrar por clave de la autoridad
     elif "autoridad_clave" in request.form:
         autoridad_clave = safe_clave(request.form["autoridad_clave"])
         if autoridad_clave:
             consulta = consulta.join(Usuario)
+            tabla_usuario_incluida = True
             consulta = consulta.join(Autoridad, Usuario.autoridad_id == Autoridad.id)
             consulta = consulta.filter(Autoridad.clave.contains(autoridad_clave))
+    if "usuario_nombre" in request.form:
+        usuario_nombre = safe_string(request.form["usuario_nombre"])
+        if usuario_nombre:
+            if not tabla_usuario_incluida:
+                consulta = consulta.join(Usuario)
+                tabla_usuario_incluida = True
+            palabras = usuario_nombre.split()
+            for palabra in palabras:
+                consulta = consulta.filter(
+                    or_(
+                        Usuario.nombres.contains(palabra),
+                        Usuario.apellido_paterno.contains(palabra),
+                        Usuario.apellido_materno.contains(palabra),
+                    )
+                )
     # Ordenar y paginar
     registros = consulta.order_by(ReqRequisicion.creado.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -101,6 +130,7 @@ def list_active():
         filtros=json.dumps({"estatus": "A", "usuario_id": current_user.id}),
         titulo="Mis Requisiciones",
         estatus="A",
+        estados=ReqRequisicion.ESTADOS,
         boton_activo="MIS REQUISICIONES",
     )
 
@@ -113,6 +143,7 @@ def list_active_mi_autoridad():
         filtros=json.dumps({"estatus": "A", "autoridad_id": current_user.autoridad.id}),
         titulo=f"Requisiciones de {current_user.autoridad.descripcion_corta}",
         estatus="A",
+        estados=ReqRequisicion.ESTADOS,
         boton_activo="MI AUTORIDAD",
     )
 
@@ -126,6 +157,7 @@ def list_inactive():
         filtros=json.dumps({"estatus": "B"}),
         titulo="Requisiciones inactivas",
         estatus="B",
+        estados=ReqRequisicion.ESTADOS,
     )
 
 
