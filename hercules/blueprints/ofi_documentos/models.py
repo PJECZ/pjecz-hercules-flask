@@ -52,20 +52,20 @@ class OfiDocumento(database.Model, UniversalMixin):
     # Columnas contenido
     contenido_html: Mapped[Optional[str]] = mapped_column(Text)
     contenido_md: Mapped[Optional[str]] = mapped_column(Text)
-    contenido_sfdt: Mapped[Optional[JSONB]] = mapped_column(JSONB)  # Syncfusion Document Editor
+    contenido_sfdt: Mapped[Optional[JSONB]] = mapped_column(JSONB)
 
-    # Columnas firma electronica simple
+    # Columnas firma simple
     firma_simple: Mapped[str] = mapped_column(String(256), default="")
     firma_simple_tiempo: Mapped[Optional[datetime]]
     firma_simple_usuario_id: Mapped[Optional[int]]
 
-    # Columnas firma electronica avanzada
+    # Columnas firma electrónica avanzada
     firma_avanzada_nombre: Mapped[Optional[str]] = mapped_column(String(256))
     firma_avanzada_puesto: Mapped[Optional[str]] = mapped_column(String(256))
     firma_avanzada_email: Mapped[Optional[str]] = mapped_column(String(256))
     firma_avanzada_efirma_tiempo: Mapped[Optional[datetime]]
     firma_avanzada_efirma_folio: Mapped[Optional[int]]
-    firma_avanzada_efirma_sello_digital: Mapped[Optional[str]] = mapped_column(String(256))
+    firma_avanzada_efirma_sello_digital: Mapped[Optional[str]] = mapped_column(String(512))
     firma_avanzada_efirma_url: Mapped[Optional[str]] = mapped_column(String(256))
     firma_avanzada_efirma_qr_url: Mapped[Optional[str]] = mapped_column(String(256))
     firma_avanzada_efirma_mensaje: Mapped[Optional[str]] = mapped_column(String(512))
@@ -87,7 +87,7 @@ class OfiDocumento(database.Model, UniversalMixin):
         elementos.append(str(self.id))
         elementos.append(str(self.folio_num))
         elementos.append(str(self.folio_anio))
-        elementos.append(str(self.contenido_html))
+        elementos.append(str(self.contenido_md))
         return hashlib.md5("|".join(elementos).encode("utf-8")).hexdigest()
 
     def __repr__(self):

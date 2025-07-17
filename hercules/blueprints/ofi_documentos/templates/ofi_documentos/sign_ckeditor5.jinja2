@@ -70,20 +70,21 @@
 
 {% block custom_javascript %}
     <script>
-        const form = document.getElementById('ofi_documento_form');
         // Prevenir el envío del formulario por defecto
-        form.addEventListener('submit', function(event) {
+        const formElem = document.getElementById('ofi_documento_form')
+        formElem.addEventListener('submit', function(event) {
             event.preventDefault();
         });
         // Función para firmar con firma simple
+        const tipoHiddenElem = document.getElementById('tipo')
         function firmaSimple() {
-            form.tipo = 'simple';
-            form.submit();
+            tipoHiddenElem.value = 'simple';
+            formElem.submit();
         }
         // Función para firmar con firma electrónica avanzada
         function firmaElectronicaAvanzada() {
-            form.tipo = 'avanzada';
-            form.submit();
+            tipoHiddenElem.value = 'avanzada';
+            formElem.submit();
         }
     </script>
 {% endblock %}

@@ -20,7 +20,10 @@
     {% call f.card() %}
         {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
         {% call f.form_tag('ofi_documentos_destinatarios.new_with_ofi_documento', fid='ofi_documento_destinatario_form', **form_kwargs) %}
-            {% call f.form_group(form.ofi_documento, readonly=true) %}{% endcall %}
+            <strong>Descripción del Oficio</strong>
+            <p>{{ ofi_documento.descripcion }}</p>
+            <strong>Folio del Oficio</strong>
+            <p>{{ ofi_documento.folio }}</p>
             <!-- Inicia mini-Formulario para agregar un destinatario -->
             <div class="form-group mb-2">
                 <label><strong>Agregar un usuario</strong></label>
