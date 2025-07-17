@@ -20,7 +20,9 @@ class ReqRequisicionAdjunto(database.Model, UniversalMixin):
         "jpeg": ("Imagen", "image/jpeg"),
         "png": ("Imagen", "image/png"),
         "pdf": ("Archivo PDF", "application/pdf"),
+        "doc": ("Archivo Word", "application/msword"),
         "docx": ("Archivo Word", "application/msword"),
+        "xls": ("Archivo Excel", "application/vnd.ms-excel"),
         "xlsx": ("Archivo Excel", "application/vnd.ms-excel"),
     }
 
@@ -51,7 +53,7 @@ class ReqRequisicionAdjunto(database.Model, UniversalMixin):
             return ""
         if extension in ("jpg", "jpeg", "png"):
             return "IMG"
-        if extension in ("docx", "xlsx"):
+        if extension in ("doc", "docx", "xls", "xlsx"):
             return "DOC"
         if extension == "pdf":
             return "PDF"

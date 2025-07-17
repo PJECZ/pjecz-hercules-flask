@@ -19,6 +19,10 @@ MODULO = "REQ REQUISICIONES ADJUNTOS"
 
 req_requisiciones_adjuntos = Blueprint("req_requisiciones_adjuntos", __name__, template_folder="templates")
 
+SUBDIRECTORIO = "requisiciones_adjuntos"
+MAX_FILE_SIZE_MB = 20
+AX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+
 
 @req_requisiciones_adjuntos.before_request
 @login_required
