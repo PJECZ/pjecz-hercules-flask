@@ -14,6 +14,8 @@ from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from hercules.blueprints.req_requisiciones.models import ReqRequisicion
+from hercules.blueprints.usuarios.models import Usuario
+
 
 MODULO = "REQ REQUISICIONES"
 
@@ -36,17 +38,17 @@ def datatable_json():
     consulta = ReqRequisicion.query
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
-        consulta = consulta.filter_by(estatus=request.form["estatus"])
+        consulta = consulta.filter(ReqRequisicion.estatus == request.form["estatus"])
     else:
-        consulta = consulta.filter_by(estatus="A")
-    # if "persona_id" in request.form:
-    #     consulta = consulta.filter_by(persona_id=request.form["persona_id"])
-    # Luego filtrar por columnas de otras tablas
-    # if "persona_rfc" in request.form:
-    #     consulta = consulta.join(Persona)
-    #     consulta = consulta.filter(Persona.rfc.contains(safe_rfc(request.form["persona_rfc"], search_fragment=True)))
+        consulta = consulta.filter(ReqRequisicion.estatus == "A")
+    # Filtrar por ID de autoridad
+    if "autoridad_id" in request.form:
+        autoridad_id = int(request.form["autoridad_id"])
+        if autoridad_id:
+            consulta = consulta.join(Usuario)
+            consulta = consulta.filter(Usuario.autoridad_id == autoridad_id)
     # Ordenar y paginar
-    registros = consulta.order_by(ReqRequisicion.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ReqRequisicion.creado.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -54,9 +56,15 @@ def datatable_json():
         data.append(
             {
                 "detalle": {
-                    "nombre": resultado.nombre,
+                    "id": resultado.id,
                     "url": url_for("req_requisiciones.detail", req_requisicion_id=resultado.id),
                 },
+                "fecha": resultado.fecha.strftime("%Y-%m-%d"),
+                "usuario": {
+                    "nombre": resultado.usuario.nombre,
+                    "url": url_for("usuarios.detail", usuario_id=resultado.usuario.id),
+                },
+                "estado": resultado.estado,
             }
         )
     # Entregar JSON
@@ -69,7 +77,18 @@ def list_active():
     return render_template(
         "req_requisiciones/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
-        titulo="Requisiciones",
+        titulo="Mis Requisiciones",
+        estatus="A",
+    )
+
+
+@req_requisiciones.route("/req_requisiciones_mi_autoridad")
+def list_active_mi_autoridad():
+    """Listado de Req Requisiciones de mi autoridad activos"""
+    return render_template(
+        "req_requisiciones/list.jinja2",
+        filtros=json.dumps({"estatus": "A", "autoridad_id": current_user.autoridad.id}),
+        titulo="Requisiciones de mi Autoridad",
         estatus="A",
     )
 
@@ -86,8 +105,15 @@ def list_inactive():
     )
 
 
-@req_requisiciones.route("/req_requisiciones/<int:req_requisiciones_id>")
-def detail(req_requisiciones_id):
+@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>")
+def detail(req_requisicion_id):
     """Detalle de un Req Requisición"""
-    req_requisicion = ReqRequisicion.query.get_or_404(req_requisiciones_id)
+    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
     return render_template("req_requisiciones/detail.jinja2", req_requisicion=req_requisicion)
+
+
+@req_requisiciones.route("/req_requisiciones/nuevo", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.CREAR)
+def new():
+    """Nuevo Req Requisición"""
+    return render_template("req_requisiciones/new.jinja2", form=form)

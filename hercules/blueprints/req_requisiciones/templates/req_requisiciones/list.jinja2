@@ -4,8 +4,40 @@
 
 {% block title %}{{ titulo }}{% endblock %}
 
+
+{% block custom_head %}
+    <style>
+    .bg-pink {
+        color: white;
+        background-color: #d63384;
+    }
+    .bg-purple {
+        color: white;
+        background-color: #6f42c1;
+    }
+    .bg-brown {
+        color: white;
+        background-color: #653208;
+    }
+    .bg-teal {
+        color: white;
+        background-color: var(--bs-teal);
+    }
+    </style>
+{% endblock %}
+
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
+        {% if titulo == 'Mis Requisiciones' %}
+            <a class="btn btn-sm btn-secondary disabled" href="#"><span class="iconify" data-icon="mdi:paperclip"></span> Mis Requisiciones</a>
+        {% else %}
+            {{ topbar.button('Mis Requisiciones', url_for('req_requisiciones.list_active'), "mdi:paperclip") }}
+        {% endif %}
+        {% if titulo == 'Requisiciones de mi Autoridad' %}
+            <a class="btn btn-sm btn-secondary disabled" href="#"><span class="iconify" data-icon="mdi:scale-balance"></span> Mi Autoridad</a>
+        {% else %}
+            {{ topbar.button('Mi Autoridad', url_for('req_requisiciones.list_active_mi_autoridad'), "mdi:scale-balance") }}
+        {% endif %}
         {% if current_user.can_view('REQ CATEGORIAS') %}
             {{ topbar.button('Categorías', url_for('req_categorias.list_active'), "mdi:folder") }}
         {% endif %}
@@ -17,7 +49,7 @@
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('req_requisiciones.list_active')) }}{% endif %}
         {% endif %}
         {% if current_user.can_insert('REQ REQUISICIONES') %}
-            {# {{ topbar.button_new('Nuevo Requisición', url_for('req_requisiciones.new')) }} #}
+            {{ topbar.button_new('Nueva Requisición', url_for('req_requisiciones.new')) }}
         {% endif %}
     {% endcall %}
 {% endblock %}
@@ -51,8 +83,13 @@
         <table id="req_requisiciones_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>Clave</th>
-                    <th>Descripción</th>
+                    <th>ID</th>
+                    <th>Creación</th>
+                    <th>Usuario</th>
+                    <th>Autoridad</th>
+                    <th>Folio</th>
+                    <th>Justificación</th>
+                    <th>Estado</th>
                 </tr>
             </thead>
         </table>
@@ -70,14 +107,38 @@
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
             { data: 'detalle' },
-            { data: 'descripcion' }
+            { data: 'usuario' },
+            { data: 'fecha' },
+            { data: 'estado' }
         ];
         configDataTable['columnDefs'] = [
             {
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.clave + '</a>';
+                    return '<a href="' + data.url + '">' + data.id.substring(0, 8) + '</a>';
+                }
+            },
+            {
+                targets: 1, // usuario
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.nombre + '</a>';
+                }
+            },
+            {
+                targets: 3, // estado
+                data: null,
+                render: function(data, type, row, meta) {
+                    let bg_color = 'bg-secondary';
+                    switch (data)    {
+                        case "BORRADOR":        bg_color = 'bg-warning text-dark';  break;
+                        case "SOLICITADO":      bg_color = 'bg-primary';    break;
+                        case "AUTORIZADO":      bg_color = 'bg-purple';     break;
+                        case "REVISADO":        bg_color = 'bg-pink';       break;
+                        case "ENTREGADO":       bg_color = 'bg-success';    break;
+                    }
+                    return '<span class="badge rounded-pill ' + bg_color + '">' + data + '</span>';
                 }
             }
         ];
