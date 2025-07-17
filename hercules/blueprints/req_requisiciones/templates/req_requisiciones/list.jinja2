@@ -28,12 +28,12 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {% if titulo == 'Mis Requisiciones' %}
+        {% if boton_activo == 'MIS REQUISICIONES' %}
             <a class="btn btn-sm btn-secondary disabled" href="#"><span class="iconify" data-icon="mdi:paperclip"></span> Mis Requisiciones</a>
         {% else %}
             {{ topbar.button('Mis Requisiciones', url_for('req_requisiciones.list_active'), "mdi:paperclip") }}
         {% endif %}
-        {% if titulo == 'Requisiciones de mi Autoridad' %}
+        {% if boton_activo == 'MI AUTORIDAD' %}
             <a class="btn btn-sm btn-secondary disabled" href="#"><span class="iconify" data-icon="mdi:scale-balance"></span> Mi Autoridad</a>
         {% else %}
             {{ topbar.button('Mi Autoridad', url_for('req_requisiciones.list_active_mi_autoridad'), "mdi:scale-balance") }}
@@ -107,8 +107,11 @@
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
             { data: 'detalle' },
+            { data: 'creado' },
             { data: 'usuario' },
-            { data: 'fecha' },
+            { data: 'autoridad' },
+            { data: 'folio' },
+            { data: 'justificacion' },
             { data: 'estado' }
         ];
         configDataTable['columnDefs'] = [
@@ -116,18 +119,47 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.id.substring(0, 8) + '</a>';
+                    let detail_icon = "mdi:table";
+                    let style = "";
+                    if (data.icono == "ARCHIVADO") {
+                        detail_icon = "mdi:archive";
+                        style = "style='color: #808080;'";
+                    } else if (data.icono == "CANCELADO") {
+                        detail_icon = "mdi:cancel";
+                        style = "style='color: #404040;'";
+                    }
+                    return ' <a class="btn btn-outline-primary btn-sm" href="' + data.url + '"><span class="iconify" data-icon="' + detail_icon + '" ' + style + ' title="Ir al detalle"></span></a>';
                 }
             },
             {
-                targets: 1, // usuario
+                targets: 2, // usuario
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.nombre + '</a>';
+                    if(data.length > 16)    {
+                        return '<span title="' + data + '">' + data.substring(0, 16) + '…</span>';
+                    }
+                    return data;
                 }
             },
             {
-                targets: 3, // estado
+                targets: 3, // autoridad
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<span title="' + data.nombre + '">' + data.clave + '</span>';
+                }
+            },
+            {
+                targets: 5, // justificacion
+                data: null,
+                render: function(data, type, row, meta) {
+                    if(data.length > 32)    {
+                        return '<span title="' + data + '">' + data.substring(0, 32) + '…</span>';
+                    }
+                    return data;
+                }
+            },
+            {
+                targets: 6, // estado
                 data: null,
                 render: function(data, type, row, meta) {
                     let bg_color = 'bg-secondary';
@@ -142,6 +174,16 @@
                 }
             }
         ];
+        // Colorear renglones
+        configDataTable['rowCallback'] = function( row, data )  {
+            if (data.detalle.icono == "ARCHIVADO") {
+                $(row).css("color", "#6c757d");
+            } else if (data.detalle.icono == "CANCELADO") {
+                $(row).css("background-color", "#C0C0C0");
+                $(row).css("color", "#808080");
+                $(row).find('a').css('color', '#808080');
+            }
+        }
         // Filtros reqRequisiciones
         const filtrosReqRequisiciones = new FiltrosDataTable('#req_requisiciones_datatable', configDataTable);
         filtrosReqRequisiciones.agregarInput('filtroClave', 'clave');

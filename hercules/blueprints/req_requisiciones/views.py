@@ -7,7 +7,7 @@ from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_string, safe_message
+from lib.safe_string import safe_string, safe_message, safe_clave
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
@@ -15,6 +15,7 @@ from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from hercules.blueprints.req_requisiciones.models import ReqRequisicion
 from hercules.blueprints.usuarios.models import Usuario
+from hercules.blueprints.autoridades.models import Autoridad
 
 
 MODULO = "REQ REQUISICIONES"
@@ -41,29 +42,50 @@ def datatable_json():
         consulta = consulta.filter(ReqRequisicion.estatus == request.form["estatus"])
     else:
         consulta = consulta.filter(ReqRequisicion.estatus == "A")
+    # Filtrar por usuario id
+    if "usuario_id" in request.form:
+        consulta = consulta.filter(ReqRequisicion.usuario_id == request.form["usuario_id"])
     # Filtrar por ID de autoridad
     if "autoridad_id" in request.form:
         autoridad_id = int(request.form["autoridad_id"])
         if autoridad_id:
             consulta = consulta.join(Usuario)
             consulta = consulta.filter(Usuario.autoridad_id == autoridad_id)
+    # Filtrar por clave de la autoridad
+    elif "autoridad_clave" in request.form:
+        autoridad_clave = safe_clave(request.form["autoridad_clave"])
+        if autoridad_clave:
+            consulta = consulta.join(Usuario)
+            consulta = consulta.join(Autoridad, Usuario.autoridad_id == Autoridad.id)
+            consulta = consulta.filter(Autoridad.clave.contains(autoridad_clave))
     # Ordenar y paginar
     registros = consulta.order_by(ReqRequisicion.creado.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
     for resultado in registros:
+        # Icono en detalle
+        icono_detalle = None
+        if resultado.esta_archivado:
+            icono_detalle = "ARCHIVADO"
+        elif resultado.esta_cancelado:
+            icono_detalle = "CANCELADO"
+        # Elaborar registro
         data.append(
             {
                 "detalle": {
                     "id": resultado.id,
+                    "icono": icono_detalle,
                     "url": url_for("req_requisiciones.detail", req_requisicion_id=resultado.id),
                 },
-                "fecha": resultado.fecha.strftime("%Y-%m-%d"),
-                "usuario": {
-                    "nombre": resultado.usuario.nombre,
-                    "url": url_for("usuarios.detail", usuario_id=resultado.usuario.id),
+                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
+                "usuario": resultado.usuario.nombre,
+                "autoridad": {
+                    "clave": resultado.usuario.autoridad.clave,
+                    "nombre": resultado.usuario.autoridad.descripcion_corta,
                 },
+                "folio": resultado.folio,
+                "justificacion": resultado.justificacion,
                 "estado": resultado.estado,
             }
         )
@@ -76,9 +98,10 @@ def list_active():
     """Listado de Req Requisiciones activos"""
     return render_template(
         "req_requisiciones/list.jinja2",
-        filtros=json.dumps({"estatus": "A"}),
+        filtros=json.dumps({"estatus": "A", "usuario_id": current_user.id}),
         titulo="Mis Requisiciones",
         estatus="A",
+        boton_activo="MIS REQUISICIONES",
     )
 
 
@@ -88,8 +111,9 @@ def list_active_mi_autoridad():
     return render_template(
         "req_requisiciones/list.jinja2",
         filtros=json.dumps({"estatus": "A", "autoridad_id": current_user.autoridad.id}),
-        titulo="Requisiciones de mi Autoridad",
+        titulo=f"Requisiciones de {current_user.autoridad.descripcion_corta}",
         estatus="A",
+        boton_activo="MI AUTORIDAD",
     )
 
 
