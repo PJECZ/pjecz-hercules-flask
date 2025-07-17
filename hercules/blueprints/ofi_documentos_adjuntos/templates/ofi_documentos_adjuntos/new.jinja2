@@ -15,16 +15,23 @@
 {% endblock %}
 
 {% block content %}
+    <div class="card bg-primary text-light mb-3">
+        <div class="card-header">INFORMACIÓN</div>
+        <div class="card-body">
+            <h5 class="card-title">Tipos y tamaño de archivos permitidos.</h5>
+            <p class="card-text">Solo puede subir archivos de imagen (jpg, jpeg, png) de Office (doc, docx, xls, xlsx) y de pdf.<br />
+            El tamaño del archivo no debe superar los 20 MB.</p>
+        </div>
+    </div>
     {% call f.card() %}
         {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
         {% call f.form_tag_multipart('ofi_documentos_adjuntos.new_with_ofi_documento', fid='ofi_documento_adjunto_form', **form_kwargs) %}
-            {% call f.form_group(form.ofi_documento, readonly=true) %}{% endcall %}
+            <strong>Descripción del Oficio</strong>
+            <p>{{ ofi_documento.descripcion }}</p>
+            <strong>Folio del Oficio</strong>
+            <p>{{ ofi_documento.folio }}</p>
             {% call f.form_group(form.descripcion) %}{% endcall %}
-            <strong>Agregar Adjunto</strong>
-            <div class="alert alert-primary d-flex align-items-center" role="alert">
-                <p class="mb-0"><span class="iconify" data-icon="mdi:alert-circle-outline"></span> <strong> Advertencia: </strong>
-                Puede subir archivos de imagen (jpg, jpeg, png) de Office (doc, docx, xls, xlsx) y de pdf.</p>
-            </div>
+            <strong>Agregar Archivo Adjunto</strong>
             {% call f.drop_zone_wrapper() %}
                 {% call f.form_group(form.archivo, class="dropzone") %}{% endcall %}
             {% endcall %}
@@ -40,7 +47,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Nombre</th>
+                    <th>Descripción</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -73,7 +80,7 @@
         configDT_archivos['ajax']['data'] = {"estatus": "A", "ofi_documento_id": "{{ ofi_documento.id }}"};
         configDT_archivos['columns'] = [
             { data: 'detalle' },
-            { data: 'nombre' },
+            { data: 'descripcion' },
             { data: 'acciones' }
         ];
         configDT_archivos['columnDefs'] = [

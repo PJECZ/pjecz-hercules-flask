@@ -3,6 +3,7 @@ Ofi Documentos Adjuntos, vistas
 """
 
 import json
+import os
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for, current_app, make_response
 from flask_login import current_user, login_required
@@ -34,6 +35,8 @@ MODULO = "OFI DOCUMENTOS ADJUNTOS"
 ofi_documentos_adjuntos = Blueprint("ofi_documentos_adjuntos", __name__, template_folder="templates")
 
 SUBDIRECTORIO = "oficios_adjuntos"
+MAX_FILE_SIZE_MB = 20
+AX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
 
 @ofi_documentos_adjuntos.before_request
@@ -69,7 +72,7 @@ def datatable_json():
                     "id": resultado.id,
                     "url": url_for("ofi_documentos_adjuntos.detail", ofi_documento_adjunto_id=resultado.id),
                 },
-                "nombre": resultado.descripcion,
+                "descripcion": resultado.descripcion,
                 "acciones": url_for("ofi_documentos_adjuntos.delete", ofi_documento_adjunto_id=resultado.id),
             }
         )
@@ -166,6 +169,14 @@ def new_with_ofi_documento(ofi_documento_id):
         # Guardar cambios con un archivo adjunto
         # Validar archivo
         archivo = request.files["archivo"]
+        # Validar que no supere el tamaño máximo permitido de MAX_FILE_SIZE_MB
+        if archivo:
+            archivo.seek(0, os.SEEK_END)
+            file_size = archivo.tell()
+            archivo.seek(0)
+            if file_size > AX_FILE_SIZE_BYTES:
+                flash(f"El archivo es demasiado grande. Tamaño máximo permitido: {MAX_FILE_SIZE_MB} MB.", "warning")
+                es_valido = False
         storage = GoogleCloudStorage(base_directory=SUBDIRECTORIO, allowed_extensions=["pdf", "jpg", "jpeg", "docx", "xlsx"])
         try:
             storage.set_content_type(archivo.filename)
@@ -211,13 +222,11 @@ def new_with_ofi_documento(ofi_documento_id):
                 )
                 bitacora.save()
                 flash(bitacora.descripcion, "success")
-    # Cargar los campos con datos
-    form.ofi_documento.data = ofi_documento.descripcion
+                # Limpiado de campos
+                form.descripcion.data = ""
+                form.archivo.data = None
     # Entregar
     return render_template("ofi_documentos_adjuntos/new.jinja2", form=form, ofi_documento=ofi_documento)
-
-
-# TODO: Edit
 
 
 @ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/eliminar_todos/<ofi_documento_id>")
