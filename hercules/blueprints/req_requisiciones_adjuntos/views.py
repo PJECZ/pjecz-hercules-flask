@@ -1,13 +1,15 @@
 """
-Ofi Documentos Adjuntos, vistas
+Req Requisiones Adjuntos, vistas
 """
 
 import json
 import os
-
-from flask import Blueprint, flash, redirect, render_template, request, url_for, current_app, make_response
+from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for, make_response
 from flask_login import current_user, login_required
 from werkzeug.datastructures import CombinedMultiDict
+
+from lib.datatables import get_datatable_parameters, output_datatable_json
+from lib.safe_string import safe_string, safe_message
 from werkzeug.exceptions import NotFound
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
@@ -19,49 +21,48 @@ from lib.exceptions import (
     MyUnknownExtensionError,
 )
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs, upload_file_to_gcs
-from lib.safe_string import safe_string, safe_message, safe_uuid
 from lib.storage import GoogleCloudStorage
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
-from hercules.blueprints.ofi_documentos_adjuntos.models import OfiDocumentoAdjunto
-from hercules.blueprints.ofi_documentos_adjuntos.forms import OfiDocumentoAdjuntoForm
-from hercules.blueprints.ofi_documentos.models import OfiDocumento
+from hercules.blueprints.req_requisiciones_adjuntos.models import ReqRequisicionAdjunto
+from hercules.blueprints.req_requisiciones_adjuntos.forms import ReqRequisicionAdjuntoForm
+from hercules.blueprints.req_requisiciones.models import ReqRequisicion
 
 
-MODULO = "OFI DOCUMENTOS ADJUNTOS"
+MODULO = "REQ REQUISICIONES ADJUNTOS"
 
-ofi_documentos_adjuntos = Blueprint("ofi_documentos_adjuntos", __name__, template_folder="templates")
+req_requisiciones_adjuntos = Blueprint("req_requisiciones_adjuntos", __name__, template_folder="templates")
 
-SUBDIRECTORIO = "oficios_adjuntos"
+SUBDIRECTORIO = "requisiciones_adjuntos"
 MAX_FILE_SIZE_MB = 20
 MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
 
-@ofi_documentos_adjuntos.before_request
+@req_requisiciones_adjuntos.before_request
 @login_required
 @permission_required(MODULO, Permiso.VER)
 def before_request():
     """Permiso por defecto"""
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/datatable_json", methods=["GET", "POST"])
+@req_requisiciones_adjuntos.route("/req_requisiciones_adjuntos/datatable_json", methods=["GET", "POST"])
 def datatable_json():
-    """DataTable JSON para listado de Oficios-Documentos-Adjuntos"""
+    """DataTable JSON para listado de Req Requisiciones Adjuntos"""
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
-    consulta = OfiDocumentoAdjunto.query
+    consulta = ReqRequisicionAdjunto.query
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
         consulta = consulta.filter_by(estatus=request.form["estatus"])
     else:
         consulta = consulta.filter_by(estatus="A")
-    if "ofi_documento_id" in request.form:
-        consulta = consulta.filter_by(ofi_documento_id=request.form["ofi_documento_id"])
+    if "req_requisicion_id" in request.form:
+        consulta = consulta.filter_by(req_requisicion_id=request.form["req_requisicion_id"])
     # Ordenar y paginar
-    registros = consulta.order_by(OfiDocumentoAdjunto.id).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ReqRequisicionAdjunto.id).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -70,100 +71,67 @@ def datatable_json():
             {
                 "detalle": {
                     "id": resultado.id,
-                    "url": url_for("ofi_documentos_adjuntos.detail", ofi_documento_adjunto_id=resultado.id),
+                    "url": url_for("req_requisiciones_adjuntos.detail", req_requisicion_adjunto_id=resultado.id),
                 },
                 "descripcion": resultado.descripcion,
-                "acciones": url_for("ofi_documentos_adjuntos.delete", ofi_documento_adjunto_id=resultado.id),
+                "acciones": url_for("req_requisiciones_adjuntos.delete", req_requisicion_adjunto_id=resultado.id),
             }
         )
     # Entregar JSON
     return output_datatable_json(draw, total, data)
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/fullscreen_json/<ofi_documento_id>", methods=["GET", "POST"])
-def fullscreen_json(ofi_documento_id):
-    """Entregar JSON para la vista de pantalla completa"""
-    # Validar el UUID del oficio
-    ofi_documento_id = safe_uuid(ofi_documento_id)
-    if not ofi_documento_id:
-        return {
-            "success": False,
-            "message": "ID de oficio inválido.",
-            "data": None,
-        }
-    # Consultar
-    consulta = (
-        OfiDocumentoAdjunto.query.filter_by(ofi_documento_id=ofi_documento_id)
-        .filter_by(estatus="A")
-        .order_by(OfiDocumentoAdjunto.descripcion)
-        .all()
-    )
-    # Si no hay adjuntos, entregar mensaje fallido
-    if not consulta:
-        return {
-            "success": False,
-            "message": "Este oficio no tiene archivos adjuntos.",
-            "data": None,
-        }
-    # Entregar JSON
-    return {
-        "success": True,
-        "message": f"Se encontraron {len(consulta)} documentos adjuntos.",
-        "data": [{"descripcion": item.descripcion, "archivo": item.archivo, "url": item.url} for item in consulta],
-    }
-
-
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos")
+@req_requisiciones_adjuntos.route("/req_requisiciones_adjuntos")
 def list_active():
-    """Listado de Oficios-Documentos-Adjuntos activos"""
+    """Listado de Req Requisiciones Adjuntos activos"""
     return render_template(
-        "ofi_documentos_adjuntos/list.jinja2",
+        "req_requisiciones_adjuntos/list.jinja2",
         filtros=json.dumps({"estatus": "A"}),
         titulo="Documentos Adjuntos",
         estatus="A",
     )
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/inactivos")
+@req_requisiciones_adjuntos.route("/req_requisiciones_adjuntos/inactivos")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
 def list_inactive():
-    """Listado de Oficios-Documentos-Adjuntos inactivos"""
+    """Listado de Req Requisiciones Adjuntos inactivos"""
     return render_template(
-        "ofi_documentos_adjuntos/list.jinja2",
+        "req_requisiciones_adjuntos/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
         titulo="Documentos Adjuntos inactivos",
         estatus="B",
     )
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/<ofi_documento_adjunto_id>")
-def detail(ofi_documento_adjunto_id):
-    """Detalle de un Oficio-Documento-Adjunto"""
-    ofi_documento_adjunto = OfiDocumentoAdjunto.query.get_or_404(ofi_documento_adjunto_id)
-    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_adjunto.ofi_documento_id)
-    # Mostrar boton de quitar
+@req_requisiciones_adjuntos.route("/req_requisiciones_adjuntos/<req_requisicion_adjunto_id>")
+def detail(req_requisicion_adjunto_id):
+    """Detalle de un Req Requisiciones Adjunto"""
+    req_requisicion_adjunto = ReqRequisicionAdjunto.query.get_or_404(req_requisicion_adjunto_id)
+    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_adjunto.req_requisicion_id)
+    # Mostrar botón de quitar
     mostrar_boton_quitar = False
     if (
-        ofi_documento.estado == "BORRADOR"
-        or ofi_documento.estado == "FIRMADO"
-        and not ofi_documento.esta_cancelado
-        and not ofi_documento.esta_archivado
+        req_requisicion.estado == "BORRADOR"
+        or req_requisicion.estado == "FIRMADO"
+        and not req_requisicion.esta_cancelado
+        and not req_requisicion.esta_archivado
     ):
         mostrar_boton_quitar = True
     # Entregar plantilla
     return render_template(
-        "ofi_documentos_adjuntos/detail.jinja2",
-        ofi_documento_adjunto=ofi_documento_adjunto,
+        "req_requisiciones_adjuntos/detail.jinja2",
+        req_requisicion_adjunto=req_requisicion_adjunto,
         mostrar_boton_quitar=mostrar_boton_quitar,
     )
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/nuevo/<ofi_documento_id>", methods=["GET", "POST"])
+@req_requisiciones_adjuntos.route("/req_requisiciones_adjuntos/nuevo/<req_requisicion_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
-def new_with_ofi_documento(ofi_documento_id):
-    """Nuevo Oficio-Documento-Adjunto"""
-    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    form = OfiDocumentoAdjuntoForm(CombinedMultiDict((request.files, request.form)))
+def new_with_ofi_documento(req_requisicion_id):
+    """Nuevo Requisición-Documento-Adjunto"""
+    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
+    form = ReqRequisicionAdjuntoForm(CombinedMultiDict((request.files, request.form)))
     if form.validate_on_submit():
         es_valido = True
         # Guardar cambios con un archivo adjunto
@@ -190,15 +158,17 @@ def new_with_ofi_documento(ofi_documento_id):
             es_valido = False
         if es_valido:
             # crear un nuevo registro
-            ofi_documento_adjunto = OfiDocumentoAdjunto(
-                ofi_documento=ofi_documento,
+            req_requisicion_adjunto = ReqRequisicionAdjunto(
+                req_requisicion=req_requisicion,
                 descripcion=safe_string(form.descripcion.data),
             )
-            ofi_documento_adjunto.save()
+            req_requisicion_adjunto.save()
             # Subir a Google Cloud Storage
             es_exitoso = True
             try:
-                storage.set_filename(hashed_id=ofi_documento_adjunto.encode_id(), description=ofi_documento_adjunto.descripcion)
+                storage.set_filename(
+                    hashed_id=req_requisicion_adjunto.encode_id(), description=req_requisicion_adjunto.descripcion
+                )
                 # storage.set_content_type(archivo.tipo)
                 storage.upload(archivo.stream.read())
             except (MyFilenameError, MyNotAllowedExtensionError, MyUnknownExtensionError):
@@ -212,15 +182,15 @@ def new_with_ofi_documento(ofi_documento_id):
                 es_exitoso = False
             # Remplazar archivo
             if es_exitoso:
-                ofi_documento_adjunto.archivo = storage.filename
-                ofi_documento_adjunto.url = storage.url
-                ofi_documento_adjunto.save()
-                # Salida en bitacora
+                req_requisicion_adjunto.archivo = storage.filename
+                req_requisicion_adjunto.url = storage.url
+                req_requisicion_adjunto.save()
+                # Salida en bitácora
                 bitacora = Bitacora(
                     modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                     usuario=current_user,
-                    descripcion=safe_message(f"Nuevo Oficio - Documento Adjunto {ofi_documento_adjunto.descripcion}"),
-                    url=url_for("ofi_documentos_adjuntos.detail", ofi_documento_adjunto_id=ofi_documento_adjunto.id),
+                    descripcion=safe_message(f"Nueva Requisición - Documento Adjunto {req_requisicion_adjunto.descripcion}"),
+                    url=url_for("req_requisiciones_adjuntos.detail", req_requisicion_adjunto_id=req_requisicion_adjunto.id),
                 )
                 bitacora.save()
                 flash(bitacora.descripcion, "success")
@@ -228,81 +198,83 @@ def new_with_ofi_documento(ofi_documento_id):
                 form.descripcion.data = ""
                 form.archivo.data = None
     # Entregar
-    return render_template("ofi_documentos_adjuntos/new.jinja2", form=form, ofi_documento=ofi_documento)
+    return render_template("req_requisiciones_adjuntos/new.jinja2", form=form, req_requisicion=req_requisicion)
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/eliminar_todos/<ofi_documento_id>")
+@req_requisiciones_adjuntos.route("/req_requisiciones_adjuntos/eliminar_todos/<req_requisicion_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
-def remove_all(ofi_documento_id):
-    """Eliminar Todos los Oficio-Adjuntos"""
-    ofi_documento = OfiDocumento.query.get_or_404(ofi_documento_id)
-    adjuntos = OfiDocumentoAdjunto.query.filter_by(ofi_documento_id=ofi_documento_id).filter_by(estatus="A").all()
+def remove_all(req_requisicion_id):
+    """Eliminar Todos los Req Requisicion Adjuntos"""
+    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
+    adjuntos = ReqRequisicionAdjunto.query.filter_by(req_requisicion_id=req_requisicion_id).filter_by(estatus="A").all()
     if not adjuntos:
         flash("No hay archivo adjuntos para eliminar", "warning")
-        return redirect(url_for("ofi_documentos_adjuntos.new_with_ofi_documento", ofi_documento_id=ofi_documento_id))
+        return redirect(url_for("req_requisiciones_adjuntos.new_with_req_requisicion", req_requisicion_id=req_requisicion_id))
     for adjunto in adjuntos:
         adjunto.delete()
 
     bitacora = Bitacora(
         modulo=Modulo.query.filter_by(nombre=MODULO).first(),
         usuario=current_user,
-        descripcion=safe_message(f"Eliminado Todos los archivos adjuntos del Oficio {ofi_documento.descripcion}"),
-        url=url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id),
+        descripcion=safe_message(f"Eliminado todos los archivos adjuntos de la Requisición {req_requisicion.descripcion}"),
+        url=url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion.id),
     )
     bitacora.save()
     flash(bitacora.descripcion, "success")
-    return redirect(url_for("ofi_documentos_adjuntos.new_with_ofi_documento", ofi_documento_id=ofi_documento_id))
+    return redirect(url_for("req_requisiciones_adjuntos.new_with_req_requisicion", req_requisicion_id=req_requisicion_id))
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/eliminar/<ofi_documento_adjunto_id>")
+@req_requisiciones_adjuntos.route("/req_requisiciones_adjuntos/eliminar/<req_requisicion_adjunto_id>")
 @permission_required(MODULO, Permiso.MODIFICAR)
-def delete(ofi_documento_adjunto_id):
-    """Eliminar Oficio-Documento-Adjunto"""
-    ofi_documento_adjunto = OfiDocumentoAdjunto.query.get_or_404(ofi_documento_adjunto_id)
-    if ofi_documento_adjunto.estatus == "A":
-        ofi_documento_adjunto.delete()
+def delete(req_requisicion_adjunto_id):
+    """Eliminar Requisición documento adjunto"""
+    req_requisicion_adjunto = ReqRequisicionAdjunto.query.get_or_404(req_requisicion_adjunto_id)
+    if req_requisicion_adjunto.estatus == "A":
+        req_requisicion_adjunto.delete()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Oficio-Documento-Adjunto {ofi_documento_adjunto.descripcion}"),
-            url=url_for("ofi_documentos_adjuntos.detail", ofi_documento_adjunto_id=ofi_documento_adjunto.id),
+            descripcion=safe_message(f"Eliminado Requisición documento adjunto {req_requisicion_adjunto.descripcion}"),
+            url=url_for("req_requisiciones_adjuntos.detail", req_requisicion_adjunto_id=req_requisicion_adjunto.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(
-        url_for("ofi_documentos_adjuntos.new_with_ofi_documento", ofi_documento_id=ofi_documento_adjunto.ofi_documento_id)
+        url_for(
+            "req_requisiciones_adjuntos.new_with_req_requisicion", req_requisicion_id=req_requisicion_adjunto.req_requisicion_id
+        )
     )
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/recuperar/<ofi_documento_adjunto_id>")
+@req_requisiciones_adjuntos.route("/req_requisiciones_adjuntos/recuperar/<req_requisicion_adjunto_id>")
 @permission_required(MODULO, Permiso.ADMINISTRAR)
-def recover(ofi_documento_adjunto_id):
-    """Recuperar Oficio-Documento-Adjunto"""
-    ofi_documento_adjunto = OfiDocumentoAdjunto.query.get_or_404(ofi_documento_adjunto_id)
-    if ofi_documento_adjunto.estatus == "B":
-        ofi_documento_adjunto.recover()
+def recover(req_requisicion_adjunto_id):
+    """Recuperar Requisición documento adjunto"""
+    req_requisicion_adjunto = ReqRequisicionAdjunto.query.get_or_404(req_requisicion_adjunto_id)
+    if req_requisicion_adjunto.estatus == "B":
+        req_requisicion_adjunto.recover()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Oficio-Documento-Adjunto {ofi_documento_adjunto.descripcion}"),
-            url=url_for("ofi_documentos_adjuntos.detail", ofi_documento_adjunto_id=ofi_documento_adjunto.id),
+            descripcion=safe_message(f"Recuperado Requisición documento adjunto {req_requisicion_adjunto.descripcion}"),
+            url=url_for("req_requisiciones_adjuntos.detail", req_requisicion_adjunto_id=req_requisicion_adjunto.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
-    return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_adjunto.ofi_documento_id))
+    return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_adjunto.req_requisicion_id))
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/<ofi_documento_adjunto_id>/pdf")
-def download_pdf(ofi_documento_adjunto_id):
+@req_requisiciones_adjuntos.route("/req_requisiciones_adjuntos/<req_requisicion_adjunto_id>/pdf")
+def download_pdf(req_requisicion_adjunto_id):
     """Descargar el archivo PDF de un Archivo"""
 
     # Consultar
-    adjunto = OfiDocumentoAdjunto.query.get_or_404(ofi_documento_adjunto_id)
+    adjunto = ReqRequisicionAdjunto.query.get_or_404(req_requisicion_adjunto_id)
 
     # Si el estatus es B, no se puede descargar
     if adjunto.estatus == "B":
         flash("No se puede descargar un archivo inactivo", "warning")
-        return redirect(url_for("personas_adjuntos.detail", ofi_documento_adjunto_id=adjunto.id))
+        return redirect(url_for("req_requisiciones_adjuntos.detail", req_requisicion_adjunto_id=adjunto.id))
 
     # Tomar el nombre del archivo con el que sera descargado
     descarga_nombre = adjunto.archivo
@@ -315,7 +287,7 @@ def download_pdf(ofi_documento_adjunto_id):
         )
     except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
         flash(str(error), "danger")
-        return redirect(url_for("ofi_documentos_adjuntos.detail", ofi_documento_adjunto_id=adjunto.id))
+        return redirect(url_for("req_requisiciones_adjuntos.detail", req_requisicion_adjunto_id=adjunto.id))
 
     # Descargar un archivo PDF
     response = make_response(descarga_contenido)
@@ -324,12 +296,12 @@ def download_pdf(ofi_documento_adjunto_id):
     return response
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/ver_archivo_pdf/<ofi_documento_adjunto_id>")
-def view_file_pdf(ofi_documento_adjunto_id):
+@req_requisiciones_adjuntos.route("/req_requisiciones_adjuntos/ver_archivo_pdf/<req_requisicion_adjunto_id>")
+def view_file_pdf(req_requisicion_adjunto_id):
     """Ver archivo PDF de adjunto para insertarlo en un iframe en el detalle"""
 
     # Consultar
-    adjunto = OfiDocumentoAdjunto.query.get_or_404(ofi_documento_adjunto_id)
+    adjunto = ReqRequisicionAdjunto.query.get_or_404(req_requisicion_adjunto_id)
 
     # Obtener el contenido del archivo
     try:
@@ -347,12 +319,12 @@ def view_file_pdf(ofi_documento_adjunto_id):
     return response
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/ver_archivo_img/<ofi_documento_adjunto_id>")
-def view_file_img(ofi_documento_adjunto_id):
+@req_requisiciones_adjuntos.route("/req_requisiciones_adjuntos/ver_archivo_img/<req_requisicion_adjunto_id>")
+def view_file_img(req_requisicion_adjunto_id):
     """Ver archivo PDF de adjunto para insertarlo en un iframe en el detalle"""
 
     # Consultar
-    adjunto = OfiDocumentoAdjunto.query.get_or_404(ofi_documento_adjunto_id)
+    adjunto = ReqRequisicionAdjunto.query.get_or_404(req_requisicion_adjunto_id)
 
     # Obtener el contenido del archivo
     try:
@@ -370,17 +342,17 @@ def view_file_img(ofi_documento_adjunto_id):
     return response
 
 
-@ofi_documentos_adjuntos.route("/ofi_documentos_adjuntos/<ofi_documento_adjunto_id>/doc_xls")
-def download_docs(ofi_documento_adjunto_id):
+@req_requisiciones_adjuntos.route("/req_requisiciones_adjuntos/<req_requisicion_adjunto_id>/doc_xls")
+def download_docs(req_requisicion_adjunto_id):
     """Descargar el archivo DOC o XLS de un Archivo"""
 
     # Consultar
-    adjunto = OfiDocumentoAdjunto.query.get_or_404(ofi_documento_adjunto_id)
+    adjunto = ReqRequisicionAdjunto.query.get_or_404(req_requisicion_adjunto_id)
 
     # Si el estatus es B, no se puede descargar
     if adjunto.estatus == "B":
         flash("No se puede descargar un archivo inactivo", "warning")
-        return redirect(url_for("personas_adjuntos.detail", ofi_documento_adjunto_id=adjunto.id))
+        return redirect(url_for("personas_adjuntos.detail", req_requisicion_adjunto_id=adjunto.id))
 
     # Tomar el nombre del archivo con el que sera descargado
     descarga_nombre = adjunto.archivo
@@ -393,7 +365,7 @@ def download_docs(ofi_documento_adjunto_id):
         )
     except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
         flash(str(error), "danger")
-        return redirect(url_for("ofi_documentos_adjuntos.detail", ofi_documento_adjunto_id=adjunto.id))
+        return redirect(url_for("req_requisiciones_adjuntos.detail", req_requisicion_adjunto_id=adjunto.id))
 
     # Descargar un archivo DOC o XLS
     response = make_response(descarga_contenido)

@@ -105,12 +105,28 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    let html = '<a class="btn btn-outline-primary btn-sm" href="' + data.url_fullscreen + '"><span class="iconify" data-icon="mdi:monitor"></span></a>';
-                    if (data.icono == "ARCHIVADO")
-                        html = '<a class="btn btn-outline-primary btn-sm" href="' + data.url_fullscreen + '"><span class="iconify" data-icon="mdi:archive" style="color: #808080;"></span></a>';
-                    if (data.icono == "CANCELADO")
-                        html = '<a class="btn btn-outline-primary btn-sm" href="' + data.url_fullscreen + '"><span class="iconify" data-icon="mdi:cancel" style="color: #000000;"></span></a>';
-                    return html + ' <a href="' + data.url + '">' + data.id.substring(0, 8) + '</a>';
+                    let detail_icon = "mdi:table";
+                    let fullscreen_icon = "mdi:computer";
+                    let style = "";
+                    if (data.icono == "ARCHIVADO") {
+                        detail_icon = "mdi:archive";
+                        detail_icon = "mdi:archive";
+                        style = "style='color: #808080;'";
+                    } else if (data.icono == "CANCELADO") {
+                        detail_icon = "mdi:cancel";
+                        fullscreen_icon = "mdi:cancel";
+                        style = "style='color: #404040;'";
+                    }
+                    // Fullscreen
+                    let html = '<a class="btn btn-outline-primary btn-sm" href="' + data.fullscreen_url + '"><span class="iconify" data-icon="' + fullscreen_icon + '" ' + style + ' title="Pantalla Completa"></span></a>';
+                    // Detalle
+                    if (data.sign_url) {
+                        detail_icon = "mdi:file-sign";
+                        html += ' <a class="btn btn-outline-success btn-sm" href="' + data.sign_url + '"><span class="iconify" data-icon="' + detail_icon + '" ' + style + ' title="Firmar"></span></a>';
+                    } else {
+                        html += ' <a class="btn btn-outline-primary btn-sm" href="' + data.detail_url + '"><span class="iconify" data-icon="' + detail_icon + '" ' + style + ' title="Detalle"></span></a>';
+                    }
+                    return html;
                 }
             },
             {

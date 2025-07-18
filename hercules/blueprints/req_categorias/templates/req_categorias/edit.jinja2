@@ -1,0 +1,20 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Editar Reqisición Categoría {{ req_categoria.clave }}{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Editar Requisición Categoría: ' + req_categoria.clave) }}
+{% endblock %}
+
+{% block content %}
+    {% call f.card() %}
+        {% set form_kwargs = {'req_categoria_id': req_categoria.id} %}
+        {% call f.form_tag('req_categorias.edit', fid='req_categoria_form', **form_kwargs) %}
+            {% call f.form_group(form.clave) %}{% endcall %}
+            {% call f.form_group(form.descripcion) %}{% endcall %}
+            {% call f.form_group(form.guardar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}

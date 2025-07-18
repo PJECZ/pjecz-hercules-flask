@@ -4,109 +4,216 @@
 
 {% block title %}{{ titulo }}{% endblock %}
 
+
+{% block custom_head %}
+    <style>
+    .bg-pink {
+        color: white;
+        background-color: #d63384;
+    }
+    .bg-purple {
+        color: white;
+        background-color: #6f42c1;
+    }
+    .bg-brown {
+        color: white;
+        background-color: #653208;
+    }
+    .bg-teal {
+        color: white;
+        background-color: var(--bs-teal);
+    }
+    </style>
+{% endblock %}
+
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {% if current_user.can_edit('REQ REQUISICIONES') %}
-            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivas', url_for('req_requisiciones.list_inactive')) }}{%endif %}
-            {% if estatus == 'B' %}{{ topbar.button_list_active('Activas', url_for('req_requisiciones.list_active')) }}{% endif %}
+        {% if boton_activo == 'MIS REQUISICIONES' %}
+            <a class="btn btn-sm btn-secondary disabled" href="#"><span class="iconify" data-icon="mdi:paperclip"></span> Mis Requisiciones</a>
+        {% else %}
+            {{ topbar.button('Mis Requisiciones', url_for('req_requisiciones.list_active'), "mdi:paperclip") }}
+        {% endif %}
+        {% if boton_activo == 'MI AUTORIDAD' %}
+            <a class="btn btn-sm btn-secondary disabled" href="#"><span class="iconify" data-icon="mdi:scale-balance"></span> Mi Autoridad</a>
+        {% else %}
+            {{ topbar.button('Mi Autoridad', url_for('req_requisiciones.list_active_mi_autoridad'), "mdi:scale-balance") }}
+        {% endif %}
+        {% if current_user.can_view('REQ CATEGORIAS') %}
+            {{ topbar.button('Categorías', url_for('req_categorias.list_active'), "mdi:folder") }}
+        {% endif %}
+        {% if current_user.can_view('REQ CATALOGOS') %}
+            {{ topbar.button('Catálogos', url_for('req_catalogos.list_active'), "mdi:shape") }}
+        {% endif %}
+        {% if current_user.can_admin('REQ REQUISICIONES') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('req_requisiciones.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('req_requisiciones.list_active')) }}{% endif %}
         {% endif %}
         {% if current_user.can_insert('REQ REQUISICIONES') %}
-            {{ topbar.button_new('Nueva Requisicion', url_for('req_requisiciones.new')) }}
+            {{ topbar.button_new('Nueva Requisición', url_for('req_requisiciones.new')) }}
         {% endif %}
     {% endcall %}
 {% endblock %}
 
 {% block content %}
-{% call list.card() %}
-
-<!-- Formulario de filtros  -->
-<div class="row">
-    <div class="col">
-        <form class="row g-1 mb-3" id="buscadorForm" onsubmit="filtros_requisiciones.buscar(); return false;">
-            <div class="col-2">
-                <div class="form-floating">
-                    <input id="glosaInput" type="text" class="form-control" aria-label="glosa"
-                        onchange="filtros_requisiciones.buscar(); return false;" style="text-transform: uppercase;">
-                    <label for="glosaInput">Glosa</label>
-                </div>
+    {% call list.card() %}
+        <!-- Filtros reqRequisiciones -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosReqRequisiciones.buscar(); return false;">
+                    <div class="col-3">
+                        <div class="form-floating">
+                            <input id="filtroUsuario" type="text" class="form-control" aria-label="Usuario" style="text-transform: uppercase;">
+                            <label for="filtroUsuario">Usuario</label>
+                        </div>
+                    </div>
+                    <div class="col-1">
+                        <div class="form-floating">
+                            <input id="filtroAutoridad" type="text" class="form-control" aria-label="Autoridad" style="text-transform: uppercase;">
+                            <label for="filtroAutoridad">Autoridad</label>
+                        </div>
+                    </div>
+                    <div class="col-1">
+                        <div class="form-floating">
+                            <input id="filtroFolio" type="text" class="form-control" aria-label="Folio" style="text-transform: uppercase;">
+                            <label for="filtroFolio">Folio</label>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-floating">
+                            <input id="filtroJustificacion" type="text" class="form-control" aria-label="Justificación" style="text-transform: uppercase;">
+                            <label for="filtroJustificacion">Justificación</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <select class="form-select" id="estadoSelect" name="estadoSelect" aria-label="Estado" onchange="filtrosReqRequisiciones.buscar(); return false;" style="flex: inherit;">
+                                <option selected value=""></option>
+                                {% for estado in estados %}
+                                    <option value="{{estado}}">{{estado}}</option>
+                                {% endfor %}
+                            </select>
+                            <label for="estadoSelect">Estado</label>
+                        </div>
+                    </div>
+                    <div class="col-2 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosReqRequisiciones.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosReqRequisiciones.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                    </div>
+                </form>
             </div>
-            <div class="col-3">
-                <div class="form-floating">
-                    <input id="observacionesInput" type="text" class="form-control" aria-label="observaciones"
-                        onchange="filtros_requisiciones.buscar(); return false;" style="text-transform: uppercase;">
-                    <label for="observacionesInput">Observaciones</label>
-                </div>
-            </div>
-            <div class="col-7 text-end">
-                <button title="Buscar" class="btn btn-primary btn-lg"
-                    onclick="filtros_requisiciones.buscar(); return false;" id="button-buscar"><span class="iconify"
-                        data-icon="mdi:magnify"></span></button>
-                <button title="Limpiar" class="btn btn-warning btn-lg" type="reset"
-                    onclick="filtros_requisiciones.limpiar();" id="button-limpiar"><span class="iconify"
-                        data-icon="mdi:broom"></span></button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<table id="req_requisiciones_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap"
-    style="width:100%">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Estado</th>
-            <th>Glosa</th>
-            <th>Observaciones</th>
-            <th>Oficina solicitante</th>
-            <th>Creado por</th>
-            <th>Fecha</th>
-        </tr>
-    </thead>
-</table>
-{% endcall %}
+        </div>
+        <!-- DataTable reqRequisiciones -->
+        <table id="req_requisiciones_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Creación</th>
+                    <th>Usuario</th>
+                    <th>Autoridad</th>
+                    <th>Folio</th>
+                    <th>Justificación</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
 {% endblock %}
 
-
-
 {% block custom_javascript %}
-<!-- Importación de la configuración para DataTables -->
-<script src="/static/js/datatables-constructor.js"></script>
-<!-- Importación de los fitlros para dataTable -->
-<script src="/static/js/datatables-filtros.js"></script>
-<!-- Configuración del DataTable -->
-<script>
-    const constructorDataTable = new ConfigDataTable('{{ csrf_token() }}');
-    let configDataTable = constructorDataTable.config();
-    configDataTable['ajax']['url'] = '/req_requisiciones/datatable_json';
-    configDataTable['ajax']['data'] = {{ filtros }};
-    configDataTable['columns'] = [
-        { data: 'detalle' },
-        { data: 'estado' },
-        { data: 'glosa' },
-        { data: 'observaciones' },
-        { data: 'oficina' },
-        { data: 'creado' },
-        { data: 'fecha' },
-    ];
-    configDataTable['columnDefs'] = [
-        {
-            targets: 0, // detalle
-            data: null,
-            render: function (data, type, row, meta) {
-                return '<a href="' + data.url + '">' + data.gasto + '</a>';
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable reqRequisiciones
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDataTable = constructorDataTable.config();
+        configDataTable['ajax']['url'] = '/req_requisiciones/datatable_json';
+        configDataTable['ajax']['data'] = {{ filtros }};
+        configDataTable['columns'] = [
+            { data: 'detalle' },
+            { data: 'creado' },
+            { data: 'usuario' },
+            { data: 'autoridad' },
+            { data: 'folio' },
+            { data: 'justificacion' },
+            { data: 'estado' }
+        ];
+        configDataTable['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    let detail_icon = "mdi:table";
+                    let style = "";
+                    if (data.icono == "ARCHIVADO") {
+                        detail_icon = "mdi:archive";
+                        style = "style='color: #808080;'";
+                    } else if (data.icono == "CANCELADO") {
+                        detail_icon = "mdi:cancel";
+                        style = "style='color: #404040;'";
+                    }
+                    return ' <a class="btn btn-outline-primary btn-sm" href="' + data.url + '"><span class="iconify" data-icon="' + detail_icon + '" ' + style + ' title="Ir al detalle"></span></a>';
+                }
+            },
+            {
+                targets: 2, // usuario
+                data: null,
+                render: function(data, type, row, meta) {
+                    if(data.length > 16)    {
+                        return '<span title="' + data + '">' + data.substring(0, 16) + '…</span>';
+                    }
+                    return data;
+                }
+            },
+            {
+                targets: 3, // autoridad
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<span title="' + data.nombre + '">' + data.clave + '</span>';
+                }
+            },
+            {
+                targets: 5, // justificacion
+                data: null,
+                render: function(data, type, row, meta) {
+                    if(data.length > 32)    {
+                        return '<span title="' + data + '">' + data.substring(0, 32) + '…</span>';
+                    }
+                    return data;
+                }
+            },
+            {
+                targets: 6, // estado
+                data: null,
+                render: function(data, type, row, meta) {
+                    let bg_color = 'bg-secondary';
+                    switch (data)    {
+                        case "BORRADOR":        bg_color = 'bg-warning text-dark';  break;
+                        case "SOLICITADO":      bg_color = 'bg-primary';    break;
+                        case "AUTORIZADO":      bg_color = 'bg-purple';     break;
+                        case "REVISADO":        bg_color = 'bg-pink';       break;
+                        case "ENTREGADO":       bg_color = 'bg-success';    break;
+                    }
+                    return '<span class="badge rounded-pill ' + bg_color + '">' + data + '</span>';
+                }
             }
-        },
-        { width: '20%', targets: 3 }
-    ];
-
-    // Declaración de los Filtros utilizados
-    // Creación del Objeto manejador de Filtros
-    const filtrosRequisiciones = new FiltrosDataTable('#req_requisiciones_datatable', configDataTable);
-    // Añadimos los difrentes inputs utilizados
-    filtrosRequisiciones.agregarInput('glosaInput', 'glosa', filtrosRequisiciones.UPPER);
-    filtrosRequisiciones.agregarInput('observacionesInput', 'observaciones', filtrosRequisiciones.UPPER);
-    // Precarga de los valores de los inputs mantenidos después de la carga de la página.
-    filtrosRequisiciones.precargar();
-
-</script>
+        ];
+        // Colorear renglones
+        configDataTable['rowCallback'] = function( row, data )  {
+            if (data.detalle.icono == "ARCHIVADO") {
+                $(row).css("color", "#6c757d");
+            } else if (data.detalle.icono == "CANCELADO") {
+                $(row).css("background-color", "#C0C0C0");
+                $(row).css("color", "#808080");
+                $(row).find('a').css('color', '#808080');
+            }
+        }
+        // Filtros reqRequisiciones
+        const filtrosReqRequisiciones = new FiltrosDataTable('#req_requisiciones_datatable', configDataTable);
+        filtrosReqRequisiciones.agregarInput('filtroUsuario', 'usuario_nombre');
+        filtrosReqRequisiciones.agregarInput('filtroAutoridad', 'autoridad_clave');
+        filtrosReqRequisiciones.agregarInput('filtroFolio', 'folio');
+        filtrosReqRequisiciones.agregarInput('filtroJustificacion', 'justificacion');
+        filtrosReqRequisiciones.agregarInput('estadoSelect', 'estado');
+        filtrosReqRequisiciones.precargar();
+    </script>
 {% endblock %}

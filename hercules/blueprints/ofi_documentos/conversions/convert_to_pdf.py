@@ -3,6 +3,7 @@ Conversions, convertir a PDF
 """
 
 from datetime import datetime
+from io import BytesIO
 import os
 
 from dotenv import load_dotenv
@@ -11,7 +12,6 @@ from xhtml2pdf import pisa
 from hercules.app import create_app
 from hercules.blueprints.ofi_documentos.conversions import bitacora
 from hercules.blueprints.ofi_documentos.models import OfiDocumento
-from hercules.extensions import database
 from lib.exceptions import MyBucketNotFoundError, MyIsDeletedError, MyNotExistsError, MyNotValidParamError, MyUploadError
 from lib.google_cloud_storage import upload_file_to_gcs
 from lib.safe_string import safe_uuid
@@ -23,13 +23,12 @@ CLOUD_STORAGE_DEPOSITO_OFICIOS = os.getenv("CLOUD_STORAGE_DEPOSITO_OFICIOS", "")
 # Cargar la aplicación para tener acceso a la base de datos
 app = create_app()
 app.app_context().push()
-database.app = app
 
 
 def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
     """Convertir a PDF"""
     mensajes = []
-    mensaje_info = "Inicia convertir a PDF."
+    mensaje_info = f"Inicia convertir a PDF {ofi_documento_id}"
     mensajes.append(mensaje_info)
     bitacora.info(mensaje_info)
 
@@ -57,9 +56,9 @@ def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
         bitacora.error(error)
         raise MyIsDeletedError(error)
 
-    # Validar que el estado sea FIRMADO
+    # Validar que el estado sea FIRMADO o ENVIADO
     if ofi_documento.estado not in ["FIRMADO", "ENVIADO"]:
-        error = "El oficio no está en estado FIRMADO"
+        error = "El oficio no está en estado FIRMADO o ENVIADO"
         bitacora.error(error)
         raise MyNotValidParamError(error)
 
@@ -101,6 +100,10 @@ def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
                     /* -pdf-frame-border: 1; Borde alrededor del contenido para ver sus dimensiones */
                 }
             }
+            body {
+                font-family: Arial, sans-serif;
+                font-size: 12pt;
+            }
         </style>
     """
     )
@@ -130,7 +133,10 @@ def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
     contenidos.append("</html>")
 
     # Convertir el contenido HTML a archivo PDF
-    archivo_pdf = pisa.CreatePDF("\n".join(contenidos), dest_bytes=True, encoding="UTF-8")
+    pdf_buffer = BytesIO()
+    _ = pisa.CreatePDF("\n".join(contenidos), dest=pdf_buffer, encoding="UTF-8")
+    pdf_buffer.seek(0)
+    archivo_pdf_bytes = pdf_buffer.read()
 
     #
     # Subir a Google Cloud Storage el archivo PDF
@@ -150,13 +156,13 @@ def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
             bucket_name=CLOUD_STORAGE_DEPOSITO_OFICIOS,
             blob_name=blob_name,
             content_type="application/pdf",
-            data=archivo_pdf,
+            data=archivo_pdf_bytes,
         )
     except (MyBucketNotFoundError, MyUploadError) as error:
         bitacora.error(f"Error al subir el archivo PDF a Google Cloud Storage: {error}")
         raise error
 
-    # Actualizar el oficio con la URL del archivo PDF
+    # Actualizar el documento con la URL del archivo PDF
     ofi_documento.archivo_pdf_url = archivo_pdf_url
     ofi_documento.save()
 

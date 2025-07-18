@@ -1,29 +1,40 @@
 """
 CLI Usuarios
 
-- mostrar_api_key: Mostrar la API Key de un usuario
+- generar_fernet_key: Generar FERNET_KEY
+- mostrar_api_key: Mostrar la API Key
+- mostrar_efirma_contrasena: Mostrar la contraseña de efirma
 - nueva_api_key: Nueva API Key
-- nueva_contrasena: Nueva contraseña
+- nueva_contrasena: Nueva contraseña que se guarda con cifrado asimétrico
+- nueva_efirma_contrasena: Nueva efirma contraseña que se guarda con cifrado simétrico
 - reporte: Reporte de usuarios modificados a un archivo CSV
 """
 
-import sys
-import re
 import csv
 import calendar
 from datetime import datetime, timedelta
 from pathlib import Path
+import os
+import re
+import sys
 
 import click
+from dotenv import load_dotenv
 
 from hercules.app import create_app
 from hercules.blueprints.usuarios.models import Usuario
-from hercules.extensions import database, pwd_context
+from hercules.extensions import pwd_context
+from lib.cryptography import convert_string_to_fernet_key, simmetric_crypt, simmetric_decrypt
 from lib.pwgen import generar_api_key
 
+# Cargar variables de entorno
+load_dotenv()
+FERNET_KEY = os.getenv("FERNET_KEY", "")
+SALT = os.getenv("SALT", "")
+
+# Cargar la app de Hercules para usar SQLAlchemy ORMs
 app = create_app()
 app.app_context().push()
-database.app = app
 
 
 @click.group()
@@ -32,9 +43,24 @@ def cli():
 
 
 @click.command()
+@click.argument("frase", type=str)
+def generar_fernet_key(frase):
+    """Generar FERNET_KEY"""
+    if not frase:
+        click.echo("ERROR: Debes proporcionar una frase para generar la clave Fernet.")
+        sys.exit(1)
+    if not SALT:
+        click.echo("ERROR: La variable de entorno SALT no está definida.")
+        sys.exit(1)
+    fernet_key = convert_string_to_fernet_key(frase, SALT)
+    click.echo(f"FERNET_KEY={fernet_key.decode('utf-8')}")
+    click.echo("Guarda esta clave en tu archivo .env como FERNET_KEY.")
+
+
+@click.command()
 @click.argument("email", type=str)
 def mostrar_api_key(email):
-    """Mostrar la API Key de un usuario"""
+    """Mostrar la API Key"""
     usuario = Usuario.query.filter_by(email=email).first()
     if usuario is None:
         click.echo(f"ERROR: No existe el e-mail {email} en usuarios")
@@ -42,6 +68,29 @@ def mostrar_api_key(email):
     click.echo(f"Usuario: {usuario.email}")
     click.echo(f"API key: {usuario.api_key}")
     click.echo(f"Expira:  {usuario.api_key_expiracion.strftime('%Y-%m-%d')}")
+
+
+@click.command()
+@click.argument("email", type=str)
+def mostrar_efirma_contrasena(email):
+    """Mostrar la contraseña de efirma"""
+    usuario = Usuario.query.filter_by(email=email).first()
+    if usuario is None:
+        click.echo(f"ERROR: No existe el e-mail {email} en usuarios")
+        sys.exit(1)
+    if not usuario.efirma_contrasena:
+        click.echo(f"ERROR: El usuario {email} no tiene una contraseña de efirma definida.")
+        sys.exit(1)
+    click.echo(f"Usuario: {usuario.email} - {usuario.nombre} - {usuario.puesto}")
+    if not FERNET_KEY:
+        click.echo("ERROR: FERNET_KEY no está definida en las variables de entorno.")
+        sys.exit(1)
+    try:
+        efirma_contrasena = simmetric_decrypt(usuario.efirma_contrasena, FERNET_KEY)
+    except Exception as error:
+        click.echo(f"ERROR: No se pudo descifrar la contraseña de efirma: {error}")
+        sys.exit(1)
+    click.echo(f"Contraseña de efirma: {efirma_contrasena}")
 
 
 @click.command()
@@ -67,7 +116,7 @@ def nueva_api_key(email, dias):
 @click.command()
 @click.argument("email", type=str)
 def nueva_contrasena(email):
-    """Nueva contraseña"""
+    """Nueva contraseña que se guarda con cifrado asimétrico"""
     usuario = Usuario.query.filter_by(email=email).first()
     if usuario is None:
         click.echo(f"ERROR: No existe el e-mail {email} en usuarios")
@@ -80,6 +129,32 @@ def nueva_contrasena(email):
     usuario.contrasena = pwd_context.hash(contrasena_1.strip())
     usuario.save()
     click.echo(f"Se ha cambiado la contraseña de {email} en usuarios")
+
+
+@click.command()
+@click.argument("email", type=str)
+def nueva_efirma_contrasena(email):
+    """Nueva efirma contraseña que se guarda con cifrado simétrico"""
+    usuario = Usuario.query.filter_by(email=email).first()
+    if usuario is None:
+        click.echo(f"ERROR: No existe el e-mail {email} en usuarios")
+        sys.exit(1)
+    click.echo(f"Usuario: {usuario.email} - {usuario.nombre} - {usuario.puesto}")
+    if not FERNET_KEY:
+        click.echo("ERROR: FERNET_KEY no está definida en las variables de entorno.")
+        sys.exit(1)
+    efirma_contrasena = input("Contraseña de efirma: ").strip()
+    if not efirma_contrasena:
+        click.echo("ERROR: La contraseña de efirma no puede estar vacía.")
+        sys.exit(1)
+    try:
+        efirma_contrasena_cifrada = simmetric_crypt(efirma_contrasena, FERNET_KEY)
+    except Exception as error:
+        click.echo(f"ERROR: No se pudo cifrar la contraseña de efirma: {error}")
+        sys.exit(1)
+    usuario.efirma_contrasena = efirma_contrasena_cifrada
+    usuario.save()
+    click.echo(f"Se ha cambiado la contraseña de efirma de {email} en usuarios")
 
 
 @click.command()
@@ -155,7 +230,10 @@ def generar_sicgd_csv(anio_mes, output):
     click.echo(f"  {contador} en {ruta.name}")
 
 
+cli.add_command(generar_fernet_key)
 cli.add_command(mostrar_api_key)
+cli.add_command(mostrar_efirma_contrasena)
 cli.add_command(nueva_api_key)
 cli.add_command(nueva_contrasena)
+cli.add_command(nueva_efirma_contrasena)
 cli.add_command(generar_sicgd_csv)

@@ -1,5 +1,11 @@
 """
 CLI Ofi Documentos
+
+- enviar_efirma: Envia un documento al motor de firma electrónica.
+- enviar_gemini: Envía el contenido de un documento a Gemini.
+- enviar_email: Envía un e-mail utilizando Sendgrid.
+- enviar_whatsapp: Envía un mensaje por WhatsApp.
+- convertir_pdf: Convierte un documento a formato PDF.
 """
 
 import sys
@@ -11,12 +17,30 @@ from hercules.blueprints.ofi_documentos.communications.send_to_gemini import env
 from hercules.blueprints.ofi_documentos.communications.send_to_sendgrid import enviar_a_sendgrid
 from hercules.blueprints.ofi_documentos.communications.send_to_whatsapp import enviar_a_whatsapp
 from hercules.blueprints.ofi_documentos.conversions.convert_to_pdf import convertir_a_pdf
+from hercules.blueprints.ofi_documentos.conversions.back_to_draft import regresar_a_borrador
 from lib.exceptions import MyAnyError
 
 
 @click.group()
 def cli():
     """Ofi Documentos"""
+
+
+@click.command()
+@click.argument("ofi_documento_id", type=str)
+def convertir_pdf(ofi_documento_id):
+    """Convertir a archivo PDF"""
+    click.echo("Inicia la conversión a archivo PDF")
+    try:
+        mensaje_termino, archivo_pdf, archivo_pdf_url = convertir_a_pdf(ofi_documento_id)
+    except MyAnyError as error:
+        click.echo(click.style(str(error), fg="red"))
+        sys.exit(1)
+    click.echo(click.style("Archivo PDF: ", fg="green"), nl=False)
+    click.echo(archivo_pdf)
+    click.echo(click.style("URL archivo PDF: ", fg="green"), nl=False)
+    click.echo(archivo_pdf_url)
+    click.echo(click.style(mensaje_termino, fg="green"))
 
 
 @click.command()
@@ -73,23 +97,20 @@ def enviar_whatsapp(ofi_documento_id):
 
 @click.command()
 @click.argument("ofi_documento_id", type=str)
-def convertir_pdf(ofi_documento_id):
-    """Convertir a archivo PDF"""
-    click.echo("Inicia la conversión a archivo PDF")
+def regresar_borrador(ofi_documento_id):
+    """Regresar a borrador"""
+    click.echo("Inicia el proceso de regresar a borrador")
     try:
-        mensaje_termino, archivo_pdf, archivo_pdf_url = convertir_a_pdf(ofi_documento_id)
+        mensaje_termino, _, _ = regresar_a_borrador(ofi_documento_id)
     except MyAnyError as error:
         click.echo(click.style(str(error), fg="red"))
         sys.exit(1)
-    click.echo(click.style("Archivo PDF: ", fg="green"), nl=False)
-    click.echo(archivo_pdf)
-    click.echo(click.style("URL archivo PDF: ", fg="green"), nl=False)
-    click.echo(archivo_pdf_url)
     click.echo(click.style(mensaje_termino, fg="green"))
 
 
+cli.add_command(convertir_pdf)
 cli.add_command(enviar_efirma)
 cli.add_command(enviar_email)
 cli.add_command(enviar_gemini)
 cli.add_command(enviar_whatsapp)
-cli.add_command(convertir_pdf)
+cli.add_command(regresar_borrador)

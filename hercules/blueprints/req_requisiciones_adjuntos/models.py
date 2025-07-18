@@ -1,5 +1,5 @@
 """
-Ofi Documentos Ajuntos, modelos
+Req Requisiciones Adjuntos, modelos
 """
 
 import uuid
@@ -12,8 +12,8 @@ from lib.universal_mixin import UniversalMixin
 from hercules.extensions import database
 
 
-class OfiDocumentoAdjunto(database.Model, UniversalMixin):
-    """OfiDocumentoAdjunto"""
+class ReqRequisicionAdjunto(database.Model, UniversalMixin):
+    """ReqRequisicionAdjunto"""
 
     EXTENSIONES = {
         "jpg": ("Imagen", "image/jpg"),
@@ -27,14 +27,14 @@ class OfiDocumentoAdjunto(database.Model, UniversalMixin):
     }
 
     # Nombre de la tabla
-    __tablename__ = "ofi_documentos_adjuntos"
+    __tablename__ = "req_requisiciones_adjuntos"
 
     # Clave primaria
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     # Clave foránea
-    ofi_documento_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("ofi_documentos.id"))
-    ofi_documento: Mapped["OfiDocumento"] = relationship(back_populates="ofi_documentos_adjuntos")
+    req_requisicion_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("req_requisiciones.id"))
+    req_requisicion: Mapped["ReqRequisicion"] = relationship(back_populates="req_requisiciones_adjuntos")
 
     # Columnas
     descripcion: Mapped[str] = mapped_column(String(256))
@@ -61,7 +61,7 @@ class OfiDocumentoAdjunto(database.Model, UniversalMixin):
 
     def set_extension(self, archivo_nombre):
         """Establece el tipo de extensión del archivo"""
-        extensiones_permitidas = OfiDocumentoAdjunto.EXTENSIONES.keys()
+        extensiones_permitidas = ReqRequisicionAdjunto.EXTENSIONES.keys()
         if "." in archivo_nombre and archivo_nombre.rsplit(".", 1)[1] in extensiones_permitidas:
             self.extension = archivo_nombre.rsplit(".", 1)[1]
             return True
@@ -69,4 +69,4 @@ class OfiDocumentoAdjunto(database.Model, UniversalMixin):
 
     def __repr__(self):
         """Representación"""
-        return f"<OfiDocumentoAdjunto {self.id}>"
+        return f"<ReqRequisicionAdjunto {self.id}>"

@@ -24,12 +24,12 @@
         </div>
     </div>
     {% call f.card() %}
-        {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
-        {% call f.form_tag_multipart('ofi_documentos_adjuntos.new_with_ofi_documento', fid='ofi_documento_adjunto_form', **form_kwargs) %}
-            <strong>Descripción del Oficio</strong>
-            <p>{{ ofi_documento.descripcion }}</p>
-            <strong>Folio del Oficio</strong>
-            <p>{{ ofi_documento.folio }}</p>
+        {% set form_kwargs = {'req_requisicion_id': req_requisicion.id} %}
+        {% call f.form_tag_multipart('req_requisiciones_adjuntos.new_with_req_requisicion', fid='req_requisicion_adjunto_form', **form_kwargs) %}
+            <strong>Descripción de la Requisición</strong>
+            <p>{{ req_requisicion.justificación }}</p>
+            <strong>Folio de la Requisición</strong>
+            <p>{{ req_requisicion.folio }}</p>
             {% call f.form_group(form.descripcion) %}{% endcall %}
             <strong>Agregar Archivo Adjunto</strong>
             {% call f.drop_zone_wrapper() %}
@@ -37,13 +37,13 @@
             {% endcall %}
             <div class="row">
                 <div class="col-2 mt-2">
-                    <a class="btn btn-primary" id="guardar" name="guardar" type="submit" onclick="ofi_documento_adjunto_form.submit()"><span class="iconify" data-icon="mdi:plus"></span> Agregar</a>
+                    <a class="btn btn-primary" id="guardar" name="guardar" type="submit" onclick=req_requisicion_adjunto_form.submit()"><span class="iconify" data-icon="mdi:plus"></span> Agregar</a>
                 </div>
             </div>
         {% endcall %}
         <hr />
         <!-- DataTable ArchivosAdjuntos -->
-        <table id="ofi_documentos_archvios_datatable" class="table display nowrap" style="width:100%">
+        <table id="req_requisiciones_archivos_datatable" class="table display nowrap" style="width:100%">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -54,9 +54,9 @@
         </table>
         <!-- Botones de acción -->
         <div class="row mt-3">
-            <div class="col-md-3">{{ detail.button_md('Regresar al Oficio', url_for('ofi_documentos.detail', ofi_documento_id=ofi_documento.id), 'mdi:arrow-left',  color_class='btn-secondary') }}</div>
+            <div class="col-md-3">{{ detail.button_md('Regresar al Oficio', url_for('req_requisiciones.detail', req_requisicion_id=req_requisicion.id), 'mdi:arrow-left',  color_class='btn-secondary') }}</div>
             <div class="col-md-6"></div>
-            <div class="col-md-3 text-end">{{ modals.button_modal_md('Quitar Todos', url_for('ofi_documentos_adjuntos.remove_all', ofi_documento_id=ofi_documento.id), "QuitarTodos", "mdi:trash-can-outline", "¿Desea quitar todos los archivos adjuntos?",  "btn-danger") }}</div>
+            <div class="col-md-3 text-end">{{ modals.button_modal_md('Quitar Todos', url_for('req_requisiciones_adjuntos.remove_all', req_requisicion_id=req_requisicion.id), "QuitarTodos", "mdi:trash-can-outline", "¿Desea quitar todos los archivos adjuntos?",  "btn-danger") }}</div>
         </div>
     {% endcall %}
 {% endblock %}
@@ -76,8 +76,8 @@
     {# DataTable Destinatarios #}
     <script>
         let configDT_archivos = constructorDataTable.config();
-        configDT_archivos['ajax']['url'] = '/ofi_documentos_adjuntos/datatable_json';
-        configDT_archivos['ajax']['data'] = {"estatus": "A", "ofi_documento_id": "{{ ofi_documento.id }}"};
+        configDT_archivos['ajax']['url'] = '/req_requisiciones_adjuntos/datatable_json';
+        configDT_archivos['ajax']['data'] = {"estatus": "A", "req_requisicion_id": "{{ req_requisicion.id }}"};
         configDT_archivos['columns'] = [
             { data: 'detalle' },
             { data: 'descripcion' },
@@ -100,7 +100,7 @@
             },
         ];
         // Filtros ArchivosAdjuntos
-        const filtrosArchivosAdjuntos = new FiltrosDataTable('#ofi_documentos_archvios_datatable', configDT_archivos);
+        const filtrosArchivosAdjuntos = new FiltrosDataTable('#req_requisiciones_archivos_datatable', configDT_archivos);
         filtrosArchivosAdjuntos.precargar();
     </script>
 {% endblock %}

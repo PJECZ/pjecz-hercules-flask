@@ -1,0 +1,54 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Archivo Adjunto {{ req_requisicion_adjunto.id | string }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Archivo Adjunto ' + req_requisicion_adjunto.id | string) %}
+        {{ topbar.button_previous('Requisición', url_for('req_requisiciones.detail', req_requisicion_id=req_requisicion_adjunto.req_requisicion.id)) }}
+        {% if current_user.can_admin('REQ REQUISICIONES ADJUNTOS') %}
+            {% if req_requisicion_adjunto.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('req_requisiciones_adjuntos.delete', req_requisicion_adjunto_id=req_requisicion_adjunto.id)) }}{% endif %}
+            {% if req_requisicion_adjunto.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('req_requisiciones_adjuntos.recover', req_requisicion_adjunto_id=req_requisicion_adjunto.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=req_requisicion_adjunto.estatus) %}
+        {{ detail.label_value_big('Descripción', req_requisicion_adjunto.descripcion) }}
+        {{ detail.label_value('Requisición', req_requisicion_adjunto.req_requisicion.descripcion, url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_adjunto.req_requisicion.id)) }}
+        {{ detail.label_value('Creado', moment(req_requisicion_adjunto.creado, local=False).format('DD MMM YYYY HH:mm')) }}
+        {% if mostrar_boton_quitar %}
+            <div class="row">
+                <div class="col-md-6"></div>
+                <div class="col-md-3 mt-2"></div>
+                <div class="col-md-3">
+                    {{ modals.button_modal_md('Quitar', url_for('req_requisiciones_adjuntos.delete', req_requisicion_adjunto_id=req_requisicion_adjunto.id), "Quitar", "mdi:file-document-remove-outline", "¿Desea quitar el archivo adjunto?",  "btn-danger") }}
+                </div>
+            </div>
+        {% endif %}
+    {% endcall %}
+    <!-- Preview del archivo -->
+    {% call detail.card('Vista previa del archivo') %}
+        {% if req_requisicion_adjunto.type_format(req_requisicion_adjunto.archivo) == "IMG" %}
+            <img src="{{ url_for('req_requisiciones_adjuntos.view_file_img', req_requisicion_adjunto_id=req_requisicion_adjunto.id) }}" width="100%" height="auto">
+        {% elif req_requisicion_adjunto.type_format(req_requisicion_adjunto.archivo) == "PDF" %}
+            <object data="{{ url_for('req_requisiciones_adjuntos.view_file_pdf', req_requisicion_adjunto_id=req_requisicion_adjunto.id) }}" type="application/pdf" width="100%" height="600px">
+                <p class="mb-0">El navegador no puede mostrar el archivo PDF o no existe en el depósito.</p>
+            </object>
+        {% elif req_requisicion_adjunto.type_format(req_requisicion_adjunto.archivo) == "DOC" %}
+            {{ detail.button_md("Descargar", url_for('req_requisiciones_adjuntos.download_docs', req_requisicion_adjunto_id=req_requisicion_adjunto.id), "mdi:download", "", "btn-success") }}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_admin('REQ REQUISICIONES ADJUNTOS') %}
+        {% if req_requisicion_adjunto.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar Archivo Adjunto?') }}{% endif %}
+        {% if req_requisicion_adjunto.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar Archivo Adjunto?') }}{% endif %}
+    {% endif %}
+    {# Modales #}
+    {{ modals.custom_javascript("Quitar", "", "Quitar") }}
+{% endblock %}

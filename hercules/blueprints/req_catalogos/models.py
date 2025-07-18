@@ -15,11 +15,11 @@ class ReqCatalogo(database.Model, UniversalMixin):
     """ReqCatalogo"""
 
     UNIDADES_MEDIDAS = {
-        "M": "Metros",
-        "KG": "Kilogramos",
-        "GRS": "Gramos",
+        "METROS": "Metros",
+        "KILOGRAMOS": "Kilogramos",
+        "GRAMOS": "Gramos",
         "PIEZA": "Pieza",
-        "LTS": "Litros",
+        "LITROS": "Litros",
     }
 
     # Nombre de la tabla
@@ -41,6 +41,11 @@ class ReqCatalogo(database.Model, UniversalMixin):
 
     # Hijos
     req_requisiciones_registros: Mapped[List["ReqRequisicionRegistro"]] = relationship(back_populates="req_catalogo")
+
+    @property
+    def clave_descripcion(self):
+        """Junta clave y descripcion"""
+        return self.clave + ": " + self.descripcion
 
     def __repr__(self):
         """Representación"""

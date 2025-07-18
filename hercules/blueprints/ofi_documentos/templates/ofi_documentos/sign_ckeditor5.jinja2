@@ -5,9 +5,6 @@
 {% block title %}Firmar Oficio {{ ofi_documento.descripcion }}{% endblock %}
 
 {% block custom_head %}
-    <!-- CKEditor 5 -->
-    <link rel="stylesheet" href="https://storage.googleapis.com/pjecz-informatica/static/css/ckeditor5-editor.css" crossorigin>
-    <link rel="stylesheet" href="https://storage.googleapis.com/pjecz-informatica/static/css/ckeditor5-justicia-digital-gob-mx.css">
 {% endblock %}
 
 {% block topbar_actions %}
@@ -16,22 +13,18 @@
 
 {% block content %}
     <div class="card bg-warning mb-3">
-        <div class="card-header">Advertencia</div>
+        <div class="card-header">ADVERTENCIA</div>
         <div class="card-body">
-            <h5 class="card-title">Después de firmar este oficio ya no podrá hacerle cambios.</h5>
-            <p class="card-text">Revise que el contenido, la descripción y el folio son correctos.</p>
+            <h5 class="card-title">Después de firmar ya no podrá hacerle cambios.</h5>
+            <p class="card-text">Revise que el contenido y el folio sean correctos.</p>
         </div>
     </div>
     {% call f.card() %}
         {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
         {% call f.form_tag('ofi_documentos.sign', fid='ofi_documento_form', **form_kwargs) %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
-            {% call f.form_group(form.folio) %}{% endcall %}
-            <div style="display:none">
-                {% call f.form_group(form.contenido_md) %}{% endcall %}
-                {% call f.form_group(form.contenido_html) %}{% endcall %}
-                {% call f.form_group(form.contenido_sfdt) %}{% endcall %}
-            </div>
+            {% call f.form_group(form.folio, readonly=true) %}{% endcall %}
+            {% call f.form_group(form.vencimiento_fecha, readonly=true) %}{% endcall %}
             {# Inicia Contenido HTML #}
             <hr />
             {% if ofi_documento.contenido_html %}
@@ -43,46 +36,55 @@
             {% endif %}
             <hr />
             {# Termina Contenido HTML #}
-            {% call f.form_group(form.firmar) %}{% endcall %}
+            {% call f.form_group(form.tipo) %}{% endcall %}
+            {# Botones #}
+            <div class="row">
+                <div class="col-md-3">
+                    <a class="btn btn-block btn-md btn-warning w-100 my-2" href="{{ url_for('ofi_documentos.edit', ofi_documento_id=ofi_documento.id) }}">
+                        <span class="iconify" data-icon="mdi:file-document-edit-outline"></span>
+                        Editar
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a class="btn btn-block btn-md btn-success w-100 my-2" href="javascript:firmaSimple()">
+                        <span class="iconify" data-icon="mdi:file-sign"></span>
+                        Firma Simple
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a class="btn btn-block btn-md btn-primary w-100 my-2" href="javascript:firmaElectronicaAvanzada()">
+                        <span class="iconify" data-icon="mdi:file-sign"></span>
+                        Firma Electrónica Avanzada
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a class="btn btn-block btn-md btn-outline-info w-100 my-2" href="javascript:history.back()">
+                        <span class="iconify" data-icon="mdi:arrow-left"></span>
+                        Regresar
+                    </a>
+                </div>
+            </div>
         {% endcall %}
     {% endcall %}
 {% endblock %}
 
 {% block custom_javascript %}
-    <!-- Marked -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- CKEditor 5 -->
-    <script src="https://storage.googleapis.com/pjecz-informatica/static/js/ckeditor5.umd.js" crossorigin></script>
-    <script src="https://storage.googleapis.com/pjecz-informatica/static/js/ckeditor5_translations/es.umd.js" crossorigin></script>
-    <script src="https://storage.googleapis.com/pjecz-informatica/static/js/ckeditor5-justicia-digital-gob-mx.js"></script>
     <script>
-        // Obtener los elementos del formulario y del componente
-        const editorElement = document.getElementById('editor');
-        const webPaginaForm = document.getElementById('ofi_documento_form');
-        const contenidoHtmlTextArea = document.getElementById('contenido_html');
-        const contenidoMdTextArea = document.getElementById('contenido_md');
-        // Inicializar el editor
-        let ckEditorInstance;
-        ClassicEditor
-            .create(editorElement, editorConfig)
-            .then( editor => {
-                ckEditorInstance = editor;
-                editor.setData(contenidoMdTextArea.value); // Al inicializar copiamos el contenido
-            })
-            .catch( error => {
-                console.error('ERROR al inicializar el editor', error);
-            });
-        // Cambiar la forma de enviar el formulario
-        webPaginaForm.addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevenir la sumisión inmediata del formulario
-            if (ckEditorInstance && typeof marked !== 'undefined') {
-                const contenidoMd = ckEditorInstance.getData();
-                contenidoMdTextArea.value = contenidoMd; // Actualizar el valor de textarea con markdown
-                contenidoHtmlTextArea.value = marked.parse(contenidoMd); // Actualizar el valor de textarea con HTML
-            } else {
-                console.error('ERROR al copiar y convertir el contenido');
-            }
-            webPaginaForm.submit(); // Enviar el formulario
+        // Prevenir el envío del formulario por defecto
+        const formElem = document.getElementById('ofi_documento_form')
+        formElem.addEventListener('submit', function(event) {
+            event.preventDefault();
         });
+        // Función para firmar con firma simple
+        const tipoHiddenElem = document.getElementById('tipo')
+        function firmaSimple() {
+            tipoHiddenElem.value = 'simple';
+            formElem.submit();
+        }
+        // Función para firmar con firma electrónica avanzada
+        function firmaElectronicaAvanzada() {
+            tipoHiddenElem.value = 'avanzada';
+            formElem.submit();
+        }
     </script>
 {% endblock %}

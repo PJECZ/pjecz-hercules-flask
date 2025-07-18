@@ -10,26 +10,26 @@
             {{ topbar.button('Mis Requisiciones', url_for('req_requisiciones.list_active'), "mdi:paperclip") }}
             {{ topbar.button('Mi Autoridad', url_for('req_requisiciones.list_active_mi_autoridad'), "mdi:scale-balance") }}
         {% endif %}
-        {% if current_user.can_view('REQ CATEGORIAS') %}
-            {{ topbar.button('Categorías', url_for('req_categorias.list_active'), "mdi:folder") }}
+        <a class="btn btn-sm btn-secondary disabled" href="#"><span class="iconify" data-icon="mdi:folder"></span> Categorías</a>
+        {% if current_user.can_view('REQ CATALOGOS') %}
+            {{ topbar.button('Catálogos', url_for('req_catalogos.list_active'), "mdi:shape") }}
         {% endif %}
-        <a class="btn btn-sm btn-secondary disabled" href="#"><span class="iconify" data-icon="mdi:shape"></span> Catálogos</a>
-        {% if current_user.can_admin('REQ CATALOGOS') %}
-            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('req_catalogos.list_inactive')) }}{% endif %}
-            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('req_catalogos.list_active')) }}{% endif %}
+        {% if current_user.can_admin('REQ CATEGORIAS') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('req_categorias.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('req_categorias.list_active')) }}{% endif %}
         {% endif %}
-        {% if current_user.can_insert('REQ CATALOGOS') %}
-            {{ topbar.button_new('Nuevo Catálogo', url_for('req_catalogos.new')) }}
+        {% if current_user.can_insert('REQ CATEGORIAS') %}
+            {{ topbar.button_new('Nueva Categoría', url_for('req_categorias.new')) }}
         {% endif %}
     {% endcall %}
 {% endblock %}
 
 {% block content %}
     {% call list.card() %}
-        <!-- Filtros reqCatalogos -->
+        <!-- Filtros reqCategorias -->
         <div class="row">
             <div class="col">
-                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosReqCatalogos.buscar(); return false;">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosReqCategorias.buscar(); return false;">
                     <div class="col-4">
                         <div class="form-floating">
                             <input id="filtroClave" type="text" class="form-control" aria-label="Clave" style="text-transform: uppercase;">
@@ -43,20 +43,19 @@
                         </div>
                     </div>
                     <div class="col-2 text-end">
-                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosReqCatalogos.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
-                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosReqCatalogos.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosReqCategorias.buscar(); return false;" id="button-buscar"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosReqCategorias.limpiar();" id="button-limpiar"><span class="iconify" data-icon="mdi:broom"></span></button>
                     </div>
                 </form>
             </div>
         </div>
-        <!-- DataTable reqCatalogos -->
-        <table id="req_catalogos_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+        <!-- DataTable reqCategorias -->
+        <table id="req_categorias_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
                     <th>Clave</th>
                     <th>Descripción</th>
-                    <th>Categoría</th>
-                    <th>Unidad de Medida</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
         </table>
@@ -67,16 +66,15 @@
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
     <script>
-        // DataTable reqCatalogos
+        // DataTable reqCategorias
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
         let configDataTable = constructorDataTable.config();
-        configDataTable['ajax']['url'] = '/req_catalogos/datatable_json';
+        configDataTable['ajax']['url'] = '/req_categorias/datatable_json';
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
             { data: 'detalle' },
             { data: 'descripcion' },
-            { data: 'req_categoria' },
-            { data: 'unidad_medida' }
+            { data: 'btn_agregar_catalogo' }
         ];
         configDataTable['columnDefs'] = [
             {
@@ -87,17 +85,17 @@
                 }
             },
             {
-                targets: 2, // req_categoria
+                targets: 2, // btn_agregar_catalogo
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.nombre + '</a>';
+                    return '<a class="btn btn-outline-primary btn-sm" title="Agregar nuevo producto a esta categoría" href="' + data + '"><span class="iconify" data-icon="mdi:plus"></span></a>';
                 }
             }
         ];
-        // Filtros reqCatalogos
-        const filtrosReqCatalogos = new FiltrosDataTable('#req_catalogos_datatable', configDataTable);
-        filtrosReqCatalogos.agregarInput('filtroClave', 'clave');
-        filtrosReqCatalogos.agregarInput('filtroDescripcion', 'descripcion');
-        filtrosReqCatalogos.precargar();
+        // Filtros reqCategorias
+        const filtrosReqCategorias = new FiltrosDataTable('#req_categorias_datatable', configDataTable);
+        filtrosReqCategorias.agregarInput('filtroClave', 'clave');
+        filtrosReqCategorias.agregarInput('filtroDescripcion', 'descripcion');
+        filtrosReqCategorias.precargar();
     </script>
 {% endblock %}

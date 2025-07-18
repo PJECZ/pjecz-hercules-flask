@@ -210,8 +210,6 @@ def new_with_ofi_documento(ofi_documento_id):
                     usuario_id=form.usuario.data,
                     con_copia=form.con_copia.data,
                 ).save()
-    # Definir los valores del formulario
-    form.ofi_documento.data = ofi_documento.descripcion  # Read-only
     # Entregar
     return render_template("ofi_documentos_destinatarios/new.jinja2", form=form, ofi_documento=ofi_documento)
 

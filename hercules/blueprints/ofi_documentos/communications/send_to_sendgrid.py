@@ -28,7 +28,6 @@ TZ = os.getenv("TZ", "America/Mexico_City")
 # Cargar la aplicación para tener acceso a la base de datos
 app = create_app()
 app.app_context().push()
-database.app = app
 
 
 def enviar_a_sendgrid(ofi_documento_id: str) -> tuple[str, str, str]:

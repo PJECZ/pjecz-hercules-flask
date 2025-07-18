@@ -1,28 +1,37 @@
 """
-Requisiciones Catalogos, formularios
+Req Catalogo, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import DateField, IntegerField, FieldList, FormField, SelectField, StringField, SubmitField, TextAreaField, validators
+from wtforms import StringField, SubmitField, SelectField
 from wtforms.validators import DataRequired, Length, Optional
-from datetime import datetime
 
-from hercules.blueprints.req_requisiciones.models import ReqRequisicion
+from hercules.blueprints.req_catalogos.models import ReqCatalogo
+from hercules.blueprints.req_categorias.models import ReqCategoria
 
 
-class NoLabelMixin(object):
+class ReqCatalogoForm(FlaskForm):
+    """Formulario ReqCatalogo"""
+
+    clave = StringField("Clave", validators=[DataRequired(), Length(max=16)])
+    descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=256)])
+    categoria = SelectField("Categoría", coerce=int, validators=[DataRequired()])
+    unidad_medida = SelectField("Unidad de medida", choices=ReqCatalogo.UNIDADES_MEDIDAS.items(), validators=[DataRequired()])
+    guardar = SubmitField("Guardar")
+
     def __init__(self, *args, **kwargs):
-        super(NoLabelMixin, self).__init__(*args, **kwargs)
-        for field_name in self._fields:
-            field_property = getattr(self, field_name)
-            field_property.label = None
+        """Inicializar y cargar opciones en categoria"""
+        super().__init__(*args, **kwargs)
+        self.categoria.choices = [
+            (c.id, c.clave_descripcion) for c in ReqCategoria.query.filter_by(estatus="A").order_by(ReqCategoria.clave).all()
+        ]
 
 
-class ReqCatalogoNewForm(FlaskForm):
-    """Formulario articulo nuevo en Catalogo"""
+class ReqCatalogoWithCategoriaForm(FlaskForm):
+    """Formulario ReqCatalogo con Categoría seleccionada"""
 
-    clave = StringField("Clave", validators=[Length(max=6), DataRequired()])
-    descripcion = StringField("Descripción", validators=[Length(max=100), DataRequired()])
-    unidad = SelectField("Unidad de medida", validators=[DataRequired()])
-    categoria = SelectField("Categoría", validators=[DataRequired()])
-    guardar = SubmitField("Guardar *")
+    clave = StringField("Clave", validators=[DataRequired(), Length(max=16)])
+    descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=256)])
+    categoria = StringField("Categoría")  # Read Only
+    unidad_medida = SelectField("Unidad de medida", choices=ReqCatalogo.UNIDADES_MEDIDAS.items(), validators=[DataRequired()])
+    guardar = SubmitField("Guardar")
