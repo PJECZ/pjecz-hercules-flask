@@ -75,6 +75,7 @@ class ReqRequisicion(database.Model, UniversalMixin):
     entrego_tiempo: Mapped[Optional[datetime]]
 
     # Hijos
+    req_requisiciones_adjuntos: Mapped[List["ReqRequisicionAdjunto"]] = relationship(back_populates="req_requisicion")
     req_requisiciones_registros: Mapped[List["ReqRequisicionRegistro"]] = relationship(back_populates="req_requisicion")
 
     def __repr__(self):

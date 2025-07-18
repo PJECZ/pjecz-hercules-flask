@@ -7,11 +7,13 @@
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
         {% if current_user.can_view('REQ REQUISICIONES') %}
-            {{ topbar.button('Requisiciones', url_for('req_requisiciones.list_active'), "mdi:paperclip") }}
+            {{ topbar.button('Mis Requisiciones', url_for('req_requisiciones.list_active'), "mdi:paperclip") }}
+            {{ topbar.button('Mi Autoridad', url_for('req_requisiciones.list_active_mi_autoridad'), "mdi:scale-balance") }}
         {% endif %}
         {% if current_user.can_view('REQ CATEGORIAS') %}
             {{ topbar.button('Categorías', url_for('req_categorias.list_active'), "mdi:folder") }}
         {% endif %}
+        <a class="btn btn-sm btn-secondary disabled" href="#"><span class="iconify" data-icon="mdi:shape"></span> Catálogos</a>
         {% if current_user.can_admin('REQ CATALOGOS') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('req_catalogos.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('req_catalogos.list_active')) }}{% endif %}
