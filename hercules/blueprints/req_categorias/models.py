@@ -30,3 +30,5 @@ class ReqCategoria(database.Model, UniversalMixin):
     def __repr__(self):
         """Representación"""
         return f"<ReqCategoria {self.id}>"
+
+    

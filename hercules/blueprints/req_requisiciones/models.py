@@ -3,6 +3,7 @@ Req Requisiciones, modelos
 """
 
 from datetime import datetime, date
+import hashlib
 import uuid
 from typing import List, Optional
 
@@ -24,6 +25,9 @@ class ReqRequisicion(database.Model, UniversalMixin):
         "AUTORIZADO": "Autorizado",
         "REVISADO": "Revisado",
         "ENTREGADO": "Entregado",
+        "CANCELADO POR SOLICITANTE": "Cancelado por Solicitante",
+        "CANCELADO POR AUTORIZANTE": "Cancelado por Autorizante",
+        "CANCELADO POR REVISANTE": "Cancelado por Revisante",
     }
 
     # Nombre de la tabla
@@ -48,6 +52,9 @@ class ReqRequisicion(database.Model, UniversalMixin):
     estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="req_requisiciones_estados", native_enum=False), index=True)
     esta_archivado: Mapped[bool] = mapped_column(default=False)
     esta_cancelado: Mapped[bool] = mapped_column(default=False)
+    autoridad_id: Mapped[int] = mapped_column(Integer)
+    archivo_pdf_url: Mapped[Optional[str]] = mapped_column(String(512))
+    contenido_html: Mapped[Optional[str]] = mapped_column(Text)
 
     # El folio es None cuando el estado es BORRADOR
     # Cuando se firma el documento, se genera un folio y se separa su año y número
@@ -58,6 +65,10 @@ class ReqRequisicion(database.Model, UniversalMixin):
     # Columnas firma electrónica simple
     firma_simple: Mapped[str] = mapped_column(String(256), default="")
     firma_simple_tiempo: Mapped[Optional[datetime]]
+    
+    # Columnas solicito (Usuarios)
+    solicito_id: Mapped[int]
+    solicito_tiempo: Mapped[Optional[datetime]]
 
     # Columnas autorizo (Usuarios)
     autorizo_id: Mapped[int]
@@ -69,6 +80,12 @@ class ReqRequisicion(database.Model, UniversalMixin):
 
     # Hijos
     req_requisiciones_registros: Mapped[List["ReqRequisicionRegistro"]] = relationship(back_populates="req_requisicion")
+
+    def elaborar_hash(self):
+        """Generate a hash representing the current sample state"""
+        elementos = []
+        elementos.append(str(self.id))
+        return hashlib.md5("|".join(elementos).encode("utf-8")).hexdigest()
 
     def __repr__(self):
         """Representación"""

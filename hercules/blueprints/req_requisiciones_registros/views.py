@@ -25,3 +25,14 @@ req_requisiciones_registros = Blueprint("req_requisiciones_registros", __name__,
 @permission_required(MODULO, Permiso.VER)
 def before_request():
     """Permiso por defecto"""
+
+
+@req_requisiciones_registros.route("/req_requisiciones_registros")
+def list_active():
+    """Listado de Registros activos"""
+    return render_template(
+        "req_requisiciones_registros/list.jinja2",
+        filtros=json.dumps({"estatus": "A"}),
+        titulo="Registros",
+        estatus="A",
+    )

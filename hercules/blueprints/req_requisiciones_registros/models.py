@@ -4,13 +4,15 @@ Req Requisiciones Registros, modelos
 
 import uuid
 
+
 from sqlalchemy import ForeignKey, Integer, String, Uuid
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.universal_mixin import UniversalMixin
 from hercules.extensions import database
-
+from hercules.blueprints.req_catalogos.models import ReqCatalogo
+from hercules.blueprints.req_requisiciones.models import ReqRequisicion
 
 class ReqRequisicionRegistro(database.Model, UniversalMixin):
     """ReqRequisicionRegistro"""
