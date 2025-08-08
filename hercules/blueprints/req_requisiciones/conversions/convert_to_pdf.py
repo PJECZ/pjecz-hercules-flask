@@ -69,11 +69,36 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
         .join(ReqCatalogo)
         .all()
     )
-    usuario = Usuario.query.get_or_404(req_requisicion.usuario_id)
-    usuario_solicito = Usuario.query.get_or_404(req_requisicion.solicito_id) if req_requisicion.solicito_id != "" else ""
-    usuario_autorizo = Usuario.query.get_or_404(req_requisicion.autorizo_id) if req_requisicion.autorizo_id != "" else ""
-    usuario_reviso = Usuario.query.get_or_404(req_requisicion.reviso_id) if req_requisicion.reviso_id != "" else ""
-    autoridad = Autoridad.query.get_or_404(req_requisicion.usuario.autoridad_id)
+
+    # Consulta de usuario_solicito
+    usuario_solicito_nombres = ""
+    usuario_solicito_apellido_paterno = ""
+    usuario_solicito_apellido_materno = ""
+    usuario_solicito = Usuario.query.get(req_requisicion.solicito_id)
+    if usuario_solicito:
+        usuario_solicito_nombres = usuario_solicito.nombres
+        usuario_solicito_apellido_paterno = usuario_solicito.apellido_paterno
+        usuario_solicito_apellido_materno = usuario_solicito.apellido_materno
+    # Consulta de usuario_solicito
+    usuario_autorizo_nombres = ""
+    usuario_autorizo_apellido_paterno = ""
+    usuario_autorizo_apellido_materno = ""
+    usuario_autorizo = Usuario.query.get(req_requisicion.autorizo_id)
+    if usuario_autorizo:
+        usuario_autorizo_nombres = usuario_autorizo.nombres
+        usuario_autorizo_apellido_paterno = usuario_autorizo.apellido_paterno
+        usuario_autorizo_apellido_materno = usuario_autorizo.apellido_materno
+    # Consulta de usuario_reviso
+    usuario_reviso_nombres = ""
+    usuario_reviso_apellido_paterno = ""
+    usuario_reviso_apellido_materno = ""
+    usuario_reviso = Usuario.query.get(req_requisicion.autorizo_id)
+    if usuario_reviso:
+        usuario_reviso_nombres = usuario_reviso.nombres
+        usuario_reviso_apellido_paterno = usuario_reviso.apellido_paterno
+        usuario_reviso_apellido_materno = usuario_reviso.apellido_materno
+    # Consultar la autoridad
+    autoridad = Autoridad.query.get(req_requisicion.usuario.autoridad_id)
 
     if not req_requisicion:
         error = "La requisición no existe"
@@ -244,20 +269,20 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
                         <br><br><br>
                         <br>
                         ________________________________<br>
-                        {usuario_solicito.nombres} {usuario_solicito.apellido_paterno} {usuario_solicito.apellido_materno}<br>
+                        {usuario_solicito_nombres} {usuario_solicito_apellido_paterno} {usuario_solicito_apellido_materno}<br>
                         {autoridad.descripcion}
                     </td>
                     <td>
                         AUTORIZA
                         <br><br><br><br>
                         ________________________________<br>
-                        {usuario_autorizo.nombres} {usuario_autorizo.apellido_paterno} {usuario_autorizo.apellido_materno}
+                        {usuario_autorizo_nombres} {usuario_autorizo_apellido_paterno} {usuario_autorizo_apellido_materno}
                     </td>
                     <td>
                         REVISÓ
                         <br><br><br><br>
                         ________________________________<br>
-                        {usuario_reviso.nombres} {usuario_reviso.apellido_paterno} {usuario_reviso.apellido_materno}
+                        {usuario_reviso_nombres} {usuario_reviso_apellido_paterno} {usuario_reviso_apellido_materno}
                     </td>
                 </tr>
             </table>
