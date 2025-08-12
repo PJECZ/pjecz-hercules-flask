@@ -3,6 +3,7 @@ Req Requisiciones, modelos
 """
 
 from datetime import datetime, date
+import hashlib
 import uuid
 from typing import List, Optional
 
@@ -75,8 +76,14 @@ class ReqRequisicion(database.Model, UniversalMixin):
     entrego_tiempo: Mapped[Optional[datetime]]
 
     # Hijos
-    # req_requisiciones_adjuntos: Mapped[List["ReqRequisicionAdjunto"]] = relationship(back_populates="req_requisicion")
+    req_requisiciones_adjuntos: Mapped[List["ReqRequisicionAdjunto"]] = relationship(back_populates="req_requisicion")
     req_requisiciones_registros: Mapped[List["ReqRequisicionRegistro"]] = relationship(back_populates="req_requisicion")
+
+    def elaborar_hash(self):
+        """Generate a hash representing the current sample state"""
+        elementos = []
+        elementos.append(str(self.id))
+        return hashlib.md5("|".join(elementos).encode("utf-8")).hexdigest()
 
     def __repr__(self):
         """Representación"""

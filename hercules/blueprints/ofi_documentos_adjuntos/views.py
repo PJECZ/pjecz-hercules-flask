@@ -36,7 +36,7 @@ ofi_documentos_adjuntos = Blueprint("ofi_documentos_adjuntos", __name__, templat
 
 SUBDIRECTORIO = "oficios_adjuntos"
 MAX_FILE_SIZE_MB = 20
-AX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
 
 @ofi_documentos_adjuntos.before_request
@@ -174,10 +174,12 @@ def new_with_ofi_documento(ofi_documento_id):
             archivo.seek(0, os.SEEK_END)
             file_size = archivo.tell()
             archivo.seek(0)
-            if file_size > AX_FILE_SIZE_BYTES:
+            if file_size > MAX_FILE_SIZE_BYTES:
                 flash(f"El archivo es demasiado grande. Tamaño máximo permitido: {MAX_FILE_SIZE_MB} MB.", "warning")
                 es_valido = False
-        storage = GoogleCloudStorage(base_directory=SUBDIRECTORIO, allowed_extensions=["pdf", "jpg", "jpeg", "docx", "xlsx"])
+        storage = GoogleCloudStorage(
+            base_directory=SUBDIRECTORIO, allowed_extensions=["pdf", "jpg", "jpeg", "png", "doc", "docx", "xls", "xlsx"]
+        )
         try:
             storage.set_content_type(archivo.filename)
         except MyNotAllowedExtensionError:
