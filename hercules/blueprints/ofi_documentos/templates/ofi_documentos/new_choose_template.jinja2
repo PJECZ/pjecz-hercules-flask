@@ -1,0 +1,140 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Nuevo Oficio{% endblock %}
+
+{% block custom_head %}
+{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Nuevo Oficio') }}
+{% endblock %}
+
+{% block content %}
+    <!-- Step 1: Choose Destination -->
+    <div id="step1">
+        <h5 class="mb-3">1. Elige el destino</h5>
+        <div class="row row-cols-1 row-cols-md-4 g-3 mb-4">
+            <div class="col">
+                <div class="card h-100 text-center selectable-card" data-dest="interno">
+                    <div class="card-body">
+                        <i class="bi bi-building fs-1 mb-2"></i>
+                        <h6 class="card-title">Para mi autoridad</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 text-center selectable-card" data-dest="externo">
+                    <div class="card-body">
+                        <i class="bi bi-globe fs-1 mb-2"></i>
+                        <h6 class="card-title">Hacia otra autoridad</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 text-center selectable-card" data-dest="personal">
+                    <div class="card-body">
+                        <i class="bi bi-person fs-1 mb-2"></i>
+                        <h6 class="card-title">Para un externo</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 text-center selectable-card" data-dest="otro">
+                    <div class="card-body">
+                        <i class="bi bi-question-circle fs-1 mb-2"></i>
+                        <h6 class="card-title">Dirigido a todo el personal</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-primary" id="toStep2" disabled>Siguiente</button>
+    </div>
+    <!-- Step 2: Select Template -->
+    <div id="step2" class="d-none">
+        <h5 class="mb-3">2. Selecciona una plantilla</h5>
+        <ul class="list-group mb-4" id="templateList">
+            <li class="list-group-item list-group-item-action" data-template="plantilla1">
+                <i class="bi bi-file-earmark-text me-2"></i> Plantilla 1
+            </li>
+            <li class="list-group-item list-group-item-action" data-template="plantilla2">
+                <i class="bi bi-file-earmark-text me-2"></i> Plantilla 2
+            </li>
+            <li class="list-group-item list-group-item-action" data-template="plantilla3">
+                <i class="bi bi-file-earmark-text me-2"></i> Plantilla 3
+            </li>
+        </ul>
+        <button class="btn btn-secondary me-2" id="backToStep1">Atrás</button>
+        <button class="btn btn-primary" id="toStep3" disabled>Siguiente</button>
+    </div>
+    <!-- Step 3: Preview and Accept -->
+    <div id="step3" class="d-none">
+        <h5 class="mb-3">3. Vista previa de la plantilla</h5>
+        <div class="card mb-4">
+            <div class="card-body" id="templatePreview">
+                <!-- Aquí se mostrará la vista previa de la plantilla seleccionada -->
+                <em>Selecciona una plantilla para ver la vista previa.</em>
+            </div>
+        </div>
+        <button class="btn btn-secondary me-2" id="backToStep2">Atrás</button>
+        <button class="btn btn-success" id="acceptTemplate">Aceptar</button>
+    </div>
+{% endblock %}
+
+{% block custom_javascript %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Step 1 logic
+            let selectedDest = null;
+            document.querySelectorAll('.selectable-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    document.querySelectorAll('.selectable-card').forEach(c => c.classList.remove('border-primary', 'shadow'));
+                    this.classList.add('border-primary', 'shadow');
+                    selectedDest = this.dataset.dest;
+                    document.getElementById('toStep2').disabled = false;
+                });
+            });
+            document.getElementById('toStep2').addEventListener('click', function() {
+                document.getElementById('step1').classList.add('d-none');
+                document.getElementById('step2').classList.remove('d-none');
+            });
+            // Step 2 logic
+            let selectedTemplate = null;
+            document.querySelectorAll('#templateList .list-group-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    document.querySelectorAll('#templateList .list-group-item').forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedTemplate = this.dataset.template;
+                    document.getElementById('toStep3').disabled = false;
+                });
+            });
+            document.getElementById('backToStep1').addEventListener('click', function() {
+                document.getElementById('step2').classList.add('d-none');
+                document.getElementById('step1').classList.remove('d-none');
+            });
+            document.getElementById('toStep3').addEventListener('click', function() {
+                document.getElementById('step2').classList.add('d-none');
+                document.getElementById('step3').classList.remove('d-none');
+                // Simple preview logic
+                let preview = '';
+                if (selectedTemplate === 'plantilla1') {
+                    preview = '<h6>Plantilla 1</h6><p>Contenido de la plantilla 1...</p>';
+                } else if (selectedTemplate === 'plantilla2') {
+                    preview = '<h6>Plantilla 2</h6><p>Contenido de la plantilla 2...</p>';
+                } else if (selectedTemplate === 'plantilla3') {
+                    preview = '<h6>Plantilla 3</h6><p>Contenido de la plantilla 3...</p>';
+                }
+                document.getElementById('templatePreview').innerHTML = preview;
+            });
+            document.getElementById('backToStep2').addEventListener('click', function() {
+                document.getElementById('step3').classList.add('d-none');
+                document.getElementById('step2').classList.remove('d-none');
+            });
+            document.getElementById('acceptTemplate').addEventListener('click', function() {
+                // Aquí puedes manejar la aceptación de la plantilla
+                alert('Plantilla aceptada: ' + selectedTemplate + ' | Destino: ' + selectedDest);
+            });
+        });
+    </script>
+{% endblock %}

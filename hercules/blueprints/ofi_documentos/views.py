@@ -489,6 +489,12 @@ def fullscreen_recipients(ofi_documento_id):
     return render_template("ofi_documentos/fullscreen_recipients.jinja2", ofi_documento_id=ofi_documento_id)
 
 
+@ofi_documentos.route("/ofi_documentos/nuevo_elegir_plantilla")
+def new_choose_template():
+    """Nuevo Ofi Documento: elegir plantilla"""
+    return render_template("ofi_documentos/new_choose_template.jinja2")
+
+
 @ofi_documentos.route("/ofi_documentos/nuevo/<ofi_plantilla_id>", methods=["GET", "POST"])
 @permission_required(MODULO, Permiso.CREAR)
 def new(ofi_plantilla_id):
