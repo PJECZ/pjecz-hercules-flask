@@ -52,14 +52,11 @@
     <div id="step2" class="d-none">
         <h5 class="mb-3">2. Seleccione una plantilla y da clic en siguiente</h5>
         <ul class="list-group mb-4" id="templateList">
-            <li class="list-group-item list-group-item-action" data-template="plantilla1">
-                <i class="bi bi-file-earmark-text me-2"></i> Plantilla 1
-            </li>
-            <li class="list-group-item list-group-item-action" data-template="plantilla2">
-                <i class="bi bi-file-earmark-text me-2"></i> Plantilla 2
-            </li>
-            <li class="list-group-item list-group-item-action" data-template="plantilla3">
-                <i class="bi bi-file-earmark-text me-2"></i> Plantilla 3
+            <!-- Spinner mientras se cargan las plantillas -->
+            <li id="step2-spinner" class="list-group-item text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando plantillas...</span>
+                </div>
             </li>
         </ul>
         <div class="d-flex justify-content-between">
@@ -72,8 +69,12 @@
         <h5 class="mb-3">3. Revise la vista previa y de clic en aceptar para crear el oficio</h5>
         <div class="card mb-4">
             <div class="card-body" id="templatePreview">
-                <!-- Aquí se mostrará la vista previa de la plantilla seleccionada -->
-                <em>Selecciona una plantilla para ver la vista previa.</em>
+                <!-- Spinner mientras se cargan la vista previa -->
+                <div id="step3-spinner" class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando vista previa...</span>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="d-flex justify-content-between">
@@ -99,6 +100,7 @@
         // Función para mostrar los cards de las autoridades
         function showCards() {
             console.log('Mostrando cards de autoridades...');
+            document.getElementById('toStep2').disabled = true; // Deshabilitar el botón Siguiente
             fetch('/autoridades/tablero_json')
                 .then(response => response.json())
                 .then(data => {
@@ -108,6 +110,11 @@
                     container.innerHTML = '';
                     // Si la respuesta tiene éxito
                     if (data.success) {
+                        // Eliminar el spinner
+                        const spinner = document.getElementById('step1-spinner');
+                        if (spinner) {
+                            spinner.remove();
+                        }
                         // Crear los cards para cada autoridad
                         data.data.forEach(autoridad => {
                             const card = document.createElement('div');
@@ -124,11 +131,6 @@
                             `;
                             container.appendChild(card);
                         });
-                        // Eliminar el spinner
-                        const spinner = document.getElementById('step1-spinner');
-                        if (spinner) {
-                            spinner.remove();
-                        }
                         // Agregar evento de clic a los cards
                         document.querySelectorAll('.selectable-card').forEach(card => {
                             card.addEventListener('click', function() {
@@ -152,6 +154,7 @@
         // Función para mostrar el selector de plantillas
         function showTemplates() {
             console.log('Mostrando plantillas para la autoridad:', selectedDest);
+            document.getElementById('toStep3').disabled = true; // Deshabilitar el botón Siguiente
             // Consultar las plantillas de la autoridad seleccionada
             fetch(`/ofi_plantillas/tablero_json?autoridad_clave=${selectedDest}`)
                 .then(response => response.json())
@@ -160,6 +163,11 @@
                     templateList.innerHTML = ''; // Limpiar la lista
                     // Si la respuesta tiene éxito
                     if (data.success) {
+                        // Eliminar el spinner
+                        const spinner = document.getElementById('step2-spinner');
+                        if (spinner) {
+                            spinner.remove();
+                        }
                         // Crear los elementos de la lista para cada plantilla
                         data.data.forEach(template => {
                             const item = document.createElement('li');
@@ -168,15 +176,32 @@
                             item.innerHTML = `<i class="iconify" data-icon="mdi:folder"></i> ${template.descripcion}`;
                             templateList.appendChild(item);
                         });
-                        // Agregar evento de clic a los elementos de la lista
-                        document.querySelectorAll('.list-group-item').forEach(item => {
-                            item.addEventListener('click', function() {
-                                document.querySelectorAll('.list-group-item').forEach(i => i.classList.remove('active'));
-                                this.classList.add('active');
-                                selectedTemplate = this.dataset.template;
-                                document.getElementById('toStep3').disabled = false; // Habilitar el botón Siguiente
-                            });
-                        });
+                        // Consultar las plantillas del usuario actual
+                        fetch('/ofi_plantillas/mis_plantillas_json')
+                            .then(response => response.json())
+                            .then(data => {
+                                // Si la respuesta tiene éxito
+                                if (data.success) {
+                                    // Agregar los elementos de la lista para cada plantilla del usuario actual
+                                    data.data.forEach(template => {
+                                        const item = document.createElement('li');
+                                        item.className = 'list-group-item list-group-item-action';
+                                        item.dataset.template = template.id;
+                                        item.innerHTML = `<i class="iconify" data-icon="mdi:folder"></i> ${template.descripcion}`;
+                                        templateList.appendChild(item);
+                                    });
+                                }
+                                // Agregar evento de clic a los TODOS los elementos de la lista
+                                document.querySelectorAll('.list-group-item').forEach(item => {
+                                    item.addEventListener('click', function() {
+                                        document.querySelectorAll('.list-group-item').forEach(i => i.classList.remove('active'));
+                                        this.classList.add('active');
+                                        selectedTemplate = this.dataset.template;
+                                        document.getElementById('toStep3').disabled = false; // Habilitar el botón Siguiente
+                                    });
+                                });
+                            })
+                            .catch(error => console.error('Error:', error));
                     } else {
                         // Si hubo un error, mostrar un mensaje
                         const alert = document.createElement('div');
@@ -198,6 +223,11 @@
                     const preview = document.getElementById('templatePreview');
                     preview.innerHTML = ''; // Limpiar la vista previa
                     if (data.success) {
+                        // Eliminar el spinner
+                        const spinner = document.getElementById('step3-spinner');
+                        if (spinner) {
+                            spinner.remove();
+                        }
                         // Copiar el HTML a una variable
                         let html = data.data.contenido_html;
                         // Reemplazar los marcadores

@@ -116,6 +116,36 @@ def datatable_json():
     return output_datatable_json(draw, total, data)
 
 
+@ofi_plantillas.route("/ofi_plantillas/mis_plantillas_json", methods=["GET", "POST"])
+def mis_plantillas_json():
+    """Proporcionar el JSON de plantillas del para elaborar el selector de plantillas"""
+    consulta = (
+        OfiPlantilla.query.
+        filter(OfiPlantilla.estatus == "A").
+        filter(OfiPlantilla.esta_archivado.is_(False)).
+        filter(OfiPlantilla.esta_compartida.is_(False)).
+        filter(OfiPlantilla.usuario_id == current_user.id)
+    )
+    resultados = []
+    for ofi_plantilla in consulta.order_by(OfiPlantilla.descripcion).all():
+        resultados.append(
+            {
+                "id": ofi_plantilla.id,
+                "descripcion": ofi_plantilla.descripcion,
+            }
+        )
+    if len(resultados) == 0:
+        return {
+            "success": False,
+            "message": "No se encontraron plantillas para el usuario actual",
+        }
+    return {
+        "success": True,
+        "message": f"Plantillas del usuario {current_user.email}",
+        "data": resultados,
+    }
+
+
 @ofi_plantillas.route("/ofi_plantillas/tablero_json", methods=["GET", "POST"])
 def tablero_json():
     """Proporcionar el JSON de plantillas compartidas de la autoridad_clave para elaborar el selector de plantillas"""

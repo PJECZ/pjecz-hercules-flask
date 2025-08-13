@@ -592,6 +592,9 @@ def new(ofi_plantilla_id):
     contenido_html = contenido_html.replace("[[MES]]", str(datetime.now().strftime("%B")))
     contenido_html = contenido_html.replace("[[AÑO]]", str(datetime.now().year))
     contenido_html = contenido_html.replace("[[FOLIO]]", folio)
+    contenido_html = contenido_html.replace("[[REMITENTE NOMBRE]]", current_user.nombre)
+    contenido_html = contenido_html.replace("[[REMITENTE PUESTO]]", current_user.puesto)
+    contenido_html = contenido_html.replace("[[REMITENTE AUTORIDAD]]", current_user.autoridad.descripcion)
     if ofi_plantilla.destinatarios_emails and contenido_html.find("[[DESTINATARIOS]]") != -1:
         destinatarios_emails = ofi_plantilla.destinatarios_emails.split(",")
         destinatarios_str = ""
