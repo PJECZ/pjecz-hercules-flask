@@ -592,6 +592,24 @@ def new(ofi_plantilla_id):
     contenido_html = contenido_html.replace("[[MES]]", str(datetime.now().strftime("%B")))
     contenido_html = contenido_html.replace("[[AÑO]]", str(datetime.now().year))
     contenido_html = contenido_html.replace("[[FOLIO]]", folio)
+    if ofi_plantilla.destinatarios_emails and contenido_html.find("[[DESTINATARIOS]]") != -1:
+        destinatarios_emails = ofi_plantilla.destinatarios_emails.split(",")
+        destinatarios_str = ""
+        for email in destinatarios_emails:
+            destinatario = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
+            if destinatario:
+                destinatarios_str += f"{destinatario.nombre}<br>\n{destinatario.puesto}"
+                # TODO: Insertar destinatarios
+        contenido_html = contenido_html.replace("[[DESTINATARIOS]]", destinatarios_str)
+    if ofi_plantilla.con_copias_emails and contenido_html.find("[[CON COPIAS]]") != -1:
+        con_copias_emails = ofi_plantilla.con_copias_emails.split(",")
+        con_copias_str = ""
+        for email in con_copias_emails:
+            con_copia = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
+            if con_copia:
+                con_copias_str += f"{con_copia.nombre}<br>\n{con_copia.puesto}"
+                # TODO: Insertar destinatarios con copia
+        contenido_html = contenido_html.replace("[[CON COPIAS]]", con_copias_str)
     # Cargar los datos de la plantilla en el formulario
     form.descripcion.data = ofi_plantilla.descripcion
     form.contenido_md.data = ofi_plantilla.contenido_md
@@ -1056,9 +1074,9 @@ def response(ofi_documento_id):
     contenido_html = contenido_html.replace("[[MES]]", str(datetime.now().strftime("%B")))
     contenido_html = contenido_html.replace("[[AÑO]]", str(datetime.now().year))
     contenido_html = contenido_html.replace("[[FOLIO]]", folio)
-    contenido_html = contenido_html.replace("[[USUARIO]]", ofi_documento.usuario.nombre)
-    contenido_html = contenido_html.replace("[[PUESTO]]", ofi_documento.usuario.puesto)
-    contenido_html = contenido_html.replace("[[AUTORIDAD]]", ofi_documento.usuario.autoridad.descripcion)
+    contenido_html = contenido_html.replace("[[REMITENTE NOMBRE]]", ofi_documento.usuario.nombre)
+    contenido_html = contenido_html.replace("[[REMITENTE PUESTO]]", ofi_documento.usuario.puesto)
+    contenido_html = contenido_html.replace("[[REMITENTE AUTORIDAD]]", ofi_documento.usuario.autoridad.descripcion)
     # Cargar los datos de la plantilla en el formulario
     form.descripcion.data = "RESPUESTA A " + ofi_plantilla.descripcion
     form.contenido_md.data = ofi_plantilla.contenido_md

@@ -53,6 +53,7 @@
                     <th>ID</th>
                     <th>Descripción</th>
                     <th>Archivada</th>
+                    <th>Compartida</th>
                 </tr>
             </thead>
         </table>
@@ -71,7 +72,8 @@
         configDataTable['columns'] = [
             { data: 'detalle' },
             { data: 'descripcion' },
-            { data: 'esta_archivado' }
+            { data: 'esta_archivado' },
+            { data: 'esta_compartida' }
         ];
         configDataTable['columnDefs'] = [
             {
@@ -91,7 +93,7 @@
                 }
             },
             {
-                targets: 2, // esta_archivado
+                targets: [2, 3], // esta_archivado, esta_compartida
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data) {

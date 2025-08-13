@@ -198,8 +198,17 @@
                     const preview = document.getElementById('templatePreview');
                     preview.innerHTML = ''; // Limpiar la vista previa
                     if (data.success) {
+                        // Copiar el HTML a una variable
+                        let html = data.data.contenido_html;
+                        // Reemplazar los marcadores
+                        html = html.replace(/\[\[DIA\]\]/g, new Date().getDate());
+                        html = html.replace(/\[\[MES\]\]/g, new Date().toLocaleString('es-MX', { month: 'long' }));
+                        html = html.replace(/\[\[AÑO\]\]/g, new Date().getFullYear());
+                        html = html.replace(/\[\[REMITENTE NOMBRE\]\]/g, '{{ current_user.nombre }}');
+                        html = html.replace(/\[\[REMITENTE PUESTO\]\]/g, '{{ current_user.puesto }}');
+                        html = html.replace(/\[\[REMITENTE AUTORIDAD\]\]/g, '{{ current_user.autoridad.descripcion }}');
                         // Mostrar la vista previa de la plantilla
-                        preview.innerHTML = data.data.contenido_html;
+                        preview.innerHTML = html;
                         // Habilitar el botón Aceptar
                         document.getElementById('acceptTemplate').disabled = false;
                     } else {
