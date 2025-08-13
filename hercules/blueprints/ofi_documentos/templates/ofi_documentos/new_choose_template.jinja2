@@ -31,9 +31,9 @@
 {% block content %}
     <!-- Step 1: Choose Destination -->
     <div id="step1">
-        <h5 class="mb-3">1. Elige el destino</h5>
+        <h5 class="mb-3">1. Elija el destinatario y da clic en siguiente</h5>
         <div class="row row-cols-1 row-cols-md-4 g-3 mb-4">
-            <!-- Poner un spinner mientras se cargan las autoridades -->
+            <!-- Spinner mientras se cargan las autoridades -->
             <div id="step1-spinner" class="col">
                 <div class="card h-100 text-center">
                     <div class="card-body">
@@ -50,7 +50,7 @@
     </div>
     <!-- Step 2: Select Template -->
     <div id="step2" class="d-none">
-        <h5 class="mb-3">2. Selecciona una plantilla</h5>
+        <h5 class="mb-3">2. Seleccione una plantilla y da clic en siguiente</h5>
         <ul class="list-group mb-4" id="templateList">
             <li class="list-group-item list-group-item-action" data-template="plantilla1">
                 <i class="bi bi-file-earmark-text me-2"></i> Plantilla 1
@@ -69,7 +69,7 @@
     </div>
     <!-- Step 3: Preview and Accept -->
     <div id="step3" class="d-none">
-        <h5 class="mb-3">3. Vista previa de la plantilla</h5>
+        <h5 class="mb-3">3. Revise la vista previa y de clic en aceptar para crear el oficio</h5>
         <div class="card mb-4">
             <div class="card-body" id="templatePreview">
                 <!-- Aquí se mostrará la vista previa de la plantilla seleccionada -->
@@ -86,105 +86,173 @@
 {% block custom_javascript %}
     <!-- Script para cargar las autoridades -->
     <script>
-        // Definir como constante el elemento con id step1
+
+        // Variables globales
+        let selectedDest = null;
+        let selectedTemplate = null;
+
+        // Definir los elementos de los pasos
         const step1 = document.getElementById('step1');
-        // Consultar y crear los cards de las autoridades cuando se cargue la página
-        document.addEventListener('DOMContentLoaded', function() {
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+
+        // Función para mostrar los cards de las autoridades
+        function showCards() {
+            console.log('Mostrando cards de autoridades...');
             fetch('/autoridades/tablero_json')
                 .then(response => response.json())
                 .then(data => {
                     // Definir como constante el elemento con la clase row en step1
                     const container = step1.querySelector('.row');
-                    data.forEach(autoridad => {
-                        const card = document.createElement('div');
-                        card.className = 'col';
-                        card.innerHTML = `
-                            <div class="col">
-                                <div class="card h-100 text-center selectable-card" data-dest="${autoridad.clave}">
-                                    <div class="card-body">
-                                        <i class="iconify" data-icon="${autoridad.tablero_icono}"></i>
-                                        <h6 class="card-title">${autoridad.descripcion_corta}</h6>
+                    // Limpiar el contenedor
+                    container.innerHTML = '';
+                    // Si la respuesta tiene éxito
+                    if (data.success) {
+                        // Crear los cards para cada autoridad
+                        data.data.forEach(autoridad => {
+                            const card = document.createElement('div');
+                            card.className = 'col';
+                            card.innerHTML = `
+                                <div class="col">
+                                    <div class="card h-100 text-center selectable-card" data-dest="${autoridad.clave}">
+                                        <div class="card-body">
+                                            <i class="iconify" data-icon="${autoridad.tablero_icono}"></i>
+                                            <h6 class="card-title">${autoridad.descripcion_corta}</h6>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        `;
-                        container.appendChild(card);
-                    });
-                    // Eliminar el spinner
-                    const spinner = document.getElementById('step1-spinner');
-                    if (spinner) {
-                        spinner.remove();
-                    }
-                    // Definir la lógica al seleccionar una autoridad
-                    let selectedDest = null;
-                    document.querySelectorAll('.selectable-card').forEach(card => {
-                        card.addEventListener('click', function() {
-                            document.querySelectorAll('.selectable-card').forEach(c => c.classList.remove('border-primary', 'bg-primary', 'shadow', 'text-white'));
-                            this.classList.add('border-primary', 'bg-primary', 'shadow', 'text-white');
-                            selectedDest = this.dataset.dest;
-                            document.getElementById('toStep2').disabled = false;
+                            `;
+                            container.appendChild(card);
                         });
-                    });
-                    document.getElementById('toStep2').addEventListener('click', function() {
-                        document.getElementById('step1').classList.add('d-none');
-                        document.getElementById('step2').classList.remove('d-none');
-                    });
+                        // Eliminar el spinner
+                        const spinner = document.getElementById('step1-spinner');
+                        if (spinner) {
+                            spinner.remove();
+                        }
+                        // Agregar evento de clic a los cards
+                        document.querySelectorAll('.selectable-card').forEach(card => {
+                            card.addEventListener('click', function() {
+                                document.querySelectorAll('.selectable-card').forEach(c => c.classList.remove('border-primary', 'bg-primary', 'shadow', 'text-white'));
+                                this.classList.add('border-primary', 'bg-primary', 'shadow', 'text-white');
+                                selectedDest = this.dataset.dest;
+                                document.getElementById('toStep2').disabled = false; // Habilitar el botón Siguiente
+                            });
+                        });
+                    } else {
+                        // Si hubo un error, mostrar un mensaje
+                        const alert = document.createElement('div');
+                        alert.className = 'alert alert-danger';
+                        alert.textContent = data.message;
+                        container.appendChild(alert);
+                    }
                 })
                 .catch(error => console.error('Error:', error));
-        });
-    </script>
-    <script>
+        }
+
+        // Función para mostrar el selector de plantillas
+        function showTemplates() {
+            console.log('Mostrando plantillas para la autoridad:', selectedDest);
+            // Consultar las plantillas de la autoridad seleccionada
+            fetch(`/ofi_plantillas/tablero_json?autoridad_clave=${selectedDest}`)
+                .then(response => response.json())
+                .then(data => {
+                    const templateList = document.getElementById('templateList');
+                    templateList.innerHTML = ''; // Limpiar la lista
+                    // Si la respuesta tiene éxito
+                    if (data.success) {
+                        // Crear los elementos de la lista para cada plantilla
+                        data.data.forEach(template => {
+                            const item = document.createElement('li');
+                            item.className = 'list-group-item list-group-item-action';
+                            item.dataset.template = template.id;
+                            item.innerHTML = `<i class="iconify" data-icon="mdi:folder"></i> ${template.descripcion}`;
+                            templateList.appendChild(item);
+                        });
+                        // Agregar evento de clic a los elementos de la lista
+                        document.querySelectorAll('.list-group-item').forEach(item => {
+                            item.addEventListener('click', function() {
+                                document.querySelectorAll('.list-group-item').forEach(i => i.classList.remove('active'));
+                                this.classList.add('active');
+                                selectedTemplate = this.dataset.template;
+                                document.getElementById('toStep3').disabled = false; // Habilitar el botón Siguiente
+                            });
+                        });
+                    } else {
+                        // Si hubo un error, mostrar un mensaje
+                        const alert = document.createElement('div');
+                        alert.className = 'alert alert-danger';
+                        alert.textContent = data.message;
+                        templateList.appendChild(alert);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Funcion para mostrar la vista previa de la plantilla
+        function showPreview() {
+            console.log('Mostrando vista previa de la plantilla:', selectedTemplate);
+            // Consultar la plantilla seleccionada
+            fetch(`/ofi_plantillas/vista_previa_json?id=${selectedTemplate}`)
+                .then(response => response.json())
+                .then(data => {
+                    const preview = document.getElementById('templatePreview');
+                    preview.innerHTML = ''; // Limpiar la vista previa
+                    if (data.success) {
+                        // Mostrar la vista previa de la plantilla
+                        preview.innerHTML = data.data.contenido_html;
+                        // Habilitar el botón Aceptar
+                        document.getElementById('acceptTemplate').disabled = false;
+                    } else {
+                        // Si hubo un error, mostrar un mensaje
+                        const alert = document.createElement('div');
+                        alert.className = 'alert alert-danger';
+                        alert.textContent = data.message;
+                        preview.appendChild(alert);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Cuando se cargue el contenido del DOM
         document.addEventListener('DOMContentLoaded', function() {
-            // Step 1 logic
-            // let selectedDest = null;
-            // document.querySelectorAll('.selectable-card').forEach(card => {
-            //     card.addEventListener('click', function() {
-            //         document.querySelectorAll('.selectable-card').forEach(c => c.classList.remove('border-primary', 'bg-primary', 'shadow', 'text-white'));
-            //         this.classList.add('border-primary', 'bg-primary', 'shadow', 'text-white');
-            //         selectedDest = this.dataset.dest;
-            //         document.getElementById('toStep2').disabled = false;
-            //     });
-            // });
-            // document.getElementById('toStep2').addEventListener('click', function() {
-            //     document.getElementById('step1').classList.add('d-none');
-            //     document.getElementById('step2').classList.remove('d-none');
-            // });
-            // Step 2 logic
-            let selectedTemplate = null;
-            document.querySelectorAll('#templateList .list-group-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    document.querySelectorAll('#templateList .list-group-item').forEach(i => i.classList.remove('active'));
-                    this.classList.add('active');
-                    selectedTemplate = this.dataset.template;
-                    document.getElementById('toStep3').disabled = false;
-                });
+
+            // Mostrar los cards de las autoridades
+            showCards();
+
+            // Agregar evento de clic al botón para ir al paso 2
+            document.getElementById('toStep2').addEventListener('click', function() {
+                step1.classList.add('d-none');
+                step2.classList.remove('d-none');
+                showTemplates(); // Mostrar el selector de plantillas
             });
-            document.getElementById('backToStep1').addEventListener('click', function() {
-                document.getElementById('step2').classList.add('d-none');
-                document.getElementById('step1').classList.remove('d-none');
-            });
+
+            // Agregar evento de clic al botón para ir al paso 3
             document.getElementById('toStep3').addEventListener('click', function() {
-                document.getElementById('step2').classList.add('d-none');
-                document.getElementById('step3').classList.remove('d-none');
-                // Simple preview logic
-                let preview = '';
-                if (selectedTemplate === 'plantilla1') {
-                    preview = '<h6>Plantilla 1</h6><p>Contenido de la plantilla 1...</p>';
-                } else if (selectedTemplate === 'plantilla2') {
-                    preview = '<h6>Plantilla 2</h6><p>Contenido de la plantilla 2...</p>';
-                } else if (selectedTemplate === 'plantilla3') {
-                    preview = '<h6>Plantilla 3</h6><p>Contenido de la plantilla 3...</p>';
-                }
-                document.getElementById('templatePreview').innerHTML = preview;
+                step2.classList.add('d-none');
+                step3.classList.remove('d-none');
+                showPreview(); // Mostrar la vista previa de la plantilla
             });
+
+            // Agregar evento de clic al botón para regresar al paso 1
+            document.getElementById('backToStep1').addEventListener('click', function() {
+                step2.classList.add('d-none');
+                step1.classList.remove('d-none');
+                showCards(); // Mostrar los cards de las autoridades
+            });
+
+            // Agregar evento de clic al botón para regresar al paso 2
             document.getElementById('backToStep2').addEventListener('click', function() {
-                document.getElementById('step3').classList.add('d-none');
-                document.getElementById('step2').classList.remove('d-none');
+                step3.classList.add('d-none');
+                step2.classList.remove('d-none');
+                showTemplates(); // Mostrar el selector de plantillas
             });
+
+            // Agregar evento de clic al botón para aceptar la plantilla
             document.getElementById('acceptTemplate').addEventListener('click', function() {
-                // Aquí puedes manejar la aceptación de la plantilla
                 alert('Destino: ' + selectedDest + ', Plantilla: ' + selectedTemplate);
             });
+
         });
+
     </script>
 {% endblock %}

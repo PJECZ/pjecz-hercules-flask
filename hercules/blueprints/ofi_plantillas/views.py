@@ -115,6 +115,64 @@ def datatable_json():
     return output_datatable_json(draw, total, data)
 
 
+@ofi_plantillas.route("/ofi_plantillas/tablero_json", methods=["GET", "POST"])
+def tablero_json():
+    """Proporcionar el JSON de plantillas con autoridad_clave en el URL para elaborar un tablero"""
+    consulta = (
+        OfiPlantilla.query.
+        join(Usuario).
+        join(Autoridad).
+        filter(OfiPlantilla.estatus == "A").
+        filter(OfiPlantilla.esta_archivado.is_(False)).
+        filter(Usuario.estatus == "A")
+    )
+    autoridad_clave = request.args.get("autoridad_clave", "").strip()
+    if autoridad_clave:
+        autoridad_clave = safe_clave(autoridad_clave)
+        if autoridad_clave != "":
+            consulta = consulta.filter(Autoridad.clave == autoridad_clave)
+    resultados = []
+    for ofi_plantilla in consulta.order_by(OfiPlantilla.descripcion).all():
+        resultados.append(
+            {
+                "id": ofi_plantilla.id,
+                "descripcion": ofi_plantilla.descripcion,
+            }
+        )
+    if len(resultados) == 0:
+        return {
+            "success": False,
+            "message": f"No se encontraron plantillas para la autoridad {autoridad_clave}" if autoridad_clave else "No se encontraron plantillas",
+        }
+    return {
+        "success": True,
+        "message": f"Plantillas de {autoridad_clave}" if autoridad_clave else "Todas las plantillas",
+        "data": resultados,
+    }
+
+
+@ofi_plantillas.route("/ofi_plantillas/vista_previa_json", methods=["GET", "POST"])
+def preview_json():
+    """Proporcionar el JSON de una plantilla con el UUID en el URL para elaborar una vista previa"""
+    ofi_plantilla_id = request.args.get("id", "").strip()
+    if not ofi_plantilla_id:
+        return {"success": False, "message": "ID de plantilla no proporcionado"}
+    ofi_plantilla_id = safe_uuid(ofi_plantilla_id)
+    if not ofi_plantilla_id:
+        return {"success": False, "message": "ID de plantilla inválido"}
+    ofi_plantilla = OfiPlantilla.query.get(ofi_plantilla_id)
+    if not ofi_plantilla:
+        return {"success": False, "message": "Plantilla no encontrada"}
+    return {
+        "success": True,
+        "message": f"Vista previa de la plantilla {ofi_plantilla.descripcion}",
+        "data": {
+            "descripcion": ofi_plantilla.descripcion,
+            "contenido_html": ofi_plantilla.contenido_html,
+        },
+    }
+
+
 @ofi_plantillas.route("/ofi_plantillas")
 def list_active():
     """Listado de Ofi Plantillas activos"""
