@@ -155,6 +155,8 @@ def tablero_json():
 @ofi_plantillas.route("/ofi_plantillas/vista_previa_json", methods=["GET", "POST"])
 def preview_json():
     """Proporcionar el JSON de una plantilla con el UUID en el URL para elaborar una vista previa"""
+
+    # Validar el UUID
     ofi_plantilla_id = request.args.get("id", "").strip()
     if not ofi_plantilla_id:
         return {"success": False, "message": "ID de plantilla no proporcionado"}
@@ -164,12 +166,39 @@ def preview_json():
     ofi_plantilla = OfiPlantilla.query.get(ofi_plantilla_id)
     if not ofi_plantilla:
         return {"success": False, "message": "Plantilla no encontrada"}
+
+    # Copiar el contenido HTML a esta variable para reemplazar los marcadores
+    contenido_html = ofi_plantilla.contenido_html
+
+    # Reemplazar los destinatarios
+    if ofi_plantilla.destinatarios_emails and contenido_html.find("[[DESTINATARIOS]]") != -1:
+        destinatarios_emails = ofi_plantilla.destinatarios_emails.split(",")
+        destinatarios_str = ""
+        for email in destinatarios_emails:
+            destinatario = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
+            if destinatario:
+                destinatarios_str += f"{destinatario.nombre}<br>\n"
+                destinatarios_str += f"{destinatario.puesto}<br>\n"
+                destinatarios_str += f"{destinatario.autoridad.descripcion}<br>\n"
+        contenido_html = contenido_html.replace("[[DESTINATARIOS]]", destinatarios_str)
+
+    # Reemplazar los con copias
+    if ofi_plantilla.con_copias_emails and contenido_html.find("[[CON COPIAS]]") != -1:
+        con_copias_emails = ofi_plantilla.con_copias_emails.split(",")
+        con_copias_str = ""
+        for email in con_copias_emails:
+            con_copia = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
+            if con_copia:
+                con_copias_str += f"{con_copia.nombre}, {con_copia.puesto}<br>\n"
+        contenido_html = contenido_html.replace("[[CON COPIAS]]", con_copias_str)
+
+    # Entregar JSON
     return {
         "success": True,
         "message": f"Vista previa de la plantilla {ofi_plantilla.descripcion}",
         "data": {
             "descripcion": ofi_plantilla.descripcion,
-            "contenido_html": ofi_plantilla.contenido_html,
+            "contenido_html": contenido_html,
         },
     }
 

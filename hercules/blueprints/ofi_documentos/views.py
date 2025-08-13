@@ -598,7 +598,9 @@ def new(ofi_plantilla_id):
         for email in destinatarios_emails:
             destinatario = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
             if destinatario:
-                destinatarios_str += f"{destinatario.nombre}<br>\n{destinatario.puesto}"
+                destinatarios_str += f"{destinatario.nombre}<br>\n"
+                destinatarios_str += f"{destinatario.puesto}<br>\n"
+                destinatarios_str += f"{destinatario.autoridad.descripcion}<br>\n"
                 # TODO: Insertar destinatarios
         contenido_html = contenido_html.replace("[[DESTINATARIOS]]", destinatarios_str)
     if ofi_plantilla.con_copias_emails and contenido_html.find("[[CON COPIAS]]") != -1:
@@ -607,7 +609,7 @@ def new(ofi_plantilla_id):
         for email in con_copias_emails:
             con_copia = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
             if con_copia:
-                con_copias_str += f"{con_copia.nombre}<br>\n{con_copia.puesto}"
+                con_copias_str += f"{con_copia.nombre}, {con_copia.puesto}<br>\n"
                 # TODO: Insertar destinatarios con copia
         contenido_html = contenido_html.replace("[[CON COPIAS]]", con_copias_str)
     # Cargar los datos de la plantilla en el formulario
