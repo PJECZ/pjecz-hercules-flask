@@ -258,7 +258,8 @@
 
             // Agregar evento de clic al botón para aceptar la plantilla
             document.getElementById('acceptTemplate').addEventListener('click', function() {
-                alert('Destino: ' + selectedDest + ', Plantilla: ' + selectedTemplate);
+                // Redirigir al formulario de nuevo oficio con los parámetros seleccionados
+                window.location.href = `/ofi_documentos/nuevo/${selectedTemplate}`
             });
 
         });

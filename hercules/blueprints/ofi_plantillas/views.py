@@ -118,13 +118,14 @@ def datatable_json():
 
 @ofi_plantillas.route("/ofi_plantillas/tablero_json", methods=["GET", "POST"])
 def tablero_json():
-    """Proporcionar el JSON de plantillas con autoridad_clave en el URL para elaborar un tablero"""
+    """Proporcionar el JSON de plantillas compartidas de la autoridad_clave para elaborar el selector de plantillas"""
     consulta = (
         OfiPlantilla.query.
         join(Usuario).
         join(Autoridad).
         filter(OfiPlantilla.estatus == "A").
         filter(OfiPlantilla.esta_archivado.is_(False)).
+        filter(OfiPlantilla.esta_compartida.is_(True)).
         filter(Usuario.estatus == "A")
     )
     autoridad_clave = request.args.get("autoridad_clave", "").strip()
