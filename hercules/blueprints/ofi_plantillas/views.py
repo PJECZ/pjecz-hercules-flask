@@ -109,10 +109,99 @@ def datatable_json():
                 "descripcion": resultado.descripcion,
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
                 "esta_archivado": resultado.esta_archivado,
+                "esta_compartida": resultado.esta_compartida,
             }
         )
     # Entregar JSON
     return output_datatable_json(draw, total, data)
+
+
+@ofi_plantillas.route("/ofi_plantillas/tablero_json", methods=["GET", "POST"])
+def tablero_json():
+    """Proporcionar el JSON de plantillas compartidas de la autoridad_clave para elaborar el selector de plantillas"""
+    consulta = (
+        OfiPlantilla.query.
+        join(Usuario).
+        join(Autoridad).
+        filter(OfiPlantilla.estatus == "A").
+        filter(OfiPlantilla.esta_archivado.is_(False)).
+        filter(OfiPlantilla.esta_compartida.is_(True)).
+        filter(Usuario.estatus == "A")
+    )
+    autoridad_clave = request.args.get("autoridad_clave", "").strip()
+    if autoridad_clave:
+        autoridad_clave = safe_clave(autoridad_clave)
+        if autoridad_clave != "":
+            consulta = consulta.filter(Autoridad.clave == autoridad_clave)
+    resultados = []
+    for ofi_plantilla in consulta.order_by(OfiPlantilla.descripcion).all():
+        resultados.append(
+            {
+                "id": ofi_plantilla.id,
+                "descripcion": ofi_plantilla.descripcion,
+            }
+        )
+    if len(resultados) == 0:
+        return {
+            "success": False,
+            "message": f"No se encontraron plantillas para la autoridad {autoridad_clave}" if autoridad_clave else "No se encontraron plantillas",
+        }
+    return {
+        "success": True,
+        "message": f"Plantillas de {autoridad_clave}" if autoridad_clave else "Todas las plantillas",
+        "data": resultados,
+    }
+
+
+@ofi_plantillas.route("/ofi_plantillas/vista_previa_json", methods=["GET", "POST"])
+def preview_json():
+    """Proporcionar el JSON de una plantilla con el UUID en el URL para elaborar una vista previa"""
+
+    # Validar el UUID
+    ofi_plantilla_id = request.args.get("id", "").strip()
+    if not ofi_plantilla_id:
+        return {"success": False, "message": "ID de plantilla no proporcionado"}
+    ofi_plantilla_id = safe_uuid(ofi_plantilla_id)
+    if not ofi_plantilla_id:
+        return {"success": False, "message": "ID de plantilla inválido"}
+    ofi_plantilla = OfiPlantilla.query.get(ofi_plantilla_id)
+    if not ofi_plantilla:
+        return {"success": False, "message": "Plantilla no encontrada"}
+
+    # Copiar el contenido HTML a esta variable para reemplazar los marcadores
+    contenido_html = ofi_plantilla.contenido_html
+
+    # Reemplazar los destinatarios
+    if ofi_plantilla.destinatarios_emails and contenido_html.find("[[DESTINATARIOS]]") != -1:
+        destinatarios_emails = ofi_plantilla.destinatarios_emails.split(",")
+        destinatarios_str = ""
+        for email in destinatarios_emails:
+            destinatario = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
+            if destinatario:
+                destinatarios_str += f"{destinatario.nombre}<br>\n"
+                destinatarios_str += f"{destinatario.puesto}<br>\n"
+                destinatarios_str += f"{destinatario.autoridad.descripcion}<br>\n"
+        contenido_html = contenido_html.replace("[[DESTINATARIOS]]", destinatarios_str)
+
+    # Reemplazar los con copias
+    if ofi_plantilla.con_copias_emails and contenido_html.find("[[CON COPIAS]]") != -1:
+        con_copias_emails = ofi_plantilla.con_copias_emails.split(",")
+        con_copias_str = ""
+        for email in con_copias_emails:
+            con_copia = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
+            if con_copia:
+                con_copias_str += f"{con_copia.nombre}, {con_copia.puesto}<br>\n"
+        contenido_html = contenido_html.replace("[[CON COPIAS]]", con_copias_str)
+
+    # Entregar JSON
+    return {
+        "success": True,
+        "message": f"Vista previa de la plantilla {ofi_plantilla.descripcion}",
+        "data": {
+            "descripcion": ofi_plantilla.descripcion,
+            "contenido_html": contenido_html,
+        },
+    }
 
 
 @ofi_plantillas.route("/ofi_plantillas")
@@ -160,16 +249,7 @@ def detail(ofi_plantilla_id):
         flash("ID de plantilla inválido", "warning")
         return redirect(url_for("ofi_plantillas.list_active"))
     ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
-    form = OfiPlantillaForm()
-    form.descripcion.data = ofi_plantilla.descripcion
-    form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
-    form.esta_archivado.data = ofi_plantilla.esta_archivado
-    # Entregar el detalle
-    return render_template(
-        "ofi_plantillas/detail.jinja2",
-        ofi_plantilla=ofi_plantilla,
-        form=form,
-    )
+    return render_template("ofi_plantillas/detail.jinja2", ofi_plantilla=ofi_plantilla)
 
 
 @ofi_plantillas.route("/ofi_plantillas/nuevo", methods=["GET", "POST"])
@@ -183,9 +263,17 @@ def new():
         if not propietario:
             flash("Propietario inválido", "warning")
             return redirect(url_for("ofi_plantillas.new"))
+        # Limpiar los textos con listados de correos electronicos de espacios
+        destinatarios_emails = str(form.destinatarios_emails.data).strip().replace(" ", "")
+        con_copias_emails = str(form.con_copias_emails.data).strip().replace(" ", "")
+        remitente_email = str(form.remitente_email.data).strip().replace(" ", "")
+        # Insertar
         ofi_plantilla = OfiPlantilla(
             usuario=propietario,
             descripcion=safe_string(form.descripcion.data, save_enie=True),
+            destinatarios_emails=destinatarios_emails,
+            con_copias_emails=con_copias_emails,
+            remitente_email=remitente_email,
             contenido_md=form.contenido_md.data,
             contenido_html=form.contenido_html.data,
             contenido_sfdt=form.contenido_sfdt.data,
@@ -224,13 +312,22 @@ def edit(ofi_plantilla_id):
         if not propietario:
             flash("Propietario inválido", "warning")
             es_valido = False
+        # Limpiar los textos con listados de correos electronicos de espacios
+        destinatarios_emails = str(form.destinatarios_emails.data).strip().replace(" ", "")
+        con_copias_emails = str(form.con_copias_emails.data).strip().replace(" ", "")
+        remitente_email = str(form.remitente_email.data).strip().replace(" ", "")
+        # Si es válido
         if es_valido:
             ofi_plantilla.descripcion = safe_string(form.descripcion.data, save_enie=True)
             ofi_plantilla.usuario = propietario
+            ofi_plantilla.destinatarios_emails = destinatarios_emails
+            ofi_plantilla.con_copias_emails = con_copias_emails
+            ofi_plantilla.remitente_email = remitente_email
             ofi_plantilla.contenido_md = form.contenido_md.data
             ofi_plantilla.contenido_html = form.contenido_html.data
             ofi_plantilla.contenido_sfdt = form.contenido_sfdt.data
             ofi_plantilla.esta_archivado = form.esta_archivado.data
+            ofi_plantilla.esta_compartida = form.esta_compartida.data
             ofi_plantilla.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -242,10 +339,14 @@ def edit(ofi_plantilla_id):
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
     form.descripcion.data = ofi_plantilla.descripcion
+    form.destinatarios_emails.data = ofi_plantilla.destinatarios_emails
+    form.con_copias_emails.data = ofi_plantilla.con_copias_emails
+    form.remitente_email.data = ofi_plantilla.remitente_email
     form.contenido_md.data = ofi_plantilla.contenido_md
     form.contenido_html.data = ofi_plantilla.contenido_html
     form.contenido_sfdt.data = ofi_plantilla.contenido_sfdt
     form.esta_archivado.data = ofi_plantilla.esta_archivado
+    form.esta_compartida.data = ofi_plantilla.esta_compartida
     # Entregar el formulario
     return render_template(
         "ofi_plantillas/edit_ckeditor5.jinja2",

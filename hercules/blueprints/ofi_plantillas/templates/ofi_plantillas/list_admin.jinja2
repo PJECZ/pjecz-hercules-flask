@@ -67,6 +67,7 @@
                     <th>Autoridad</th>
                     <th>Descripción</th>
                     <th>Archivada</th>
+                    <th>Compartida</th>
                 </tr>
             </thead>
         </table>
@@ -87,7 +88,8 @@
             { data: 'propietario' },
             { data: 'autoridad' },
             { data: 'descripcion' },
-            { data: 'esta_archivado' }
+            { data: 'esta_archivado' },
+            { data: 'esta_compartida' }
         ];
         configDataTable['columnDefs'] = [
             {
@@ -125,7 +127,7 @@
                 }
             },
             {
-                targets: 4, // esta_archivado
+                targets: [4, 5], // esta_archivado, esta_compartida
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data) {

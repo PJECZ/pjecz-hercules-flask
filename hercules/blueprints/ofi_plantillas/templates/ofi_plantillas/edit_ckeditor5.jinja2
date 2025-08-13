@@ -21,20 +21,46 @@
     {% call f.card() %}
         {% set form_kwargs = {'ofi_plantilla_id': ofi_plantilla.id} %}
         {% call f.form_tag('ofi_plantillas.edit', fid='ofi_plantilla_form', **form_kwargs) %}
-            {% call f.form_group(form.descripcion) %}{% endcall %}
-            {% call f.form_group(form.propietario) %}{% endcall %}
-            {% call f.form_group(form.esta_archivado) %}{% endcall %}
-            <div style="display:none">
-                {% call f.form_group(form.contenido_md) %}{% endcall %}
-                {% call f.form_group(form.contenido_html) %}{% endcall %}
-                {% call f.form_group(form.contenido_sfdt) %}{% endcall %}
+            <div class="row">
+                <div class="col-md-9">
+                    {% call f.form_group(form.descripcion) %}{% endcall %}
+                    {% call f.form_group(form.propietario) %}{% endcall %}
+                </div>
+                <div class="col-md-3">
+                    {% call f.form_group(form.esta_archivado) %}{% endcall %}
+                    {% call f.form_group(form.esta_compartida) %}{% endcall %}
+                </div>
             </div>
+            <p class="my-0">
+                <small><strong>Si está compartida estará al alcance de todos,</strong> entonces escriba las direcciones de correo electrónico separados por comas.</small>
+            </p>
+            {% call f.form_group(form.destinatarios_emails) %}{% endcall %}
+            {% call f.form_group(form.con_copias_emails) %}{% endcall %}
+            {# call f.form_group(form.remitente_email) %}{% endcall #}
+            <p class="my-0">Use estos marcadores en el contenido:</p>
+            <ul>
+                <li><code>[[DIA]]</code> dia de la fecha actual</li>
+                <li><code>[[MES]]</code> mes de la fecha actual</li>
+                <li><code>[[AÑO]]</code> año de la fecha actual</li>
+                <li><code>[[FOLIO]]</code> folio automático</li>
+                <li><code>[[DESTINATARIOS]]</code> nombre, puesto y autoridad a quien se enviará, <strong>si está compartida</strong></li>
+                <li><code>[[CON COPIAS]]</code> nombre, puesto y autoridad a quien se le manda una copia, <strong>si está compartida</strong></li>
+                <li><code>[[REMITENTE NOMBRE]]</code> nombre del usuario de quien escribe</li>
+                <li><code>[[REMITENTE PUESTO]]</code> puesto del usuario de quien escribe</li>
+                <li><code>[[REMITENTE AUTORIDAD]]</code> descripción de la autoridad de quien escribe</li>
+            </ul>
+            <p><strong>MUY IMPORTANTE:</strong> siempre pegue "sin formato" para reducir el tamaño del contenido HTML.</p>
             <div class="main-container">
                 <div class="editor-container editor-container_classic-editor editor-container_include-fullscreen" id="editor-container">
                     <div class="editor-container__editor">
                         <div id="editor"></div>
                     </div>
                 </div>
+            </div>
+            <div style="display:none">
+                {% call f.form_group(form.contenido_md) %}{% endcall %}
+                {% call f.form_group(form.contenido_html) %}{% endcall %}
+                {% call f.form_group(form.contenido_sfdt) %}{% endcall %}
             </div>
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}

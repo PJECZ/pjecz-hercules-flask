@@ -28,7 +28,11 @@ class OfiPlantilla(database.Model, UniversalMixin):
 
     # Columnas
     descripcion: Mapped[str] = mapped_column(String(256))
+    destinatarios_emails: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)
+    con_copias_emails: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)
+    remitente_email: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)
     esta_archivado: Mapped[bool] = mapped_column(default=False)
+    esta_compartida: Mapped[bool] = mapped_column(default=False)
 
     # Columnas contenido
     contenido_html: Mapped[Optional[str]] = mapped_column(Text)
