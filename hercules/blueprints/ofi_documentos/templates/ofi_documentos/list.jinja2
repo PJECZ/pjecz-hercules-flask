@@ -11,6 +11,9 @@
             {{ topbar.button('Mis Oficios', url_for('ofi_documentos.list_active_mis_oficios'), "mdi:file-document-edit-outline") }}
             {{ topbar.button('Mi Autoridad', url_for('ofi_documentos.list_active_mi_autoridad'), "mdi:scale-balance") }}
         {% endif %}
+        {% if current_user.can_admin('OFI PLANTILLAS') %}
+            {{ topbar.button('Plantillas', url_for('ofi_plantillas.list_active'), "mdi:note-multiple") }}
+        {% endif %}
         {% if current_user.can_admin('OFI DOCUMENTOS') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('ofi_documentos.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('ofi_documentos.list_active')) }}{% endif %}
@@ -27,25 +30,13 @@
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosOficios.buscar(); return false;">
-                    <div class="col-2">
-                        <div class="form-floating">
-                            <input id="filtroFolio" type="text" class="form-control" aria-label="Folio" style="text-transform: uppercase;">
-                            <label for="filtroFolio">Folio</label>
-                        </div>
-                    </div>
-                    <div class="col-2">
-                        <div class="form-floating">
-                            <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad" style="text-transform: uppercase;">
-                            <label for="filtroAutoridadClave">Autoridad</label>
-                        </div>
-                    </div>
-                    <div class="col-4">
+                    <div class="col-6">
                         <div class="form-floating">
                             <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
                             <label for="filtroDescripcion">Descripción</label>
                         </div>
                     </div>
-                    <div class="col-2">
+                    <div class="col-4">
                         <div class="form-floating">
                             <select class="form-select" id="estadoSelect" name="estadoSelect" aria-label="Estado" onchange="filtrosOficios.buscar(); return false;" style="flex: inherit;">
                                 <option selected value=""></option>
@@ -190,8 +181,6 @@
         };
         // Filtros Oficios
         const filtrosOficios = new FiltrosDataTable('#ofi_documentos_datatable', configDataTable);
-        filtrosOficios.agregarInput('filtroFolio', 'folio');
-        filtrosOficios.agregarInput('filtroAutoridadClave', 'autoridad_clave');
         filtrosOficios.agregarInput('filtroDescripcion', 'descripcion');
         filtrosOficios.agregarInput('estadoSelect', 'estado');
         filtrosOficios.precargar();

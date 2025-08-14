@@ -85,7 +85,8 @@ def datatable_json():
                 "detalle": {
                     "id": resultado.id,
                     "url": url_for("ofi_plantillas.detail", ofi_plantilla_id=resultado.id),
-                    "url_nuevo": url_for("ofi_documentos.new", ofi_plantilla_id=resultado.id),
+                    "url_edicion": url_for("ofi_plantillas.edit", ofi_plantilla_id=resultado.id) if current_user.can_edit("OFI PLANTILLAS") else "",
+                    "url_nuevo": url_for("ofi_documentos.new", ofi_plantilla_id=resultado.id) if current_user.can_insert("OFI DOCUMENTOS") else "",
                 },
                 "propietario": {
                     "email": resultado.usuario.email,
@@ -114,6 +115,36 @@ def datatable_json():
         )
     # Entregar JSON
     return output_datatable_json(draw, total, data)
+
+
+@ofi_plantillas.route("/ofi_plantillas/mis_plantillas_json", methods=["GET", "POST"])
+def mis_plantillas_json():
+    """Proporcionar el JSON de plantillas del para elaborar el selector de plantillas"""
+    consulta = (
+        OfiPlantilla.query.
+        filter(OfiPlantilla.estatus == "A").
+        filter(OfiPlantilla.esta_archivado.is_(False)).
+        filter(OfiPlantilla.esta_compartida.is_(False)).
+        filter(OfiPlantilla.usuario_id == current_user.id)
+    )
+    resultados = []
+    for ofi_plantilla in consulta.order_by(OfiPlantilla.descripcion).all():
+        resultados.append(
+            {
+                "id": ofi_plantilla.id,
+                "descripcion": ofi_plantilla.descripcion,
+            }
+        )
+    if len(resultados) == 0:
+        return {
+            "success": False,
+            "message": "No se encontraron plantillas para el usuario actual",
+        }
+    return {
+        "success": True,
+        "message": f"Plantillas del usuario {current_user.email}",
+        "data": resultados,
+    }
 
 
 @ofi_plantillas.route("/ofi_plantillas/tablero_json", methods=["GET", "POST"])
@@ -190,7 +221,7 @@ def preview_json():
         for email in con_copias_emails:
             con_copia = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
             if con_copia:
-                con_copias_str += f"{con_copia.nombre}, {con_copia.puesto}<br>\n"
+                con_copias_str += f"{con_copia.nombre}, {con_copia.autoridad.descripcion}<br>\n"
         contenido_html = contenido_html.replace("[[CON COPIAS]]", con_copias_str)
 
     # Entregar JSON
