@@ -27,13 +27,13 @@
         <div class="row">
             <div class="col">
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosPlantillas.buscar(); return false;">
-                    <div class="col-2">
+                    <div class="col-6">
                         <div class="form-floating">
-                            <input id="filtroId" type="text" class="form-control" aria-label="Id" style="text-transform: lowercase;">
-                            <label for="filtroId">Id</label>
+                            <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
+                            <label for="filtroDescripcion">Descripción</label>
                         </div>
                     </div>
-                    <div class="col-3">
+                    <div class="col-2">
                         <div class="form-floating">
                             <input id="filtroPropietario" type="text" class="form-control" aria-label="Propietario" style="text-transform: lowercase;">
                             <label for="filtroPropietario">Propietario</label>
@@ -43,12 +43,6 @@
                         <div class="form-floating">
                             <input id="filtroAutoridad" type="text" class="form-control" aria-label="Autoridad" style="text-transform: uppercase;">
                             <label for="filtroAutoridad">Autoridad</label>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="form-floating">
-                            <input id="filtroDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
-                            <label for="filtroDescripcion">Descripción</label>
                         </div>
                     </div>
                     <div class="col-2 text-end">
@@ -63,9 +57,9 @@
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Descripción</th>
                     <th>Propietario</th>
                     <th>Autoridad</th>
-                    <th>Descripción</th>
                     <th>Archivada</th>
                     <th>Compartida</th>
                 </tr>
@@ -85,9 +79,9 @@
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
             { data: 'detalle' },
+            { data: 'descripcion' },
             { data: 'propietario' },
             { data: 'autoridad' },
-            { data: 'descripcion' },
             { data: 'esta_archivado' },
             { data: 'esta_compartida' }
         ];
@@ -96,11 +90,31 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a class="btn btn-outline-primary btn-sm" href="' + data.url_nuevo + '"><span class="iconify" data-icon="mdi:file-document-plus"></span></a> <a href="' + data.url + '">' + data.id.substring(0, 8) + '</a>';
+                    let html = '';
+                    // Crear un nuevo oficio con esta plantilla
+                    if (data.url_nuevo !== '') {
+                        html += '<a class="btn btn-outline-primary btn-sm" href="' + data.url_nuevo + '"><span class="iconify" data-icon="mdi:content-copy"></span></a> ';
+                    }
+                    // Detalle de la plantilla
+                    html += '<a class="btn btn-outline-primary btn-sm" href="' + data.url + '"><span class="iconify" data-icon="mdi:eye"></span></a> ';
+                    // Edicion de la plantilla
+                    if (data.url_edicion !== '') {
+                        html += '<a class="btn btn-outline-primary btn-sm" href="' + data.url_edicion + '"><span class="iconify" data-icon="mdi:pencil"></span></a> ';
+                    }
+                    return html;
                 }
             },
             {
-                targets: 1, // propietario
+                targets: 1, // descripcion
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data.length > 48)
+                        return '<span title="' + data + '">' + data.substring(0, 48) + '…</span>';
+                    return data;
+                }
+            },
+            {
+                targets: 2, // propietario
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data.email.length > 16)
@@ -109,21 +123,12 @@
                 }
             },
             {
-                targets: 2, // autoridad
+                targets: 3, // autoridad
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data.url == "" )
                         return '<span title="' + data.nombre + '">' + data.clave + '</span>';
                     return '<span title="' + data.nombre + '"><a href="' + data.url + '">' + data.clave + '</a></span>';
-                }
-            },
-            {
-                targets: 3, // descripcion
-                data: null,
-                render: function(data, type, row, meta) {
-                    if (data.length > 32)
-                        return '<span title="' + data + '">' + data.substring(0, 32) + '…</span>';
-                    return data;
                 }
             },
             {
@@ -145,10 +150,9 @@
         };
         // Filtros OfiPlantillas
         const filtrosPlantillas = new FiltrosDataTable('#ofi_plantillas_datatable', configDataTable);
-        filtrosPlantillas.agregarInput('filtroId', 'id');
+        filtrosPlantillas.agregarInput('filtroDescripcion', 'descripcion');
         filtrosPlantillas.agregarInput('filtroPropietario', 'propietario');
         filtrosPlantillas.agregarInput('filtroAutoridad', 'autoridad');
-        filtrosPlantillas.agregarInput('filtroDescripcion', 'descripcion');
         filtrosPlantillas.precargar();
     </script>
 {% endblock %}

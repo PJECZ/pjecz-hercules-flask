@@ -85,7 +85,8 @@ def datatable_json():
                 "detalle": {
                     "id": resultado.id,
                     "url": url_for("ofi_plantillas.detail", ofi_plantilla_id=resultado.id),
-                    "url_nuevo": url_for("ofi_documentos.new", ofi_plantilla_id=resultado.id),
+                    "url_edicion": url_for("ofi_plantillas.edit", ofi_plantilla_id=resultado.id) if current_user.can_edit("OFI PLANTILLAS") else "",
+                    "url_nuevo": url_for("ofi_documentos.new", ofi_plantilla_id=resultado.id) if current_user.can_insert("OFI DOCUMENTOS") else "",
                 },
                 "propietario": {
                     "email": resultado.usuario.email,
@@ -220,7 +221,7 @@ def preview_json():
         for email in con_copias_emails:
             con_copia = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
             if con_copia:
-                con_copias_str += f"{con_copia.nombre}, {con_copia.puesto}<br>\n"
+                con_copias_str += f"{con_copia.nombre}, {con_copia.autoridad.descripcion}<br>\n"
         contenido_html = contenido_html.replace("[[CON COPIAS]]", con_copias_str)
 
     # Entregar JSON

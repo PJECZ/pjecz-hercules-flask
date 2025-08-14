@@ -9,9 +9,7 @@ from flask import Blueprint, current_app, flash, make_response, redirect, render
 from flask_login import current_user, login_required
 from werkzeug.exceptions import NotFound
 
-from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.folio import validar_folio
-from lib.safe_string import safe_string, safe_message, safe_clave, safe_uuid
+from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
@@ -22,10 +20,12 @@ from hercules.blueprints.ofi_documentos.forms import (
     OfiDocumentoEditForm,
     OfiDocumentoSignForm,
 )
+from hercules.blueprints.ofi_documentos_destinatarios.models import OfiDocumentoDestinatario
 from hercules.blueprints.ofi_plantillas.models import OfiPlantilla
 from hercules.blueprints.usuarios.models import Usuario
-from hercules.blueprints.autoridades.models import Autoridad
-from hercules.blueprints.ofi_documentos_destinatarios.models import OfiDocumentoDestinatario
+from lib.datatables import get_datatable_parameters, output_datatable_json
+from lib.folio import validar_folio
+from lib.safe_string import safe_string, safe_message, safe_clave, safe_uuid
 from lib.exceptions import MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
 
@@ -559,6 +559,27 @@ def new(ofi_plantilla_id):
                 cadena_oficio_id=form.cadena_oficio_id.data if form.cadena_oficio_id.data else None,
             )
             ofi_documento.save()
+            # Si la plantilla está compartida y tiene destinatarios_emails
+            if ofi_plantilla.esta_compartida and ofi_plantilla.destinatarios_emails:
+                for email in ofi_plantilla.destinatarios_emails.split(","):
+                    destinatario = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
+                    if destinatario:
+                        ofi_documento_destinatario = OfiDocumentoDestinatario(
+                            ofi_documento=ofi_documento,
+                            usuario=destinatario,
+                        )
+                        ofi_documento_destinatario.save()
+            # Si la plantilla está compartida y tiene con_copias_emails
+            if ofi_plantilla.esta_compartida and ofi_plantilla.con_copias_emails:
+                for email in ofi_plantilla.con_copias_emails.split(","):
+                    con_copia = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
+                    if con_copia:
+                        ofi_documento_destinatario = OfiDocumentoDestinatario(
+                            ofi_documento=ofi_documento,
+                            usuario=con_copia,
+                            con_copia=True,
+                        )
+                        ofi_documento_destinatario.save()
             # Si trae una cadena de oficio, copiar el destinatario propietario
             if ofi_documento_responder:
                 OfiDocumentoDestinatario(
@@ -592,9 +613,10 @@ def new(ofi_plantilla_id):
     contenido_html = contenido_html.replace("[[MES]]", str(datetime.now().strftime("%B")))
     contenido_html = contenido_html.replace("[[AÑO]]", str(datetime.now().year))
     contenido_html = contenido_html.replace("[[FOLIO]]", folio)
-    contenido_html = contenido_html.replace("[[REMITENTE NOMBRE]]", current_user.nombre)
-    contenido_html = contenido_html.replace("[[REMITENTE PUESTO]]", current_user.puesto)
-    contenido_html = contenido_html.replace("[[REMITENTE AUTORIDAD]]", current_user.autoridad.descripcion)
+    if ROL_FIRMANTE in roles:
+        contenido_html = contenido_html.replace("[[REMITENTE NOMBRE]]", current_user.nombre)
+        contenido_html = contenido_html.replace("[[REMITENTE PUESTO]]", current_user.puesto)
+        contenido_html = contenido_html.replace("[[REMITENTE AUTORIDAD]]", current_user.autoridad.descripcion)
     if ofi_plantilla.destinatarios_emails and contenido_html.find("[[DESTINATARIOS]]") != -1:
         destinatarios_emails = ofi_plantilla.destinatarios_emails.split(",")
         destinatarios_str = ""
@@ -612,7 +634,7 @@ def new(ofi_plantilla_id):
         for email in con_copias_emails:
             con_copia = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
             if con_copia:
-                con_copias_str += f"{con_copia.nombre}, {con_copia.puesto}<br>\n"
+                con_copias_str += f"{con_copia.nombre}, {con_copia.autoridad.descripcion}<br>\n"
                 # TODO: Insertar destinatarios con copia
         contenido_html = contenido_html.replace("[[CON COPIAS]]", con_copias_str)
     # Cargar los datos de la plantilla en el formulario
@@ -804,6 +826,20 @@ def sign(ofi_documento_id):
         if form.tipo.data not in ["simple", "avanzada"]:
             flash("Tipo de firma inválido, debe ser 'simple' o 'avanzada'", "warning")
             return redirect(url_for("ofi_documentos.sign", ofi_documento_id=ofi_documento.id))
+        # Reemplazar los marcadores en el contenido HTML
+        actualizar_contenido_html = False
+        contenido_html = ofi_documento.contenido_html
+        if "[[REMITENTE NOMBRE]]" in contenido_html:
+            contenido_html = contenido_html.replace("[[REMITENTE NOMBRE]]", current_user.nombre)
+            actualizar_contenido_html = True
+        if "[[REMITENTE PUESTO]]" in contenido_html:
+            contenido_html = contenido_html.replace("[[REMITENTE PUESTO]]", current_user.puesto)
+            actualizar_contenido_html = True
+        if "[[REMITENTE AUTORIDAD]]" in contenido_html:
+            contenido_html = contenido_html.replace("[[REMITENTE AUTORIDAD]]", current_user.autoridad.descripcion)
+            actualizar_contenido_html = True
+        if actualizar_contenido_html:
+            ofi_documento.contenido_html = contenido_html
         # Actualizar
         ofi_documento.usuario = current_user  # El usuario que firma es el propietario del oficio
         ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
