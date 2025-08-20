@@ -7,8 +7,6 @@ from flask import Blueprint, flash, make_response, redirect, render_template, re
 from flask_login import current_user, login_required
 from datetime import datetime
 
-import pdfkit
-
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_string, safe_message, safe_clave
 from sqlalchemy import or_

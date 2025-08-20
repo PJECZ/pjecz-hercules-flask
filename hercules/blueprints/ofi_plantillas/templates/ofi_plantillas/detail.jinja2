@@ -34,6 +34,11 @@
         {% else %}
             {{ detail.label_value('Autoridad', ofi_plantilla.usuario.autoridad.clave) }}
         {% endif %}
+        {{ detail.label_value('Destinatarios', ofi_plantilla.destinatarios_emails) }}
+        {{ detail.label_value('Con Copias', ofi_plantilla.con_copias_emails) }}
+        {{ detail.label_value('Remitente', ofi_plantilla.remitente_email) }}
+        {{ detail.label_value_boolean('Está Archivada', ofi_plantilla.esta_archivado) }}
+        {{ detail.label_value_boolean('Está Compartida', ofi_plantilla.esta_compartida) }}
         {# Inicia Contenido HTML #}
         <hr />
         {% if ofi_plantilla.contenido_html %}

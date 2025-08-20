@@ -424,3 +424,29 @@ def select2_json():
     for autoridad in consulta.order_by(Autoridad.clave).limit(10).all():
         resultados.append({"id": autoridad.id, "text": f"{autoridad.clave}: {autoridad.descripcion_corta}"})
     return {"results": resultados, "pagination": {"more": False}}
+
+
+@autoridades.route("/autoridades/tablero_json", methods=["GET", "POST"])
+def tablero_json():
+    """Proporcionar el JSON de autoridades con pagina_cabecera_url para elaborar un tablero"""
+    consulta = (
+        Autoridad.query.
+        filter(Autoridad.estatus == "A").
+        filter(Autoridad.tablero_icono != "").
+        filter(Autoridad.pagina_cabecera_url != "").
+        order_by(Autoridad.descripcion_corta)
+    )
+    resultados = []
+    for autoridad in consulta.all():
+        resultados.append(
+            {
+                "clave": autoridad.clave,
+                "descripcion_corta": autoridad.descripcion_corta,
+                "tablero_icono": autoridad.tablero_icono,
+            }
+        )
+    return {
+        "success": True,
+        "message": "Se consultaron las autoridades.",
+        "data": resultados,
+    }

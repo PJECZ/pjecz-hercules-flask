@@ -200,11 +200,13 @@
 
 
 {% block custom_javascript %}
-{% if current_user.can_edit('REQ REQUISICIONES') %}
-{% if req_requisicion.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar la requisición' +
-req_requisicion.gasto + '?') }}{% endif %}
-{% if req_requisicion.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' +
-req_requisicion.gasto + '?') }}{% endif %}
-{% endif %}
-{{ detail.moment_js(moment) }}
+    {% if current_user.can_edit('REQ REQUISICIONES') %}
+        {% if req_requisicion.estatus == 'A' %}
+            {{ modals.custom_javascript_delete('Eliminar', '¿Eliminar la requisición' + req_requisicion.gasto + '?') }}
+        {% endif %}
+        {% if req_requisicion.estatus == 'B' %}
+            {{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + req_requisicion.gasto + '?') }}
+        {% endif %}
+    {% endif %}
+    {{ detail.moment_js(moment) }}
 {% endblock %}

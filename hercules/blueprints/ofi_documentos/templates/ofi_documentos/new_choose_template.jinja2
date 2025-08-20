@@ -1,0 +1,298 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Nuevo Oficio{% endblock %}
+
+{% block custom_head %}
+    <style>
+        .selectable-card {
+            cursor: pointer;
+            transition: box-shadow 0.3s ease;
+        }
+        .selectable-card:hover {
+            border: #007bff;
+            border-width: 2px;
+            border-style: solid;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: scale(1.05);
+        }
+        #step1 .card-body .iconify {
+            font-size: 3rem;
+            color: #2e4a68;
+        }
+    </style>
+{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Nuevo Oficio') }}
+{% endblock %}
+
+{% block content %}
+    <!-- Step 1: Choose Destination -->
+    <div id="step1">
+        <h5 class="mb-3">1. Elija el destinatario y da clic en siguiente</h5>
+        <div class="row row-cols-1 row-cols-md-4 g-3 mb-4">
+            <!-- Spinner mientras se cargan las autoridades -->
+            <div id="step1-spinner" class="col">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-end">
+            <button class="btn btn-primary" id="toStep2" disabled>Siguiente</button>
+        </div>
+    </div>
+    <!-- Step 2: Select Template -->
+    <div id="step2" class="d-none">
+        <h5 class="mb-3">2. Seleccione una plantilla y da clic en siguiente</h5>
+        <ul class="list-group mb-4" id="templateList">
+            <!-- Spinner mientras se cargan las plantillas -->
+            <li id="step2-spinner" class="list-group-item text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando plantillas...</span>
+                </div>
+            </li>
+        </ul>
+        <div class="d-flex justify-content-between">
+            <button class="btn btn-secondary me-2" id="backToStep1">Atrás</button>
+            <button class="btn btn-primary" id="toStep3" disabled>Siguiente</button>
+        </div>
+    </div>
+    <!-- Step 3: Preview and Accept -->
+    <div id="step3" class="d-none">
+        <h5 class="mb-3">3. Revise la vista previa y de clic en aceptar para crear el oficio</h5>
+        <div class="card mb-4">
+            <div class="card-body" id="templatePreview">
+                <!-- Spinner mientras se cargan la vista previa -->
+                <div id="step3-spinner" class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando vista previa...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between">
+            <button class="btn btn-secondary me-2" id="backToStep2">Atrás</button>
+            <button class="btn btn-success" id="acceptTemplate">Aceptar</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_javascript %}
+    <!-- Script para cargar las autoridades -->
+    <script>
+
+        // Variables globales
+        let selectedDest = null;
+        let selectedTemplate = null;
+
+        // Definir los elementos de los pasos
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+
+        // Función para mostrar los cards de las autoridades
+        function showCards() {
+            console.log('Mostrando cards de autoridades...');
+            document.getElementById('toStep2').disabled = true; // Deshabilitar el botón Siguiente
+            fetch('/autoridades/tablero_json')
+                .then(response => response.json())
+                .then(data => {
+                    // Definir como constante el elemento con la clase row en step1
+                    const container = step1.querySelector('.row');
+                    // Limpiar el contenedor
+                    container.innerHTML = '';
+                    // Si la respuesta tiene éxito
+                    if (data.success) {
+                        // Eliminar el spinner
+                        const spinner = document.getElementById('step1-spinner');
+                        if (spinner) {
+                            spinner.remove();
+                        }
+                        // Crear los cards para cada autoridad
+                        data.data.forEach(autoridad => {
+                            const card = document.createElement('div');
+                            card.className = 'col';
+                            card.innerHTML = `
+                                <div class="col">
+                                    <div class="card h-100 text-center selectable-card" data-dest="${autoridad.clave}">
+                                        <div class="card-body">
+                                            <i class="iconify" data-icon="${autoridad.tablero_icono}"></i>
+                                            <h6 class="card-title">${autoridad.descripcion_corta}</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            container.appendChild(card);
+                        });
+                        // Agregar evento de clic a los cards
+                        document.querySelectorAll('.selectable-card').forEach(card => {
+                            card.addEventListener('click', function() {
+                                document.querySelectorAll('.selectable-card').forEach(c => c.classList.remove('border-primary', 'bg-primary', 'shadow', 'text-white'));
+                                this.classList.add('border-primary', 'bg-primary', 'shadow', 'text-white');
+                                selectedDest = this.dataset.dest;
+                                document.getElementById('toStep2').disabled = false; // Habilitar el botón Siguiente
+                            });
+                        });
+                    } else {
+                        // Si hubo un error, mostrar un mensaje
+                        const alert = document.createElement('div');
+                        alert.className = 'alert alert-danger';
+                        alert.textContent = data.message;
+                        container.appendChild(alert);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Función para mostrar el selector de plantillas
+        function showTemplates() {
+            console.log('Mostrando plantillas para la autoridad:', selectedDest);
+            document.getElementById('toStep3').disabled = true; // Deshabilitar el botón Siguiente
+            // Consultar las plantillas de la autoridad seleccionada
+            fetch(`/ofi_plantillas/tablero_json?autoridad_clave=${selectedDest}`)
+                .then(response => response.json())
+                .then(data => {
+                    const templateList = document.getElementById('templateList');
+                    templateList.innerHTML = ''; // Limpiar la lista
+                    // Si la respuesta tiene éxito
+                    if (data.success) {
+                        // Eliminar el spinner
+                        const spinner = document.getElementById('step2-spinner');
+                        if (spinner) {
+                            spinner.remove();
+                        }
+                        // Crear los elementos de la lista para cada plantilla
+                        data.data.forEach(template => {
+                            const item = document.createElement('li');
+                            item.className = 'list-group-item list-group-item-action';
+                            item.dataset.template = template.id;
+                            item.innerHTML = `<i class="iconify" data-icon="mdi:folder"></i> ${template.descripcion}`;
+                            templateList.appendChild(item);
+                        });
+                        // Consultar las plantillas del usuario actual
+                        fetch('/ofi_plantillas/mis_plantillas_json')
+                            .then(response => response.json())
+                            .then(data => {
+                                // Si la respuesta tiene éxito
+                                if (data.success) {
+                                    // Agregar los elementos de la lista para cada plantilla del usuario actual
+                                    data.data.forEach(template => {
+                                        const item = document.createElement('li');
+                                        item.className = 'list-group-item list-group-item-action';
+                                        item.dataset.template = template.id;
+                                        item.innerHTML = `<i class="iconify" data-icon="mdi:folder"></i> ${template.descripcion}`;
+                                        templateList.appendChild(item);
+                                    });
+                                }
+                                // Agregar evento de clic a los TODOS los elementos de la lista
+                                document.querySelectorAll('.list-group-item').forEach(item => {
+                                    item.addEventListener('click', function() {
+                                        document.querySelectorAll('.list-group-item').forEach(i => i.classList.remove('active'));
+                                        this.classList.add('active');
+                                        selectedTemplate = this.dataset.template;
+                                        document.getElementById('toStep3').disabled = false; // Habilitar el botón Siguiente
+                                    });
+                                });
+                            })
+                            .catch(error => console.error('Error:', error));
+                    } else {
+                        // Si hubo un error, mostrar un mensaje
+                        const alert = document.createElement('div');
+                        alert.className = 'alert alert-danger';
+                        alert.textContent = data.message;
+                        templateList.appendChild(alert);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Funcion para mostrar la vista previa de la plantilla
+        function showPreview() {
+            console.log('Mostrando vista previa de la plantilla:', selectedTemplate);
+            // Consultar la plantilla seleccionada
+            fetch(`/ofi_plantillas/vista_previa_json?id=${selectedTemplate}`)
+                .then(response => response.json())
+                .then(data => {
+                    const preview = document.getElementById('templatePreview');
+                    preview.innerHTML = ''; // Limpiar la vista previa
+                    if (data.success) {
+                        // Eliminar el spinner
+                        const spinner = document.getElementById('step3-spinner');
+                        if (spinner) {
+                            spinner.remove();
+                        }
+                        // Copiar el HTML a una variable
+                        let html = data.data.contenido_html;
+                        // Reemplazar los marcadores
+                        html = html.replace(/\[\[DIA\]\]/g, new Date().getDate());
+                        html = html.replace(/\[\[MES\]\]/g, new Date().toLocaleString('es-MX', { month: 'long' }));
+                        html = html.replace(/\[\[AÑO\]\]/g, new Date().getFullYear());
+                        html = html.replace(/\[\[REMITENTE NOMBRE\]\]/g, '{{ current_user.nombre }}');
+                        html = html.replace(/\[\[REMITENTE PUESTO\]\]/g, '{{ current_user.puesto }}');
+                        html = html.replace(/\[\[REMITENTE AUTORIDAD\]\]/g, '{{ current_user.autoridad.descripcion }}');
+                        // Mostrar la vista previa de la plantilla
+                        preview.innerHTML = html;
+                        // Habilitar el botón Aceptar
+                        document.getElementById('acceptTemplate').disabled = false;
+                    } else {
+                        // Si hubo un error, mostrar un mensaje
+                        const alert = document.createElement('div');
+                        alert.className = 'alert alert-danger';
+                        alert.textContent = data.message;
+                        preview.appendChild(alert);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Cuando se cargue el contenido del DOM
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // Mostrar los cards de las autoridades
+            showCards();
+
+            // Agregar evento de clic al botón para ir al paso 2
+            document.getElementById('toStep2').addEventListener('click', function() {
+                step1.classList.add('d-none');
+                step2.classList.remove('d-none');
+                showTemplates(); // Mostrar el selector de plantillas
+            });
+
+            // Agregar evento de clic al botón para ir al paso 3
+            document.getElementById('toStep3').addEventListener('click', function() {
+                step2.classList.add('d-none');
+                step3.classList.remove('d-none');
+                showPreview(); // Mostrar la vista previa de la plantilla
+            });
+
+            // Agregar evento de clic al botón para regresar al paso 1
+            document.getElementById('backToStep1').addEventListener('click', function() {
+                step2.classList.add('d-none');
+                step1.classList.remove('d-none');
+                showCards(); // Mostrar los cards de las autoridades
+            });
+
+            // Agregar evento de clic al botón para regresar al paso 2
+            document.getElementById('backToStep2').addEventListener('click', function() {
+                step3.classList.add('d-none');
+                step2.classList.remove('d-none');
+                showTemplates(); // Mostrar el selector de plantillas
+            });
+
+            // Agregar evento de clic al botón para aceptar la plantilla
+            document.getElementById('acceptTemplate').addEventListener('click', function() {
+                // Redirigir al formulario de nuevo oficio con los parámetros seleccionados
+                window.location.href = `/ofi_documentos/nuevo/${selectedTemplate}`
+            });
+
+        });
+
+    </script>
+{% endblock %}

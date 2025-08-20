@@ -26,6 +26,9 @@
         {% if mostrar_boton_mi_autoridad %}
             {{ topbar.button('Mi Autoridad', url_for('ofi_documentos.list_active_mi_autoridad'), "mdi:scale-balance") }}
         {% endif %}
+        {% if current_user.can_admin('OFI PLANTILLAS') %}
+            {{ topbar.button('Plantillas', url_for('ofi_plantillas.list_active'), "mdi:note-multiple") }}
+        {% endif %}
         {% if mostrar_boton_editar and ofi_documento.estado == "BORRADOR" %}
             {{ topbar.button_edit('Editar', url_for('ofi_documentos.edit', ofi_documento_id=ofi_documento.id)) }}
         {% endif %}
