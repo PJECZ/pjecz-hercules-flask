@@ -32,6 +32,7 @@ class ReqRequisicionRegistro(database.Model, UniversalMixin):
     # Columnas
     cantidad: Mapped[int] = mapped_column(Integer, nullable=False)
     detalle: Mapped[str] = mapped_column(String(256))
+    clave: Mapped[str] = mapped_column(String(30))
 
     def __repr__(self):
         """Representación"""

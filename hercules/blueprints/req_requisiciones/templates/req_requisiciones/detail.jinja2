@@ -6,11 +6,13 @@
 {% block title %}Requisiciones{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons(req_requisicion.observaciones) %}
+    {% call topbar.page_buttons("Gasto: " +req_requisicion.gasto) %}
         {{ topbar.button_previous('Requisiciones', url_for('req_requisiciones.list_active')) }}
 
         {% if req_requisicion.estado in ['BORRADOR', 'SOLICITADO', 'CANCELADO POR SOLICITANTE', 'AUTORIZADO', 'CANCELADO POR AUTORIZANTE', 'REVISADO', 'CANCELADO POR REVISANTE'] %}
             {{ topbar.button_print('Imprimir', url_for('req_requisiciones.detail_print', req_requisicion_id=req_requisicion.id)) }}
+        {% endif %}
+        {% if req_requisicion.estado in ['SOLICITADO', 'CANCELADO POR SOLICITANTE', 'AUTORIZADO', 'CANCELADO POR AUTORIZANTE', 'REVISADO', 'CANCELADO POR REVISANTE'] %}
             {{ topbar.button_print('PDF', url_for('req_requisiciones.create_pdf', req_requisicion_id=req_requisicion.id)) }}
         {% endif %}
 
@@ -33,6 +35,7 @@
             {{ topbar.button('Cancelar Revisado', url_for('req_requisiciones.cancel_4_review',req_requisicion_id=req_requisicion.id)) }}
         {% endif %}
         {% if current_user.can_edit('REQ REQUISICIONES') and req_requisicion.estado == "BORRADOR" %}
+            {{ topbar.button_edit('Editar', url_for('req_requisiciones.edit', req_requisicion_id=req_requisicion.id)) }}
             {% if req_requisicion.estatus == 'A' %}
                 {{ topbar.button_delete('Eliminar', url_for('req_requisiciones.delete', req_requisicion_id=req_requisicion.id)) }}
             {% endif %}
@@ -94,7 +97,7 @@
 
     <div class="row">
         <div class="col-md-9">
-            {{ detail.labeldown_valueup('Area final a quien se entregara', req_requisicion.area) }}
+            {{ detail.labeldown_valueup('Area final a quien se entregara', req_requisicion.area_final) }}
         </div>
         <div class="col-md-3">
             {{ detail.labeldown_valueup('Fecha requerida', req_requisicion.fecha_requerida) }}
@@ -123,22 +126,22 @@
     <div class="col-md-12" id="divArticulos">
 
         <div class="row" style="border-bottom:1px solid #666">
-            <div class="col-md-1"><label>No. código</label></div>
+            <div class="col-md-2"><label>No. código</label></div>
             <div class="col-md-4"><label>Descripción</label></div>
             <div class="col-md-1"><label>U. medida</label></div>
             <div class="col-md-1"><label>Clave</label></div>
             <div class="col-md-1"><label>Cantidad</label></div>
-            <div class="col-md-4"><label>Detalle</label></div>
+            <div class="col-md-1"><label>Detalle</label></div>
         </div>
         {% if req_requisicion_registro %}
         {% for campos in req_requisicion_registro %}
         <div class="row" style="border-bottom:0px solid #666;" id="div">
-            <div class="col-md-1">{{ detail.value_only( campos.req_catalogo.id) }}</div>
+            <div class="col-md-2">{{ detail.value_only( campos.req_catalogo.codigo) }}</div>
             <div class="col-md-4">{{ detail.value_only( campos.req_catalogo.descripcion) }}</div>
             <div class="col-md-1">{{ detail.value_only( campos.req_catalogo.unidad_medida) }}</div>
-            <div class="col-md-1">{{ detail.value_only( campos.req_catalogo.clave) }}</div>
+            <div class="col-md-1">{{ detail.value_only( campos.clave) }}</div>
             <div class="col-md-1"> {{ detail.value_only( campos.cantidad) }}</div>
-            <div class="col-md-2"> {{ detail.value_only( campos.detalle) }}</div>
+            <div class="col-md-1"> {{ detail.value_only( campos.detalle) }}</div>
         </div>
         {% endfor %}
         {% else %}

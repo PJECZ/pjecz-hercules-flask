@@ -33,7 +33,7 @@ class ReqCatalogo(database.Model, UniversalMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     # Columnas
-    clave: Mapped[str] = mapped_column(String(16), unique=True)
+    codigo: Mapped[str] = mapped_column(String(16), unique=True)
     descripcion: Mapped[str] = mapped_column(String(256))
     unidad_medida: Mapped[str] = mapped_column(
         Enum(*UNIDADES_MEDIDAS, name="req_catalogos_unidades_medidas", native_enum=False), index=True

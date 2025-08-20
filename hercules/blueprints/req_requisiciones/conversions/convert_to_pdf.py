@@ -35,20 +35,18 @@ database.app = app
 def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
     """Convertir a PDF"""
 
-    print("******************* Inicia la conversion ********************************")
-    print(req_requisicion_id)    
     mensajes = []
     mensaje_info = "Inicia convertir a PDF."
     mensajes.append(mensaje_info)
     bitacora.info(mensaje_info)
     
-    # Validar que esté definida la variable de entorno CLOUD_STORAGE_DEPOSITO_OFICIOS
-#    if not CLOUD_STORAGE_DEPOSITO_OFICIOS:
-#        error = "La variable de entorno CLOUD_STORAGE_DEPOSITO_OFICIOS no está definida"
+    # Validar que esté definida la variable de entorno CLOUD_STORAGE_DEPOSITO_REQUISICIONES
+#    if not CLOUD_STORAGE_DEPOSITO_REQUISICIONES:
+#        error = "La variable de entorno CLOUD_STORAGE_DEPOSITO_REQUISICIONES no está definida"
 #        bitacora.error(error)
 #        raise MyNotValidParamError(error)
 
-    # Consultar el oficio
+    # Consultar la requisición
     req_requisicion_id = safe_uuid(req_requisicion_id)
     if not req_requisicion_id:
         error = "ID de Requisición inválido"
@@ -56,13 +54,40 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
         raise MyNotValidParamError(error)
     
     req_requisicion = ReqRequisicion.query.get(req_requisicion_id)
-    articulos = database.session.query(ReqRequisicionRegistro, ReqCatalogo).filter_by(req_requisicion_id=req_requisicion_id).join(ReqCatalogo).all()
+    articulos = database.session.query(ReqRequisicionRegistro, ReqCatalogo).filter_by(req_requisicion_id=req_requisicion_id, estatus="A" ).join(ReqCatalogo).all()
     usuario = Usuario.query.get_or_404(req_requisicion.usuario_id)
-    usuario_solicito = Usuario.query.get_or_404(req_requisicion.solicito_id) if req_requisicion.solicito_id!='' else ''
-    usuario_autorizo = Usuario.query.get_or_404(req_requisicion.autorizo_id) if req_requisicion.autorizo_id!='' else ''
-    usuario_reviso = Usuario.query.get_or_404(req_requisicion.reviso_id) if req_requisicion.reviso_id!='' else ''
-    autoridad = Autoridad.query.get_or_404(req_requisicion.usuario.autoridad_id)
+    
+    usuario_solicito = None
+    usuario_autorizo = None
+    usuario_reviso = None
 
+    usuario_solicito_nombre = ''
+    autoridad_solicito_descripcion = ''
+    usuario_autorizo_nombre = ''
+    autoridad_autorizo_descripcion = ''
+    usuario_reviso_nombre = ''
+    autoridad_reviso_descripcion = ''
+
+    if req_requisicion.solicito_id!=0 :
+        usuario_solicito = Usuario.query.get_or_404(req_requisicion.solicito_id)
+        usuario_solicito_nombre = usuario_solicito.nombre
+        autoridad_solicito = Autoridad.query.get_or_404(usuario_solicito.autoridad_id)
+        autoridad_solicito_descripcion = autoridad_solicito.descripcion
+
+    if req_requisicion.autorizo_id!=0 :
+        usuario_autorizo = Usuario.query.get_or_404(req_requisicion.autorizo_id)
+        usuario_autorizo_nombre = usuario_autorizo.nombre
+        autoridad_autorizo = Autoridad.query.get_or_404(usuario_autorizo.autoridad_id)
+        autoridad_autorizo_descripcion = autoridad_autorizo.descripcion
+    
+    if req_requisicion.reviso_id!=0 :
+        usuario_reviso = Usuario.query.get_or_404(req_requisicion.reviso_id)
+        usuario_reviso_nombre = usuario_reviso.nombre
+        autoridad_reviso = Autoridad.query.get_or_404(usuario_reviso.autoridad_id)
+        autoridad_reviso_descripcion = autoridad_reviso.descripcion
+
+    
+    
     if not req_requisicion:
         error = "La requisición no existe"
         bitacora.error(error)
@@ -73,7 +98,7 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
         error = "La Requisición está eliminada"
         bitacora.error(error)
         raise MyIsDeletedError(error)
-
+        
     # Validar que el estado sea FIRMADO
     if req_requisicion.estado not in ["SOLICITADO", "AUTORIZADO", "REVISADO"]:
         error = "La requisición no tiene la FIRMA SIMPLE"
@@ -95,7 +120,6 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
 
     # Agregar tag html y head
     
-
     contenidos.append(
         f'''
     <html>
@@ -105,7 +129,7 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
 
             <table style='width:100%; margin:0 auto;' repeat='1'>
                 <tr>
-                    <td><img src='static/img/escudo.jpg' width='280'></td>
+                    <td><img src='static/img/escudo.png' width='280'></td>
                     <td align='center' style='width:70%'>
                         <b>PODER JUDICIAL DEL ESTADO DE COAHUILA DE ZARAGOZA</b>
                         <br>
@@ -140,7 +164,7 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
                     <td colspan='6' style='background-color:#efeff1; color:#333'>GLOSA</td>
                 </tr>
                 <tr>
-                    <td colspan='6'>{autoridad.descripcion}</td>
+                    <td colspan='6'>{autoridad_solicito_descripcion}</td>
                     <td colspan='6'>{req_requisicion.glosa}</td>
                 </tr>
                 <tr>
@@ -187,12 +211,12 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
             contenidos.append(            
                 f'''
                 <tr>
-                    <td colspan=3>{campos.ReqCatalogo.id}</td>
+                    <td colspan=3>{campos.ReqCatalogo.codigo}</td>
                     <td colspan=5>{campos.ReqCatalogo.descripcion}</td>
                     <td>{campos.ReqCatalogo.unidad_medida}</td>
                     <td>{campos.ReqRequisicionRegistro.cantidad}</td>
-                    <td>{campos.ReqCatalogo.clave}</td>
-                    <td></td>
+                    <td>{campos.ReqRequisicionRegistro.clave}</td>
+                    <td>{campos.ReqRequisicionRegistro.detalle}</td>
                 </tr>
                 '''
                 )
@@ -233,20 +257,22 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
                         <br><br><br>
                         <br>
                         ________________________________<br>
-                        {usuario_solicito.nombres} {usuario_solicito.apellido_paterno} {usuario_solicito.apellido_materno}<br>
-                        {autoridad.descripcion}
+                        {usuario_solicito_nombre}<br>
+                        {autoridad_solicito_descripcion}
                     </td>
                     <td>
                         AUTORIZA
                         <br><br><br><br>
                         ________________________________<br>
-                        {usuario_autorizo.nombres} {usuario_autorizo.apellido_paterno} {usuario_autorizo.apellido_materno}
+                        {usuario_autorizo_nombre}
+                        {autoridad_autorizo_descripcion}
                     </td>
                     <td>
                         REVISÓ
                         <br><br><br><br>
                         ________________________________<br>
-                        {usuario_reviso.nombres} {usuario_reviso.apellido_paterno} {usuario_reviso.apellido_materno}
+                        {usuario_reviso_nombre}
+                        {autoridad_reviso_descripcion}
                     </td>
                 </tr>
             </table>
@@ -258,6 +284,7 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
     </html>
     '''
     )
+
 
     # Convertir el contenido HTML a archivo PDF
     archivo  = req_requisicion.gasto + ".pdf"
@@ -296,7 +323,7 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
 #        bitacora.error(f"Error al subir el archivo PDF a Google Cloud Storage: {error}")
 #        raise error
 
-    # Actualizar el oficio con la URL del archivo PDF
+    # Actualizar la requisicion con la URL del archivo PDF
 #    req_requisicion.archivo_pdf_url = archivo_pdf_url
 #    req_requisicion.save()
 
@@ -304,9 +331,6 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
     mensaje_termino = "Termina convertir a PDF."
     mensajes.append(mensaje_termino)
     bitacora.info(mensaje_termino)
-
-    print("******************* termino la conversion ********************************")
-    print(req_requisicion_id)
 
     # Entregar mensaje_termino, nombre_archivo y url_publica
     return "\n".join(mensajes), archivo_pdf_nombre, archivo_pdf_url

@@ -169,15 +169,16 @@
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<span title="' + data.nombre + '">' + data.clave + '</span>';
+                    //return data;
                 }
             },
             {
                 targets: 5, // justificacion
                 data: null,
                 render: function(data, type, row, meta) {
-                    if(data.length > 32)    {
-                        return '<span title="' + data + '">' + data.substring(0, 32) + '…</span>';
-                    }
+                    //if(data.length > 32)    {
+                    //    return '<span title="' + data + '">' + data.substring(0, 32) + '…</span>';
+                    //}
                     return data;
                 }
             },

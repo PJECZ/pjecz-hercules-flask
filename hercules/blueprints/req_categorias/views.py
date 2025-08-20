@@ -37,34 +37,19 @@ req_categorias = Blueprint("req_categorias", __name__, template_folder="template
 def before_request():
     """Permiso por defecto"""
 
-<<<<<<< HEAD
-@req_categorias.route("/req_categorias/datatable_json", methods=["GET", "POST"])
-def datatable_json():
-    """DataTable JSON para listado de Categorias"""
-=======
 
 @req_categorias.route("/req_categorias/datatable_json", methods=["GET", "POST"])
 def datatable_json():
     """DataTable JSON para listado de Req Categorías"""
->>>>>>> main
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
     consulta = ReqCategoria.query
-<<<<<<< HEAD
-=======
     # Primero filtrar por columnas propias
->>>>>>> main
     if "estatus" in request.form:
         consulta = consulta.filter_by(estatus=request.form["estatus"])
     else:
         consulta = consulta.filter_by(estatus="A")
-<<<<<<< HEAD
-    if "descripcion" in request.form:
-        consulta = consulta.filter(ReqCategoria.descripcion.contains(safe_string(request.form["descripcion"], to_uppercase=True)))
-    registros = consulta.order_by(ReqCategoria.id).offset(start).limit(rows_per_page).all()
-
-=======
     if "clave" in request.form:
         clave = safe_clave(request.form["clave"])
         if clave:
@@ -75,7 +60,6 @@ def datatable_json():
             consulta = consulta.filter(ReqCategoria.descripcion.contains(descripcion))
     # Ordenar y paginar
     registros = consulta.order_by(ReqCategoria.clave).offset(start).limit(rows_per_page).all()
->>>>>>> main
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -83,19 +67,11 @@ def datatable_json():
         data.append(
             {
                 "detalle": {
-<<<<<<< HEAD
-                    "id": resultado.id,
-                    "url": url_for("req_categorias.detail", req_categoria_id=resultado.id),
-                },
-                "id": resultado.id,
-                "descripcion": resultado.descripcion,
-=======
                     "clave": resultado.clave,
                     "url": url_for("req_categorias.detail", req_categoria_id=resultado.id),
                 },
                 "descripcion": resultado.descripcion,
                 "btn_agregar_catalogo": url_for("req_catalogos.new_with_categoria", req_categoria_id=resultado.id),
->>>>>>> main
             }
         )
     # Entregar JSON
