@@ -240,18 +240,21 @@ def generar_sicgd_csv(anio_mes, output):
 def bajas_por_csv(archivo_csv):
     """Baja de usuarios por lotes, utilizando un archivo CSV con correos de usuarios"""
     # Determinar id de los valores NO DEFINIDO en las tablas relacionales
-    distrito_nd_id = Distrito.query.filter_by(clave="ND").first().id
+    distrito_nd_id = Distrito.query.filter_by(clave="ND").first()
     if distrito_nd_id is None:
         click.echo("ERROR: No se encontró el distrito ND")
         return
-    autoridad_nd_id = Autoridad.query.filter_by(clave="ND").first().id
+    distrito_nd_id = distrito_nd_id.id
+    autoridad_nd_id = Autoridad.query.filter_by(clave="ND").first()
     if autoridad_nd_id is None:
         click.echo("ERROR: No se encontró la autoridad ND")
         return
-    oficina_nd_id = Oficina.query.filter_by(clave="ND").first().id
+    autoridad_nd_id = autoridad_nd_id.id
+    oficina_nd_id = Oficina.query.filter_by(clave="ND").first()
     if oficina_nd_id is None:
         click.echo("ERROR: No se encontró la oficina ND")
         return
+    oficina_nd_id = oficina_nd_id.id
     # Leyendo archivo CSV
     contador = 0
     contador_no_econtrados = 0
@@ -264,6 +267,9 @@ def bajas_por_csv(archivo_csv):
             if usuario is None:
                 click.echo(f"ERROR: No existe el e-mail {email} en usuarios")
                 contador_no_econtrados += 1
+                continue
+            # Si ya fue editado como baja anteriormente, omitirlo
+            if usuario.puesto == "BAJA":
                 continue
             # Editar metadatos de usuario
             usuario.distrito_id = distrito_nd_id
