@@ -27,6 +27,11 @@ from hercules.extensions import pwd_context
 from lib.cryptography import convert_string_to_fernet_key, simmetric_crypt, simmetric_decrypt
 from lib.pwgen import generar_api_key
 
+from hercules.blueprints.autoridades.models import Autoridad
+from hercules.blueprints.distritos.models import Distrito
+from hercules.blueprints.oficinas.models import Oficina
+
+
 # Cargar variables de entorno
 load_dotenv()
 FERNET_KEY = os.getenv("FERNET_KEY", "")
@@ -230,6 +235,50 @@ def generar_sicgd_csv(anio_mes, output):
     click.echo(f"  {contador} en {ruta.name}")
 
 
+@click.command()
+@click.argument("archivo_csv", type=click.Path(exists=True, readable=True))
+def bajas_por_csv(archivo_csv):
+    """Baja de usuarios por lotes, utilizando un archivo CSV con correos de usuarios"""
+    # Determinar id de los valores NO DEFINIDO en las tablas relacionales
+    distrito_nd_id = Distrito.query.filter_by(clave="ND").first().id
+    if distrito_nd_id is None:
+        click.echo("ERROR: No se encontró el distrito ND")
+        return
+    autoridad_nd_id = Autoridad.query.filter_by(clave="ND").first().id
+    if autoridad_nd_id is None:
+        click.echo("ERROR: No se encontró la autoridad ND")
+        return
+    oficina_nd_id = Oficina.query.filter_by(clave="ND").first().id
+    if oficina_nd_id is None:
+        click.echo("ERROR: No se encontró la oficina ND")
+        return
+    # Leyendo archivo CSV
+    contador = 0
+    contador_no_econtrados = 0
+    nombre_del_archivo = os.path.basename(archivo_csv)
+    with open(archivo_csv, "r", encoding="utf8") as puntero:
+        lector = csv.DictReader(puntero)
+        for renglon in lector:
+            email = renglon["email"]
+            usuario = Usuario.query.filter_by(email=email).first()
+            if usuario is None:
+                click.echo(f"ERROR: No existe el e-mail {email} en usuarios")
+                contador_no_econtrados += 1
+                continue
+            # Editar metadatos de usuario
+            usuario.distrito_id = distrito_nd_id
+            usuario.autoridad_id = autoridad_nd_id
+            usuario.oficina_id = oficina_nd_id
+            usuario.puesto = "BAJA"
+            usuario.save()
+            contador += 1
+    # Mostrar cantidad de usuarios editados
+    click.echo(f" Se dieron de baja {contador} usuarios encontrados en el archivo {nombre_del_archivo}")
+    # Mostrar errores si los hubo
+    if contador_no_econtrados > 0:
+        click.echo(f" No se encontraron {contador_no_econtrados} usuarios")
+
+
 cli.add_command(generar_fernet_key)
 cli.add_command(mostrar_api_key)
 cli.add_command(mostrar_efirma_contrasena)
@@ -237,3 +286,4 @@ cli.add_command(nueva_api_key)
 cli.add_command(nueva_contrasena)
 cli.add_command(nueva_efirma_contrasena)
 cli.add_command(generar_sicgd_csv)
+cli.add_command(bajas_por_csv)
