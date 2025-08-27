@@ -21,10 +21,12 @@
             {% call f.form_group(form.descripcion) %}{% endcall %}
             {% call f.form_group(form.folio) %}{% endcall %}
             {% call f.form_group(form.vencimiento_fecha) %}{% endcall %}
-            <div style="display:none">
-                {% call f.form_group(form.contenido_md) %}{% endcall %}
-                {% call f.form_group(form.contenido_html) %}{% endcall %}
-                {% call f.form_group(form.contenido_sfdt) %}{% endcall %}
+            <div class="alert alert-warning" role="alert">
+                <h4 class="alert-heading">Si va a "copiar y pegar"</h4>
+                <p class="mb-0">
+                    Siempre use <strong>pegar sin formato</strong>, de clic con el botón derecho del ratón.
+                    Luego use la barra de herramientas para cambiar el formato.
+                </p>
             </div>
             <div class="main-container">
                 <div class="editor-container editor-container_classic-editor editor-container_include-fullscreen" id="editor-container">
@@ -32,6 +34,11 @@
                         <div id="editor"></div>
                     </div>
                 </div>
+            </div>
+            <div style="display:none">
+                {% call f.form_group(form.contenido_md) %}{% endcall %}
+                {% call f.form_group(form.contenido_html) %}{% endcall %}
+                {% call f.form_group(form.contenido_sfdt) %}{% endcall %}
             </div>
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}
