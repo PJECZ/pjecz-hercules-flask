@@ -24,7 +24,13 @@
             {% call f.form_group(form.folio) %}{% endcall %}
             {% call f.form_group(form.vencimiento_fecha) %}{% endcall %}
             {% call f.form_group(form.cadena_oficio_id) %}{% endcall %}
-            <p><strong>MUY IMPORTANTE:</strong> Siempre pegue "sin formato" para reducir el tamaño del contenido HTML y conserve los marcadores.</p>
+            <div class="alert alert-warning" role="alert">
+                <h4 class="alert-heading">Si va a "copiar y pegar"</h4>
+                <p class="mb-0">
+                    Siempre use <strong>pegar sin formato</strong>, de clic con el botón derecho del ratón.
+                    Luego use la barra de herramientas para cambiar el formato.
+                </p>
+            </div>
             <div class="main-container">
                 <div class="editor-container editor-container_classic-editor editor-container_include-fullscreen" id="editor-container">
                     <div class="editor-container__editor">

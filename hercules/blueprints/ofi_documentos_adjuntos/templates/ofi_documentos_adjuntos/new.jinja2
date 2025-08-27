@@ -11,27 +11,29 @@
 {% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Agregar Archivo Adjunto') }}
+    {% call topbar.page_buttons('Agregar Archivo Adjunto') %}
+        {{ topbar.button_previous('Regresar al Oficio', url_for('ofi_documentos.detail', ofi_documento_id=ofi_documento.id)) }}
+    {% endcall %}
 {% endblock %}
 
 {% block content %}
-    <div class="card bg-primary text-light mb-3">
-        <div class="card-header">INFORMACIÓN</div>
-        <div class="card-body">
-            <h5 class="card-title">Tipos y tamaño de archivos permitidos.</h5>
-            <p class="card-text">Solo puede subir archivos de imagen (jpg, jpeg, png) de Office (doc, docx, xls, xlsx) y de pdf.<br />
-            El tamaño del archivo no debe superar los 20 MB.</p>
-        </div>
+    {% call f.card(title='Oficio ' + ofi_documento.folio) %}
+        {{ detail.label_value('Descripción', ofi_documento.descripcion) }}
+        {{ detail.label_value('Folio', ofi_documento.folio) }}
+    {% endcall %}
+    <div class="alert alert-info" role="alert">
+        <h4 class="alert-heading">Tipos de archivos permitidos</h4>
+        <ul class="mb-0">
+            <li>Imágenes: <strong>jpg, jpeg o png</strong></li>
+            <li>Documentos de Office: <strong>doc, docx, xls o xlsx</strong></li>
+            <li><strong>PDF</strong></li>
+        </ul>
     </div>
-    {% call f.card() %}
+    {% call f.card(title='Agregar Archivo Adjunto') %}
+        <!-- Formulario -->
         {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
         {% call f.form_tag_multipart('ofi_documentos_adjuntos.new_with_ofi_documento', fid='ofi_documento_adjunto_form', **form_kwargs) %}
-            <strong>Descripción del Oficio</strong>
-            <p>{{ ofi_documento.descripcion }}</p>
-            <strong>Folio del Oficio</strong>
-            <p>{{ ofi_documento.folio }}</p>
             {% call f.form_group(form.descripcion) %}{% endcall %}
-            <strong>Agregar Archivo Adjunto</strong>
             {% call f.drop_zone_wrapper() %}
                 {% call f.form_group(form.archivo, class="dropzone") %}{% endcall %}
             {% endcall %}
@@ -42,7 +44,7 @@
             </div>
         {% endcall %}
         <hr />
-        <!-- DataTable ArchivosAdjuntos -->
+        <!-- DataTable -->
         <table id="ofi_documentos_archvios_datatable" class="table display nowrap" style="width:100%">
             <thead>
                 <tr>

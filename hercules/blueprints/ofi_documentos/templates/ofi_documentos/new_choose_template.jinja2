@@ -169,11 +169,11 @@
                             spinner.remove();
                         }
                         // Crear los elementos de la lista para cada plantilla
-                        data.data.forEach(template => {
+                        data.data.forEach(plantilla => {
                             const item = document.createElement('li');
                             item.className = 'list-group-item list-group-item-action';
-                            item.dataset.template = template.id;
-                            item.innerHTML = `<i class="iconify" data-icon="mdi:folder"></i> ${template.descripcion}`;
+                            item.dataset.template = plantilla.id;
+                            item.innerHTML = `<i class="iconify" data-icon="${plantilla.tablero_icono}"></i> ${plantilla.descripcion}`;
                             templateList.appendChild(item);
                         });
                         // Consultar las plantillas del usuario actual
@@ -187,7 +187,7 @@
                                         const item = document.createElement('li');
                                         item.className = 'list-group-item list-group-item-action';
                                         item.dataset.template = template.id;
-                                        item.innerHTML = `<i class="iconify" data-icon="mdi:folder"></i> ${template.descripcion}`;
+                                        item.innerHTML = `<i class="iconify" data-icon="mdi:file"></i> ${template.descripcion}`;
                                         templateList.appendChild(item);
                                     });
                                 }
@@ -203,11 +203,37 @@
                             })
                             .catch(error => console.error('Error:', error));
                     } else {
-                        // Si hubo un error, mostrar un mensaje
+                        // Hubo un error, seguramente NO hay plantillas compartidas, mostrar ese mensaje
                         const alert = document.createElement('div');
-                        alert.className = 'alert alert-danger';
+                        alert.className = 'alert alert-warning';
                         alert.textContent = data.message;
                         templateList.appendChild(alert);
+                        // Consultar las plantillas del usuario actual
+                        fetch('/ofi_plantillas/mis_plantillas_json')
+                            .then(response => response.json())
+                            .then(data => {
+                                // Si la respuesta tiene éxito
+                                if (data.success) {
+                                    // Agregar los elementos de la lista para cada plantilla del usuario actual
+                                    data.data.forEach(template => {
+                                        const item = document.createElement('li');
+                                        item.className = 'list-group-item list-group-item-action';
+                                        item.dataset.template = template.id;
+                                        item.innerHTML = `<i class="iconify" data-icon="mdi:file"></i> ${template.descripcion}`;
+                                        templateList.appendChild(item);
+                                    });
+                                }
+                                // Agregar evento de clic a los TODOS los elementos de la lista
+                                document.querySelectorAll('.list-group-item').forEach(item => {
+                                    item.addEventListener('click', function() {
+                                        document.querySelectorAll('.list-group-item').forEach(i => i.classList.remove('active'));
+                                        this.classList.add('active');
+                                        selectedTemplate = this.dataset.template;
+                                        document.getElementById('toStep3').disabled = false; // Habilitar el botón Siguiente
+                                    });
+                                });
+                            })
+                            .catch(error => console.error('Error:', error));
                     }
                 })
                 .catch(error => console.error('Error:', error));

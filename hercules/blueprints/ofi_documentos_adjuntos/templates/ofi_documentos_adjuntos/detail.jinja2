@@ -3,10 +3,10 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Archivo Adjunto {{ ofi_documento_adjunto.id | string }}{% endblock %}
+{% block title %}Archivo Adjunto{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Archivo Adjunto ' + ofi_documento_adjunto.id | string) %}
+    {% call topbar.page_buttons('Archivo Adjunto ' + ofi_documento_adjunto.id | string | truncate(11) ) %}
         {{ topbar.button_previous('Oficio', url_for('ofi_documentos.detail', ofi_documento_id=ofi_documento_adjunto.ofi_documento.id)) }}
         {% if current_user.can_edit('OFI DOCUMENTOS ADJUNTOS') %}
             {# {{ topbar.button_edit('Editar', url_for('ofi_documentos_adjuntos.edit', ofi_documento_adjunto_id=ofi_documento_adjunto.id)) }} #}
@@ -20,7 +20,7 @@
 
 {% block content %}
     {% call detail.card(estatus=ofi_documento_adjunto.estatus) %}
-        {{ detail.label_value_big('Descripción', ofi_documento_adjunto.descripcion) }}
+        {{ detail.label_value('Descripción', ofi_documento_adjunto.descripcion) }}
         {{ detail.label_value('Oficio', ofi_documento_adjunto.ofi_documento.descripcion, url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_adjunto.ofi_documento.id)) }}
         {{ detail.label_value('Creado', moment(ofi_documento_adjunto.creado, local=False).format('DD MMM YYYY HH:mm')) }}
         {% if mostrar_boton_quitar %}

@@ -13,17 +13,19 @@
 {% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Agregar Destinatarios') }}
+    {% call topbar.page_buttons('Agregar Destinatario') %}
+        {{ topbar.button_previous('Regresar al Oficio', url_for('ofi_documentos.detail', ofi_documento_id=ofi_documento.id)) }}
+    {% endcall %}
 {% endblock %}
 
 {% block content %}
-    {% call f.card() %}
+    {% call f.card(title='Oficio ' + ofi_documento.folio) %}
+        {{ detail.label_value('Descripción', ofi_documento.descripcion) }}
+        {{ detail.label_value('Folio', ofi_documento.folio) }}
+    {% endcall %}
+    {% call f.card(title='Agregar Destinatarios') %}
         {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
         {% call f.form_tag('ofi_documentos_destinatarios.new_with_ofi_documento', fid='ofi_documento_destinatario_form', **form_kwargs) %}
-            <strong>Descripción del Oficio</strong>
-            <p>{{ ofi_documento.descripcion }}</p>
-            <strong>Folio del Oficio</strong>
-            <p>{{ ofi_documento.folio }}</p>
             <!-- Inicia mini-Formulario para agregar un destinatario -->
             <div class="form-group mb-2">
                 <label><strong>Agregar un usuario</strong></label>
