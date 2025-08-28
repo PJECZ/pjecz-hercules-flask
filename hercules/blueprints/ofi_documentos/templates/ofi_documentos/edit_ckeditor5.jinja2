@@ -2,7 +2,7 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Editar {{ ofi_documento.descripcion }}{% endblock %}
+{% block title %}Editar {{ ofi_documento.descripcion | truncate(48) }}{% endblock %}
 
 {% block custom_head %}
     <!-- CKEditor 5 -->

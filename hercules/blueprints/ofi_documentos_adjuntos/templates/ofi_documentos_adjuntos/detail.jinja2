@@ -3,14 +3,11 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Archivo Adjunto{% endblock %}
+{% block title %}Archivo Adjunto de {{ ofi_documento_adjunto.ofi_documento.descripcion | truncate(48) }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Archivo Adjunto ' + ofi_documento_adjunto.id | string | truncate(11) ) %}
+    {% call topbar.page_buttons('Archivo Adjunto de ' + ofi_documento_adjunto.ofi_documento.descripcion | truncate(48)) %}
         {{ topbar.button_previous('Oficio', url_for('ofi_documentos.detail', ofi_documento_id=ofi_documento_adjunto.ofi_documento.id)) }}
-        {% if current_user.can_edit('OFI DOCUMENTOS ADJUNTOS') %}
-            {# {{ topbar.button_edit('Editar', url_for('ofi_documentos_adjuntos.edit', ofi_documento_adjunto_id=ofi_documento_adjunto.id)) }} #}
-        {% endif %}
         {% if current_user.can_admin('OFI DOCUMENTOS ADJUNTOS') %}
             {% if ofi_documento_adjunto.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('ofi_documentos_adjuntos.delete', ofi_documento_adjunto_id=ofi_documento_adjunto.id)) }}{% endif %}
             {% if ofi_documento_adjunto.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('ofi_documentos_adjuntos.recover', ofi_documento_adjunto_id=ofi_documento_adjunto.id)) }}{% endif %}
@@ -19,30 +16,55 @@
 {% endblock %}
 
 {% block content %}
-    {% call detail.card(estatus=ofi_documento_adjunto.estatus) %}
-        {{ detail.label_value('Descripción', ofi_documento_adjunto.descripcion) }}
-        {{ detail.label_value('Oficio', ofi_documento_adjunto.ofi_documento.descripcion, url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento_adjunto.ofi_documento.id)) }}
-        {{ detail.label_value('Creado', moment(ofi_documento_adjunto.creado, local=False).format('DD MMM YYYY HH:mm')) }}
-        {% if mostrar_boton_quitar %}
-            <div class="row">
-                <div class="col-md-6"></div>
-                <div class="col-md-3 mt-2"></div>
-                <div class="col-md-3">
-                    {{ modals.button_modal_md('Quitar', url_for('ofi_documentos_adjuntos.delete', ofi_documento_adjunto_id=ofi_documento_adjunto.id), "Quitar", "mdi:file-document-remove-outline", "¿Desea quitar el archivo adjunto?",  "btn-danger") }}
-                </div>
-            </div>
+    {% call detail.card(title='Oficio') %}
+        {% if current_user.can_view('OFI DOCUMENTOS') %}
+            {{ detail.label_value('Descripción', ofi_documento_adjunto.ofi_documento.descripcion, url_for('ofi_documentos.detail', ofi_documento_id=ofi_documento_adjunto.ofi_documento.id)) }}
+        {% else %}
+            {{ detail.label_value('Descripción', ofi_documento_adjunto.ofi_documento.descripcion) }}
+        {% endif %}
+        {{ detail.label_value('Folio', ofi_documento_adjunto.ofi_documento.folio) }}
+        {% if current_user.can_view('USUARIOS') %}
+            {{ detail.label_value('Propietario', ofi_documento_adjunto.ofi_documento.usuario.nombre,  url_for("usuarios.detail", usuario_id=ofi_documento_adjunto.ofi_documento.usuario.id)) }}
+        {% else %}
+            {{ detail.label_value('Propietario', ofi_documento_adjunto.ofi_documento.usuario.nombre) }}
         {% endif %}
     {% endcall %}
-    <!-- Preview del archivo -->
-    {% call detail.card('Vista previa del archivo') %}
+    {% call detail.card(title='Archivo Adjunto', estatus=ofi_documento_adjunto.estatus) %}
+        {{ detail.label_value('Descripción', ofi_documento_adjunto.descripcion) }}
         {% if ofi_documento_adjunto.type_format(ofi_documento_adjunto.archivo) == "IMG" %}
             <img src="{{ url_for('ofi_documentos_adjuntos.view_file_img', ofi_documento_adjunto_id=ofi_documento_adjunto.id) }}" width="100%" height="auto">
+            {% if mostrar_boton_quitar %}
+                <div class="row">
+                    <div class="col-md-9"></div>
+                    <div class="col-md-3">
+                        {{ modals.button_modal_md('Quitar', url_for('ofi_documentos_adjuntos.delete', ofi_documento_adjunto_id=ofi_documento_adjunto.id), "Quitar", "mdi:file-document-remove-outline", "¿Desea quitar el archivo adjunto?",  "btn-danger") }}
+                    </div>
+                </div>
+            {% endif %}
         {% elif ofi_documento_adjunto.type_format(ofi_documento_adjunto.archivo) == "PDF" %}
             <object data="{{ url_for('ofi_documentos_adjuntos.view_file_pdf', ofi_documento_adjunto_id=ofi_documento_adjunto.id) }}" type="application/pdf" width="100%" height="600px">
                 <p class="mb-0">El navegador no puede mostrar el archivo PDF o no existe en el depósito.</p>
             </object>
+            {% if mostrar_boton_quitar %}
+                <div class="row">
+                    <div class="col-md-9"></div>
+                    <div class="col-md-3">
+                        {{ modals.button_modal_md('Quitar', url_for('ofi_documentos_adjuntos.delete', ofi_documento_adjunto_id=ofi_documento_adjunto.id), "Quitar", "mdi:file-document-remove-outline", "¿Desea quitar el archivo adjunto?",  "btn-danger") }}
+                    </div>
+                </div>
+            {% endif %}
         {% elif ofi_documento_adjunto.type_format(ofi_documento_adjunto.archivo) == "DOC" %}
-            {{ detail.button_md("Descargar", url_for('ofi_documentos_adjuntos.download_docs', ofi_documento_adjunto_id=ofi_documento_adjunto.id), "mdi:download", "", "btn-success") }}
+            {% if mostrar_boton_quitar %}
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ detail.button_md("Descargar", url_for('ofi_documentos_adjuntos.download_doc_xls', ofi_documento_adjunto_id=ofi_documento_adjunto.id), "mdi:download", "", "btn-success") }}
+                    </div>
+                    <div class="col-md-6"></div>
+                    <div class="col-md-3">
+                        {{ modals.button_modal_md('Quitar', url_for('ofi_documentos_adjuntos.delete', ofi_documento_adjunto_id=ofi_documento_adjunto.id), "Quitar", "mdi:file-document-remove-outline", "¿Desea quitar el archivo adjunto?",  "btn-danger") }}
+                    </div>
+                </div>
+            {% endif %}
         {% endif %}
     {% endcall %}
 {% endblock %}

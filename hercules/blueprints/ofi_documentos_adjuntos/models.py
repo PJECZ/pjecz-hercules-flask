@@ -48,7 +48,7 @@ class OfiDocumentoAdjunto(database.Model, UniversalMixin):
     def type_format(file_name):
         "Tipo de formato del archivo"
         try:
-            extension = file_name.rsplit(".", 1)[1]
+            extension = file_name.rsplit(".", 1)[1].lower()
         except:
             return ""
         if extension in ("jpg", "jpeg", "png"):

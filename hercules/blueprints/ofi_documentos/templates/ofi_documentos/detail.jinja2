@@ -3,7 +3,7 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Oficio {{ ofi_documento.descripcion }}{% endblock %}
+{% block title %}Oficio {{ ofi_documento.descripcion | truncate(48) }}{% endblock %}
 
 {% block custom_head %}
 {% endblock %}
