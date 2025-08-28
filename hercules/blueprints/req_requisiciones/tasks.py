@@ -1,12 +1,30 @@
 """
-Req Requisiciones, tareas en el fondo
+Requisiciones, tareas en el fondo
 """
+from datetime import datetime
+import json
+import logging
+import os
 
+import requests
 from lib.exceptions import (
     MyAnyError,
+    MyConnectionError,
+    MyMissingConfigurationError,
+    MyNotValidParamError,
+    MyStatusCodeError,
+    MyRequestError,
+    MyResponseError,
 )
-from lib.tasks import set_task_error, set_task_progress
+from lib.safe_string import safe_string
+
+
+from hercules.app import create_app
+from hercules.blueprints.req_requisiciones.models import ReqRequisicion
+from hercules.blueprints.usuarios.models import Usuario
 from hercules.blueprints.req_requisiciones.conversions.convert_to_pdf import convertir_a_pdf
+from lib.tasks import set_task_error, set_task_progress
+
 
 
 def lanzar_convertir_requisicion_a_pdf(req_requisicion_id: str) -> str:

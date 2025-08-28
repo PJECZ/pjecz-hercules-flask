@@ -15,13 +15,16 @@
 
 {# etiqueta con texto de ayuda #}
 {%- macro field_label(f) -%}
-    <label for="{{ f.id }}">
-    {%- if f.flags.required -%}
-        <strong>{{ f.label.text }}</strong>
-    {%- else %}
-        {{ f.label.text }}
-    {%- endif %}
-    </label>
+    {%- if f.label.text -%}
+        <label for="{{ f.id }}">
+        {%- if f.flags.required -%}
+            <strong>{{ f.label.text }}</strong>
+        {%- else %}
+            {{ f.label.text }}
+        {%- endif %}
+        </label>
+    {%- endif -%}
+
 {%- endmacro -%}
 
 {# errores de validación si los hay #}

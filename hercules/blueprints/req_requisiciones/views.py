@@ -3,9 +3,9 @@ Req Requisiciones, vistas
 """
 
 import json
-from datetime import datetime
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from datetime import datetime
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_string, safe_message, safe_clave
@@ -16,27 +16,26 @@ from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from hercules.blueprints.req_requisiciones.models import ReqRequisicion
-from hercules.blueprints.usuarios.models import Usuario
+from hercules.blueprints.req_requisiciones.forms import ReqRequisicionCancel2RequestForm, ReqRequisicionNewForm, ReqRequisicionStep2RequestForm, ReqRequisicionStep3AuthorizeForm, ReqRequisicionStep4ReviewForm, ReqRequisicionCancel3AuthorizeForm, ReqRequisicionCancel4ReviewForm
+from hercules.blueprints.req_requisiciones.forms import ArticulosForm
 from hercules.blueprints.autoridades.models import Autoridad
-
 from hercules.blueprints.req_catalogos.models import ReqCatalogo
 from hercules.blueprints.req_requisiciones_registros.models import ReqRequisicionRegistro
-from hercules.blueprints.req_requisiciones.forms import ReqRequisicionNewForm
-
-
-# Roles necesarios
-ROL_LECTOR = "REQUISICIONES LECTOR"
-ROL_ESCRITOR = "REQUISICIONES ESCRITOR"
-ROL_SOLICITANTE = "REQUISICIONES SOLICITANTE"
-ROL_AUTORIZANTE = "REQUISICIONES AUTORIZANTE"
-ROL_REVISOR = "REQUISICIONES REVISOR"
-ROL_MATERIALES = "REQUISICIONES MATERIALES"
-
+from hercules.blueprints.usuarios.models import Usuario
+from hercules.extensions import database
 
 MODULO = "REQ REQUISICIONES"
 
 req_requisiciones = Blueprint("req_requisiciones", __name__, template_folder="templates")
 
+# Roles que deben estar en la base de datos
+ROL_ASISTENTES = "REQUISICIONES ASISTENTES"
+ROL_SOLICITANTES = "REQUISICIONES SOLICITANTES"
+ROL_AUTORIZANTES = "REQUISICIONES AUTORIZANTES"
+ROL_REVISANTES = "REQUISICIONES REVISANTES"
+
+ROLES_PUEDEN_VER = (ROL_SOLICITANTES, ROL_AUTORIZANTES, ROL_REVISANTES, ROL_ASISTENTES)
+ROLES_PUEDEN_IMPRIMIR = (ROL_SOLICITANTES, ROL_AUTORIZANTES, ROL_REVISANTES, ROL_ASISTENTES)
 
 @req_requisiciones.before_request
 @login_required
@@ -45,91 +44,81 @@ def before_request():
     """Permiso por defecto"""
 
 
+@req_requisiciones.route("/req_requisiciones/imprimirpdf")
+def pdf():
+    now = datetime.now()
+    current_report_date = now.strftime("%Y-%m-%d %H:%M:%S")
+
+    rendered = render_template(
+        'req_requisiciones/print.jinja2', 
+        report_title = "Requisición", 
+        current_report_date = current_report_date
+    )
+
+    pdf = pdfkit.from_string(rendered, False)
+    response = make_response(pdf)
+    response.headers['Content-Type']='application/pdf'
+    response.headers['Content-Disposition']='inline; filename=requisicion.pdf'
+    return response
+
 @req_requisiciones.route("/req_requisiciones/datatable_json", methods=["GET", "POST"])
 def datatable_json():
-    """DataTable JSON para listado de Req Requisiciones"""
+    """DataTable JSON para listado de Requisiciones"""
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
     consulta = ReqRequisicion.query
-    # Primero filtrar por columnas propias
-    if "estatus" in request.form:
-        consulta = consulta.filter(ReqRequisicion.estatus == request.form["estatus"])
-    else:
-        consulta = consulta.filter(ReqRequisicion.estatus == "A")
-    if "folio" in request.form:
-        folio = safe_string(request.form["folio"])
-        if folio:
-            consulta = consulta.filter(ReqRequisicion.folio.contains(folio))
-    if "justificacion" in request.form:
-        justificacion = safe_string(request.form["justificacion"])
-        if justificacion:
-            consulta = consulta.filter(ReqRequisicion.justificacion.contains(justificacion))
+    
     if "estado" in request.form:
-        consulta = consulta.filter(ReqRequisicion.estado == request.form["estado"])
-    # Filtrar por usuario id
-    if "usuario_id" in request.form:
-        consulta = consulta.filter(ReqRequisicion.usuario_id == request.form["usuario_id"])
-    # Filtrar por ID de autoridad
-    tabla_usuario_incluida = False
-    if "autoridad_id" in request.form:
-        autoridad_id = int(request.form["autoridad_id"])
-        if autoridad_id:
-            consulta = consulta.join(Usuario)
-            tabla_usuario_incluida = True
-            consulta = consulta.filter(Usuario.autoridad_id == autoridad_id)
-    # Filtrar por clave de la autoridad
-    elif "autoridad_clave" in request.form:
-        autoridad_clave = safe_clave(request.form["autoridad_clave"])
-        if autoridad_clave:
-            consulta = consulta.join(Usuario)
-            tabla_usuario_incluida = True
-            consulta = consulta.join(Autoridad, Usuario.autoridad_id == Autoridad.id)
-            consulta = consulta.filter(Autoridad.clave.contains(autoridad_clave))
-    if "usuario_nombre" in request.form:
-        usuario_nombre = safe_string(request.form["usuario_nombre"])
-        if usuario_nombre:
-            if not tabla_usuario_incluida:
-                consulta = consulta.join(Usuario)
-                tabla_usuario_incluida = True
-            palabras = usuario_nombre.split()
-            for palabra in palabras:
-                consulta = consulta.filter(
-                    or_(
-                        Usuario.nombres.contains(palabra),
-                        Usuario.apellido_paterno.contains(palabra),
-                        Usuario.apellido_materno.contains(palabra),
-                    )
-                )
-    # Ordenar y paginar
-    registros = consulta.order_by(ReqRequisicion.creado.desc()).offset(start).limit(rows_per_page).all()
+        consulta = consulta.filter_by(estado=request.form["estado"])
+    if "autoridad" in request.form:
+        consulta = consulta.filter_by(autoridad_id=request.form["autoridad"])
+    if "solicito_id" in request.form:
+        consulta = consulta.filter_by(solicito_id=request.form["solicito_id"])
+    if "estatus" in request.form:
+        consulta = consulta.filter_by(estatus=request.form["estatus"])
+    else:
+        consulta = consulta.filter_by(estatus="A")
+    if "glosa" in request.form:
+        consulta = consulta.filter(ReqRequisicion.glosa.contains(safe_string(request.form["glosa"], to_uppercase=False)))
+    if "observaciones" in request.form:
+        consulta = consulta.filter(ReqRequisicion.observaciones.contains(safe_string(request.form["observaciones"], to_uppercase=True)))
+    registros = consulta.order_by(ReqRequisicion.id).offset(start).limit(rows_per_page).all()
+
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
     for resultado in registros:
-        # Icono en detalle
-        icono_detalle = None
-        if resultado.esta_archivado:
-            icono_detalle = "ARCHIVADO"
-        elif resultado.esta_cancelado:
-            icono_detalle = "CANCELADO"
-        # Elaborar registro
+        oficina =""
+        
+        autoridad = Autoridad.query.filter_by(id = resultado.autoridad_id)
+        for row in autoridad:
+            clave = row.clave
+            nombre = row.descripcion
+            
+
         data.append(
             {
-                "detalle": {
-                    "id": resultado.id,
-                    "icono": icono_detalle,
-                    "url": url_for("req_requisiciones.detail", req_requisicion_id=resultado.id),
-                },
-                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
-                "usuario": resultado.usuario.nombre,
-                "autoridad": {
-                    "clave": resultado.usuario.autoridad.clave,
-                    "nombre": resultado.usuario.autoridad.descripcion_corta,
-                },
-                "folio": resultado.folio,
-                "justificacion": resultado.justificacion,
+                "id": resultado.id,
+                "folio": resultado.gasto,
                 "estado": resultado.estado,
+                "oficina": oficina,
+                "autoridad": {
+                    "nombre":nombre,
+                    "clave":clave,
+                },
+                "creado": resultado.usuario.nombre,
+                "usuario" : resultado.usuario.nombre,
+                "nombre" : resultado.usuario.nombre,
+                "fecha": resultado.fecha,
+                "glosa": resultado.glosa,
+                "justificacion": resultado.justificacion,
+                "detalle": {
+                    "gasto": resultado.gasto,
+                    "url": url_for("req_requisiciones.detail", req_requisicion_id=resultado.id),
+                    "icono":"",
+                },
+                "observaciones": resultado.observaciones[0:50],
             }
         )
     # Entregar JSON
@@ -138,73 +127,122 @@ def datatable_json():
 
 @req_requisiciones.route("/req_requisiciones")
 def list_active():
-    """Listado de Req Requisiciones activos"""
+    """Listado de Requisiciones activos"""
+
+    # Si es administrador puede ver TODAS las requisiciones
+    if current_user.can_admin(MODULO):
+        return render_template(
+            "req_requisiciones/list.jinja2",
+            filtros=json.dumps({"estatus": "A"}),
+            titulo="Administrar las Requisiciones",
+            estatus="A",
+        )
+    # Consultar los roles del usuario
+    current_user_roles = current_user.get_roles()
+    # Si es asistente, mostrar TODAS las Requisiciones de su oficina
+    if ROL_ASISTENTES in current_user_roles:
+        return render_template(
+            "req_requisiciones/list.jinja2",
+            filtros=json.dumps({"estatus": "A", "autoridad": current_user.autoridad_id}),
+            titulo="Requisiciones de mi oficina",
+            estatus="A",
+        )
+    # Si es solicitante, mostrar Requisiciones por Solicitar
+    if ROL_SOLICITANTES in current_user_roles:
+        return render_template(
+            "req_requisiciones/list.jinja2",
+            filtros=json.dumps({"estatus": "A", "solicito_id":current_user.id}),
+            titulo="Requisiciones Solicitadas",
+            estatus="A",
+        )
+    # Si es autorizante, mostrar Requisiciones por Autorizar
+    if ROL_AUTORIZANTES in current_user_roles:
+        return render_template(
+            "req_requisiciones/list.jinja2",
+            filtros=json.dumps({"estatus": "A", "estado": "SOLICITADO"}),
+            titulo="Requisiciones Solicitadas (por autorizar)",
+            estatus="A",
+        )
+    if ROL_REVISANTES in current_user_roles:
+        return render_template(
+            "req_requisiciones/list.jinja2",
+            filtros=json.dumps({"estatus": "A", "estado": "AUTORIZADO"}),
+            titulo="Requisiciones Autorizadas (por revisar)",
+            estatus="A",
+        )
+    # Mostrar Mis Requisiciones
     return render_template(
         "req_requisiciones/list.jinja2",
         filtros=json.dumps({"estatus": "A", "usuario_id": current_user.id}),
         titulo="Mis Requisiciones",
         estatus="A",
-        estados=ReqRequisicion.ESTADOS,
-        boton_activo="MIS REQUISICIONES",
     )
 
 
-@req_requisiciones.route("/req_requisiciones_mi_autoridad")
+@req_requisiciones.route("/req_requisiciones/mi_autoridad")
 def list_active_mi_autoridad():
-    """Listado de Req Requisiciones de mi autoridad activos"""
+    """Listado de Requisiciones activos"""
+
+    # Si es administrador puede ver TODAS las requisiciones
+    if current_user.can_admin(MODULO):
+        return render_template(
+            "req_requisiciones/list.jinja2",
+            filtros=json.dumps({"estatus": "A"}),
+            titulo="Administrar las Requisiciones",
+            estatus="A",
+        )
+    # Consultar los roles del usuario
+    current_user_roles = current_user.get_roles()
+    # Si es asistente, mostrar TODAS las Requisiciones de su oficina
+    if ROL_ASISTENTES in current_user_roles:
+        return render_template(
+            "req_requisiciones/list.jinja2",
+            filtros=json.dumps({"estatus": "A", "autoridad": current_user.autoridad_id}),
+            titulo="Requisiciones de mi oficina",
+            estatus="A",
+        )
+    # Si es solicitante, mostrar Requisiciones por Solicitar
+    if ROL_SOLICITANTES in current_user_roles:
+        return render_template(
+            "req_requisiciones/list.jinja2",
+            filtros=json.dumps({"estatus": "A", "autoridad":current_user.autoridad_id}),
+            titulo="Requisiciones Solicitadas",
+            estatus="A",
+        )
+    # Si es autorizante, mostrar Requisiciones por Autorizar
+    if ROL_AUTORIZANTES in current_user_roles:
+        return render_template(
+            "req_requisiciones/list.jinja2",
+            filtros=json.dumps({"estatus": "A", "estado": "SOLICITADO"}),
+            titulo="Requisiciones Solicitadas (por autorizar)",
+            estatus="A",
+        )
+    if ROL_REVISANTES in current_user_roles:
+        return render_template(
+            "req_requisiciones/list.jinja2",
+            filtros=json.dumps({"estatus": "A", "estado": "AUTORIZADO"}),
+            titulo="Requisiciones Autorizadas (por revisar)",
+            estatus="A",
+        )
+    # Mostrar Mis Requisiciones
     return render_template(
         "req_requisiciones/list.jinja2",
-        filtros=json.dumps({"estatus": "A", "autoridad_id": current_user.autoridad.id}),
-        titulo=f"Requisiciones de {current_user.autoridad.descripcion_corta}",
+        filtros=json.dumps({"estatus": "A", "usuario_id": current_user.id}),
+        titulo="Mis Requisiciones",
         estatus="A",
-        estados=ReqRequisicion.ESTADOS,
-        boton_activo="MI AUTORIDAD",
     )
 
 
 @req_requisiciones.route("/req_requisiciones/inactivos")
-@permission_required(MODULO, Permiso.ADMINISTRAR)
+@permission_required(MODULO, Permiso.MODIFICAR)
 def list_inactive():
-    """Listado de Req Requisiciones inactivos"""
+    """Listado de Requisiciones inactivas"""
     return render_template(
         "req_requisiciones/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Requisiciones inactivas",
+        titulo="Listado de requisiciones inactivas",
         estatus="B",
-        estados=ReqRequisicion.ESTADOS,
     )
-
-
-@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>")
-def detail(req_requisicion_id):
-    """Detalle de un Req Requisición"""
-    current_user_roles = current_user.get_roles()
-    # Si es asistente, mostrar TODAS las Requisiciones de su oficina
-    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
-    articulos = ReqRequisicionRegistro.query.filter_by(req_requisicion_id=req_requisicion_id).join(ReqCatalogo).all()
-    usuario = Usuario.query.get_or_404(req_requisicion.usuario_id) if req_requisicion.usuario_id > 0 else ""
-    usuario_solicito = Usuario.query.get_or_404(req_requisicion.solicito_id) if req_requisicion.solicito_id > 0 else ""
-    usuario_autorizo = Usuario.query.get_or_404(req_requisicion.autorizo_id) if req_requisicion.autorizo_id > 0 else ""
-    usuario_reviso = Usuario.query.get_or_404(req_requisicion.reviso_id) if req_requisicion.reviso_id > 0 else ""
-    autoridad = Autoridad.query.get_or_404(req_requisicion.usuario.autoridad_id)
-    return render_template(
-        "req_requisiciones/detail.jinja2",
-        req_requisicion=req_requisicion,
-        req_requisicion_registro=articulos,
-        usuario=usuario,
-        autoridad=autoridad,
-        usuario_solicito=usuario_solicito,
-        usuario_autorizo=usuario_autorizo,
-        usuario_reviso=usuario_reviso,
-        current_user_roles=current_user_roles,
-    )
-
-
-@req_requisiciones.route("/req_requisiciones/buscarRegistros/", methods=["GET"])
-def buscarRegistros():
-    args = request.args
-    registro = ReqCatalogo.query.get_or_404(args.get("req_catalogo_id"))
-    return ReqCatalogo.object_as_dict(registro)
 
 
 @req_requisiciones.route("/req_requisiciones/nuevo", methods=["GET", "POST"])
@@ -212,21 +250,14 @@ def buscarRegistros():
 def new():
     """Requisiciones nueva"""
     form = ReqRequisicionNewForm()
-    form.claveTmp.choices = [("", "")] + [
-        (c.id, c.clave + " - " + c.descripcion) for c in ReqCatalogo.query.order_by("descripcion")
-    ]
-    form.cveTmp.choices = (
-        [("", "")]
-        + [("INS", "INSUFICIENCIA")]
-        + [("REP", "REPOSICION DE BIENES")]
-        + [("OBS", "OBSOLESENCIA")]
-        + [("AMP", "AMPLIACION COBERTURA DEL SERVICIO")]
-        + [("NUE", "NUEVO PROYECTO")]
-    )
+    #form.area.choices = [("", "")] + [(a.id, a.descripcion) for a in Autoridad.query.order_by("descripcion")]
+    form.codigoTmp.choices = [("", "")] + [(c.id, c.codigo + " - " + c.descripcion) for c in ReqCatalogo.query.order_by("descripcion")]
+    form.claveTmp.choices = [("", "")] + [("INS", "INSUFICIENCIA")] + [("REP", "REPOSICION DE BIENES")] + [("OBS", "OBSOLESENCIA")] + [("AMP", "AMPLIACION COBERTURA DEL SERVICIO")] + [("NUE", "NUEVO PROYECTO")]
     if form.validate_on_submit():
         # Guardar requisicion
         req_requisicion = ReqRequisicion(
             usuario=current_user,
+            #autoridad_id=form.area.data,
             estado="BORRADOR",
             observaciones=safe_string(form.observaciones.data, max_len=256, to_uppercase=True, save_enie=True),
             justificacion=safe_string(form.justificacion.data, max_len=1024, to_uppercase=True, save_enie=True),
@@ -234,20 +265,23 @@ def new():
             gasto=safe_string(form.gasto.data, to_uppercase=True, save_enie=True),
             glosa=form.glosa.data,
             programa=safe_string(form.programa.data, to_uppercase=True, save_enie=True),
-            fuente_financiamiento=safe_string(form.fuente_financiamiento.data, to_uppercase=True, save_enie=True),
+            fuente_financiamiento=safe_string(form.fuenteFinanciamiento.data, to_uppercase=True, save_enie=True),
+            area_final=safe_string(form.areaFinal.data, to_uppercase=True, save_enie=True),
             fecha_requerida=form.fechaRequerida.data,
+            autoridad_id=current_user.autoridad_id,
             solicito_id=0,
             autorizo_id=0,
-            reviso_id=0,
+            reviso_id=0
         )
         req_requisicion.save()
         # Guardar los registros de la requisición
         for registros in form.articulos:
-            if registros.clave.data != None:
+            if registros.codigo.data != '':
+
                 req_requisicion_registro = ReqRequisicionRegistro(
                     req_requisicion_id=req_requisicion.id,
-                    req_catalogo_id=registros.clave.data,
-                    # clave=registros.clave.data,
+                    req_catalogo_id=registros.idArticulo.data,
+                    clave=registros.clave.data,
                     cantidad=registros.cantidad.data,
                     detalle=registros.detalle.data,
                 )
@@ -263,9 +297,418 @@ def new():
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
-    return render_template(
-        "req_requisiciones/new.jinja2", titulo="Nueva Requisición", form=form, area=current_user.autoridad.descripcion
-    )
+    return render_template("req_requisiciones/new.jinja2", titulo="Requisicion nueva", form=form, area=current_user.autoridad.descripcion)
+
+@req_requisiciones.route("/req_requisiciones/editar/<req_requisicion_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.CREAR)
+def edit(req_requisicion_id):
+    """Requisiciones editar"""
+
+    # Consultar la requisicion
+    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
+    # Consultar los articulos de la requisicion
+    articulos = ReqRequisicionRegistro.query.filter_by(req_requisicion_id=req_requisicion_id, estatus='A').join(ReqCatalogo).all()
+    
+    # Validar que el estatus sea A
+    if req_requisicion.estatus != "A":
+        flash("No puede editar esta requisición porque esta eliminada", "warning")
+        return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+
+    # Validar que el estado sea CREADO
+    if req_requisicion.estado != "BORRADOR":
+        flash("No puede editar esta requisición porque ya fue enviada a revisión (el estado no es CREADO)", "warning")
+        return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+
+    # Validar que el usuario sea quien creo la requisición
+    if not (current_user.can_admin(MODULO) or req_requisicion.usuario_id == current_user.id):
+        flash("No puede editar esta requisición porque usted no la creo", "warning")
+        return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+    
+    form = ReqRequisicionNewForm()
+    #form.area.choices = [("", "")] + [(a.id, a.descripcion) for a in Autoridad.query.order_by("descripcion")]
+    form.codigoTmp.choices = [("", "")] + [(c.id, c.codigo + " - " + c.descripcion) for c in ReqCatalogo.query.order_by("descripcion")]
+    form.claveTmp.choices = [("", "")] + [("INS", "INSUFICIENCIA")] + [("REP", "REPOSICION DE BIENES")] + [("OBS", "OBSOLESENCIA")] + [("AMP", "AMPLIACION COBERTURA DEL SERVICIO")] + [("NUE", "NUEVO PROYECTO")]
+    
+    if form.validate_on_submit():
+        # Guardar requisicion
+        
+        req_requisicion.observaciones=safe_string(form.observaciones.data, max_len=256, to_uppercase=True, save_enie=True),
+        req_requisicion.justificacion=safe_string(form.justificacion.data, max_len=1024, to_uppercase=True, save_enie=True),
+        req_requisicion.gasto=safe_string(form.gasto.data, to_uppercase=True, save_enie=True),
+        req_requisicion.glosa=form.glosa.data,
+        req_requisicion.programa=safe_string(form.programa.data, to_uppercase=True, save_enie=True),
+        req_requisicion.fuente_financiamiento=safe_string(form.fuenteFinanciamiento.data, to_uppercase=True, save_enie=True),
+        req_requisicion.fecha_requerida=form.fechaRequerida.data,
+
+        req_requisicion.save()
+        #Eliminar los articulos registrados antes de la edicion
+        for registro_a_eliminar in articulos:
+            articulo = ReqRequisicionRegistro.query.filter_by(id=registro_a_eliminar.id).first()
+            if(articulo):
+                articulo.estatus="B"
+                articulo.save()
+                
+
+        # Guardar los registros de la requisición
+        for registros in form.articulos:
+            if registros.codigo.data != '':
+
+                req_requisicion_registro = ReqRequisicionRegistro(
+                    req_requisicion_id=req_requisicion.id,
+                    req_catalogo_id=registros.idArticulo.data,
+                    clave=registros.clave.data,
+                    cantidad=registros.cantidad.data,
+                    detalle=registros.detalle.data,
+                )
+                req_requisicion_registro.save()
+
+        # Guardar en la bitacora
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Requisicion actualizada: {req_requisicion.gasto}"),
+            url=url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion.id),
+        )
+        bitacora.save()
+        flash(bitacora.descripcion, "success")
+        return redirect(bitacora.url)
+    
+    form.fecha.data = req_requisicion.fecha
+    form.gasto.data = req_requisicion.gasto
+    form.glosa.data = req_requisicion.glosa
+    form.programa.data = req_requisicion.programa
+    form.fuenteFinanciamiento.data = req_requisicion.fuente_financiamiento
+    form.fechaRequerida.data = req_requisicion.fecha_requerida
+    form.areaFinal.data = req_requisicion.area_final
+    form.observaciones.data = req_requisicion.observaciones
+    form.justificacion.data = req_requisicion.justificacion
+
+    # consulta previa para obtener los articulos registrados en la requisicion
+    # articulos = ReqRequisicionRegistro.query.filter_by(req_requisicion_id=req_requisicion_id).join(ReqCatalogo).all()
+    x=0
+    for registro in articulos:
+        form.articulos[x].idArticulo.data = registro.req_catalogo.id
+        form.articulos[x].codigo.data = registro.req_catalogo.codigo
+        form.articulos[x].descripcion.data = registro.req_catalogo.descripcion
+        form.articulos[x].unidad.data = registro.req_catalogo.unidad_medida
+        form.articulos[x].clave.data = registro.clave
+        form.articulos[x].cantidad.data = registro.cantidad
+        form.articulos[x].detalle.data = registro.detalle
+
+        x=x+1
+        
+    return render_template("req_requisiciones/edit.jinja2", titulo="Editar Requisicion", form=form, area=current_user.autoridad.descripcion, req_requisicion_registro=articulos, req_requisicion=req_requisicion)
+
+
+
+@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>")
+def detail(req_requisicion_id):
+    """Detalle de una Requisicion"""
+    current_user_roles = current_user.get_roles()
+    # Si es asistente, mostrar TODAS las Requisiciones de su oficina
+    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
+    articulos = ReqRequisicionRegistro.query.filter_by(req_requisicion_id=req_requisicion_id, estatus='A').join(ReqCatalogo).all()
+    usuario = Usuario.query.get_or_404(req_requisicion.usuario_id) if req_requisicion.usuario_id>0 else ''
+    usuario_solicito = Usuario.query.get_or_404(req_requisicion.solicito_id) if req_requisicion.solicito_id>0 else ''
+    usuario_autorizo = Usuario.query.get_or_404(req_requisicion.autorizo_id) if req_requisicion.autorizo_id>0 else ''
+    usuario_reviso = Usuario.query.get_or_404(req_requisicion.reviso_id) if req_requisicion.reviso_id>0 else ''
+    autoridad = Autoridad.query.get_or_404(req_requisicion.usuario.autoridad_id)
+    return render_template("req_requisiciones/detail.jinja2", req_requisicion=req_requisicion, req_requisicion_registro=articulos, usuario=usuario, autoridad=autoridad, usuario_solicito=usuario_solicito, usuario_autorizo=usuario_autorizo, usuario_reviso=usuario_reviso, current_user_roles=current_user_roles)
+
+
+@req_requisiciones.route("/req_requisiciones/buscarRegistros/", methods=["GET"])
+def buscarRegistros():
+    args = request.args
+    registro = ReqCatalogo.query.get_or_404(args.get("req_catalogo_id"))
+    return ReqCatalogo.object_as_dict(registro)
+    #return {'descripcion':'nombre del articulo', 'unidad_medida':'Paquete'}
+
+
+@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>/solicitar", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def step_2_request(req_requisicion_id):
+    """Formulario Requisiciones (step 2 request) Solicitar"""
+    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
+    puede_firmarlo = True
+    # Validar que sea activo
+    if req_requisicion.estatus != "A":
+        flash("La Requisición esta eliminada", "warning")
+        puede_firmarlo = False
+    # Validar el estado
+    if req_requisicion.estado != "BORRADOR":
+        flash("La Requisición no esta en estado BORRADOR", "warning")
+        puede_firmarlo = False
+    # Validar roles
+    if ROL_SOLICITANTES not in current_user.get_roles():
+        flash("Usted no tiene el rol para solicitar una requisición", "warning")
+        puede_firmarlo = False
+    # Si no puede solicitarla, redireccionar a la pagina de detalle
+    if not puede_firmarlo:
+        return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+    # Si viene el formulario
+    if puede_firmarlo:
+        req_requisicion.solicito_id = current_user.id
+        req_requisicion.solicito_tiempo = datetime.now()
+        req_requisicion.firma_simple = ReqRequisicion.elaborar_hash(req_requisicion)
+        req_requisicion.estado = "SOLICITADO"
+        req_requisicion.save()
+
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Firmado simple de la Requisición {req_requisicion.gasto}"),
+            url=url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion.id),
+        )
+        bitacora.save()
+        # Agregar registro a la bitácora
+        flash(bitacora.descripcion, "success")
+    
+    return render_template("req_requisiciones/step_2_request.jinja2", req_requisicion=req_requisicion)
+
+@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>/cancelar_solicitado", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def cancel_2_request(req_requisicion_id):
+    """Formulario Requisicion (cancel 2 request) Cancelar solicitado"""
+    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
+    puede_cancelarlo = True
+    # Validar que sea activo
+    if req_requisicion.estatus != "A":
+        flash("La requisición esta cancelada", "warning")
+        puede_cancelarlo = False
+    # Validar el estado
+    if req_requisicion.estado != "SOLICITADO":
+        flash("La requisición no esta en estado SOLICITADO", "warning")
+        puede_cancelarlo = False
+    # Validar roles
+    if ROL_SOLICITANTES not in current_user.get_roles():
+        flash("Usted no tiene el rol para cancelar un una requisición solicitada", "warning")
+        puede_cancelarlo = False
+    # Si no puede cancelarlo, redireccionar a la pagina de detalle
+    if not puede_cancelarlo:
+        return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+    # Si puede cancelarlo   
+    if puede_cancelarlo:
+        req_requisicion.estado = "CANCELADO POR SOLICITANTE"
+        req_requisicion.esta_cancelado=1
+        req_requisicion.save()
+        
+    return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+   
+
+@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>/autorizar", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def step_3_authorize(req_requisicion_id):
+    """Formulario Requisiciones (step 3 authorize) Autorizar"""
+    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
+    puede_firmarlo = True
+    # Validar que sea activo
+    if req_requisicion.estatus != "A":
+        flash("La Requisición esta eliminada", "warning")
+        puede_firmarlo = False
+    # Validar el estado
+    if req_requisicion.estado != "SOLICITADO":
+        flash("La Requisición no esta en estado SOLICITADO", "warning")
+        puede_firmarlo = False
+    # Validar roles
+    if ROL_AUTORIZANTES not in current_user.get_roles():
+        flash("Usted no tiene el rol para AUTORIZAR una requisición", "warning")
+        puede_firmarlo = False
+    # Si no puede autorizarla, redireccionar a la pagina de detalle
+    if not puede_firmarlo:
+        return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+    # Si viene el formulario
+
+    if puede_firmarlo:
+        req_requisicion.autorizo_id = current_user.id
+        req_requisicion.autorizo_tiempo = datetime.now()
+        req_requisicion.estado = "AUTORIZADO"
+        req_requisicion.save()
+
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Autorizado de la Requisición {req_requisicion.gasto}"),
+            url=url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion.id),
+        )
+        bitacora.save()
+        # Agregar registro a la bitácora
+        flash(bitacora.descripcion, "success")
+   
+    return render_template("req_requisiciones/step_3_authorize.jinja2", req_requisicion=req_requisicion)
+
+@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>/cancelar_autorizado", methods=["GET","POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def cancel_3_authorize(req_requisicion_id):
+    """Formulario Requisicion (cancel 3 authorize) Cancelar autorizado"""
+    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
+    puede_cancelarlo = True
+    # Validar que sea activo
+    if req_requisicion.estatus != "A":
+        flash("La requisición esta cancelada", "warning")
+        puede_cancelarlo = False
+    # Validar el estado
+    if req_requisicion.estado != "AUTORIZADO":
+        flash("La requisición no esta en estado autorizado", "warning")
+        puede_cancelarlo = False
+    # Validar roles
+    if ROL_AUTORIZANTES not in current_user.get_roles():
+        flash("Usted no tiene el rol para cancelar un una requisición autorizada", "warning")
+        puede_cancelarlo = False
+    if req_requisicion.solicito_email != current_user.email:
+        flash("Usted no es el autorizante de esta requisición", "warning")
+        puede_cancelarlo = False
+    # Si no puede cancelarlo, redireccionar a la pagina de detalle
+    if not puede_cancelarlo:
+        return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+    # Si viene el formulario
+    form = ReqRequisicionCancel3AuthorizeForm()
+    if form.validate_on_submit():
+         # Crear la tarea en el fondo
+        tarea = current_user.launch_task(
+            comando = "req_requisiciones.tasks.cancelar_autorizar",
+            mensaje = "Elaborando solicitud en motor de firma electronica",
+            req_requisicion_id=req_requisicion.id,
+            contrasena=form.contrasena.data,
+            motivo=form.motivo.data,
+        )
+        flash(f"{tarea.mensaje} Esta página se va a recargar en 10 segundos...", "info")
+        return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+    # Mostrar formulario
+    form.autorizo_nombre.data = current_user.nombre
+    form.autorizo_puesto.data = current_user.puesto
+    form.autorizo_email.data = current_user.email
+    return render_template("req_requisiciones/cancel_3_authorize.jinja2", form=form, req_requisicion=req_requisicion)
+
+@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>/revisar", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def step_4_review(req_requisicion_id):
+    """Formulario Requisiciones (step 4 review) Revisar"""
+    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
+    puede_firmarlo = True
+    # Validar que sea activo
+    if req_requisicion.estatus != "A":
+        flash("La Requisición esta eliminada", "warning")
+        puede_firmarlo = False
+    # Validar el estado
+    if req_requisicion.estado != "AUTORIZADO":
+        flash("La Requisición no esta en estado AUTORIZADO", "warning")
+        puede_firmarlo = False
+    # Validar roles
+    if ROL_REVISANTES not in current_user.get_roles():
+        flash("Usted no tiene el rol para REVISAR una requisición", "warning")
+        puede_firmarlo = False
+    # Si no puede revisar la requisición, redireccionar a la pagina de detalle
+    if not puede_firmarlo:
+        return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+    
+    #si puede firmarlo
+    if puede_firmarlo:
+        req_requisicion.reviso_id = current_user.id
+        req_requisicion.reviso_tiempo = datetime.now()
+        req_requisicion.estado = "REVISADO"
+        req_requisicion.save()
+
+        bitacora = Bitacora(
+            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+            usuario=current_user,
+            descripcion=safe_message(f"Revisado de la Requisición {req_requisicion.gasto}"),
+            url=url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion.id),
+        )
+        bitacora.save()
+        # Agregar registro a la bitácora
+        flash(bitacora.descripcion, "success")
+
+    return render_template("req_requisiciones/step_4_review.jinja2",  req_requisicion=req_requisicion)
+
+
+@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>/cancelar_revisado", methods=["GET","POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def cancel_4_review(req_requisicion_id):
+    """Formulario Requisicion (cancel 4 review) Cancelar revisado"""
+    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
+    puede_cancelarlo = True
+    # Validar que sea activo
+    if req_requisicion.estatus != "A":
+        flash("La requisición esta cancelada", "warning")
+        puede_cancelarlo = False
+    # Validar el estado
+    if req_requisicion.estado != "REVISADO":
+        flash("La requisición no esta en estado revisado", "warning")
+        puede_cancelarlo = False
+    # Validar roles
+    if ROL_REVISANTES not in current_user.get_roles():
+        flash("Usted no tiene el rol para cancelar un una requisición revisada", "warning")
+        puede_cancelarlo = False
+    if req_requisicion.reviso_email != current_user.email:
+        flash("Usted no es el revisante de esta requisición", "warning")
+        puede_cancelarlo = False
+    # Si no puede cancelarlo, redireccionar a la pagina de detalle
+    if not puede_cancelarlo:
+        return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+    # Si viene el formulario
+    form = ReqRequisicionCancel4ReviewForm()
+    if form.validate_on_submit():
+         # Crear la tarea en el fondo
+        tarea = current_user.launch_task(
+            comando = "req_requisiciones.tasks.cancelar_revisar",
+            mensaje = "Elaborando solicitud en motor de firma electronica",
+            req_requisicion_id=req_requisicion.id,
+            contrasena=form.contrasena.data,
+            motivo=form.motivo.data,
+        )
+        flash(f"{tarea.mensaje} Esta página se va a recargar en 10 segundos...", "info")
+        return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion_id))
+    # Mostrar formulario
+    form.reviso_nombre.data = current_user.nombre
+    form.reviso_puesto.data = current_user.puesto
+    form.reviso_email.data = current_user.email
+    return render_template("req_requisiciones/cancel_4_review.jinja2", form=form, req_requisicion=req_requisicion)
+
+
+@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>/imprimir")
+def detail_print(req_requisicion_id):
+    """Impresion de la Requsición"""
+
+    # Consultar la requisición
+    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
+    articulos = database.session.query(ReqRequisicionRegistro, ReqCatalogo).filter_by(req_requisicion_id=req_requisicion_id,estatus="A").join(ReqCatalogo).all()
+    usuario = Usuario.query.get_or_404(req_requisicion.usuario_id)
+    usuario_solicito = Usuario.query.get_or_404(req_requisicion.solicito_id) if req_requisicion.solicito_id>0 else ''
+    usuario_autorizo = Usuario.query.get_or_404(req_requisicion.autorizo_id) if req_requisicion.autorizo_id>0 else ''
+    usuario_reviso = Usuario.query.get_or_404(req_requisicion.reviso_id) if req_requisicion.reviso_id>0 else ''
+    autoridad = Autoridad.query.get_or_404(req_requisicion.usuario.autoridad_id)
+
+    # Validar que pueda verla
+    puede_imprimirlo = False
+
+    # Si es administrador, puede imprimirla
+    if current_user.can_admin(MODULO):
+        puede_imprimirlo = True
+
+    # Si tiene uno de los roles que pueden imprimir y esta activo, puede imprimirla
+    if set(current_user.get_roles()).intersection(ROLES_PUEDEN_IMPRIMIR) and req_requisicion.estatus == "A":
+        puede_imprimirlo = True
+
+    # Si es el usuario que lo creo y esta activo, puede imprimirla
+    if req_requisicion.usuario_id == current_user.id and req_requisicion.estatus == "A":
+        puede_imprimirlo = True
+
+    # Si puede imprimirla
+    if puede_imprimirlo:
+        # Mostrar la plantilla para imprimir
+        return render_template(
+            "req_requisiciones/print.jinja2",
+            req_requisicion=req_requisicion,
+            req_requisicion_registro=articulos,
+            usuario=usuario,
+            usuario_solicito=usuario_solicito,
+            usuario_autorizo=usuario_autorizo,
+            usuario_reviso=usuario_reviso
+        )
+
+    # No puede imprimirla
+    flash("No tiene permiso para imprimir la requisición", "warning")
+    return redirect(url_for("req_requisiciones.list_active"))
 
 
 @req_requisiciones.route("/req_requisiciones/<req_requisicion_id>/eliminar")
@@ -312,23 +755,18 @@ def recover(req_requisicion_id):
         flash(bitacora.descripcion, "success")
     return redirect(url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion.id))
 
-
-@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>/imprimir")
-def detail_print(req_requisicion_id):
+@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>/generarpdf")
+def create_pdf(req_requisicion_id):
     """Impresion de la Requsición"""
 
     # Consultar la requisición
     req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
-    articulos = (
-        ReqRequisicionRegistro.query.filter_by(req_requisicion_id=req_requisicion_id)
-        .join(ReqCatalogo)
-        .add_columns(ReqCatalogo)
-        .all()
-    )
+    articulos = database.session.query(ReqRequisicionRegistro, ReqCatalogo).filter_by(req_requisicion_id=req_requisicion_id).join(ReqCatalogo).all()
     usuario = Usuario.query.get_or_404(req_requisicion.usuario_id)
-    usuario_solicito = Usuario.query.get_or_404(req_requisicion.solicito_id) if req_requisicion.solicito_id > 0 else ""
-    usuario_autorizo = Usuario.query.get_or_404(req_requisicion.autorizo_id) if req_requisicion.autorizo_id > 0 else ""
-    usuario_reviso = Usuario.query.get_or_404(req_requisicion.reviso_id) if req_requisicion.reviso_id > 0 else ""
+    usuario_solicito = Usuario.query.get_or_404(req_requisicion.solicito_id) if req_requisicion.solicito_id>0 else ''
+    usuario_autorizo = Usuario.query.get_or_404(req_requisicion.autorizo_id) if req_requisicion.autorizo_id>0 else ''
+    usuario_reviso = Usuario.query.get_or_404(req_requisicion.reviso_id) if req_requisicion.reviso_id>0 else ''
+    autoridad = Autoridad.query.get_or_404(req_requisicion.usuario.autoridad_id)
 
     # Validar que pueda verla
     puede_imprimirlo = False
@@ -338,43 +776,7 @@ def detail_print(req_requisicion_id):
         puede_imprimirlo = True
 
     # Si tiene uno de los roles que pueden imprimir y esta activo, puede imprimirla
-    # if set(current_user.get_roles()).intersection(ROLES_PUEDEN_IMPRIMIR) and req_requisicion.estatus == "A":
-    #     puede_imprimirlo = True
-
-    # Si es el usuario que lo creo y esta activo, puede imprimirla
-    if req_requisicion.usuario_id == current_user.id and req_requisicion.estatus == "A":
-        puede_imprimirlo = True
-
-    # Si puede imprimirla
-    if puede_imprimirlo:
-        # Mostrar la plantilla para imprimir
-        return render_template(
-            "req_requisiciones/print.jinja2",
-            req_requisicion=req_requisicion,
-            req_requisicion_registro=articulos,
-            usuario=usuario,
-            usuario_solicito=usuario_solicito,
-            usuario_autorizo=usuario_autorizo,
-            usuario_reviso=usuario_reviso,
-        )
-
-    # No puede imprimirla
-    flash("No tiene permiso para imprimir la requisición", "warning")
-    return redirect(url_for("req_requisiciones.list_active"))
-
-
-@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>/generarpdf")
-def create_pdf(req_requisicion_id):
-    """Impresion de la Requsición"""
-
-    # Consultar la requisición
-    req_requisicion = ReqRequisicion.query.get_or_404(req_requisicion_id)
-
-    # Validar que pueda verla
-    puede_imprimirlo = False
-
-    # Si es administrador, puede imprimirla
-    if current_user.can_admin(MODULO):
+    if set(current_user.get_roles()).intersection(ROLES_PUEDEN_IMPRIMIR) and req_requisicion.estatus == "A":
         puede_imprimirlo = True
 
     # Si es el usuario que lo creo y esta activo, puede imprimirla
@@ -385,11 +787,11 @@ def create_pdf(req_requisicion_id):
     if puede_imprimirlo:
 
         current_user.launch_task(
-            comando="req_requisiciones.tasks.lanzar_convertir_requisicion_a_pdf",
-            mensaje="Convirtiendo a archivo PDF...",
-            req_requisicion_id=str(req_requisicion_id),
-        )
-        # Agregar registro a la bitácora
+                comando="req_requisiciones.tasks.lanzar_convertir_requisicion_a_pdf",
+                mensaje="Convirtiendo a archivo PDF...",
+                req_requisicion_id=str(req_requisicion_id),
+            )
+            # Agregar registro a la bitácora
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
@@ -403,3 +805,4 @@ def create_pdf(req_requisicion_id):
     # No puede imprimirla
     flash("No tiene permiso para imprimir la requisición", "warning")
     return redirect(url_for("req_requisiciones.list_active"))
+

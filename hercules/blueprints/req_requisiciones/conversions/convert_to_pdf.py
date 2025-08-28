@@ -4,12 +4,13 @@ Conversions, convertir a PDF
 
 from datetime import datetime
 import os
-import logging
+#import moment
 
 from dotenv import load_dotenv
 from xhtml2pdf import pisa
 
 from hercules.app import create_app
+from hercules.blueprints.req_requisiciones.conversions import bitacora
 from hercules.blueprints.req_requisiciones.models import ReqRequisicion
 from hercules.extensions import database
 from lib.exceptions import MyBucketNotFoundError, MyIsDeletedError, MyNotExistsError, MyNotValidParamError, MyUploadError
@@ -25,14 +26,6 @@ from hercules.blueprints.usuarios.models import Usuario
 load_dotenv()
 CLOUD_STORAGE_DEPOSITO_OFICIOS = os.getenv("CLOUD_STORAGE_DEPOSITO_OFICIOS", "")
 
-# Cargar la bitácora
-bitacora = logging.getLogger(__name__)
-bitacora.setLevel(logging.INFO)
-formato = logging.Formatter("%(asctime)s:%(levelname)s:%(message)s")
-empunadura = logging.FileHandler("logs/cid_formatos.log")
-empunadura.setFormatter(formato)
-bitacora.addHandler(empunadura)
-
 # Cargar la aplicación para tener acceso a la base de datos
 app = create_app()
 app.app_context().push()
@@ -42,64 +35,59 @@ database.app = app
 def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
     """Convertir a PDF"""
 
-    print("******************* Inicia la conversion ********************************")
-    print(req_requisicion_id)
     mensajes = []
     mensaje_info = "Inicia convertir a PDF."
     mensajes.append(mensaje_info)
     bitacora.info(mensaje_info)
+    
+    # Validar que esté definida la variable de entorno CLOUD_STORAGE_DEPOSITO_REQUISICIONES
+#    if not CLOUD_STORAGE_DEPOSITO_REQUISICIONES:
+#        error = "La variable de entorno CLOUD_STORAGE_DEPOSITO_REQUISICIONES no está definida"
+#        bitacora.error(error)
+#        raise MyNotValidParamError(error)
 
-    # Validar que esté definida la variable de entorno CLOUD_STORAGE_DEPOSITO_OFICIOS
-    #    if not CLOUD_STORAGE_DEPOSITO_OFICIOS:
-    #        error = "La variable de entorno CLOUD_STORAGE_DEPOSITO_OFICIOS no está definida"
-    #        bitacora.error(error)
-    #        raise MyNotValidParamError(error)
-
-    # Consultar el oficio
+    # Consultar la requisición
     req_requisicion_id = safe_uuid(req_requisicion_id)
     if not req_requisicion_id:
         error = "ID de Requisición inválido"
         bitacora.error(error)
         raise MyNotValidParamError(error)
-
+    
     req_requisicion = ReqRequisicion.query.get(req_requisicion_id)
-    articulos = (
-        database.session.query(ReqRequisicionRegistro, ReqCatalogo)
-        .filter_by(req_requisicion_id=req_requisicion_id)
-        .join(ReqCatalogo)
-        .all()
-    )
+    articulos = database.session.query(ReqRequisicionRegistro, ReqCatalogo).filter_by(req_requisicion_id=req_requisicion_id, estatus="A" ).join(ReqCatalogo).all()
+    usuario = Usuario.query.get_or_404(req_requisicion.usuario_id)
+    
+    usuario_solicito = None
+    usuario_autorizo = None
+    usuario_reviso = None
 
-    # Consulta de usuario_solicito
-    usuario_solicito_nombres = ""
-    usuario_solicito_apellido_paterno = ""
-    usuario_solicito_apellido_materno = ""
-    usuario_solicito = Usuario.query.get(req_requisicion.solicito_id)
-    if usuario_solicito:
-        usuario_solicito_nombres = usuario_solicito.nombres
-        usuario_solicito_apellido_paterno = usuario_solicito.apellido_paterno
-        usuario_solicito_apellido_materno = usuario_solicito.apellido_materno
-    # Consulta de usuario_solicito
-    usuario_autorizo_nombres = ""
-    usuario_autorizo_apellido_paterno = ""
-    usuario_autorizo_apellido_materno = ""
-    usuario_autorizo = Usuario.query.get(req_requisicion.autorizo_id)
-    if usuario_autorizo:
-        usuario_autorizo_nombres = usuario_autorizo.nombres
-        usuario_autorizo_apellido_paterno = usuario_autorizo.apellido_paterno
-        usuario_autorizo_apellido_materno = usuario_autorizo.apellido_materno
-    # Consulta de usuario_reviso
-    usuario_reviso_nombres = ""
-    usuario_reviso_apellido_paterno = ""
-    usuario_reviso_apellido_materno = ""
-    usuario_reviso = Usuario.query.get(req_requisicion.autorizo_id)
-    if usuario_reviso:
-        usuario_reviso_nombres = usuario_reviso.nombres
-        usuario_reviso_apellido_paterno = usuario_reviso.apellido_paterno
-        usuario_reviso_apellido_materno = usuario_reviso.apellido_materno
-    # Consultar la autoridad
-    autoridad = Autoridad.query.get(req_requisicion.usuario.autoridad_id)
+    usuario_solicito_nombre = ''
+    autoridad_solicito_descripcion = ''
+    usuario_autorizo_nombre = ''
+    autoridad_autorizo_descripcion = ''
+    usuario_reviso_nombre = ''
+    autoridad_reviso_descripcion = ''
 
+    if req_requisicion.solicito_id!=0 :
+        usuario_solicito = Usuario.query.get_or_404(req_requisicion.solicito_id)
+        usuario_solicito_nombre = usuario_solicito.nombre
+        autoridad_solicito = Autoridad.query.get_or_404(usuario_solicito.autoridad_id)
+        autoridad_solicito_descripcion = autoridad_solicito.descripcion
+
+    if req_requisicion.autorizo_id!=0 :
+        usuario_autorizo = Usuario.query.get_or_404(req_requisicion.autorizo_id)
+        usuario_autorizo_nombre = usuario_autorizo.nombre
+        autoridad_autorizo = Autoridad.query.get_or_404(usuario_autorizo.autoridad_id)
+        autoridad_autorizo_descripcion = autoridad_autorizo.descripcion
+    
+    if req_requisicion.reviso_id!=0 :
+        usuario_reviso = Usuario.query.get_or_404(req_requisicion.reviso_id)
+        usuario_reviso_nombre = usuario_reviso.nombre
+        autoridad_reviso = Autoridad.query.get_or_404(usuario_reviso.autoridad_id)
+        autoridad_reviso_descripcion = autoridad_reviso.descripcion
+
+    
+    
     if not req_requisicion:
         error = "La requisición no existe"
         bitacora.error(error)
@@ -110,7 +98,7 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
         error = "La Requisición está eliminada"
         bitacora.error(error)
         raise MyIsDeletedError(error)
-
+        
     # Validar que el estado sea FIRMADO
     if req_requisicion.estado not in ["SOLICITADO", "AUTORIZADO", "REVISADO"]:
         error = "La requisición no tiene la FIRMA SIMPLE"
@@ -131,9 +119,9 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
     contenidos = []
 
     # Agregar tag html y head
-
+    
     contenidos.append(
-        f"""
+        f'''
     <html>
         <head>
         </head>
@@ -141,7 +129,7 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
 
             <table style='width:100%; margin:0 auto;' repeat='1'>
                 <tr>
-                    <td><img src='static/img/escudo.jpg' width='280'></td>
+                    <td><img src='static/img/escudo.png' width='280'></td>
                     <td align='center' style='width:70%'>
                         <b>PODER JUDICIAL DEL ESTADO DE COAHUILA DE ZARAGOZA</b>
                         <br>
@@ -176,7 +164,7 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
                     <td colspan='6' style='background-color:#efeff1; color:#333'>GLOSA</td>
                 </tr>
                 <tr>
-                    <td colspan='6'>{autoridad.descripcion}</td>
+                    <td colspan='6'>{autoridad_solicito_descripcion}</td>
                     <td colspan='6'>{req_requisicion.glosa}</td>
                 </tr>
                 <tr>
@@ -215,26 +203,26 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
                     <td style='background-color:#ccc; color:#333'>CLAVE</td>
                     <td style='background-color:#ccc; color:#333'>DETALLE</td>
                 </tr>
-    """
+    '''
     )
 
-    if articulos:
+    if articulos: 
         for campos in articulos:
-            contenidos.append(
-                f"""
+            contenidos.append(            
+                f'''
                 <tr>
-                    <td colspan=3>{campos.ReqCatalogo.id}</td>
+                    <td colspan=3>{campos.ReqCatalogo.codigo}</td>
                     <td colspan=5>{campos.ReqCatalogo.descripcion}</td>
                     <td>{campos.ReqCatalogo.unidad_medida}</td>
                     <td>{campos.ReqRequisicionRegistro.cantidad}</td>
-                    <td>{campos.ReqCatalogo.clave}</td>
-                    <td></td>
+                    <td>{campos.ReqRequisicionRegistro.clave}</td>
+                    <td>{campos.ReqRequisicionRegistro.detalle}</td>
                 </tr>
-                """
-            )
+                '''
+                )
     else:
         contenidos.append(
-            """
+            '''
                 <tr>
                     <td colspan=3></td>
                     <td colspan=5></td>
@@ -243,11 +231,11 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
                     <td></td>
                     <td></td>
                 </tr>
-            """
+            '''
         )
-
+    
     contenidos.append(
-        f"""
+        f'''
             </table>
         </div>
         
@@ -269,20 +257,22 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
                         <br><br><br>
                         <br>
                         ________________________________<br>
-                        {usuario_solicito_nombres} {usuario_solicito_apellido_paterno} {usuario_solicito_apellido_materno}<br>
-                        {autoridad.descripcion}
+                        {usuario_solicito_nombre}<br>
+                        {autoridad_solicito_descripcion}
                     </td>
                     <td>
                         AUTORIZA
                         <br><br><br><br>
                         ________________________________<br>
-                        {usuario_autorizo_nombres} {usuario_autorizo_apellido_paterno} {usuario_autorizo_apellido_materno}
+                        {usuario_autorizo_nombre}
+                        {autoridad_autorizo_descripcion}
                     </td>
                     <td>
                         REVISÓ
                         <br><br><br><br>
                         ________________________________<br>
-                        {usuario_reviso_nombres} {usuario_reviso_apellido_paterno} {usuario_reviso_apellido_materno}
+                        {usuario_reviso_nombre}
+                        {autoridad_reviso_descripcion}
                     </td>
                 </tr>
             </table>
@@ -292,15 +282,20 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
 
         </body>
     </html>
-    """
+    '''
     )
 
-    # Convertir el contenido HTML a archivo PDF
-    archivo = req_requisicion.gasto + ".pdf"
-    with open("./hercules/blueprints/req_requisiciones/documentos/" + archivo, "w+b") as result_file:
-        pisa_status = pisa.CreatePDF("\n".join(contenidos), dest=result_file, encoding="UTF-8")
 
-    # archivo_pdf = pisa.CreatePDF("\n".join(contenidos), dest_bytes=True, encoding="UTF-8")
+    # Convertir el contenido HTML a archivo PDF
+    archivo  = req_requisicion.gasto + ".pdf"
+    with open("./hercules/blueprints/req_requisiciones/documentos/"+archivo,"w+b") as result_file:
+        pisa_status = pisa.CreatePDF(
+            "\n".join(contenidos),
+            dest=result_file, 
+            encoding="UTF-8"
+        )
+
+    #archivo_pdf = pisa.CreatePDF("\n".join(contenidos), dest_bytes=True, encoding="UTF-8")
 
     #
     # Subir a Google Cloud Storage el archivo PDF
@@ -315,30 +310,27 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
     blob_name = f"ofi_documentos/{anio}/{mes}/{dia}/{archivo_pdf_nombre}"
 
     archivo_pdf_url = "url/temporal/del/archivo.pdf"
-
+    
     # Subir el archivo en Google Storage
-    #    try:
-    #        archivo_pdf_url = upload_file_to_gcs(
-    #            bucket_name=CLOUD_STORAGE_DEPOSITO_OFICIOS,
-    #            blob_name=blob_name,
-    #            content_type="application/pdf",
-    #            data=archivo_pdf,
-    #        )
-    #    except (MyBucketNotFoundError, MyUploadError) as error:
-    #        bitacora.error(f"Error al subir el archivo PDF a Google Cloud Storage: {error}")
-    #        raise error
+#    try:
+#        archivo_pdf_url = upload_file_to_gcs(
+#            bucket_name=CLOUD_STORAGE_DEPOSITO_OFICIOS,
+#            blob_name=blob_name,
+#            content_type="application/pdf",
+#            data=archivo_pdf,
+#        )
+#    except (MyBucketNotFoundError, MyUploadError) as error:
+#        bitacora.error(f"Error al subir el archivo PDF a Google Cloud Storage: {error}")
+#        raise error
 
-    # Actualizar el oficio con la URL del archivo PDF
-    #    req_requisicion.archivo_pdf_url = archivo_pdf_url
-    #    req_requisicion.save()
+    # Actualizar la requisicion con la URL del archivo PDF
+#    req_requisicion.archivo_pdf_url = archivo_pdf_url
+#    req_requisicion.save()
 
     # Elaborar mensaje_termino
     mensaje_termino = "Termina convertir a PDF."
     mensajes.append(mensaje_termino)
     bitacora.info(mensaje_termino)
-
-    print("******************* termino la conversion ********************************")
-    print(req_requisicion_id)
 
     # Entregar mensaje_termino, nombre_archivo y url_publica
     return "\n".join(mensajes), archivo_pdf_nombre, archivo_pdf_url

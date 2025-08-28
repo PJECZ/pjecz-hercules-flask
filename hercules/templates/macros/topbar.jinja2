@@ -44,6 +44,14 @@
     {{ button_primary(label, url, 'mdi:plus') }}
 {%- endmacro -%}
 
+{%- macro button_authorize(label, url) -%}
+    {{ button(label, url, 'mdi:check-outline') }}
+{%- endmacro -%}
+
+{%- macro button_review(label, url) -%}
+    {{ button(label, url, 'pajamas:review-list') }}
+{%- endmacro -%}
+
 {%- macro button_list_active(label, url) -%}
     {{ button(label, url, 'mdi:eye') }}
 {%- endmacro -%}
