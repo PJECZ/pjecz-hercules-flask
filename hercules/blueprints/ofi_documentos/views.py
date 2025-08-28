@@ -879,9 +879,10 @@ def sign(ofi_documento_id):
     form.vencimiento_fecha.data = ofi_documento.vencimiento_fecha  # Read only
     # Entregar el formulario
     return render_template(
-        "ofi_documentos/sign_ckeditor5.jinja2",
+        "ofi_documentos/sign.jinja2",
         form=form,
         ofi_documento=ofi_documento,
+        tiene_firma_electronica_avanzada=(current_user.efirma_registro_id is not None and current_user.efirma_registro_id >0),
     )
 
 

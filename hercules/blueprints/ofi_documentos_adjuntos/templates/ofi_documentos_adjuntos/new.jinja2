@@ -4,22 +4,27 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/detail.jinja2' as detail %}
 
-{% block title %}Agregar Archivo Adjunto{% endblock %}
+{% block title %}Agregar Archivo Adjunto a {{ ofi_documento.descripcion | truncate(48) }}{% endblock %}
 
 {% block custom_head %}
     {{ f.drop_zone_css() }}
 {% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Agregar Archivo Adjunto') %}
+    {% call topbar.page_buttons('Agregar Archivo Adjunto a ' + ofi_documento.descripcion | truncate(48)) %}
         {{ topbar.button_previous('Regresar al Oficio', url_for('ofi_documentos.detail', ofi_documento_id=ofi_documento.id)) }}
     {% endcall %}
 {% endblock %}
 
 {% block content %}
-    {% call f.card(title='Oficio ' + ofi_documento.folio) %}
+    {% call f.card(title='Oficio') %}
         {{ detail.label_value('Descripción', ofi_documento.descripcion) }}
         {{ detail.label_value('Folio', ofi_documento.folio) }}
+        {% if current_user.can_view('USUARIOS') %}
+            {{ detail.label_value('Propietario', ofi_documento.usuario.nombre,  url_for("usuarios.detail", usuario_id=ofi_documento.usuario.id)) }}
+        {% else %}
+            {{ detail.label_value('Propietario', ofi_documento.usuario.nombre) }}
+        {% endif %}
     {% endcall %}
     <div class="alert alert-info" role="alert">
         <h4 class="alert-heading">Tipos de archivos permitidos</h4>

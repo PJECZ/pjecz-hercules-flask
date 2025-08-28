@@ -2,7 +2,7 @@
 {% import 'macros/form.jinja2' as f with context %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Firmar Oficio {{ ofi_documento.descripcion }}{% endblock %}
+{% block title %}Firmar Oficio {{ ofi_documento.descripcion | truncate(48) }}{% endblock %}
 
 {% block custom_head %}
 {% endblock %}
@@ -52,7 +52,7 @@
                     </a>
                 </div>
                 <div class="col-md-3">
-                    <a class="btn btn-block btn-md btn-primary w-100 my-2" href="javascript:firmaElectronicaAvanzada()">
+                    <a id="firmaElectronicaAvanzada" class="btn btn-block btn-md btn-primary w-100 my-2" href="javascript:firmaElectronicaAvanzada()">
                         <span class="iconify" data-icon="mdi:file-sign"></span>
                         Firma Electrónica Avanzada
                     </a>
@@ -81,10 +81,21 @@
             tipoHiddenElem.value = 'simple';
             formElem.submit();
         }
-        // Función para firmar con firma electrónica avanzada
-        function firmaElectronicaAvanzada() {
-            tipoHiddenElem.value = 'avanzada';
-            formElem.submit();
-        }
+        {% if not tiene_firma_electronica_avanzada %}
+            // Ocultar el botón de firma electrónica avanzada
+            const btnFirmaAvanzada = document.getElementById('firmaElectronicaAvanzada');
+            btnFirmaAvanzada.style.display = 'none';
+            // Función para mostrar mensaj porque NO tiene firma electrónica avanzada
+            function firmaElectronicaAvanzada() {
+                alert('No tiene firma electrónica avanzada configurada. Por favor, contacte al administrador.');
+                return;
+            }
+        {% else %}
+            // Función para firmar con firma electrónica avanzada
+            function firmaElectronicaAvanzada() {
+                tipoHiddenElem.value = 'avanzada';
+                formElem.submit();
+            }
+        {% endif %}
     </script>
 {% endblock %}
