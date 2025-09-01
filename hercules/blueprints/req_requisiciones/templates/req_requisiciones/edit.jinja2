@@ -7,15 +7,12 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {% if current_user.can_edit('REQ REQUISICIONES') %}
-            {{ topbar.button_list_inactive('Inactivas', url_for('req_requisiciones.list_inactive')) }}
-            {{ topbar.button_list_active('Activas', url_for('req_requisiciones.list_active')) }}
-        {% endif %}
     {% endcall %}
 {% endblock %}
 
 {% block content %}
-    {% call f.form_tag('req_requisiciones.new', fid='new_form') %}
+    {% set form_kwargs = {'req_requisicion_id': req_requisicion.id} %}
+    {% call f.form_tag('req_requisiciones.edit', fid='edit_form', **form_kwargs) %}
        
         {% call list.card() %}                 
             <div class="container-fluid">
@@ -101,6 +98,7 @@
         {% endcall %}
 
         {% call list.card() %}
+            
             <div class="row">
                 <div class="col-md-12" id="divArticulos">
 
@@ -113,14 +111,12 @@
                         <div class="col-md-3"><label>Detalle</label></div>
                         <div class="col-md-1"></div>
                     </div>
-                    <style>
-                        .hidden{ display:none;}
-                    </style>
+
                     {% for campos in form.articulos %}
-                        <div class="row" style="border-bottom:0px solid #666; display:none" id="div{{loop.index - 1}}">
-                            <div style="display='none'">{% call f.form_group(campos.form.idArticulo, 'hidden') %}{% endcall %}</div>
-                            <div class="col-md-2">{% call f.form_group(campos.form.codigo) %}{% endcall %}</div>
-                            <div class="col-md-3">{% call f.form_group(campos.form.descripcion) %}{% endcall %}</div>
+                        <div class="row" style="border-bottom:0px solid #666; display:{{ 'none' if campos.form.unidad.data==None else 'inline-flex' }} " id="div{{loop.index - 1}}">
+                            <div style="display='none'">{% call f.form_group(campos.idArticulo) %}{% endcall %}</div>
+                            <div class="col-md-2">{% call f.form_group(campos.codigo) %}{% endcall %}</div>
+                            <div class="col-md-3">{% call f.form_group(campos.descripcion) %}{% endcall %}</div>
                             <div class="col-md-1">{% call f.form_group(campos.form.unidad) %}{% endcall %}</div>
                             <div class="col-md-1">{% call f.form_group(campos.form.clave) %}{% endcall %}</div>
                             <div class="col-md-1">{% call f.form_group(campos.form.cantidad) %}{% endcall %}</div>
@@ -149,21 +145,35 @@
 {% block custom_javascript %}
     <script>
         var contador = 0 ;
+        var index = 0 ;
+
+        /* Se establece cuantos articulos estan registrados */
+        for(x=0 ; x<20 ; x++){
+            if(document.getElementById('articulos-'+ x + '-codigo').value != '' ){
+                index=x ;
+            }
+        }
 
         document.getElementById("btnGuardar").addEventListener("click", function(event){
             event.preventDefault();
-
+            contador=0 ;
+            for(x=0 ; x<20 ; x++){
+                //console.log(x)
+                if(document.getElementById('articulos-'+ x + '-codigo').value != '' ){
+                    contador=contador+1
+                }
+            }
+            console.log("articulos :" + contador);
             if(contador<=0){
                 swal("Aviso importante", "al menos debe registrar un articulo en la Requisición" ,"warning") ;
             }
             else{
-                new_form.submit() ;
+                edit_form.submit() ;
             }
             
         });
 
         function eliminar(contador) {
-                document.getElementById('articulos-' + contador + '-idArticulo').value = "";
                 document.getElementById('articulos-' + contador + '-codigo').value = "";
                 document.getElementById('articulos-' + contador + '-descripcion').value = "";
                 document.getElementById('articulos-' + contador + '-unidad').value = "";
@@ -190,6 +200,7 @@
                 flag=1 ;
             }
             if(flag==0){
+                index = index + 1 ;
                 var idArticulo = document.getElementById('codigoTmp') ;
                 var codigo = document.getElementById('codigoTmp') ;
                 var descripcion = document.getElementById('descripcionTmp') ;
@@ -197,19 +208,17 @@
                 var cantidad = document.getElementById('cantidadTmp') ;
                 var clave = document.getElementById('claveTmp') ;
                 var detalle = document.getElementById('detalleTmp') ;
-                document.getElementById('articulos-'+ contador + '-idArticulo').value = codigo.value ;
-                document.getElementById('articulos-'+ contador + '-codigo').value = codigo.options[codigo.selectedIndex].text.substring(0,6) ;
-                document.getElementById('articulos-'+ contador + '-descripcion').value = descripcion.value ;
-                document.getElementById('articulos-'+ contador + '-unidad').value = unidad.value ;
-                document.getElementById('articulos-'+ contador + '-cantidad').value = cantidad.value ;
-                document.getElementById('articulos-'+ contador + '-clave').value = clave.value ;
-                document.getElementById('articulos-'+ contador + '-detalle').value = detalle.value ;
+                document.getElementById('articulos-'+ index + '-idArticulo').value = codigo.value ;
+                document.getElementById('articulos-'+ index + '-codigo').value = codigo.options[codigo.selectedIndex].text.substring(0,6) ;
+                document.getElementById('articulos-'+ index + '-descripcion').value = descripcion.value ;
+                document.getElementById('articulos-'+ index + '-unidad').value = unidad.value ;
+                document.getElementById('articulos-'+ index + '-cantidad').value = cantidad.value ;
+                document.getElementById('articulos-'+ index + '-clave').value = clave.value ;
+                document.getElementById('articulos-'+ index + '-detalle').value = detalle.value ;
 
-                document.getElementById('div'+contador).style.display = "inline-flex" ;
+                document.getElementById('div'+index).style.display = "inline-flex" ;
                 
-                contador = contador + 1 ;
-
-                codigo.value='' ;
+                clave.value='' ;
                 descripcion.value = '' ;
                 unidad.value = '' ;
                 cantidad.value = '' ;
@@ -219,6 +228,7 @@
         }
 
         function buscarRegistro(){
+            console.log(document.getElementById('codigoTmp').value) ;
             $.ajax({
                 type:'GET',
                 data:{'req_catalogo_id': document.getElementById('codigoTmp').value },

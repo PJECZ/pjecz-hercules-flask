@@ -4,7 +4,7 @@ Requisiciones Catálogos, modelos
 
 from typing import List, Optional
 
-from sqlalchemy import Enum, ForeignKey, String
+from sqlalchemy import Enum, ForeignKey, String, inspect
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.universal_mixin import UniversalMixin
@@ -33,7 +33,7 @@ class ReqCatalogo(database.Model, UniversalMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     # Columnas
-    clave: Mapped[str] = mapped_column(String(16), unique=True)
+    codigo: Mapped[str] = mapped_column(String(16), unique=True)
     descripcion: Mapped[str] = mapped_column(String(256))
     unidad_medida: Mapped[str] = mapped_column(
         Enum(*UNIDADES_MEDIDAS, name="req_catalogos_unidades_medidas", native_enum=False), index=True
@@ -43,10 +43,13 @@ class ReqCatalogo(database.Model, UniversalMixin):
     req_requisiciones_registros: Mapped[List["ReqRequisicionRegistro"]] = relationship(back_populates="req_catalogo")
 
     @property
-    def clave_descripcion(self):
-        """Junta clave y descripcion"""
-        return self.clave + ": " + self.descripcion
+    def codigo_descripcion(self):
+        """Junta código y descripción"""
+        return self.codigo + ": " + self.descripcion
 
     def __repr__(self):
         """Representación"""
         return f"<ReqCatalogo {self.id}>"
+
+    def object_as_dict(obj):
+        return {c.key: getattr(obj, c.key) for c in inspect(obj).mapper.column_attrs}

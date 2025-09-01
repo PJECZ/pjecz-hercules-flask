@@ -2,9 +2,9 @@
 
 {% block content %}
 <div style=' font-family:Helvetica'>
-    <table style='width:70%; margin:0 auto;'>
+    <table style='width:100%; margin:0 auto;'>
         <tr>
-            <td><img src='/static/img/escudo.png' width='280'></td>
+            <td><img src='https://storage.googleapis.com/pjecz-informatica/static/images/pjecz-horizontal.png' width='280'></td>
             <td align='center'>
                 <b>PODER JUDICIAL DEL ESTADO DE COAHUILA DE ZARAGOZA</b>
                 <br>
@@ -32,7 +32,7 @@
         </tr>
     </table>
     <h1 style='text-align:center'>Requisición</h1>
-    <table border=0 width='70%' cellspacion=0 cellpadding=10 style='margin:0 auto'>
+    <table border=0 width='100%' cellspacion=0 cellpadding=10 style='margin:0 auto'>
         <tr>
             <td colspan='6' style='background-color:#efeff1; color:#333'>ÁREA SOLICITANTE</td>
             <td colspan='6' style='background-color:#efeff1; color:#333'>GLOSA</td>
@@ -64,14 +64,14 @@
             <td colspan='12'>{{req_requisicion.observaciones}}</td>
         </tr>
         <tr>
-            <td colspan='12' style='background-color:#efeff1; color:#333'>JUSTIFICACION</td>
+            <td colspan='12' style='background-color:#efeff1; color:#333'>JUSTIFICACIÓN</td>
         </tr>
         <tr>
             <td colspan='12'>{{req_requisicion.justificacion}}</td>
         </tr>
         <tr>
             <td colspan=3 style='background-color:#ccc; color:#333'>CLAVE</td>
-            <td colspan=5 style='background-color:#ccc; color:#333'>DESCRIPCION</td>
+            <td colspan=5 style='background-color:#ccc; color:#333'>DESCRIPCIÓN</td>
             <td style='background-color:#ccc; color:#333'>U. MEDIDA</td>
             <td style='background-color:#ccc; color:#333'>CANTIDAD</td>
             <td style='background-color:#ccc; color:#333'>CLAVE</td>
@@ -85,8 +85,8 @@
             <td colspan=5>{{ campos.ReqCatalogo.descripcion }}</td>
             <td>{{ campos.ReqCatalogo.unidad_medida }}</td>
             <td>{{ campos.ReqRequisicionRegistro.cantidad }}</td>
-            <td>{{ campos.ReqCatalogo.clave }}</td>
-            <td></td>
+            <td>{{ campos.ReqRequisicionRegistro.clave }}</td>
+            <td>{{ campos.ReqRequisicionRegistro.detalle }}</td>
         </tr>
         {% endfor %}
         {% else %}
@@ -108,7 +108,7 @@
 </div>
 
 <div style='font-family:helvetica;'>
-    <table style='width:70%;  margin: 0 auto; text-align:center'>
+    <table style='width:100%;  margin: 0 auto; text-align:center'>
         <tr>
             <td colspan='3'><br>
                 <hr style='border: double'><br>
@@ -173,5 +173,5 @@
 {% endblock %}
 
 {% block custom_javascript %}
-    {{ detail.moment_js(moment) }}
+{{ detail.moment_js(moment) }}
 {% endblock %}

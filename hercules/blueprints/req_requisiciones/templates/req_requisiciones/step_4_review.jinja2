@@ -1,0 +1,25 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Revisar Requisición{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Revisar Requisición ' + req_requisicion.id | string) }}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(title='Creado') %}
+        {{ detail.label_value('Nombre', req_requisicion.usuario.nombre) }}
+        {{ detail.label_value('Puesto', req_requisicion.usuario.puesto) }}
+        {{ detail.label_value('e-mail', req_requisicion.usuario.email) }}
+        {{ detail.label_value('Fecha de captura', moment(req_requisicion.creado).format('llll')) }}
+        {{ detail.label_value('Glosa', req_requisicion.glosa) }}
+    {% endcall %}
+
+{% endblock %}
+
+{% block custom_javascript %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}

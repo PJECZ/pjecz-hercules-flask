@@ -2,7 +2,6 @@
 Requisiciones, formularios
 """
 
-from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import (
     DateField,
@@ -15,8 +14,12 @@ from wtforms import (
     SubmitField,
     TextAreaField,
     validators,
+    HiddenField,
 )
 from wtforms.validators import DataRequired, Length, Optional
+from datetime import datetime
+
+from hercules.blueprints.req_requisiciones.models import ReqRequisicion
 
 
 class NoLabelMixin(object):
@@ -30,11 +33,12 @@ class NoLabelMixin(object):
 class ArticulosForm(NoLabelMixin, FlaskForm):
     """Formulario de Articulos de la Requisicion"""
 
-    clave = IntegerField(render_kw={"readonly": True}, validators=[validators.optional()])
+    idArticulo = HiddenField(render_kw={"readonly": True}, validators=[Length(max=10)])
+    codigo = StringField(render_kw={"readonly": True}, validators=[Length(max=10)])
     descripcion = StringField(render_kw={"readonly": True}, validators=[Length(max=100)])
     unidad = StringField(render_kw={"readonly": True}, validators=[Length(max=50)])
     cantidad = IntegerField(render_kw={"readonly": True}, default=0, validators=[validators.optional()])
-    cve = StringField(render_kw={"readonly": True}, validators=[Length(max=20)])
+    clave = StringField(render_kw={"readonly": True}, validators=[Length(max=20)])
     detalle = StringField(render_kw={"readonly": True}, validators=[Length(max=256)])
 
 
@@ -45,16 +49,16 @@ class ReqRequisicionNewForm(FlaskForm):
     gasto = StringField("Gasto", validators=[DataRequired(), Length(max=7)])
     glosa = StringField("Glosa", validators=[DataRequired(), Length(max=100)])
     programa = StringField("Programa", validators=[Length(max=100)])
-    fuente_financiamiento = StringField("Fuente de financiamiento", validators=[Length(max=100)])
+    fuenteFinanciamiento = StringField("Fuente de financiamiento", validators=[Length(max=100)])
     areaFinal = StringField("Area final a quien se entregará", validators=[Length(max=100)])
     fechaRequerida = DateField("Fecha requerida", format="%Y-%m-%d", default=datetime.now())
     observaciones = TextAreaField("Observaciones", validators=[Length(max=1024)])
     justificacion = TextAreaField("Justificacion", validators=[DataRequired(), Length(max=1024)])
-    claveTmp = SelectField("Código", validators=[Length(max=30)], render_kw={"onChange": "buscarRegistro()"})
+    codigoTmp = SelectField("Código", validators=[Length(max=30)], render_kw={"onChange": "buscarRegistro()"})
     descripcionTmp = StringField("Descripción", validators=[Length(max=100)])
     unidadTmp = StringField("U. medida", validators=[Length(max=50)])
     cantidadTmp = IntegerField("Cantidad", default=0, validators=[validators.optional()])
-    cveTmp = SelectField("Clave", validators=[Length(max=20)])
+    claveTmp = SelectField("Clave", validators=[Length(max=20)])
     detalleTmp = StringField("Detalle", validators=[Length(max=256)])
     articulos = FieldList(FormField(ArticulosForm), min_entries=20)
     guardar = SubmitField("Guardar", id="btnGuardar")

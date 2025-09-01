@@ -2,14 +2,13 @@
 Req Requisiciones, tareas en el fondo
 """
 
-from lib.exceptions import (
-    MyAnyError,
-)
-from lib.tasks import set_task_error, set_task_progress
+from lib.exceptions import MyAnyError
+
 from hercules.blueprints.req_requisiciones.conversions.convert_to_pdf import convertir_a_pdf
+from lib.tasks import set_task_error, set_task_progress
 
 
-def lanzar_convertir_requisicion_a_pdf(req_requisicion_id: str) -> str:
+def lanzar_convertir_a_pdf(req_requisicion_id: str) -> str:
     """Lanzar tarea en el fondo para convertir a PDF"""
     # Iniciar la tarea en el fondo
     set_task_progress(0, "Se ha lanzado la tarea en el fondo para convertir a PDF")
