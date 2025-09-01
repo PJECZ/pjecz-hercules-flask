@@ -1,0 +1,39 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Solicitar Requisición{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(req_requisicion.observaciones) %}
+        {{ topbar.button_previous('Requisiciones', url_for('req_requisiciones.list_active')) }}
+     
+        {% if req_requisicion.estado in ['BORRADOR', 'SOLICITADO', 'CANCELADO POR SOLICITANTE', 'AUTORIZADO', 'CANCELADO POR AUTORIZANTE', 'REVISADO', 'CANCELADO POR REVISANTE'] %}
+            {{ topbar.button_print('Imprimir', url_for('req_requisiciones.detail_print', req_requisicion_id=req_requisicion.id)) }}
+            {{ topbar.button_print('PDF', url_for('req_requisiciones.create_pdf', req_requisicion_id=req_requisicion.id)) }}
+        {% endif %}
+     
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(title='Creado') %}
+        {{ detail.label_value('Nombre', req_requisicion.usuario.nombre) }}
+        {{ detail.label_value('Puesto', req_requisicion.usuario.puesto) }}
+        {{ detail.label_value('e-mail', req_requisicion.usuario.email) }}
+        {{ detail.label_value('Fecha de captura', moment(req_requisicion.creado).format('llll')) }}
+        {{ detail.label_value('Glosa', req_requisicion.glosa) }}
+
+    {% endcall %}
+    {% call f.card(title='Solicitar') %}
+        {{ detail.label_value("Solicito", req_requisicion.solicito_id ) }}
+        {{ detail.label_value('Fecha de solicitud', moment(req_requisicion.solicito_tiempo).format('llll')) }}
+        {{ detail.label_value("Firma simple", req_requisicion.firma_simple ) }}
+    {% endcall %}
+{% endblock %}
+
+
+{% block custom_javascript %}
+    {{ detail.moment_js(moment) }}
+{% endblock %}
