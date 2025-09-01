@@ -23,7 +23,7 @@ class ReqCatalogoForm(FlaskForm):
         """Inicializar y cargar opciones en categoria"""
         super().__init__(*args, **kwargs)
         self.categoria.choices = [
-            (c.id, c.codigo_descripcion) for c in ReqCategoria.query.filter_by(estatus="A").order_by(ReqCategoria.codigo).all()
+            (c.id, c.codigo_descripcion) for c in ReqCategoria.query.filter_by(estatus="A").order_by(ReqCategoria.clave).all()
         ]
 
 
