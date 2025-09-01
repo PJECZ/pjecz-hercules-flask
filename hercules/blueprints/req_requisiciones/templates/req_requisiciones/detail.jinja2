@@ -36,6 +36,7 @@
             {{ topbar.button('Cancelar Revisado', url_for('req_requisiciones.cancel_4_review',req_requisicion_id=req_requisicion.id)) }}
         {% endif %}
         {% if current_user.can_edit('REQ REQUISICIONES') and req_requisicion.estado == "BORRADOR" %}
+            {{ topbar.button_edit('Editar', url_for('req_requisiciones.edit', req_requisicion_id=req_requisicion.id)) }}
             {% if req_requisicion.estatus == 'A' %}
                 {{ topbar.button_delete('Eliminar', url_for('req_requisiciones.delete', req_requisicion_id=req_requisicion.id)) }}
             {% endif %}
