@@ -1080,11 +1080,10 @@ def response(ofi_documento_id):
     else:
         # No viene la plantilla, tomar la plantilla mas reciente de la autoridad del usuario
         ultima_plantilla = (
-            OfiPlantilla.query.
-            filter_by(autoridad_id=current_user.autoridad_id).
-            filter_by(estatus="A").
-            order_by(OfiPlantilla.creado.desc()).
-            first()
+            OfiPlantilla.query.filter_by(autoridad_id=current_user.autoridad_id)
+            .filter_by(estatus="A")
+            .order_by(OfiPlantilla.creado.desc())
+            .first()
         )
         if ultima_plantilla is None:
             flash("No hay plantillas disponibles en su autoridad para responder", "warning")

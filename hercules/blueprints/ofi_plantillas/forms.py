@@ -11,7 +11,9 @@ class OfiPlantillaForm(FlaskForm):
     """Formulario OfiPlantilla"""
 
     descripcion = StringField("Descripción", validators=[DataRequired()])
-    propietario = SelectField("Propietario (lo relaciona a la autoridad)", coerce=int, validate_choice=False, validators=[DataRequired()])
+    propietario = SelectField(
+        "Propietario (lo relaciona a la autoridad)", coerce=int, validate_choice=False, validators=[DataRequired()]
+    )
 
     destinatarios_emails = StringField("Destinatarios", validators=[Optional(), Length(max=1024)])
     con_copias_emails = StringField("Con Copias", validators=[Optional(), Length(max=1024)])

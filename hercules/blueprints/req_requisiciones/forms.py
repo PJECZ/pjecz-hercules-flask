@@ -3,7 +3,19 @@ Requisiciones, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import DateField, IntegerField, FieldList, FormField, PasswordField, SelectField, StringField, SubmitField, TextAreaField, validators, HiddenField
+from wtforms import (
+    DateField,
+    IntegerField,
+    FieldList,
+    FormField,
+    PasswordField,
+    SelectField,
+    StringField,
+    SubmitField,
+    TextAreaField,
+    validators,
+    HiddenField,
+)
 from wtforms.validators import DataRequired, Length, Optional
 from datetime import datetime
 
@@ -49,7 +61,7 @@ class ReqRequisicionNewForm(FlaskForm):
     claveTmp = SelectField("Clave", validators=[Length(max=20)])
     detalleTmp = StringField("Detalle", validators=[Length(max=256)])
     articulos = FieldList(FormField(ArticulosForm), min_entries=20)
-    guardar = SubmitField("Guardar",id="btnGuardar")
+    guardar = SubmitField("Guardar", id="btnGuardar")
 
 
 class ReqRequisicionStep2RequestForm(FlaskForm):
@@ -82,6 +94,7 @@ class ReqRequisicionStep3AuthorizeForm(FlaskForm):
     contrasena = PasswordField("Contraseña de su firma electrónica", validators=[DataRequired(), Length(6, 64)])
     autorizar = SubmitField("Autorizar")
 
+
 class ReqRequisicionCancel3AuthorizeForm(FlaskForm):
     """Formulario Requisicion (step 3 ahutorize) Autorizar"""
 
@@ -91,6 +104,8 @@ class ReqRequisicionCancel3AuthorizeForm(FlaskForm):
     motivo = StringField("Motivo", validators=[DataRequired(), Length(max=256)])
     contrasena = PasswordField("Contraseña de su firma electrónica", validators=[DataRequired(), Length(6, 64)])
     cancelar = SubmitField("Cancelar Autorizado")
+
+
 class ReqRequisicionStep4ReviewForm(FlaskForm):
     """Formulario Requisicion (step 4 review) Revisar"""
 

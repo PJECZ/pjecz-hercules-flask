@@ -85,8 +85,16 @@ def datatable_json():
                 "detalle": {
                     "id": resultado.id,
                     "url": url_for("ofi_plantillas.detail", ofi_plantilla_id=resultado.id),
-                    "url_edicion": url_for("ofi_plantillas.edit", ofi_plantilla_id=resultado.id) if current_user.can_edit("OFI PLANTILLAS") else "",
-                    "url_nuevo": url_for("ofi_documentos.new", ofi_plantilla_id=resultado.id) if current_user.can_insert("OFI DOCUMENTOS") else "",
+                    "url_edicion": (
+                        url_for("ofi_plantillas.edit", ofi_plantilla_id=resultado.id)
+                        if current_user.can_edit("OFI PLANTILLAS")
+                        else ""
+                    ),
+                    "url_nuevo": (
+                        url_for("ofi_documentos.new", ofi_plantilla_id=resultado.id)
+                        if current_user.can_insert("OFI DOCUMENTOS")
+                        else ""
+                    ),
                 },
                 "propietario": {
                     "email": resultado.usuario.email,
@@ -121,11 +129,10 @@ def datatable_json():
 def mis_plantillas_json():
     """Proporcionar el JSON de plantillas del para elaborar el selector de plantillas"""
     consulta = (
-        OfiPlantilla.query.
-        filter(OfiPlantilla.estatus == "A").
-        filter(OfiPlantilla.esta_archivado.is_(False)).
-        filter(OfiPlantilla.esta_compartida.is_(False)).
-        filter(OfiPlantilla.usuario_id == current_user.id)
+        OfiPlantilla.query.filter(OfiPlantilla.estatus == "A")
+        .filter(OfiPlantilla.esta_archivado.is_(False))
+        .filter(OfiPlantilla.esta_compartida.is_(False))
+        .filter(OfiPlantilla.usuario_id == current_user.id)
     )
     resultados = []
     for ofi_plantilla in consulta.order_by(OfiPlantilla.descripcion).all():
@@ -151,13 +158,12 @@ def mis_plantillas_json():
 def tablero_json():
     """Proporcionar el JSON de plantillas compartidas de la autoridad_clave para elaborar el selector de plantillas"""
     consulta = (
-        OfiPlantilla.query.
-        join(Usuario).
-        join(Autoridad).
-        filter(OfiPlantilla.estatus == "A").
-        filter(OfiPlantilla.esta_archivado.is_(False)).
-        filter(OfiPlantilla.esta_compartida.is_(True)).
-        filter(Usuario.estatus == "A")
+        OfiPlantilla.query.join(Usuario)
+        .join(Autoridad)
+        .filter(OfiPlantilla.estatus == "A")
+        .filter(OfiPlantilla.esta_archivado.is_(False))
+        .filter(OfiPlantilla.esta_compartida.is_(True))
+        .filter(Usuario.estatus == "A")
     )
     autoridad_clave = request.args.get("autoridad_clave", "").strip()
     if autoridad_clave:
@@ -175,7 +181,11 @@ def tablero_json():
     if len(resultados) == 0:
         return {
             "success": False,
-            "message": f"No se encontraron plantillas para la autoridad {autoridad_clave}" if autoridad_clave else "No se encontraron plantillas",
+            "message": (
+                f"No se encontraron plantillas para la autoridad {autoridad_clave}"
+                if autoridad_clave
+                else "No se encontraron plantillas"
+            ),
         }
     return {
         "success": True,

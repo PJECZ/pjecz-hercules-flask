@@ -14,6 +14,7 @@ from hercules.extensions import database
 from hercules.blueprints.req_catalogos.models import ReqCatalogo
 from hercules.blueprints.req_requisiciones.models import ReqRequisicion
 
+
 class ReqRequisicionRegistro(database.Model, UniversalMixin):
     """ReqRequisicionRegistro"""
 

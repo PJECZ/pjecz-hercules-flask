@@ -53,9 +53,9 @@ class ReqRequisicion(database.Model, UniversalMixin):
     estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="req_requisiciones_estados", native_enum=False), index=True)
     esta_archivado: Mapped[bool] = mapped_column(default=False)
     esta_cancelado: Mapped[bool] = mapped_column(default=False)
-    autoridad_id: Mapped[int] 
+    autoridad_id: Mapped[int]
     archivo_pdf_url: Mapped[Optional[str]] = mapped_column(String(512))
-    contenido_html: Mapped[Optional[str]] 
+    contenido_html: Mapped[Optional[str]]
 
     # El folio es None cuando el estado es BORRADOR
     # Cuando se firma el documento, se genera un folio y se separa su año y número
