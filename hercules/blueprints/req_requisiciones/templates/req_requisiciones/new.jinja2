@@ -7,6 +7,10 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_edit('REQ REQUISICIONES') %}
+            {{ topbar.button_list_inactive('Inactivas', url_for('req_requisiciones.list_inactive')) }}
+            {{ topbar.button_list_active('Activas', url_for('req_requisiciones.list_active')) }}
+        {% endif %}
     {% endcall %}
 {% endblock %}
 
@@ -41,7 +45,7 @@
                         {% call f.form_group(form.programa) %}{% endcall %}
                     </div>
                     <div class="col-md-6">
-                        {% call f.form_group(form.fuente_financiamiento) %}{% endcall %} 
+                        {% call f.form_group(form.fuenteFinanciamiento) %}{% endcall %} 
                     </div>
                 </div>
 
@@ -72,7 +76,7 @@
         {% call list.card() %}
                 <div class="row">
                     <div class="col-md-2">
-                        {% call f.form_group(form.claveTmp) %}{% endcall %}
+                        {% call f.form_group(form.codigoTmp) %}{% endcall %}
                     </div>
                     <div class="col-md-3">
                         {% call f.form_group(form.descripcionTmp, readonly=true) %}{% endcall %}
@@ -81,7 +85,7 @@
                         {% call f.form_group(form.unidadTmp, readonly=true) %}{% endcall %}
                     </div>
                     <div class="col-md-1">
-                        {% call f.form_group(form.cveTmp) %}{% endcall %} 
+                        {% call f.form_group(form.claveTmp) %}{% endcall %} 
                     </div>
                     <div class="col-md-1">
                         {% call f.form_group(form.cantidadTmp) %}{% endcall %}
@@ -109,9 +113,13 @@
                         <div class="col-md-3"><label>Detalle</label></div>
                         <div class="col-md-1"></div>
                     </div>
+                    <style>
+                        .hidden{ display:none;}
+                    </style>
                     {% for campos in form.articulos %}
                         <div class="row" style="border-bottom:0px solid #666; display:none" id="div{{loop.index - 1}}">
-                            <div class="col-md-2">{% call f.form_group(campos.form.clave) %}{% endcall %}</div>
+                            <div style="display='none'">{% call f.form_group(campos.form.idArticulo, 'hidden') %}{% endcall %}</div>
+                            <div class="col-md-2">{% call f.form_group(campos.form.codigo) %}{% endcall %}</div>
                             <div class="col-md-3">{% call f.form_group(campos.form.descripcion) %}{% endcall %}</div>
                             <div class="col-md-1">{% call f.form_group(campos.form.unidad) %}{% endcall %}</div>
                             <div class="col-md-1">{% call f.form_group(campos.form.clave) %}{% endcall %}</div>
@@ -155,7 +163,8 @@
         });
 
         function eliminar(contador) {
-                document.getElementById('articulos-' + contador + '-clave').value = "";
+                document.getElementById('articulos-' + contador + '-idArticulo').value = "";
+                document.getElementById('articulos-' + contador + '-codigo').value = "";
                 document.getElementById('articulos-' + contador + '-descripcion').value = "";
                 document.getElementById('articulos-' + contador + '-unidad').value = "";
                 document.getElementById('articulos-' + contador + '-cantidad').value = "";
@@ -168,7 +177,7 @@
         function agregar(){
             var flag=0 ;
 
-            if(claveTmp.value=="" && flag==0){
+            if(codigoTmp.value=="" && flag==0){
                 swal("Seleccion el código del articulo a solicitar","","info");
                 flag=1 ;
             }
@@ -181,13 +190,15 @@
                 flag=1 ;
             }
             if(flag==0){
-                var clave = document.getElementById('claveTmp') ;
+                var idArticulo = document.getElementById('codigoTmp') ;
+                var codigo = document.getElementById('codigoTmp') ;
                 var descripcion = document.getElementById('descripcionTmp') ;
                 var unidad = document.getElementById('unidadTmp') ;
                 var cantidad = document.getElementById('cantidadTmp') ;
                 var clave = document.getElementById('claveTmp') ;
                 var detalle = document.getElementById('detalleTmp') ;
-                document.getElementById('articulos-'+ contador + '-clave').value = clave.value ;
+                document.getElementById('articulos-'+ contador + '-idArticulo').value = codigo.value ;
+                document.getElementById('articulos-'+ contador + '-codigo').value = codigo.options[codigo.selectedIndex].text.substring(0,6) ;
                 document.getElementById('articulos-'+ contador + '-descripcion').value = descripcion.value ;
                 document.getElementById('articulos-'+ contador + '-unidad').value = unidad.value ;
                 document.getElementById('articulos-'+ contador + '-cantidad').value = cantidad.value ;
@@ -198,7 +209,7 @@
                 
                 contador = contador + 1 ;
 
-                clave.value='' ;
+                codigo.value='' ;
                 descripcion.value = '' ;
                 unidad.value = '' ;
                 cantidad.value = '' ;
@@ -210,7 +221,7 @@
         function buscarRegistro(){
             $.ajax({
                 type:'GET',
-                data:{'req_catalogo_id': document.getElementById('claveTmp').value },
+                data:{'req_catalogo_id': document.getElementById('codigoTmp').value },
                 url:'/req_requisiciones/buscarRegistros',
                 success:function(respuesta){
                     document.getElementById('descripcionTmp').value = respuesta.descripcion ;
