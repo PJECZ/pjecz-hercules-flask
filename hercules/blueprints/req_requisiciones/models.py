@@ -25,6 +25,9 @@ class ReqRequisicion(database.Model, UniversalMixin):
         "AUTORIZADO": "Autorizado",
         "REVISADO": "Revisado",
         "ENTREGADO": "Entregado",
+        "CANCELADO POR SOLICITANTE": "Cancelado por Solicitante",
+        "CANCELADO POR AUTORIZANTE": "Cancelado por Autorizante",
+        "CANCELADO POR REVISANTE": "Cancelado por Revisante",
     }
 
     # Nombre de la tabla
@@ -42,6 +45,7 @@ class ReqRequisicion(database.Model, UniversalMixin):
     gasto: Mapped[str] = mapped_column(String(32))
     glosa: Mapped[str] = mapped_column(String(32))
     programa: Mapped[str] = mapped_column(String(128))
+    area_final: Mapped[str] = mapped_column(String(128))
     fuente_financiamiento: Mapped[str] = mapped_column(String(128))
     fecha_requerida: Mapped[date] = mapped_column(Date)
     observaciones: Mapped[str] = mapped_column(String(256))
@@ -49,6 +53,9 @@ class ReqRequisicion(database.Model, UniversalMixin):
     estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="req_requisiciones_estados", native_enum=False), index=True)
     esta_archivado: Mapped[bool] = mapped_column(default=False)
     esta_cancelado: Mapped[bool] = mapped_column(default=False)
+    autoridad_id: Mapped[int]
+    archivo_pdf_url: Mapped[Optional[str]] = mapped_column(String(512))
+    contenido_html: Mapped[Optional[str]]
 
     # El folio es None cuando el estado es BORRADOR
     # Cuando se firma el documento, se genera un folio y se separa su año y número
