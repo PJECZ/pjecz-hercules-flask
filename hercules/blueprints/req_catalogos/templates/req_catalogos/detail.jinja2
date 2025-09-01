@@ -22,7 +22,7 @@
     {% call detail.card(estatus=req_catalogo.estatus) %}
         {{ detail.label_value_big('Código', req_catalogo.codigo) }}
         {{ detail.label_value('Descripción', req_catalogo.descripcion) }}
-        {{ detail.label_value('Categoría', req_catalogo.req_categoria.codigo_descripcion, url_for('req_categorias.detail', req_categoria_id=req_catalogo.req_categoria.id)) }}
+        {{ detail.label_value('Categoría', req_catalogo.req_categoria.clave_descripcion, url_for('req_categorias.detail', req_categoria_id=req_catalogo.req_categoria.id)) }}
         {{ detail.label_value('Unidad de Medida', req_catalogo.unidad_medida) }}
     {% endcall %}
 {% endblock %}

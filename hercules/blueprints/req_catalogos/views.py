@@ -70,7 +70,7 @@ def datatable_json():
                 },
                 "descripcion": resultado.descripcion,
                 "req_categoria": {
-                    "nombre": resultado.req_categoria.codigo_descripcion,
+                    "nombre": resultado.req_categoria.clave_descripcion,
                     "url": url_for("req_categorias.detail", req_categoria_id=resultado.req_categoria.id),
                 },
                 "unidad_medida": resultado.unidad_medida,
