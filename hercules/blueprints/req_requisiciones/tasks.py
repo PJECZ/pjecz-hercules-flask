@@ -2,9 +2,8 @@
 Req Requisiciones, tareas en el fondo
 """
 
-from lib.exceptions import (
-    MyAnyError,
-)
+from lib.exceptions import MyAnyError
+
 from lib.tasks import set_task_error, set_task_progress
 from hercules.blueprints.req_requisiciones.conversions.convert_to_pdf import convertir_a_pdf
 

@@ -84,12 +84,9 @@ def datatable_json():
         oficina = ""
 
         autoridad = Autoridad.query.filter_by(id=resultado.autoridad_id)
-        clave = None
-        nombre = None
-        if autoridad:
-            for row in autoridad:
-                clave = row.clave
-                nombre = row.descripcion
+        for row in autoridad:
+            clave = row.clave
+            nombre = row.descripcion
 
         data.append(
             {
