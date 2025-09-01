@@ -64,14 +64,14 @@
             <td colspan='12'>{{req_requisicion.observaciones}}</td>
         </tr>
         <tr>
-            <td colspan='12' style='background-color:#efeff1; color:#333'>JUSTIFICACION</td>
+            <td colspan='12' style='background-color:#efeff1; color:#333'>JUSTIFICACIÓN</td>
         </tr>
         <tr>
             <td colspan='12'>{{req_requisicion.justificacion}}</td>
         </tr>
         <tr>
             <td colspan=3 style='background-color:#ccc; color:#333'>CLAVE</td>
-            <td colspan=5 style='background-color:#ccc; color:#333'>DESCRIPCION</td>
+            <td colspan=5 style='background-color:#ccc; color:#333'>DESCRIPCIÓN</td>
             <td style='background-color:#ccc; color:#333'>U. MEDIDA</td>
             <td style='background-color:#ccc; color:#333'>CANTIDAD</td>
             <td style='background-color:#ccc; color:#333'>CLAVE</td>
@@ -85,7 +85,8 @@
             <td colspan=5>{{ campos.ReqCatalogo.descripcion }}</td>
             <td>{{ campos.ReqCatalogo.unidad_medida }}</td>
             <td>{{ campos.ReqRequisicionRegistro.cantidad }}</td>
-            <td>{{ campos.ReqCatalogo.clave }}</td>
+            <td>{{ campos.ReqRequisicionRegistro.clave }}</td>
+            <td>{{ campos.ReqRequisicionRegistro.detalle }}</td>
             <td></td>
         </tr>
         {% endfor %}
