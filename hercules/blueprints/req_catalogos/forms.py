@@ -13,7 +13,7 @@ from hercules.blueprints.req_categorias.models import ReqCategoria
 class ReqCatalogoForm(FlaskForm):
     """Formulario ReqCatalogo"""
 
-    clave = StringField("Clave", validators=[DataRequired(), Length(max=16)])
+    codigo = StringField("Código", validators=[DataRequired(), Length(max=16)])
     descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=256)])
     categoria = SelectField("Categoría", coerce=int, validators=[DataRequired()])
     unidad_medida = SelectField("Unidad de medida", choices=ReqCatalogo.UNIDADES_MEDIDAS.items(), validators=[DataRequired()])
@@ -23,14 +23,14 @@ class ReqCatalogoForm(FlaskForm):
         """Inicializar y cargar opciones en categoria"""
         super().__init__(*args, **kwargs)
         self.categoria.choices = [
-            (c.id, c.clave_descripcion) for c in ReqCategoria.query.filter_by(estatus="A").order_by(ReqCategoria.clave).all()
+            (c.id, c.codigo_descripcion) for c in ReqCategoria.query.filter_by(estatus="A").order_by(ReqCategoria.codigo).all()
         ]
 
 
 class ReqCatalogoWithCategoriaForm(FlaskForm):
     """Formulario ReqCatalogo con Categoría seleccionada"""
 
-    clave = StringField("Clave", validators=[DataRequired(), Length(max=16)])
+    codigo = StringField("Código", validators=[DataRequired(), Length(max=16)])
     descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=256)])
     categoria = StringField("Categoría")  # Read Only
     unidad_medida = SelectField("Unidad de medida", choices=ReqCatalogo.UNIDADES_MEDIDAS.items(), validators=[DataRequired()])

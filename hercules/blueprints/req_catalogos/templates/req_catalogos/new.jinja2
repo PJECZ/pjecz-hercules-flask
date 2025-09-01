@@ -11,7 +11,7 @@
 {% block content %}
     {% call f.card() %}
         {% call f.form_tag('req_catalogos.new', fid='req_catalogo_form') %}
-            {% call f.form_group(form.clave) %}{% endcall %}
+            {% call f.form_group(form.codigo) %}{% endcall %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
             {% call f.form_group(form.categoria) %}{% endcall %}
             {% call f.form_group(form.unidad_medida) %}{% endcall %}
