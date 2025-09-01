@@ -755,7 +755,7 @@ def detail_print(req_requisicion_id):
     return redirect(url_for("req_requisiciones.list_active"))
 
 
-@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>/generarpdf")
+@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>/generarpdf", methods=["GET", "POST"])
 def create_pdf(req_requisicion_id):
     """Impresion de la Requsición"""
 
@@ -779,7 +779,6 @@ def create_pdf(req_requisicion_id):
 
     # Si puede imprimirla
     if puede_imprimirlo:
-
         current_user.launch_task(
             comando="req_requisiciones.tasks.lanzar_convertir_a_pdf",
             mensaje="Convirtiendo a archivo PDF...",
