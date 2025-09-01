@@ -23,6 +23,7 @@ class OfiDocumentoNewForm(FlaskForm):
     contenido_html = TextAreaField("Contenido HTML", validators=[Optional()], render_kw={"rows": 10})
     contenido_sfdt = TextAreaField("Contenido SFDT", validators=[Optional()], render_kw={"rows": 10})
     cadena_oficio_id = HiddenField("Cadena de Oficio", validators=[Optional()])
+    guardar_y_seguir_escribiendo = SubmitField("Guardar y seguir escribiendo")
     guardar = SubmitField("Guardar")
 
 
@@ -35,6 +36,7 @@ class OfiDocumentoEditForm(FlaskForm):
     contenido_md = TextAreaField("Contenido MD", validators=[Optional()], render_kw={"rows": 10})
     contenido_html = TextAreaField("Contenido HTML", validators=[Optional()], render_kw={"rows": 10})
     contenido_sfdt = TextAreaField("Contenido SFDT", validators=[Optional()], render_kw={"rows": 10})
+    guardar_y_seguir_escribiendo = SubmitField("Guardar y seguir escribiendo")
     guardar = SubmitField("Guardar")
 
 
