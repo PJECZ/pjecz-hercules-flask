@@ -781,7 +781,7 @@ def create_pdf(req_requisicion_id):
     if puede_imprimirlo:
 
         current_user.launch_task(
-            comando="req_requisiciones.tasks.lanzar_convertir_requisicion_a_pdf",
+            comando="req_requisiciones.tasks.lanzar_convertir_a_pdf",
             mensaje="Convirtiendo a archivo PDF...",
             req_requisicion_id=str(req_requisicion_id),
         )
