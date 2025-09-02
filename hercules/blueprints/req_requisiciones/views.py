@@ -128,8 +128,9 @@ def list_active():
         return render_template(
             "req_requisiciones/list.jinja2",
             filtros=json.dumps({"estatus": "A"}),
-            titulo="Administrar las Requisiciones",
+            titulo="Mis Requisiciones",
             estatus="A",
+            boton_activo="MIS REQUISICIONES",
         )
     # Consultar los roles del usuario
     current_user_roles = current_user.get_roles()
@@ -182,8 +183,9 @@ def list_active_mi_autoridad():
         return render_template(
             "req_requisiciones/list.jinja2",
             filtros=json.dumps({"estatus": "A"}),
-            titulo="Administrar las Requisiciones",
+            titulo="Requisiciones de Mi Autoridad",
             estatus="A",
+            boton_activo="MI AUTORIDAD",
         )
     # Consultar los roles del usuario
     current_user_roles = current_user.get_roles()
@@ -234,7 +236,7 @@ def list_inactive():
     return render_template(
         "req_requisiciones/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Listado de requisiciones inactivas",
+        titulo="Requisiciones inactivas",
         estatus="B",
     )
 

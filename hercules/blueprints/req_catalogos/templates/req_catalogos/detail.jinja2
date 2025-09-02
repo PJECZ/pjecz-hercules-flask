@@ -6,7 +6,7 @@
 {% block title %}Requisiciones Catálogo {{ req_catalogo.codigo }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Requisiciones Catálogo ' + req_catalogo.codigo) %}
+    {% call topbar.page_buttons('Requisiciones Catálogo: ' + req_catalogo.codigo) %}
         {{ topbar.button_previous('Catálogos', url_for('req_catalogos.list_active')) }}
         {% if current_user.can_edit('REQ CATALOGOS') %}
             {{ topbar.button_edit('Editar', url_for('req_catalogos.edit', req_catalogo_id=req_catalogo.id)) }}

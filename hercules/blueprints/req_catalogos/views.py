@@ -176,7 +176,7 @@ def new_with_categoria(req_categoria_id):
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
     # Cargar datos en el formulario
-    form.categoria.data = req_categoria.codigo_descripcion
+    form.categoria.data = req_categoria.clave_descripcion
     # Entrega
     return render_template("req_catalogos/new_with_categoria.jinja2", form=form, req_categoria=req_categoria)
 
