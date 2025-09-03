@@ -719,7 +719,9 @@ def edit(ofi_documento_id):
             )
             bitacora.save()
             flash(bitacora.descripcion, "success")
-            return redirect(bitacora.url)
+            # Si va a continuar editando, cuando continuar no es cero, entonces NO redirigir al detalle
+            if form.continuar.data != "1":
+                return redirect(bitacora.url)
     # Cargar los datos en el formulario
     form.descripcion.data = ofi_documento.descripcion
     form.folio.data = ofi_documento.folio
@@ -882,7 +884,7 @@ def sign(ofi_documento_id):
         "ofi_documentos/sign.jinja2",
         form=form,
         ofi_documento=ofi_documento,
-        tiene_firma_electronica_avanzada=(current_user.efirma_registro_id is not None and current_user.efirma_registro_id >0),
+        tiene_firma_electronica_avanzada=(current_user.efirma_registro_id is not None and current_user.efirma_registro_id > 0),
     )
 
 
@@ -1081,11 +1083,10 @@ def response(ofi_documento_id):
     else:
         # No viene la plantilla, tomar la plantilla mas reciente de la autoridad del usuario
         ultima_plantilla = (
-            OfiPlantilla.query.
-            filter_by(autoridad_id=current_user.autoridad_id).
-            filter_by(estatus="A").
-            order_by(OfiPlantilla.creado.desc()).
-            first()
+            OfiPlantilla.query.filter_by(autoridad_id=current_user.autoridad_id)
+            .filter_by(estatus="A")
+            .order_by(OfiPlantilla.creado.desc())
+            .first()
         )
         if ultima_plantilla is None:
             flash("No hay plantillas disponibles en su autoridad para responder", "warning")

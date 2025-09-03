@@ -31,13 +31,13 @@ class OfiDocumentoEditForm(FlaskForm):
     """Formulario para editar OfiDocumento"""
 
     descripcion = StringField("Descripción", validators=[DataRequired(), Length(max=256)])
-    folio = StringField("Folio (DD-NN/AAAA)", validators=[Optional(), Regexp(FOLIO_REGEXP)])
+    folio = StringField("Folio (CLAVE-NN/AAAA)", validators=[Optional(), Regexp(FOLIO_REGEXP)])
     vencimiento_fecha = DateField("Fecha de vencimiento", validators=[Optional()])
     contenido_md = TextAreaField("Contenido MD", validators=[Optional()], render_kw={"rows": 10})
     contenido_html = TextAreaField("Contenido HTML", validators=[Optional()], render_kw={"rows": 10})
     contenido_sfdt = TextAreaField("Contenido SFDT", validators=[Optional()], render_kw={"rows": 10})
-    guardar_y_seguir_escribiendo = SubmitField("Guardar y seguir escribiendo")
-    guardar = SubmitField("Guardar")
+    continuar = HiddenField("Continuar", default="0")  # 1 = seguir editando, 0 = salir
+    # No tiene guardar = SubmitField("Guardar")
 
 
 class OfiDocumentoSignForm(FlaskForm):
