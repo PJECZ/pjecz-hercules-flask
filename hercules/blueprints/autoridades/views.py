@@ -430,11 +430,10 @@ def select2_json():
 def tablero_json():
     """Proporcionar el JSON de autoridades con pagina_cabecera_url para elaborar un tablero"""
     consulta = (
-        Autoridad.query.
-        filter(Autoridad.estatus == "A").
-        filter(Autoridad.tablero_icono != "").
-        filter(Autoridad.pagina_cabecera_url != "").
-        order_by(Autoridad.descripcion_corta)
+        Autoridad.query.filter(Autoridad.estatus == "A")
+        .filter(Autoridad.tablero_icono != "")
+        .filter(Autoridad.pagina_cabecera_url != "")
+        .order_by(Autoridad.descripcion_corta)
     )
     resultados = []
     for autoridad in consulta.all():

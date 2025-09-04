@@ -1,8 +1,9 @@
 {% extends 'layouts/app.jinja2' %}
 {% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/list.jinja2' as list %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Nuevo Catálogo{% endblock %}
+{% block title %}{{ titulo }}{% endblock %}
 
 {% block topbar_actions %}
     {{ topbar.page('Requisiciones Nuevo Catálogo') }}
@@ -17,5 +18,8 @@
             {% call f.form_group(form.unidad_medida) %}{% endcall %}
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}
+
+    
     {% endcall %}
 {% endblock %}
+

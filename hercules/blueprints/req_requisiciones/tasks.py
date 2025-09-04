@@ -1,5 +1,5 @@
 """
-Req Requisiciones, tareas en el fondo
+Requisiciones, tareas en el fondo
 """
 
 from lib.exceptions import MyAnyError

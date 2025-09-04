@@ -4,12 +4,15 @@ Req Requisiciones Registros, modelos
 
 import uuid
 
+
 from sqlalchemy import ForeignKey, Integer, String, Uuid
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lib.universal_mixin import UniversalMixin
 from hercules.extensions import database
+from hercules.blueprints.req_catalogos.models import ReqCatalogo
+from hercules.blueprints.req_requisiciones.models import ReqRequisicion
 
 
 class ReqRequisicionRegistro(database.Model, UniversalMixin):
@@ -31,6 +34,7 @@ class ReqRequisicionRegistro(database.Model, UniversalMixin):
     # Columnas
     cantidad: Mapped[int] = mapped_column(Integer, nullable=False)
     detalle: Mapped[str] = mapped_column(String(256))
+    clave: Mapped[str] = mapped_column(String(30))
 
     def __repr__(self):
         """Representación"""
