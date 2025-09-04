@@ -4,7 +4,7 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/detail.jinja2' as detail %}
 
-{% block title %}Agregar Destinatarios{% endblock %}
+{% block title %}Agregar Destinatarios a {{ ofi_documento.descripcion | truncate(48) }}{% endblock %}
 
 {% block custom_head %}
     <!-- Select2 bootstrap -->
@@ -13,17 +13,24 @@
 {% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Agregar Destinatarios') }}
+    {% call topbar.page_buttons('Agregar Destinatario a ' + ofi_documento.descripcion | truncate(48)) %}
+        {{ topbar.button_previous('Regresar al Oficio', url_for('ofi_documentos.detail', ofi_documento_id=ofi_documento.id)) }}
+    {% endcall %}
 {% endblock %}
 
 {% block content %}
-    {% call f.card() %}
+    {% call f.card(title='Oficio') %}
+        {{ detail.label_value('Descripción', ofi_documento.descripcion) }}
+        {{ detail.label_value('Folio', ofi_documento.folio) }}
+        {% if current_user.can_view('USUARIOS') %}
+            {{ detail.label_value('Propietario', ofi_documento.usuario.nombre,  url_for("usuarios.detail", usuario_id=ofi_documento.usuario.id)) }}
+        {% else %}
+            {{ detail.label_value('Propietario', ofi_documento.usuario.nombre) }}
+        {% endif %}
+    {% endcall %}
+    {% call f.card(title='Agregar Destinatarios') %}
         {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
         {% call f.form_tag('ofi_documentos_destinatarios.new_with_ofi_documento', fid='ofi_documento_destinatario_form', **form_kwargs) %}
-            <strong>Descripción del Oficio</strong>
-            <p>{{ ofi_documento.descripcion }}</p>
-            <strong>Folio del Oficio</strong>
-            <p>{{ ofi_documento.folio }}</p>
             <!-- Inicia mini-Formulario para agregar un destinatario -->
             <div class="form-group mb-2">
                 <label><strong>Agregar un usuario</strong></label>

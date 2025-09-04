@@ -32,8 +32,8 @@
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosReqCatalogos.buscar(); return false;">
                     <div class="col-4">
                         <div class="form-floating">
-                            <input id="filtroClave" type="text" class="form-control" aria-label="Clave" style="text-transform: uppercase;">
-                            <label for="filtroClave">Clave</label>
+                            <input id="filtroCodigo" type="text" class="form-control" aria-label="Codigo" style="text-transform: uppercase;">
+                            <label for="filtroCodigo">Código</label>
                         </div>
                     </div>
                     <div class="col-6">
@@ -53,7 +53,7 @@
         <table id="req_catalogos_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>Clave</th>
+                    <th>Código</th>
                     <th>Descripción</th>
                     <th>Unidad de Medida</th>
                 </tr>
@@ -87,13 +87,13 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.clave + '</a>';
+                    return '<a href="' + data.url + '">' + data.codigo + '</a>';
                 }
             }
         ];
         // Filtros reqCatalogos
         const filtrosReqCatalogos = new FiltrosDataTable('#req_catalogos_datatable', configDataTable);
-        filtrosReqCatalogos.agregarInput('filtroClave', 'clave');
+        filtrosReqCatalogos.agregarInput('filtroCodigo', 'codigo');
         filtrosReqCatalogos.agregarInput('filtroDescripcion', 'descripcion');
         filtrosReqCatalogos.precargar();
     </script>

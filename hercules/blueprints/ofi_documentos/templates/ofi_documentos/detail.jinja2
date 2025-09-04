@@ -3,7 +3,7 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Oficio {{ ofi_documento.descripcion }}{% endblock %}
+{% block title %}Oficio {{ ofi_documento.descripcion | truncate(48) }}{% endblock %}
 
 {% block custom_head %}
 {% endblock %}
@@ -87,7 +87,7 @@
                     <div class="row">
                         <div class="col-md-3 text-end">Archivado</div>
                         <div class="col-md-9">
-                                <span class="badge rounded-pill bg-secondary">ARCHIVADO</span>
+                            <span class="badge rounded-pill bg-secondary">ARCHIVADO</span>
                         </div>
                     </div>
                 {% endif %}
@@ -310,7 +310,7 @@
         configDT_adjuntos['ajax']['data'] = {"estatus": "A", "ofi_documento_id": "{{ ofi_documento.id }}"};
         configDT_adjuntos['columns'] = [
             { data: 'detalle' },
-            { data: 'nombre' }
+            { data: 'descripcion' }
         ];
         configDT_adjuntos['columnDefs'] = [
             {

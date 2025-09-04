@@ -12,6 +12,9 @@
         {% if req_requisicion.estado in ['BORRADOR', 'SOLICITADO', 'CANCELADO POR SOLICITANTE', 'AUTORIZADO', 'CANCELADO POR AUTORIZANTE', 'REVISADO', 'CANCELADO POR REVISANTE'] %}
             {{ topbar.button_print('Imprimir', url_for('req_requisiciones.detail_print', req_requisicion_id=req_requisicion.id)) }}
         {% endif %}
+        {% if req_requisicion.archivo_pdf_url is none %}
+            {{ topbar.button('Crear PDF', url_for('req_requisiciones.create_pdf', req_requisicion_id=req_requisicion.id), 'mdi:file-pdf-box') }}
+        {% endif %}
         {# {% if req_requisicion.estado in ['SOLICITADO', 'CANCELADO POR SOLICITANTE', 'AUTORIZADO', 'CANCELADO POR AUTORIZANTE', 'REVISADO', 'CANCELADO POR REVISANTE'] %} #}
             {% if req_requisicion.archivo_pdf_url is none %}
                 {{ topbar.button('Crear PDF', url_for('req_requisiciones.create_pdf', req_requisicion_id=req_requisicion.id), 'mdi:file-pdf-box') }}

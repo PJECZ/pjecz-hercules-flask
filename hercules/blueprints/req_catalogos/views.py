@@ -51,10 +51,10 @@ def datatable_json():
         consulta = consulta.filter(ReqCatalogo.estatus == request.form["estatus"])
     else:
         consulta = consulta.filter(ReqCatalogo.estatus == "A")
-    if "clave" in request.form:
-        clave = safe_clave(request.form["clave"])
-        if clave:
-            consulta = consulta.filter(ReqCatalogo.clave.contains(clave))
+    if "codigo" in request.form:
+        codigo = safe_clave(request.form["codigo"])
+        if codigo:
+            consulta = consulta.filter(ReqCatalogo.codigo.contains(codigo))
     if "descripcion" in request.form:
         descripcion = safe_string(request.form["descripcion"])
         if descripcion:
@@ -66,7 +66,7 @@ def datatable_json():
     #     consulta = consulta.join(Persona)
     #     consulta = consulta.filter(Persona.rfc.contains(safe_rfc(request.form["persona_rfc"], search_fragment=True)))
     # Ordenar y paginar
-    registros = consulta.order_by(ReqCatalogo.clave).offset(start).limit(rows_per_page).all()
+    registros = consulta.order_by(ReqCatalogo.codigo).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable
     data = []
@@ -74,7 +74,7 @@ def datatable_json():
         data.append(
             {
                 "detalle": {
-                    "clave": resultado.clave,
+                    "codigo": resultado.codigo,
                     "url": url_for("req_catalogos.detail", req_catalogo_id=resultado.id),
                 },
                 "descripcion": resultado.descripcion,
@@ -126,15 +126,15 @@ def new():
     form = ReqCatalogoForm()
     if form.validate_on_submit():
         es_valido = True
-        # Validar que no se repita la clave
-        clave = safe_clave(form.clave.data)
-        clave_repetida = ReqCatalogo.query.filter_by(clave=clave).first()
-        if clave_repetida:
-            flash(f"La clave '{clave_repetida}' ya existe", "warning")
+        # Validar que no se repita la codigo
+        codigo = safe_clave(form.codigo.data)
+        codigo_repetida = ReqCatalogo.query.filter_by(codigo=codigo).first()
+        if codigo_repetida:
+            flash(f"La codigo '{codigo_repetida}' ya existe", "warning")
             es_valido = False
         if es_valido:
             req_catalogo = ReqCatalogo(
-                clave=clave,
+                codigo=codigo,
                 descripcion=safe_string(form.descripcion.data),
                 unidad_medida=form.unidad_medida.data,
                 req_categoria_id=form.categoria.data,
@@ -143,7 +143,7 @@ def new():
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
-                descripcion=safe_message(f"Nuevo Req Catalogo {req_catalogo.clave}"),
+                descripcion=safe_message(f"Nuevo Req Catalogo {req_catalogo.codigo}"),
                 url=url_for("req_catalogos.detail", req_catalogo_id=req_catalogo.id),
             )
             bitacora.save()
@@ -161,15 +161,15 @@ def new_with_categoria(req_categoria_id):
     form = ReqCatalogoWithCategoriaForm()
     if form.validate_on_submit():
         es_valido = True
-        # Validar que no se repita la clave
-        clave = safe_clave(form.clave.data)
-        clave_repetida = ReqCatalogo.query.filter_by(clave=clave).first()
-        if clave_repetida:
-            flash(f"La clave '{clave_repetida}' ya existe", "warning")
+        # Validar que no se repita la codigo
+        codigo = safe_clave(form.codigo.data)
+        codigo_repetida = ReqCatalogo.query.filter_by(codigo=codigo).first()
+        if codigo_repetida:
+            flash(f"La codigo '{codigo_repetida}' ya existe", "warning")
             es_valido = False
         if es_valido:
             req_catalogo = ReqCatalogo(
-                clave=clave,
+                codigo=codigo,
                 descripcion=safe_string(form.descripcion.data),
                 unidad_medida=form.unidad_medida.data,
                 req_categoria=req_categoria,
@@ -178,7 +178,7 @@ def new_with_categoria(req_categoria_id):
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
-                descripcion=safe_message(f"Nuevo Req Catalogo {req_catalogo.clave}"),
+                descripcion=safe_message(f"Nuevo Req Catalogo {req_catalogo.codigo}"),
                 url=url_for("req_catalogos.detail", req_catalogo_id=req_catalogo.id),
             )
             bitacora.save()
@@ -198,14 +198,14 @@ def edit(req_catalogo_id):
     form = ReqCatalogoForm()
     if form.validate_on_submit():
         es_valido = True
-        # Validar que no se repita la clave
-        clave = safe_clave(form.clave.data)
-        clave_repetida = ReqCatalogo.query.filter_by(clave=clave).filter(ReqCatalogo.id != req_catalogo_id).first()
-        if clave_repetida:
-            flash(f"La clave '{clave}' ya está en uso.", "warning")
+        # Validar que no se repita la codigo
+        codigo = safe_clave(form.codigo.data)
+        codigo_repetida = ReqCatalogo.query.filter_by(codigo=codigo).filter(ReqCatalogo.id != req_catalogo_id).first()
+        if codigo_repetida:
+            flash(f"La codigo '{codigo}' ya está en uso.", "warning")
             es_valido = False
         if es_valido:
-            req_catalogo.clave = clave
+            req_catalogo.codigo = codigo
             req_catalogo.descripcion = safe_string(form.descripcion.data)
             req_catalogo.req_categoria_id = form.categoria.data
             req_catalogo.unidad_medida = form.unidad_medida.data
@@ -213,14 +213,14 @@ def edit(req_catalogo_id):
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
                 usuario=current_user,
-                descripcion=safe_message(f"Editado Req Catálogo {req_catalogo.clave}"),
+                descripcion=safe_message(f"Editado Req Catálogo {req_catalogo.codigo}"),
                 url=url_for("req_catalogos.detail", req_catalogo_id=req_catalogo.id),
             )
             bitacora.save()
             flash(bitacora.descripcion, "success")
             return redirect(bitacora.url)
     # Cargar datos al formulario
-    form.clave.data = req_catalogo.clave
+    form.codigo.data = req_catalogo.codigo
     form.descripcion.data = req_catalogo.descripcion
     form.categoria.data = req_catalogo.req_categoria.id
     form.unidad_medida.data = req_catalogo.unidad_medida
@@ -238,7 +238,7 @@ def delete(req_catalogo_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Req Catálogo {req_catalogo.clave}"),
+            descripcion=safe_message(f"Eliminado Req Catálogo {req_catalogo.codigo}"),
             url=url_for("req_catalogos.detail", req_catalogo_id=req_catalogo.id),
         )
         bitacora.save()
@@ -256,7 +256,7 @@ def recover(req_catalogo_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Req Catálogo {req_catalogo.clave}"),
+            descripcion=safe_message(f"Recuperado Req Catálogo {req_catalogo.codigo}"),
             url=url_for("req_catalogos.detail", req_catalogo_id=req_catalogo.id),
         )
         bitacora.save()

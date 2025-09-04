@@ -5,14 +5,14 @@
 {% block title %}Nuevo Catálogo{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Nuevo Catálogo') }}
+    {{ topbar.page('Requisiciones Nuevo Catálogo') }}
 {% endblock %}
 
 {% block content %}
     {% call f.card() %}
         {% set form_kwargs = {'req_categoria_id': req_categoria.id} %}
         {% call f.form_tag('req_catalogos.new_with_categoria', fid='req_catalogo_form', **form_kwargs) %}
-            {% call f.form_group(form.clave) %}{% endcall %}
+            {% call f.form_group(form.codigo) %}{% endcall %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
             {% call f.form_group(form.categoria, readonly=true) %}{% endcall %}
             {% call f.form_group(form.unidad_medida) %}{% endcall %}

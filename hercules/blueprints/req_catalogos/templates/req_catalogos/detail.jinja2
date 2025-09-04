@@ -3,10 +3,10 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
-{% block title %}Requisiciones Catálogo {{ req_catalogo.clave }}{% endblock %}
+{% block title %}Requisiciones Catálogo {{ req_catalogo.codigo }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons('Requisiciones Catálogo ' + req_catalogo.clave) %}
+    {% call topbar.page_buttons('Requisiciones Catálogo: ' + req_catalogo.codigo) %}
         {{ topbar.button_previous('Catálogos', url_for('req_catalogos.list_active')) }}
         {% if current_user.can_edit('REQ CATALOGOS') %}
             {{ topbar.button_edit('Editar', url_for('req_catalogos.edit', req_catalogo_id=req_catalogo.id)) }}
@@ -20,7 +20,7 @@
 
 {% block content %}
     {% call detail.card(estatus=req_catalogo.estatus) %}
-        {{ detail.label_value_big('Clave', req_catalogo.clave) }}
+        {{ detail.label_value_big('Código', req_catalogo.codigo) }}
         {{ detail.label_value('Descripción', req_catalogo.descripcion) }}
         {{ detail.label_value('Categoría', req_catalogo.req_categoria.clave_descripcion, url_for('req_categorias.detail', req_categoria_id=req_catalogo.req_categoria.id)) }}
         {{ detail.label_value('Unidad de Medida', req_catalogo.unidad_medida) }}
@@ -29,7 +29,7 @@
 
 {% block custom_javascript %}
     {% if current_user.can_admin('REQ CATALOGOS') %}
-        {% if req_catalogo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + req_catalogo.clave + '?') }}{% endif %}
-        {% if req_catalogo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + req_catalogo.clave + '?') }}{% endif %}
+        {% if req_catalogo.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar a ' + req_catalogo.codigo + '?') }}{% endif %}
+        {% if req_catalogo.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' + req_catalogo.codigo + '?') }}{% endif %}
     {% endif %}
 {% endblock %}

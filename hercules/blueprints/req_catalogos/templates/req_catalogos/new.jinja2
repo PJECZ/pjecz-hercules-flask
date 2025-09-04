@@ -6,40 +6,17 @@
 {% block title %}{{ titulo }}{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons(titulo) %}
-        {% if current_user.can_edit('REQ CATALOGOS') %}
-            {{ topbar.button_list_inactive('Inactivos', url_for('req_catalogos.list_inactive')) }}
-            {{ topbar.button_list_active('Activos', url_for('req_catalogos.list_active')) }}
-        {% endif %}
-    {% endcall %}
+    {{ topbar.page('Requisiciones Nuevo Catálogo') }}
 {% endblock %}
 
 {% block content %}
-    {% call f.form_tag('req_catalogos.new', fid='new_form') %}
-       
-        {% call list.card() %}                 
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-md-12">
-                        {% call f.form_group(form.descripcion) %}{% endcall %} 
-                    </div>
-                    <div class="col-md-2">
-                        {% call f.form_group(form.clave) %}{% endcall %}
-                    </div>
-                    <div class="col-md-5">
-                        {% call f.form_group(form.categoria) %}{% endcall %}
-                    </div>
-                    <div class="col-md-5">
-                        {% call f.form_group(form.unidad) %}{% endcall %}
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12 text-center mt-5">
-                            {% call f.form_group(form.guardar) %}{% endcall %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-    
+    {% call f.card() %}
+        {% call f.form_tag('req_catalogos.new', fid='req_catalogo_form') %}
+            {% call f.form_group(form.codigo) %}{% endcall %}
+            {% call f.form_group(form.descripcion) %}{% endcall %}
+            {% call f.form_group(form.categoria) %}{% endcall %}
+            {% call f.form_group(form.unidad_medida) %}{% endcall %}
+            {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}
 
     

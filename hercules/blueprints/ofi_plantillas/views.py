@@ -176,16 +176,13 @@ def tablero_json():
             {
                 "id": ofi_plantilla.id,
                 "descripcion": ofi_plantilla.descripcion,
+                "tablero_icono": ofi_plantilla.usuario.autoridad.tablero_icono,
             }
         )
     if len(resultados) == 0:
         return {
             "success": False,
-            "message": (
-                f"No se encontraron plantillas para la autoridad {autoridad_clave}"
-                if autoridad_clave
-                else "No se encontraron plantillas"
-            ),
+            "message": f"No hay plantillas compartidas en {autoridad_clave}" if autoridad_clave else "No hay plantillas compartidas",
         }
     return {
         "success": True,

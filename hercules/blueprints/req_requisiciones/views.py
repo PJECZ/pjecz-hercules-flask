@@ -84,6 +84,9 @@ def datatable_json():
         oficina = ""
 
         autoridad = Autoridad.query.filter_by(id=resultado.autoridad_id)
+        if autoridad.count() == 0:
+            clave = ""
+            nombre = ""
         for row in autoridad:
             clave = row.clave
             nombre = row.descripcion
@@ -125,8 +128,9 @@ def list_active():
         return render_template(
             "req_requisiciones/list.jinja2",
             filtros=json.dumps({"estatus": "A"}),
-            titulo="Administrar las Requisiciones",
+            titulo="Mis Requisiciones",
             estatus="A",
+            boton_activo="MIS REQUISICIONES",
         )
     # Consultar los roles del usuario
     current_user_roles = current_user.get_roles()
@@ -179,8 +183,9 @@ def list_active_mi_autoridad():
         return render_template(
             "req_requisiciones/list.jinja2",
             filtros=json.dumps({"estatus": "A"}),
-            titulo="Administrar las Requisiciones",
+            titulo="Requisiciones de Mi Autoridad",
             estatus="A",
+            boton_activo="MI AUTORIDAD",
         )
     # Consultar los roles del usuario
     current_user_roles = current_user.get_roles()
@@ -231,7 +236,7 @@ def list_inactive():
     return render_template(
         "req_requisiciones/list.jinja2",
         filtros=json.dumps({"estatus": "B"}),
-        titulo="Listado de requisiciones inactivas",
+        titulo="Requisiciones inactivas",
         estatus="B",
     )
 
@@ -752,7 +757,7 @@ def detail_print(req_requisicion_id):
     return redirect(url_for("req_requisiciones.list_active"))
 
 
-@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>/generarpdf")
+@req_requisiciones.route("/req_requisiciones/<req_requisicion_id>/generarpdf", methods=["GET", "POST"])
 def create_pdf(req_requisicion_id):
     """Impresion de la Requsición"""
 
@@ -776,9 +781,8 @@ def create_pdf(req_requisicion_id):
 
     # Si puede imprimirla
     if puede_imprimirlo:
-
         current_user.launch_task(
-            comando="req_requisiciones.tasks.lanzar_convertir_requisicion_a_pdf",
+            comando="req_requisiciones.tasks.lanzar_convertir_a_pdf",
             mensaje="Convirtiendo a archivo PDF...",
             req_requisicion_id=str(req_requisicion_id),
         )

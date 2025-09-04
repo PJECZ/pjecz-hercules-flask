@@ -29,6 +29,7 @@ class ReqRequisicionRegistro(database.Model, UniversalMixin):
     req_catalogo: Mapped["ReqCatalogo"] = relationship(back_populates="req_requisiciones_registros")
     req_requisicion_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("req_requisiciones.id"))
     req_requisicion: Mapped["ReqRequisicion"] = relationship(back_populates="req_requisiciones_registros")
+    clave: Mapped[str] = mapped_column(String(30))
 
     # Columnas
     cantidad: Mapped[int] = mapped_column(Integer, nullable=False)
