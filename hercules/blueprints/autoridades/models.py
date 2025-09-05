@@ -90,6 +90,8 @@ class Autoridad(database.Model, UniversalMixin):
     pagina_pie_url: Mapped[Optional[str]]
     tabla_renglon_color: Mapped[Optional[str]]
     tablero_icono: Mapped[Optional[str]]
+    destinatarios_emails: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)
+    con_copias_emails: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)
 
     # Hijos
     arc_documentos: Mapped[List["ArcDocumento"]] = relationship(back_populates="autoridad")

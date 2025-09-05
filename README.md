@@ -73,7 +73,16 @@ DB_PASS=XXXXXXXX
 SQLALCHEMY_DATABASE_URI="postgresql+psycopg2://adminpjeczplataformaweb:XXXXXXXX@127.0.0.1:5432/pjecz_plataforma_web"
 
 # Google Cloud Storage
-CLOUD_STORAGE_DEPOSITO=
+CLOUD_STORAGE_DEPOSITO=XXXXXXXX
+CLOUD_STORAGE_DEPOSITO_EDICTOS=XXXXXXXX
+CLOUD_STORAGE_DEPOSITO_EXHORTOS=XXXXXXXX
+CLOUD_STORAGE_DEPOSITO_GLOSAS=XXXXXXXX
+CLOUD_STORAGE_DEPOSITO_LISTAS_DE_ACUERDOS=XXXXXXXX
+CLOUD_STORAGE_DEPOSITO_OFICIOS=XXXXXXXX
+CLOUD_STORAGE_DEPOSITO_PERSEO=XXXXXXXX
+CLOUD_STORAGE_DEPOSITO_REQUISICIONES=XXXXXXXX
+CLOUD_STORAGE_DEPOSITO_SENTENCIAS=XXXXXXXX
+CLOUD_STORAGE_DEPOSITO_VALES_GASOLINA=XXXXXXXX
 
 # Claves INEGI del estado y municipio de Saltillo, Coahuila de Zaragoza
 ESTADO_CLAVE=05
@@ -87,13 +96,20 @@ REDIS_URL=redis://127.0.0.1:6379
 TASK_QUEUE=pjecz_hercules
 
 # Salt sirve para cifrar el ID con HashID, debe ser igual en la API
+FERNET_KEY=XXXXXXXX
 SALT=XXXXXXXX
+
+# Incrementar el tamaño de los formularios en megabytes
+MAX_FORM_MEMORY_SIZE=24
+
+# Incrementar el tiempo de los formularios en segundos
+WTF_CSRF_TIME_LIMIT=14400
+
+# Huso Horario
+TZ=America/Mexico_City
 
 # Si esta en PRODUCTION se evita reiniciar la base de datos
 DEPLOYMENT_ENVIRONMENT=develop
-
-# Google AI Studio
-AI_STUDIO_API_KEY=
 ```
 
 Crear un archivo `.bashrc` que se ejecute al iniciar la terminal

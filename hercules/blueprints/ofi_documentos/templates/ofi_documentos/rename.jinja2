@@ -13,9 +13,11 @@
         {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
         {% call f.form_tag('ofi_documentos.rename', fid='ofi_documento_form', **form_kwargs) %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
-            {% call f.form_group(form.folio, readonly=true) %}{% endcall %}
-            {% call f.form_group(form.vencimiento_fecha, readonly=true) %}{% endcall %}
-            {# Inicia Contenido HTML #}
+            <div class="row">
+                <div class="col-md-6">{% call f.form_group(form.folio, readonly=true) %}{% endcall %}</div>
+                <div class="col-md-6">{% call f.form_group(form.vencimiento_fecha, readonly=true) %}{% endcall %}</div>
+            </div>
+            <!-- Inicia Contenido HTML -->
             <hr />
             {% if ofi_documento.contenido_html %}
                 {{ ofi_documento.contenido_html | safe }}
@@ -25,7 +27,7 @@
                 </div>
             {% endif %}
             <hr />
-            {# Termina Contenido HTML #}
+            <!-- Termina Contenido HTML -->
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}
     {% endcall %}

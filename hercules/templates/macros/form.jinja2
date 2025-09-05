@@ -8,11 +8,6 @@
     </div>
 {%- endmacro -%}
 
-{# botón submit #}
-{%- macro submit_button(f, css_class='btn btn-success text-white') -%}
-    {{ f(class=css_class) }}
-{%- endmacro -%}
-
 {# etiqueta con texto de ayuda #}
 {%- macro field_label(f) -%}
     <label for="{{ f.id }}">
@@ -33,6 +28,11 @@
             {% endfor %}
         </ul>
     {% endif %}
+{%- endmacro -%}
+
+{# botón submit #}
+{%- macro submit_button(f, css_class='btn btn-success text-white') -%}
+    {{ f(class=css_class) }}
 {%- endmacro -%}
 
 {# un campo del formulario #}
@@ -80,29 +80,29 @@
         {{ caller () }}
     {% elif f.type == 'BooleanField' %}
         <div class="checkbox {{ css_class }}">
-        {{ checkbox_field(f, **kwargs) }}
-        {{ field_errors(f) }}
-        {{ caller () }}
+            {{ checkbox_field(f, **kwargs) }}
+            {{ field_errors(f) }}
+            {{ caller () }}
         </div>
     {% elif f.type == 'RadioField' %}
         <div class="form-group mb-2 {{ css_class }}">
-        {{ radios_fields(f, **kwargs) }}
-        {{ field_errors(f) }}
-        {{ caller () }}
+            {{ radios_fields(f, **kwargs) }}
+            {{ field_errors(f) }}
+            {{ caller () }}
         </div>
     {% elif f.type == 'SubmitField' %}
         <div class="form-group d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center {{ css_class }} my-2">
-        {{ field(f, **kwargs) }}
-        {{ field_errors(f) }}
-        {{ caller () }}
-        <a class="btn btn-outline-danger" href="javascript:history.back()">Cancelar</a>
+            {{ field(f, **kwargs) }}
+            {{ field_errors(f) }}
+            {{ caller () }}
+            <a class="btn btn-outline-danger" href="javascript:history.back()">Cancelar</a>
         </div>
     {% else %}
         <div class="form-group mb-2">
-        {{ field_label(f) }}
-        {{ field(f, **kwargs) }}
-        {{ field_errors(f) }}
-        {{ caller () }}
+            {{ field_label(f) }}
+            {{ field(f, **kwargs) }}
+            {{ field_errors(f) }}
+            {{ caller () }}
         </div>
     {% endif %}
 {%- endmacro -%}
@@ -251,4 +251,47 @@
             }
         });
     </script>
+{%- endmacro -%}
+
+{# Save Button medium #}
+{%- macro save_button_md(label='Guardar y continuar', id='save_button', icon='mdi:content-save', color_class='btn-primary', func_name='formSaveButton') -%}
+    <a class="btn btn-block btn-md {{ color_class }} w-100 my-2" id="{{ id }}" onclick="{{ func_name }}()">
+        {% if icon %}<span class="iconify" data-icon="{{ icon }}"></span>{% endif %}
+        {{ label }}
+    </a>
+{%- endmacro -%}
+
+{# Save Button javascript #}
+{%- macro save_button_js(endpoint, fid, id='save_button', func_name='formSaveButton') -%}
+    <script>
+        function {{ func_name }}() {
+            console.log("Guardando formulario y seguir escribiendo...");
+            document.getElementById("{{ fid }}").action = "{{ endpoint }}";
+        }
+    </script>
+{%- endmacro -%}
+
+{# Submit Button medium #}
+{%- macro submit_button_md(label='Guardar', id='submit_button', icon='mdi:content-save-check', color_class='btn-success', func_name='formSubmitButton') -%}
+    <a class="btn btn-block btn-md {{ color_class }} w-100 my-2" onclick="{{ func_name }}()">
+        {% if icon %}<span class="iconify" data-icon="{{ icon }}"></span>{% endif %}
+        {{ label }}
+    </a>
+{%- endmacro -%}
+
+{# Submit Button javascript #}
+{%- macro submit_button_js(fid, id='submit_button', func_name='formSubmitButton') -%}
+    <script>
+        function {{ func_name }}() {
+            document.getElementById("{{ fid }}").submit();
+        }
+    </script>
+{%- endmacro -%}
+
+{# Cancel Button medium #}
+{%- macro cancel_button_md(label='Cancelar', icon='mdi:cancel', color_class='btn-outline-danger') -%}
+    <a class="btn btn-block btn-md {{ color_class }} w-100 my-2" onclick="history.back()">
+        {% if icon %}<span class="iconify" data-icon="{{ icon }}"></span>{% endif %}
+        {{ label }}
+    </a>
 {%- endmacro -%}

@@ -90,6 +90,8 @@ class AutoridadEditForm(FlaskForm):
     pagina_pie_url = StringField("URL imagen página pie")
     tabla_renglon_color = ColorField("Color renglon tabla")
     tablero_icono = StringField("Icono tablero")
+    destinatarios_emails = StringField("Destinatarios emails separados por comas", validators=[Optional(), Length(max=1024)])
+    con_copias_emails = StringField("Con Copias emails separados por comas", validators=[Optional(), Length(max=1024)])
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
