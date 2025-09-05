@@ -96,7 +96,7 @@ def get_secret(secret_id: str, default: str | None = "") -> str:
         # Create the secret manager client
         client = secretmanager.SecretManagerServiceClient()
         # Build the resource name of the secret version
-        secret = f"{SERVICE_PREFIX}_{secret_id}"
+        secret = f"{SERVICE_PREFIX}_{secret_id}".lower()
         name = client.secret_version_path(project_id, secret, "latest")
         # Access the secret version
         response = client.access_secret_version(name=name)
