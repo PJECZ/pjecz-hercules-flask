@@ -256,6 +256,8 @@ def edit(autoridad_id):
             autoridad.pagina_pie_url = form.pagina_pie_url.data
             autoridad.tabla_renglon_color = form.tabla_renglon_color.data
             autoridad.tablero_icono = form.tablero_icono.data
+            autoridad.destinatarios_emails = form.destinatarios_emails.data
+            autoridad.con_copias_emails = form.con_copias_emails.data
             autoridad.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -293,6 +295,8 @@ def edit(autoridad_id):
     form.pagina_pie_url.data = autoridad.pagina_pie_url
     form.tabla_renglon_color.data = autoridad.tabla_renglon_color
     form.tablero_icono.data = autoridad.tablero_icono
+    form.destinatarios_emails.data = autoridad.destinatarios_emails
+    form.con_copias_emails.data = autoridad.con_copias_emails
     return render_template("autoridades/edit.jinja2", form=form, autoridad=autoridad)
 
 
@@ -430,11 +434,10 @@ def select2_json():
 def tablero_json():
     """Proporcionar el JSON de autoridades con pagina_cabecera_url para elaborar un tablero"""
     consulta = (
-        Autoridad.query.
-        filter(Autoridad.estatus == "A").
-        filter(Autoridad.tablero_icono != "").
-        filter(Autoridad.pagina_cabecera_url != "").
-        order_by(Autoridad.descripcion_corta)
+        Autoridad.query.filter(Autoridad.estatus == "A")
+        .filter(Autoridad.tablero_icono != "")
+        .filter(Autoridad.pagina_cabecera_url != "")
+        .order_by(Autoridad.descripcion_corta)
     )
     resultados = []
     for autoridad in consulta.all():

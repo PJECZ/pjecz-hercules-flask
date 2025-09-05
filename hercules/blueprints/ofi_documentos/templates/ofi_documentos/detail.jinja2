@@ -35,6 +35,7 @@
 
 {% block content %}
     {% call detail.card(estatus=ofi_documento.estatus) %}
+        <!-- Detalles del Oficio -->
         <div class="row">
             <div class="col-md-6">
                 <div class="row">
@@ -133,7 +134,7 @@
                 {% endif %}
             </div>
         </div>
-        {# Inicia Contenido HTML #}
+        <!-- Contenido HTML -->
         <hr />
         {% if ofi_documento.contenido_html %}
             {{ ofi_documento.contenido_html | safe }}
@@ -143,8 +144,7 @@
             </div>
         {% endif %}
         <hr />
-        {# Termina Contenido HTML #}
-        {# Botones de acción en estado BORRADOR #}
+        <!-- Botones de acción en estado BORRADOR -->
         {% if ofi_documento.estado == "BORRADOR" %}
             <div class="row">
                 <div class="col-md-4">
@@ -171,7 +171,7 @@
                 </div>
             </div>
         {% endif %}
-        {# Botones de acción en estado FIRMADO #}
+        <!-- Botones de acción en estado FIRMADO -->
         {% if ofi_documento.estado == "FIRMADO" %}
             <div class="row">
                 <div class="col-md-4">
@@ -206,7 +206,7 @@
                 </div>
             </div>
         {% endif %}
-        {# Botones de acción en estado ENVIADO #}
+        <!-- Botones de acción en estado ENVIADO -->
         {% if ofi_documento.estado == "ENVIADO" %}
             <div class="row">
                 <div class="col-md-2">
@@ -250,9 +250,8 @@
                 </div>
             </div>
         {% endif %}
-        {# Terminan botones de acciones #}
     {% endcall %}
-    {# Card para Archivos Adjuntos #}
+    <!-- Card para Archivos Adjuntos -->
     {% call detail.card("Archivos Adjuntos") %}
         <!-- DataTable Archivos_Adjuntos -->
         <table id="ofi_documentos_adjuntos_datatable" class="table display nowrap" style="width:100%">
@@ -269,7 +268,7 @@
             {% endif %}
         {% endif %}
     {% endcall %}
-    {# Card para Destinatarios #}
+    <!-- Card para Destinatarios -->
     {% call detail.card("Destinatarios") %}
         <!-- DataTable Destinatarios -->
         <table id="ofi_documentos_destinatarios_datatable" class="table display nowrap" style="width:100%">
@@ -296,14 +295,14 @@
         {% if ofi_documento.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar Oficio (se va a BORRAR el folio)?') }}{% endif %}
         {% if ofi_documento.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar Oficio (ya PERDIO el folio)?') }}{% endif %}
     {% endif %}
-    {# Importación de DataTables #}
+    <!-- Importación de DataTables -->
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
-    {# Configuración de DataTables #}
+    <!-- Configuración de DataTables -->
     <script>
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
     </script>
-    {# DataTable Archivos Adjuntos #}
+    <!-- DataTable Archivos Adjuntos -->
     <script>
         let configDT_adjuntos = constructorDataTable.config();
         configDT_adjuntos['ajax']['url'] = '/ofi_documentos_adjuntos/datatable_json';
@@ -325,7 +324,7 @@
         const filtrosAdjuntos = new FiltrosDataTable('#ofi_documentos_adjuntos_datatable', configDT_adjuntos);
         filtrosAdjuntos.precargar();
     </script>
-    {# DataTable Destinatarios #}
+    <!-- DataTable Destinatarios -->
     <script>
         let configDT_destinatarios = constructorDataTable.config();
         configDT_destinatarios['ajax']['url'] = '/ofi_documentos_destinatarios/datatable_json';
@@ -367,7 +366,7 @@
         const filtrosDestinatarios = new FiltrosDataTable('#ofi_documentos_destinatarios_datatable', configDT_destinatarios);
         filtrosDestinatarios.precargar();
     </script>
-    {# Modales #}
+    <!-- Modales -->
     {{ modals.custom_javascript("Enviar", "", "Enviar") }}
     {{ modals.custom_javascript("Confirmar", "", "Cancelar") }}
     {{ modals.custom_javascript("Descancelar", "", "Descancelar") }}

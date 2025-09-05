@@ -492,7 +492,13 @@ def fullscreen_recipients(ofi_documento_id):
 @ofi_documentos.route("/ofi_documentos/nuevo_elegir_plantilla")
 def new_choose_template():
     """Nuevo Ofi Documento: elegir plantilla"""
-    return render_template("ofi_documentos/new_choose_template.jinja2")
+    # Obtener los roles del usuario
+    roles = current_user.get_roles()
+    # Entregar
+    return render_template(
+        "ofi_documentos/new_choose_template.jinja2",
+        mostrar_boton_nuevo=ROL_FIRMANTE in roles or ROL_ESCRITOR in roles,
+    )
 
 
 @ofi_documentos.route("/ofi_documentos/nuevo/<ofi_plantilla_id>", methods=["GET", "POST"])
@@ -594,6 +600,10 @@ def new(ofi_plantilla_id):
             )
             bitacora.save()
             flash(bitacora.descripcion, "success")
+            # Si va a segir editando el documento, redirigir a la edición
+            if form.continuar.data == "1":
+                return redirect(url_for("ofi_documentos.edit", ofi_documento_id=ofi_documento.id))
+            # Si no, redirigir al detalle
             return redirect(bitacora.url)
     # Sugerir el folio consultando el último documento de la autoridad del usuario
     ultimo_documento = (
@@ -607,16 +617,24 @@ def new(ofi_plantilla_id):
         folio = f"{ultimo_documento.usuario.autoridad.clave}-{ultimo_documento.folio_num + 1}/{datetime.now().year}"
     else:
         folio = f"{current_user.autoridad.clave}-1/{datetime.now().year}"  # Tal vez sea el primer oficio del año
+    # Si viene autoridad_clave en el URL, consultarla
+    autoridad = None
+    if "autoridad_clave" in request.args:
+        autoridad_clave = safe_clave(request.args["autoridad_clave"])
+        if autoridad_clave:
+            autoridad = Autoridad.query.filter_by(clave=autoridad_clave).first()
     # Reemplazar las palabras claves en el contenido HTML
     contenido_html = ofi_plantilla.contenido_html
     contenido_html = contenido_html.replace("[[DIA]]", str(datetime.now().day))
     contenido_html = contenido_html.replace("[[MES]]", str(datetime.now().strftime("%B")))
     contenido_html = contenido_html.replace("[[AÑO]]", str(datetime.now().year))
     contenido_html = contenido_html.replace("[[FOLIO]]", folio)
+    # Si es firmante, poner sus datos en el remitente
     if ROL_FIRMANTE in roles:
         contenido_html = contenido_html.replace("[[REMITENTE NOMBRE]]", current_user.nombre)
         contenido_html = contenido_html.replace("[[REMITENTE PUESTO]]", current_user.puesto)
         contenido_html = contenido_html.replace("[[REMITENTE AUTORIDAD]]", current_user.autoridad.descripcion)
+    # Si la plantilla tiene destinatarios_emails, poner sus datos en el destinatario
     if ofi_plantilla.destinatarios_emails and contenido_html.find("[[DESTINATARIOS]]") != -1:
         destinatarios_emails = ofi_plantilla.destinatarios_emails.split(",")
         destinatarios_str = ""
@@ -624,10 +642,12 @@ def new(ofi_plantilla_id):
             destinatario = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
             if destinatario:
                 destinatarios_str += f"{destinatario.nombre}<br>\n"
-                destinatarios_str += f"{destinatario.puesto}<br>\n"
+                if destinatario.puesto:
+                    destinatarios_str += f"{destinatario.puesto}<br>\n"
                 destinatarios_str += f"{destinatario.autoridad.descripcion}<br>\n"
-                # TODO: Insertar destinatarios
+                # TODO: Insertar ofi_documentos_destinatarios
         contenido_html = contenido_html.replace("[[DESTINATARIOS]]", destinatarios_str)
+    # Si la plantilla tiene con_copias_emails, poner sus datos en con copias
     if ofi_plantilla.con_copias_emails and contenido_html.find("[[CON COPIAS]]") != -1:
         con_copias_emails = ofi_plantilla.con_copias_emails.split(",")
         con_copias_str = ""
@@ -635,7 +655,30 @@ def new(ofi_plantilla_id):
             con_copia = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
             if con_copia:
                 con_copias_str += f"{con_copia.nombre}, {con_copia.autoridad.descripcion}<br>\n"
-                # TODO: Insertar destinatarios con copia
+                # TODO: Insertar ofi_documentos_destinatarios
+        contenido_html = contenido_html.replace("[[CON COPIAS]]", con_copias_str)
+    # TODO: Si viene autoridad_clave en el URL, poner sus destinatarios_emails en el destinatario
+    if autoridad and autoridad.destinatarios_emails and contenido_html.find("[[DESTINATARIOS]]") != -1:
+        destinatarios_emails = autoridad.destinatarios_emails.split(",")
+        destinatarios_str = ""
+        for email in destinatarios_emails:
+            destinatario = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
+            if destinatario:
+                destinatarios_str += f"{destinatario.nombre}<br>\n"
+                if destinatario.puesto:
+                    destinatarios_str += f"{destinatario.puesto}<br>\n"
+                destinatarios_str += f"{destinatario.autoridad.descripcion}<br>\n"
+                # TODO: Insertar ofi_documentos_destinatarios
+        contenido_html = contenido_html.replace("[[DESTINATARIOS]]", destinatarios_str)
+    # TODO: Si viene autoridad_clave en el URL, poner sus con_copias_emails en con copias
+    if autoridad and autoridad.con_copias_emails and contenido_html.find("[[CON COPIAS]]") != -1:
+        con_copias_emails = ofi_plantilla.con_copias_emails.split(",")
+        con_copias_str = ""
+        for email in con_copias_emails:
+            con_copia = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
+            if con_copia:
+                con_copias_str += f"{con_copia.nombre}, {con_copia.autoridad.descripcion}<br>\n"
+                # TODO: Insertar ofi_documentos_destinatarios
         contenido_html = contenido_html.replace("[[CON COPIAS]]", con_copias_str)
     # Cargar los datos de la plantilla en el formulario
     form.descripcion.data = ofi_plantilla.descripcion
@@ -719,7 +762,7 @@ def edit(ofi_documento_id):
             )
             bitacora.save()
             flash(bitacora.descripcion, "success")
-            # Si va a continuar editando, cuando continuar no es cero, entonces NO redirigir al detalle
+            # Si NO va a seguir editando, redirigir al detalle, de lo contrario seguir en la edición
             if form.continuar.data != "1":
                 return redirect(bitacora.url)
     # Cargar los datos en el formulario

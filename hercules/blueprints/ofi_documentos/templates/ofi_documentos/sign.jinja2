@@ -12,20 +12,15 @@
 {% endblock %}
 
 {% block content %}
-    <div class="card bg-warning mb-3">
-        <div class="card-header">ADVERTENCIA</div>
-        <div class="card-body">
-            <h5 class="card-title">Después de firmar ya no podrá hacerle cambios.</h5>
-            <p class="card-text">Revise que el contenido y el folio sean correctos.</p>
-        </div>
-    </div>
     {% call f.card() %}
         {% set form_kwargs = {'ofi_documento_id': ofi_documento.id} %}
         {% call f.form_tag('ofi_documentos.sign', fid='ofi_documento_form', **form_kwargs) %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
-            {% call f.form_group(form.folio, readonly=true) %}{% endcall %}
-            {% call f.form_group(form.vencimiento_fecha, readonly=true) %}{% endcall %}
-            {# Inicia Contenido HTML #}
+            <div class="row">
+                <div class="col-md-6">{% call f.form_group(form.folio, readonly=true) %}{% endcall %}</div>
+                <div class="col-md-6">{% call f.form_group(form.vencimiento_fecha, readonly=true) %}{% endcall %}</div>
+            </div>
+            <!-- Inicia Contenido HTML -->
             <hr />
             {% if ofi_documento.contenido_html %}
                 {{ ofi_documento.contenido_html | safe }}
@@ -35,9 +30,22 @@
                 </div>
             {% endif %}
             <hr />
-            {# Termina Contenido HTML #}
+            <!-- Termina Contenido HTML -->
             {% call f.form_group(form.tipo) %}{% endcall %}
-            {# Botones #}
+            <!-- Recomendaciones importantes -->
+            <div class="card border-warning mt-2" id="recomendaciones_importantes">
+                <div class="card-body" style="background-color: #fff3cd;">
+                    <div class="card-title">
+                        <strong>Después de firmar ya NO podrá editar NI cambiar el folio</strong>
+                    </div>
+                    <ul class="card-text mb-0">
+                        <li>Revise cuidadosamente todo el contenido y que el folio sea correcto.</li>
+                        <li>Después de firmar SÍ podrá cambiar la descripción, los archivos adjuntos y los destinatarios.</li>
+                    </ul>
+                    <a href="javascript:ocultarRecomendacionesImportantes()" class="btn btn-warning btn-sm mt-2">Ocultar</a>
+                </div>
+            </div>
+            <!-- Botones Editar, Firma Simple, Firma Electrónica Avanzada y Regresar sin firmar -->
             <div class="row">
                 <div class="col-md-3">
                     <a class="btn btn-block btn-md btn-warning w-100 my-2" href="{{ url_for('ofi_documentos.edit', ofi_documento_id=ofi_documento.id) }}">
@@ -60,7 +68,7 @@
                 <div class="col-md-3">
                     <a class="btn btn-block btn-md btn-outline-info w-100 my-2" href="javascript:history.back()">
                         <span class="iconify" data-icon="mdi:arrow-left"></span>
-                        Regresar
+                        Regresar sin firmar
                     </a>
                 </div>
             </div>
@@ -69,6 +77,16 @@
 {% endblock %}
 
 {% block custom_javascript %}
+    <!-- Ocultar el aviso "Recomendaciones importantes" -->
+    <script>
+        function ocultarRecomendacionesImportantes() {
+            var elemento = document.getElementById("recomendaciones_importantes");
+            if (elemento) {
+                elemento.style.display = "none";
+            }
+        }
+    </script>
+    <!-- Botones Editar, Firma Simple, Firma Electrónica Avanzada y Regresar sin firmar -->
     <script>
         // Prevenir el envío del formulario por defecto
         const formElem = document.getElementById('ofi_documento_form')

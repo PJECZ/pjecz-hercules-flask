@@ -40,7 +40,7 @@
                 {% if autoridad.tablero_icono %}
                 <div class="row">
                     <div class="col-md-3 text-end">Icono</div>
-                    <div class="col-md-9">   
+                    <div class="col-md-9">
                         <strong>{{autoridad.tablero_icono}}</strong> <span class="iconify" data-icon="{{autoridad.tablero_icono}}"></span>
                     </div>
                 </div>
@@ -48,11 +48,13 @@
                 {% if autoridad.tabla_renglon_color %}
                 <div class="row">
                     <div class="col-md-3 text-end">Color</div>
-                    <div class="col-md-9">   
+                    <div class="col-md-9">
                         <strong>{{autoridad.tabla_renglon_color}}</strong> <span class="iconify" data-icon="mdi:square" style="color: {{autoridad.tabla_renglon_color}};"></span>
                     </div>
                 </div>
                 {% endif %}
+                {{ detail.label_value('Destinatarios', autoridad.destinatarios_emails) }}
+                {{ detail.label_value('Con Copias', autoridad.con_copias_emails) }}
             </div>
             <div class="col-md-6">
                 {{ detail.label_value_boolean('Es Archivo Solicitante', autoridad.es_archivo_solicitante) }}

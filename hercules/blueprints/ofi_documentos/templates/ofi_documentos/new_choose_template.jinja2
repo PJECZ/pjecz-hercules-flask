@@ -25,11 +25,20 @@
 {% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Nuevo Oficio') }}
+    {% call topbar.page_buttons('Nuevo Oficio') %}
+        {{ topbar.button('Mi Bandeja de Entrada', url_for('ofi_documentos.list_active_mi_bandeja_entrada'), "mdi:inbox-multiple") }}
+        {% if mostrar_boton_nuevo %}
+            {{ topbar.button('Mis Oficios', url_for('ofi_documentos.list_active_mis_oficios'), "mdi:file-document-edit-outline") }}
+            {{ topbar.button('Mi Autoridad', url_for('ofi_documentos.list_active_mi_autoridad'), "mdi:scale-balance") }}
+        {% endif %}
+        {% if current_user.can_admin('OFI PLANTILLAS') %}
+            {{ topbar.button('Plantillas', url_for('ofi_plantillas.list_active'), "mdi:note-multiple") }}
+        {% endif %}
+    {% endcall %}
 {% endblock %}
 
 {% block content %}
-    <!-- Step 1: Choose Destination -->
+    <!-- Paso 1: Elegir la autoridad de destino -->
     <div id="step1">
         <h5 class="mb-3">1. Elija el destinatario y da clic en siguiente</h5>
         <div class="row row-cols-1 row-cols-md-4 g-3 mb-4">
@@ -44,11 +53,14 @@
                 </div>
             </div>
         </div>
-        <div class="d-flex justify-content-end">
-            <button class="btn btn-primary" id="toStep2" disabled>Siguiente</button>
+        <div class="row">
+            <div class="col-md-9"></div>
+            <div class="col-md-3">
+                <button class="btn btn-primary w-100" id="toStep2" disabled>Siguiente</button>
+            </div>
         </div>
     </div>
-    <!-- Step 2: Select Template -->
+    <!-- Paso 2: Elegir la plantilla -->
     <div id="step2" class="d-none">
         <h5 class="mb-3">2. Seleccione una plantilla y da clic en siguiente</h5>
         <ul class="list-group mb-4" id="templateList">
@@ -59,12 +71,17 @@
                 </div>
             </li>
         </ul>
-        <div class="d-flex justify-content-between">
-            <button class="btn btn-secondary me-2" id="backToStep1">Atrás</button>
-            <button class="btn btn-primary" id="toStep3" disabled>Siguiente</button>
+        <div class="row">
+            <div class="col-md-3">
+                <button class="btn btn-secondary me-2 w-100" id="backToStep1">Atrás</button>
+            </div>
+            <div class="col-md-6"></div>
+            <div class="col-md-3">
+                <button class="btn btn-primary w-100" id="toStep3" disabled>Siguiente</button>
+            </div>
         </div>
     </div>
-    <!-- Step 3: Preview and Accept -->
+    <!-- Paso 3: Vista previa -->
     <div id="step3" class="d-none">
         <h5 class="mb-3">3. Revise la vista previa y de clic en aceptar para crear el oficio</h5>
         <div class="card mb-4">
@@ -77,15 +94,20 @@
                 </div>
             </div>
         </div>
-        <div class="d-flex justify-content-between">
-            <button class="btn btn-secondary me-2" id="backToStep2">Atrás</button>
-            <button class="btn btn-success" id="acceptTemplate">Aceptar</button>
+        <div class="row">
+            <div class="col-md-3">
+                <button class="btn btn-secondary me-2 w-100" id="backToStep2">Atrás</button>
+            </div>
+            <div class="col-md-6"></div>
+            <div class="col-md-3">
+                <button class="btn btn-success w-100" id="acceptTemplate" disabled>Nuevo oficio desde esta plantilla</button>
+            </div>
         </div>
     </div>
 {% endblock %}
 
 {% block custom_javascript %}
-    <!-- Script para cargar las autoridades -->
+    <!-- Elegir la plantilla -->
     <script>
 
         // Variables globales
@@ -137,9 +159,12 @@
                                 document.querySelectorAll('.selectable-card').forEach(c => c.classList.remove('border-primary', 'bg-primary', 'shadow', 'text-white'));
                                 this.classList.add('border-primary', 'bg-primary', 'shadow', 'text-white');
                                 selectedDest = this.dataset.dest;
-                                document.getElementById('toStep2').disabled = false; // Habilitar el botón Siguiente
                             });
                         });
+                        // Si hay cards, habilitar el botón Siguiente
+                        if (data.data.length > 0) {
+                            document.getElementById('toStep2').disabled = false; // Habilitar el botón Siguiente
+                        }
                     } else {
                         // Si hubo un error, mostrar un mensaje
                         const alert = document.createElement('div');
@@ -197,11 +222,14 @@
                                         document.querySelectorAll('.list-group-item').forEach(i => i.classList.remove('active'));
                                         this.classList.add('active');
                                         selectedTemplate = this.dataset.template;
-                                        document.getElementById('toStep3').disabled = false; // Habilitar el botón Siguiente
                                     });
                                 });
                             })
                             .catch(error => console.error('Error:', error));
+                            // Si hay elementos en la lista, habilitar el botón Siguiente
+                            if (templateList.children.length > 0) {
+                                document.getElementById('toStep3').disabled = false; // Habilitar el botón Siguiente
+                            }
                     } else {
                         // Hubo un error, seguramente NO hay plantillas compartidas, mostrar ese mensaje
                         const alert = document.createElement('div');
@@ -239,7 +267,7 @@
                 .catch(error => console.error('Error:', error));
         }
 
-        // Funcion para mostrar la vista previa de la plantilla
+        // Función para mostrar la vista previa de la plantilla
         function showPreview() {
             console.log('Mostrando vista previa de la plantilla:', selectedTemplate);
             // Consultar la plantilla seleccionada
@@ -315,7 +343,14 @@
             // Agregar evento de clic al botón para aceptar la plantilla
             document.getElementById('acceptTemplate').addEventListener('click', function() {
                 // Redirigir al formulario de nuevo oficio con los parámetros seleccionados
-                window.location.href = `/ofi_documentos/nuevo/${selectedTemplate}`
+                if (selectedTemplate !== null) {
+                    this.disabled = true; // Deshabilitar el botón para evitar múltiples clics
+                    if (selectedDest !== null) {
+                        window.location.href = `/ofi_documentos/nuevo/${selectedTemplate}?autoridad_clave=${selectedDest}`;
+                    } else {
+                        window.location.href = `/ofi_documentos/nuevo/${selectedTemplate}`
+                    }
+                }
             });
 
         });
