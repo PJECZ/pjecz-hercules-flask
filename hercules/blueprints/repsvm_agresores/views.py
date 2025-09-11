@@ -44,7 +44,7 @@ def datatable_json():
     if "distrito_id" in request.form:
         consulta = consulta.filter_by(distrito_id=request.form["distrito_id"])
     if "nombre" in request.form:
-        nombre = safe_string(request.form["nombre"])
+        nombre = safe_string(request.form["nombre"], save_enie=True)
         if nombre != "":
             consulta = consulta.filter(REPSVMAgresor.nombre.contains(nombre))
     if "numero_causa" in request.form:
