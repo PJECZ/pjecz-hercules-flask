@@ -41,12 +41,19 @@ def datatable_json():
         consulta = consulta.filter_by(estatus=request.form["estatus"])
     else:
         consulta = consulta.filter_by(estatus="A")
-    if "nombre" in request.form:
-        consulta = consulta.filter(Redam.nombre.contains(request.form["nombre"]))
-    if "expediente" in request.form:
-        consulta = consulta.filter(Redam.expediente.contains(request.form["expediente"]))
     if "autoridad_id" in request.form:
         consulta = consulta.filter_by(autoridad_id=request.form["autoridad_id"])
+    if "nombre" in request.form:
+        nombre = safe_string(request.form["nombre"], save_enie=True)
+        if nombre != "":
+            consulta = consulta.filter(Redam.nombre.contains(nombre))
+    if "expediente" in request.form:
+        try:
+            expediente = safe_expediente(request.form["expediente"])
+            if expediente != "":
+                consulta = consulta.filter(Redam.expediente.contains(expediente))
+        except ValueError:
+            pass
     registros = consulta.order_by(Redam.nombre).offset(start).limit(rows_per_page).all()
     total = consulta.count()
     # Elaborar datos para DataTable

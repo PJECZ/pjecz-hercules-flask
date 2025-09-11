@@ -5,13 +5,14 @@
 {% block title %}Editar Agresor {{ repsvm_agresor.nombre }}{% endblock %}
 
 {% block topbar_actions %}
-    {{ topbar.page('Editar ' + repsvm_agresor.nombre) }}
+    {{ topbar.page('Editar Agresor ' + repsvm_agresor.nombre) }}
 {% endblock %}
 
 {% block content %}
     {% call f.card() %}
         {% set form_kwargs = {'repsvm_agresor_id': repsvm_agresor.id} %}
         {% call f.form_tag('repsvm_agresores.edit', fid='repsvm_agresor_form', **form_kwargs) %}
+            {% call f.form_group(form.consecutivo) %}{% endcall %}
             {% call f.form_group(form.distrito) %}{% endcall %}
             {% call f.form_group(form.delito_generico) %}{% endcall %}
             {% call f.form_group(form.delito_especifico) %}{% endcall %}

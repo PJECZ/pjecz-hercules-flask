@@ -158,11 +158,17 @@ def detail(repsvm_agresor_id):
 def new():
     """Nuevo Agresor"""
     form = REPSVMAgresorForm()
+    # Si viene el formulario
     if form.validate_on_submit():
         # Definir consecutivo
         distrito_id = form.distrito.data  # Aquí `distrito` es el ID del distrito
-        consecutivo = REPSVMAgresor.query.filter_by(estatus="A").filter_by(distrito_id=distrito_id).count() + 1
-
+        repsvm_agresor_maximo = (
+            REPSVMAgresor.query.filter_by(estatus="A")
+            .filter_by(distrito_id=distrito_id)
+            .order_by(REPSVMAgresor.consecutivo.desc())
+            .first()
+        )
+        consecutivo = repsvm_agresor_maximo.consecutivo + 1
         # Insertar registro
         repsvm_agresor = REPSVMAgresor(
             distrito_id=distrito_id,
@@ -190,6 +196,7 @@ def new():
         return redirect(bitacora.url)
     if current_user.autoridad.distrito.es_distrito_judicial:
         form.distrito.data = current_user.autoridad.distrito
+    form.consecutivo.data = 99999  # Se asigna al guardar
     return render_template("repsvm_agresores/new.jinja2", form=form)
 
 
@@ -200,6 +207,7 @@ def edit(repsvm_agresor_id):
     repsvm_agresor = REPSVMAgresor.query.get_or_404(repsvm_agresor_id)
     form = REPSVMAgresorForm()
     if form.validate_on_submit():
+        repsvm_agresor.consecutivo = form.consecutivo.data
         repsvm_agresor.distrito_id = form.distrito.data
         repsvm_agresor.delito_generico = safe_string(form.delito_generico.data, save_enie=True)
         repsvm_agresor.delito_especifico = safe_string(form.delito_especifico.data, save_enie=True)
@@ -220,6 +228,7 @@ def edit(repsvm_agresor_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
         return redirect(bitacora.url)
+    form.consecutivo.data = repsvm_agresor.consecutivo
     form.distrito.data = repsvm_agresor.distrito_id
     form.delito_generico.data = repsvm_agresor.delito_generico
     form.delito_especifico.data = repsvm_agresor.delito_especifico

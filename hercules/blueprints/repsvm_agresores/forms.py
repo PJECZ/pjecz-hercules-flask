@@ -3,8 +3,8 @@ REPSVM Agresores, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import SelectField, StringField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Length, Optional, Regexp
+from wtforms import IntegerField, SelectField, StringField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, Length, Optional, Regexp, NumberRange
 
 from hercules.blueprints.distritos.models import Distrito
 from hercules.blueprints.repsvm_agresores.models import REPSVMAgresor
@@ -14,6 +14,7 @@ from lib.safe_string import URL_REGEXP
 class REPSVMAgresorForm(FlaskForm):
     """Formulario REPSVMAgresor"""
 
+    consecutivo = IntegerField("Consecutivo", validators=[DataRequired(), NumberRange(min=0, max=99999)])
     distrito = SelectField("Distrito", coerce=int, validators=[DataRequired()])
     delito_generico = StringField("Delito genérico", validators=[DataRequired(), Length(max=256)])
     delito_especifico = TextAreaField("Delito específico", validators=[DataRequired(), Length(max=1024)])
