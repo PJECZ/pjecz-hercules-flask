@@ -7,10 +7,6 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {% if current_user.can_edit('REQ REQUISICIONES') %}
-            {{ topbar.button_list_inactive('Inactivas', url_for('req_requisiciones.list_inactive')) }}
-            {{ topbar.button_list_active('Activas', url_for('req_requisiciones.list_active')) }}
-        {% endif %}
     {% endcall %}
 {% endblock %}
 
@@ -24,36 +20,15 @@
                         {% call f.form_group(form.fecha, readonly=true) %}{% endcall %}
                     </div>
                     <div class="col-md-2">
-                        {% call f.form_group(form.gasto) %}{% endcall %}
+                        {% call f.form_group(form.folio, readonly=true) %}{% endcall %}
                     </div>
                 </div>
 
                 <div class="row">
-                    <div class="col-md-7">
-                        
-                        Area<br>
-                        <input type="text" value="{{area}}" class="form-control" disabled>
-                        
+                    <div class="col-md-8">
+                        {% call f.form_group(form.area, readonly=true) %}{% endcall %}
                     </div>
-                    <div class="col-md-5">
-                        {% call f.form_group(form.glosa) %}{% endcall %} 
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        {% call f.form_group(form.programa) %}{% endcall %}
-                    </div>
-                    <div class="col-md-6">
-                        {% call f.form_group(form.fuenteFinanciamiento) %}{% endcall %} 
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-9">
-                        {% call f.form_group(form.areaFinal) %}{% endcall %} 
-                    </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         {% call f.form_group(form.fechaRequerida) %}{% endcall %}
                     </div>
                 </div>
