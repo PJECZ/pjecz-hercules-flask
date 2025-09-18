@@ -76,6 +76,9 @@ def alimentar(archivo_csv, probar):
             sentencia_url = safe_url(fila["SENTENCIA URL"])
             tipo_juzgado = safe_string(fila["TIPO JUZGADO"])
             tipo_sentencia = safe_string(fila["TIPO SENTENCIA"])
+            # Definir el ID del distrito y su consecutivo
+            distrito_id = (distritos[distrito_clave]["id"],)
+            consecutivo = (distritos[distrito_clave]["consecutivo"] + 1,)
             # Validar que no exista el registro
             existente = (
                 REPSVMAgresor.query.filter_by(nombre=nombre).filter_by(numero_causa=numero_causa).filter_by(estatus="A").first()
@@ -101,8 +104,8 @@ def alimentar(archivo_csv, probar):
                 continue
             # Crear nuevo registro
             nuevo = REPSVMAgresor(
-                distrito_id=distrito.id,
-                consecutivo=distritos[distrito_clave]["consecutivo"] + 1,
+                distrito_id=distrito_id,
+                consecutivo=consecutivo,
                 delito_generico=delito_generico,
                 delito_especifico=delito_especifico,
                 es_publico=es_publico,
@@ -116,9 +119,10 @@ def alimentar(archivo_csv, probar):
             )
             if probar is False:
                 nuevo.save()
-            distritos[distrito_clave]["consecutivo"] += 1
+            # Actualizar el consecutivo del distrito
+            distritos[distrito_clave]["consecutivo"] = consecutivo
             registros_nuevos += 1
-            click.echo("+", nl=False)
+            click.echo(f"[{distritos[distrito_clave]['consecutivo']}]", nl=False)
     click.echo("")
 
     # Mostrar los consecutivos
