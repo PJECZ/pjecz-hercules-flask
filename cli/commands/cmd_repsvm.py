@@ -76,9 +76,6 @@ def alimentar(archivo_csv, probar):
             sentencia_url = safe_url(fila["SENTENCIA URL"])
             tipo_juzgado = safe_string(fila["TIPO JUZGADO"])
             tipo_sentencia = safe_string(fila["TIPO SENTENCIA"])
-            # Definir el ID del distrito y su consecutivo
-            distrito_id = (distritos[distrito_clave]["id"],)
-            consecutivo = (distritos[distrito_clave]["consecutivo"] + 1,)
             # Validar que no exista el registro
             existente = (
                 REPSVMAgresor.query.filter_by(nombre=nombre).filter_by(numero_causa=numero_causa).filter_by(estatus="A").first()
@@ -92,6 +89,9 @@ def alimentar(archivo_csv, probar):
                 registros_fallidos += 1
                 click.echo(f"[DISTRITO CLAVE: {distrito_clave}]", nl=False)
                 continue
+            # Definir el ID del distrito y su consecutivo
+            distrito_id = distritos[distrito_clave]["id"]
+            consecutivo = distritos[distrito_clave]["consecutivo"] + 1
             # Validar el tipo_juzgado
             if tipo_juzgado not in REPSVMAgresor.TIPOS_JUZGADOS:
                 registros_fallidos += 1
