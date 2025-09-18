@@ -15,9 +15,10 @@ from hercules.app import create_app
 from hercules.blueprints.distritos.models import Distrito
 from hercules.blueprints.repsvm_agresores.models import REPSVMAgresor
 from hercules.extensions import database
-from lib.safe_string import safe_string, safe_text, safe_url
+from lib.safe_string import safe_clave, safe_string, safe_text, safe_url
 
 app = create_app()
+app.app_context().push()
 database.app = app
 
 
@@ -39,18 +40,20 @@ def alimentar(archivo_csv, probar):
         distritos[distrito.clave] = {"id": distrito.id, "consecutivo": 1}
 
     # Definir el consecutivo de cada distrito
-    for clave, id in distritos.items():
+    for clave, data in distritos.items():
         repsvm_agresor_maximo = (
-            REPSVMAgresor.query.filter_by(distrito_id=id).
-            filter_by(estatus="A").
-            order_by(REPSVMAgresor.consecutivo.desc()).first()
+            REPSVMAgresor.query.filter_by(distrito_id=data["id"])
+            .filter_by(estatus="A")
+            .order_by(REPSVMAgresor.consecutivo.desc())
+            .first()
         )
-        distritos[clave]["consecutivo"] = repsvm_agresor_maximo.consecutivo + 1
+        if repsvm_agresor_maximo is not None:
+            distritos[clave]["consecutivo"] = repsvm_agresor_maximo.consecutivo
 
-    # Mostrar los distritos cargados
+    # Mostrar los consecutivos
     click.echo("Consecutivos de cada distrito: ", nl=False)
     for clave, datos in distritos.items():
-        click.echo(f"{clave}->{datos["consecutivo"]} ", nl=False)
+        click.echo(click.style(f"{clave}->{datos['consecutivo']} ", fg="green"), nl=False)
     click.echo("")
 
     # Leer el archivo CSV
@@ -62,21 +65,29 @@ def alimentar(archivo_csv, probar):
         lector = csv.DictReader(csvfile)
         for fila in lector:
             # Tomar las columnas del archivo CSV
-            deltio_generico = safe_string(fila["DELITO GENERICO"], save_enie=True)
+            distrito_clave = safe_clave(fila["DISTRITO CLAVE"])
+            delito_generico = safe_string(fila["DELITO GENERICO"], save_enie=True)
             delito_especifico = safe_string(fila["DELITO ESPECIFICO"], save_enie=True)
             es_publico = fila["ES PUBLICO"].strip().upper() in ("1", "TRUE", "VERDADERO", "SI", "SÍ")
             nombre = safe_string(fila["NOMBRE"], save_enie=True)
-            numero_causa = safe_string(fila["NUMERO CAUSA"], save_enie=True)
+            numero_causa = safe_string(fila["NUMERO CAUSA"])
             pena_impuesta = safe_string(fila["PENA IMPUESTA"], save_enie=True)
-            observaciones = safe_text(fila["OBSERVACIONES"], save_enie=True)
+            observaciones = safe_text(fila["OBSERVACIONES"])
             sentencia_url = safe_url(fila["SENTENCIA URL"])
             tipo_juzgado = safe_string(fila["TIPO JUZGADO"])
             tipo_sentencia = safe_string(fila["TIPO SENTENCIA"])
             # Validar que no exista el registro
-            existente = REPSVMAgresor.query.filter_by().first()
+            existente = (
+                REPSVMAgresor.query.filter_by(nombre=nombre).filter_by(numero_causa=numero_causa).filter_by(estatus="A").first()
+            )
             if existente is not None:
                 registros_omitidos += 1
-                click.echo(".", nl=False)
+                click.echo(f"[{nombre}]", nl=False)
+                continue
+            # Validar la clave del distrito
+            if distrito_clave not in distritos:
+                registros_fallidos += 1
+                click.echo(f"[DISTRITO CLAVE: {distrito_clave}]", nl=False)
                 continue
             # Validar el tipo_juzgado
             if tipo_juzgado not in REPSVMAgresor.TIPOS_JUZGADOS:
@@ -91,26 +102,34 @@ def alimentar(archivo_csv, probar):
             # Crear nuevo registro
             nuevo = REPSVMAgresor(
                 distrito_id=distrito.id,
-                consecutivo=0,
-                delito_generico=deltio_generico,
-                delito_especifico=delito_especifico
+                consecutivo=distritos[distrito_clave]["consecutivo"] + 1,
+                delito_generico=delito_generico,
+                delito_especifico=delito_especifico,
                 es_publico=es_publico,
                 nombre=nombre,
                 numero_causa=numero_causa,
                 pena_impuesta=pena_impuesta,
                 observaciones=observaciones,
                 sentencia_url=sentencia_url,
-                tipo_juzgado=safe_string(tipo_juzgado),
+                tipo_juzgado=tipo_juzgado,
                 tipo_sentencia=tipo_sentencia,
             )
-            nuevo.save()
+            if probar is False:
+                nuevo.save()
+            distritos[distrito_clave]["consecutivo"] += 1
             registros_nuevos += 1
             click.echo("+", nl=False)
     click.echo("")
+
+    # Mostrar los consecutivos
+    click.echo("Consecutivos de cada distrito: ", nl=False)
+    for clave, datos in distritos.items():
+        click.echo(click.style(f"{clave}->{datos['consecutivo']} ", fg="green"), nl=False)
+    click.echo("")
+
     # Mensaje final
     if probar:
         click.echo("Prueba completada. No se hicieron cambios en la base de datos.")
-        sys.exit(0)
     click.echo(f"Registros nuevos: {registros_nuevos}")
     click.echo(f"Registros omitidos (existentes): {registros_omitidos}")
 
