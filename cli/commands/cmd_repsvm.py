@@ -53,7 +53,8 @@ def alimentar(archivo_csv, probar):
     # Mostrar los consecutivos
     click.echo("Consecutivos de cada distrito: ", nl=False)
     for clave, datos in distritos.items():
-        click.echo(click.style(f"{clave}->{datos['consecutivo']} ", fg="green"), nl=False)
+        click.echo(click.style(f"{clave}: ", fg="blue"), nl=False)
+        click.echo(click.style(f"{datos['consecutivo']} ", fg="white"), nl=False)
     click.echo("")
 
     # Leer el archivo CSV
@@ -82,12 +83,12 @@ def alimentar(archivo_csv, probar):
             )
             if existente is not None:
                 registros_omitidos += 1
-                click.echo(f"[{nombre}]", nl=False)
+                click.echo(click.style(f"[{nombre}, {numero_causa}]", fg="yellow"), nl=False)
                 continue
             # Validar la clave del distrito
             if distrito_clave not in distritos:
                 registros_fallidos += 1
-                click.echo(f"[DISTRITO CLAVE: {distrito_clave}]", nl=False)
+                click.echo(click.style(f"[DISTRITO CLAVE: {distrito_clave}]", fg="yellow"), nl=False)
                 continue
             # Definir el ID del distrito y su consecutivo
             distrito_id = distritos[distrito_clave]["id"]
@@ -95,12 +96,12 @@ def alimentar(archivo_csv, probar):
             # Validar el tipo_juzgado
             if tipo_juzgado not in REPSVMAgresor.TIPOS_JUZGADOS:
                 registros_fallidos += 1
-                click.echo(f"[TIPO JUZGADO: {tipo_juzgado}]", nl=False)
+                click.echo(click.style(f"[TIPO JUZGADO: {tipo_juzgado}]", fg="yellow"), nl=False)
                 continue
             # Validar el tipo_sentencia
             if tipo_sentencia not in REPSVMAgresor.TIPOS_SENTENCIAS:
                 registros_fallidos += 1
-                click.echo(f"[TIPO SENTENCIA: {tipo_sentencia}]", nl=False)
+                click.echo(click.style(f"[TIPO SENTENCIA: {tipo_sentencia}]", fg="yellow"), nl=False)
                 continue
             # Crear nuevo registro
             nuevo = REPSVMAgresor(
@@ -122,20 +123,25 @@ def alimentar(archivo_csv, probar):
             # Actualizar el consecutivo del distrito
             distritos[distrito_clave]["consecutivo"] = consecutivo
             registros_nuevos += 1
-            click.echo(f"[{distritos[distrito_clave]['consecutivo']}]", nl=False)
+            click.echo(click.style(f"[{distritos[distrito_clave]['consecutivo']}]", fg="green"), nl=False)
     click.echo("")
 
     # Mostrar los consecutivos
     click.echo("Consecutivos de cada distrito: ", nl=False)
     for clave, datos in distritos.items():
-        click.echo(click.style(f"{clave}->{datos['consecutivo']} ", fg="green"), nl=False)
+        click.echo(click.style(f"{clave}: ", fg="blue"), nl=False)
+        click.echo(click.style(f"{datos['consecutivo']} ", fg="white"), nl=False)
     click.echo("")
 
     # Mensaje final
     if probar:
         click.echo("Prueba completada. No se hicieron cambios en la base de datos.")
-    click.echo(f"Registros nuevos: {registros_nuevos}")
-    click.echo(f"Registros omitidos (existentes): {registros_omitidos}")
+    if registros_nuevos > 0:
+        click.echo(click.style(f"Registros nuevos: {registros_nuevos}", fg="green"))
+    if registros_omitidos > 0:
+        click.echo(click.style(f"Registros omitidos: {registros_omitidos}", fg="yellow"))
+    if registros_fallidos > 0:
+        click.echo(click.style(f"Registros fallidos: {registros_fallidos}", fg="red"))
 
 
 cli.add_command(alimentar)
