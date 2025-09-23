@@ -21,43 +21,15 @@
                         {% call f.form_group(form.fecha, readonly=true) %}{% endcall %}
                     </div>
                     <div class="col-md-2">
-                        {% call f.form_group(form.gasto) %}{% endcall %}
+                        {% call f.form_group(form.folio) %}{% endcall %}
                     </div>
                 </div>
-
                 <div class="row">
-                    <div class="col-md-7">
-                        
-                        Area<br>
-                        <input type="text" value="{{area}}" class="form-control" disabled>
-                        
+                    <div class="col-md-8">
+                        {% call f.form_group(form.area, readonly=true) %}{% endcall %}
                     </div>
-                    <div class="col-md-5">
-                        {% call f.form_group(form.glosa) %}{% endcall %} 
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        {% call f.form_group(form.programa) %}{% endcall %}
-                    </div>
-                    <div class="col-md-6">
-                        {% call f.form_group(form.fuenteFinanciamiento) %}{% endcall %} 
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-9">
-                        {% call f.form_group(form.areaFinal) %}{% endcall %} 
-                    </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         {% call f.form_group(form.fechaRequerida) %}{% endcall %}
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-12">
-                        {% call f.form_group(form.observaciones) %}{% endcall %}
                     </div>
                 </div>
                 <div class="row">
@@ -65,9 +37,7 @@
                         {% call f.form_group(form.justificacion) %}{% endcall %}
                     </div>
                 </div>
-
             </div>
-    
         {% endcall %}
 
         {% call list.card() %}

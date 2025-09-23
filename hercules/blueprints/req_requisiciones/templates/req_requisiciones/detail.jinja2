@@ -76,25 +76,21 @@
             {{ detail_requisiciones.labeldown_valueup('Fecha de captura', req_requisicion.fecha) }}
         </div>
     </div>
-
+    <div class="row">
+        <div class="col-md-3">
+            {{ detail_requisiciones.labeldown_valueup('Área', req_requisicion.area_final) }}
+        </div>
+    </div>
     <div class="row">
         <div class="col-md-3">
             {{ detail_requisiciones.labeldown_valueup('Fecha requerida', req_requisicion.fecha_requerida) }}
         </div>
     </div>
-
-    <div class="row">
-        <div class="col-md-12">
-            {{ detail_requisiciones.labeldown_valueup('Observaciones', req_requisicion.observaciones) }}
-        </div>
-    </div>
-
     <div class="row">
         <div class="col-md-12">
             {{ detail_requisiciones.labeldown_valueup('Justificación', req_requisicion.justificacion) }}
         </div>
     </div>
-
 </div>
 
 {% endcall %}

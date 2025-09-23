@@ -21,10 +21,10 @@
                         <td>{{ moment(req_requisicion.creado).format('ll') }}</td>
                     </tr>
                     <tr>
-                        <td style="background-color:#ccc">GASTO</td>
+                        <td style="background-color:#ccc">FOLIO</td>
                     </tr>
                     <tr>
-                        <td>{{ req_requisicion.gasto }}</td>
+                        <td>{{ req_requisicion.folio }}</td>
                     </tr>
                 </table>
 
@@ -34,34 +34,12 @@
     <h1 style='text-align:center'>Requisición</h1>
     <table border=0 width='100%' cellspacion=0 cellpadding=10 style='margin:0 auto'>
         <tr>
-            <td colspan='6' style='background-color:#efeff1; color:#333'>ÁREA SOLICITANTE</td>
-            <td colspan='6' style='background-color:#efeff1; color:#333'>GLOSA</td>
+            <td colspan='10' style='background-color:#efeff1; color:#333'>ÁREA SOLICITANTE</td>
+            <td colspan='2' style='background-color:#efeff1; color:#333'>FECHA REQUERIDA</td>
         </tr>
         <tr>
-            <td colspan='6'>{{req_requisicion.area}}</td>
-            <td colspan='6'>{{req_requisicion.glosa}}</td>
-        </tr>
-        <tr>
-            <td colspan='6' style='background-color:#efeff1; color:#333'>PROGRAMA</td>
-            <td colspan='6' style='background-color:#efeff1; color:#333'>FUENTE DE FINANCIAMIENTO</td>
-        </tr>
-        <tr>
-            <td colspan='6'>{{req_requisicion.programa}}</td>
-            <td colspan='6'>{{req_requisicion.fuente_financiamiento}}</td>
-        </tr>
-        <tr>
-            <td colspan='6' style='background-color:#efeff1; color:#333'>ÁREA FINAL A QUIEN SE ENTREGARA</td>
-            <td colspan='6' style='background-color:#efeff1; color:#333'>FECHA REQUERIDA</td>
-        </tr>
-        <tr>
-            <td colspan='6'>{{req_requisicion.area}}</td>
-            <td colspan='6'>{{req_requisicion.fecha_requerida}}</td>
-        </tr>
-        <tr>
-            <td colspan='12' style='background-color:#efeff1; color:#333'>OBSERVACIONES</td>
-        </tr>
-        <tr>
-            <td colspan='12'>{{req_requisicion.observaciones}}</td>
+            <td colspan='10'>{{req_requisicion.area_final}}</td>
+            <td colspan='2'>{{req_requisicion.fecha_requerida}}</td>
         </tr>
         <tr>
             <td colspan='12' style='background-color:#efeff1; color:#333'>JUSTIFICACIÓN</td>

@@ -112,7 +112,6 @@ def datatable_json():
                     "url": url_for("req_requisiciones.detail", req_requisicion_id=resultado.id),
                     "icono": "",
                 },
-                "observaciones": resultado.observaciones[0:50],
             }
         )
     # Entregar JSON
@@ -283,10 +282,9 @@ def new():
             req_requisicion = ReqRequisicion(
                 usuario=current_user,
                 estado="BORRADOR",
-                observaciones=safe_string(form.observaciones.data, max_len=256, to_uppercase=True, save_enie=True),
-                justificacion=safe_string(form.justificacion.data, max_len=1024, to_uppercase=True, save_enie=True),
+                justificacion=safe_string(form.justificacion.data, max_len=1024, save_enie=True),
                 fecha=datetime.now(),
-                area_final=safe_string(form.area.data, to_uppercase=True, save_enie=True),
+                area_final=safe_string(form.area.data, save_enie=True),
                 fecha_requerida=fecha_requerida,
                 autoridad_id=current_user.autoridad_id,
                 solicito_id=0,
@@ -381,17 +379,8 @@ def edit(req_requisicion_id):
 
     if form.validate_on_submit():
         # Guardar requisicion
-
-        req_requisicion.observaciones = (safe_string(form.observaciones.data, max_len=256, to_uppercase=True, save_enie=True),)
-        req_requisicion.justificacion = (safe_string(form.justificacion.data, max_len=1024, to_uppercase=True, save_enie=True),)
-        req_requisicion.gasto = (safe_string(form.gasto.data, to_uppercase=True, save_enie=True),)
-        req_requisicion.glosa = (form.glosa.data,)
-        req_requisicion.programa = (safe_string(form.programa.data, to_uppercase=True, save_enie=True),)
-        req_requisicion.fuente_financiamiento = (
-            safe_string(form.fuenteFinanciamiento.data, to_uppercase=True, save_enie=True),
-        )
-        req_requisicion.fecha_requerida = (form.fechaRequerida.data,)
-
+        req_requisicion.justificacion = safe_string(form.justificacion.data, max_len=1024, save_enie=True)
+        req_requisicion.fecha_requerida = form.fechaRequerida.data
         req_requisicion.save()
         # Eliminar los articulos registrados antes de la edicion
         for registro_a_eliminar in articulos:
@@ -403,7 +392,6 @@ def edit(req_requisicion_id):
         # Guardar los registros de la requisición
         for registros in form.articulos:
             if registros.codigo.data != "":
-
                 req_requisicion_registro = ReqRequisicionRegistro(
                     req_requisicion_id=req_requisicion.id,
                     req_catalogo_id=registros.idArticulo.data,
@@ -417,7 +405,7 @@ def edit(req_requisicion_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Requisicion actualizada: {req_requisicion.gasto}"),
+            descripcion=safe_message(f"Requisicion actualizada: {req_requisicion.folio}"),
             url=url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion.id),
         )
         bitacora.save()
@@ -425,14 +413,10 @@ def edit(req_requisicion_id):
         return redirect(bitacora.url)
 
     form.fecha.data = req_requisicion.fecha
-    form.gasto.data = req_requisicion.gasto
-    form.glosa.data = req_requisicion.glosa
-    form.programa.data = req_requisicion.programa
-    form.fuenteFinanciamiento.data = req_requisicion.fuente_financiamiento
     form.fechaRequerida.data = req_requisicion.fecha_requerida
-    form.areaFinal.data = req_requisicion.area_final
-    form.observaciones.data = req_requisicion.observaciones
     form.justificacion.data = req_requisicion.justificacion
+    form.area.data = req_requisicion.area_final
+    form.folio.data = req_requisicion.folio
 
     # consulta previa para obtener los articulos registrados en la requisicion
     # articulos = ReqRequisicionRegistro.query.filter_by(req_requisicion_id=req_requisicion_id).join(ReqCatalogo).all()
@@ -452,7 +436,6 @@ def edit(req_requisicion_id):
         "req_requisiciones/edit.jinja2",
         titulo="Editar Requisicion",
         form=form,
-        area=current_user.autoridad.descripcion,
         req_requisicion_registro=articulos,
         req_requisicion=req_requisicion,
     )
@@ -525,7 +508,7 @@ def step_2_request(req_requisicion_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Firmado simple de la Requisición {req_requisicion.gasto}"),
+            descripcion=safe_message(f"Firmado simple de la Requisición {req_requisicion.folio}"),
             url=url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion.id),
         )
         bitacora.save()
@@ -597,7 +580,7 @@ def step_3_authorize(req_requisicion_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Autorizado de la Requisición {req_requisicion.gasto}"),
+            descripcion=safe_message(f"Autorizado de la Requisición {req_requisicion.folio}"),
             url=url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion.id),
         )
         bitacora.save()
@@ -683,7 +666,7 @@ def step_4_review(req_requisicion_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Revisado de la Requisición {req_requisicion.gasto}"),
+            descripcion=safe_message(f"Revisado de la Requisición {req_requisicion.folio}"),
             url=url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion.id),
         )
         bitacora.save()
