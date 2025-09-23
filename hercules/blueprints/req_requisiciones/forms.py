@@ -16,7 +16,7 @@ from wtforms import (
     validators,
     HiddenField,
 )
-from wtforms.validators import DataRequired, Length
+from wtforms.validators import DataRequired, Length, Optional
 from datetime import datetime
 
 
@@ -51,7 +51,7 @@ class ReqRequisicionNewForm(FlaskForm):
     # areaFinal = StringField("Area final a quien se entregará", validators=[Length(max=100)])
     area = StringField("Área", validators=[DataRequired()])
     folio = StringField("Folio", validators=[DataRequired()])
-    fechaRequerida = DateField("Fecha requerida")
+    fechaRequerida = DateField("Fecha requerida", validators=[Optional()])
     observaciones = TextAreaField("Observaciones", validators=[Length(max=1024)])
     justificacion = TextAreaField("Justificación", validators=[DataRequired(), Length(max=1024)])
     codigoTmp = SelectField("Código", validators=[Length(max=30)], render_kw={"onChange": "buscarRegistro()"})

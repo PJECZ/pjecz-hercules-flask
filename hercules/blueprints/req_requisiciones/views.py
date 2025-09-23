@@ -95,7 +95,7 @@ def datatable_json():
         data.append(
             {
                 "id": resultado.id,
-                "folio": resultado.gasto,
+                "folio": resultado.folio,
                 "estado": resultado.estado,
                 "oficina": oficina,
                 "autoridad": {
@@ -106,10 +106,9 @@ def datatable_json():
                 "usuario": resultado.usuario.nombre,
                 "nombre": resultado.usuario.nombre,
                 "fecha": resultado.fecha,
-                "glosa": resultado.glosa,
                 "justificacion": resultado.justificacion,
                 "detalle": {
-                    "gasto": resultado.gasto,
+                    "folio": resultado.folio,
                     "url": url_for("req_requisiciones.detail", req_requisicion_id=resultado.id),
                     "icono": "",
                 },
@@ -272,10 +271,12 @@ def new():
                 flash(str(error), "warning")
                 es_valido = False
         # Validar la fecha requerida
-        fecha_requerida = form.fecha_requerida.data
-        if fecha_requerida is not None and fecha_requerida < datetime.now().date():
-            flash("La fecha requerida no puede ser anterior a la fecha actual", "warning")
-            es_valido = False
+        fecha_requerida = None
+        if form.fechaRequerida.data is not None:
+            fecha_requerida = form.fechaRequerida.data
+            if fecha_requerida is not None and fecha_requerida < datetime.now().date():
+                flash("La fecha requerida no puede ser anterior a la fecha actual", "warning")
+                es_valido = False
         # Si es válido, guardar registro
         if es_valido:
             # Guardar requisición

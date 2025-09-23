@@ -7,7 +7,7 @@
 {% block title %}Requisiciones{% endblock %}
 
 {% block topbar_actions %}
-    {% call topbar.page_buttons(req_requisicion.observaciones) %}
+    {% call topbar.page_buttons('Requisición: ' + req_requisicion.folio) %}
         {{ topbar.button_previous('Requisiciones', url_for('req_requisiciones.list_active')) }}
 
         {% if req_requisicion.estado in ['BORRADOR', 'SOLICITADO', 'CANCELADO POR SOLICITANTE', 'AUTORIZADO', 'CANCELADO POR AUTORIZANTE', 'REVISADO', 'CANCELADO POR REVISANTE'] %}
@@ -70,7 +70,7 @@
 <div class="container-fluid">
     <div class="row d-flex justify-content-end">
         <div class="col-md-3">
-            {{ detail_requisiciones.labeldown_valueup('Gasto', req_requisicion.gasto) }}
+            {{ detail_requisiciones.labeldown_valueup('Folio', req_requisicion.folio) }}
         </div>
         <div class="col-md-3">
             {{ detail_requisiciones.labeldown_valueup('Fecha de captura', req_requisicion.fecha) }}
@@ -78,27 +78,6 @@
     </div>
 
     <div class="row">
-        <div class="col-md-7">
-            {{ detail_requisiciones.labeldown_valueup('Área solicitante', autoridad.descripcion) }}
-        </div>
-        <div class="col-md-5">
-            {{ detail_requisiciones.labeldown_valueup('Glosa', req_requisicion.glosa) }}
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6">
-            {{ detail_requisiciones.labeldown_valueup('Programa', req_requisicion.programa) }}
-        </div>
-        <div class="col-md-6">
-            {{ detail_requisiciones.labeldown_valueup('Fuente de financiamiento', req_requisicion.fuente_financiamiento) }}
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-9">
-            {{ detail_requisiciones.labeldown_valueup('Area final a quien se entregara', req_requisicion.area) }}
-        </div>
         <div class="col-md-3">
             {{ detail_requisiciones.labeldown_valueup('Fecha requerida', req_requisicion.fecha_requerida) }}
         </div>
@@ -206,9 +185,9 @@
 {% block custom_javascript %}
     {% if current_user.can_edit('REQ REQUISICIONES') %}
     {% if req_requisicion.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar la requisición' +
-    req_requisicion.gasto + '?') }}{% endif %}
+    req_requisicion.folio + '?') }}{% endif %}
     {% if req_requisicion.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar a ' +
-    req_requisicion.gasto + '?') }}{% endif %}
+    req_requisicion.folio + '?') }}{% endif %}
     {% endif %}
     {{ detail.moment_js(moment) }}
 {% endblock %}

@@ -47,7 +47,7 @@ class ReqRequisicion(database.Model, UniversalMixin):
     # programa: Mapped[str] = mapped_column(String(128))
     area_final: Mapped[str] = mapped_column(String(128))
     # fuente_financiamiento: Mapped[str] = mapped_column(String(128))
-    fecha_requerida: Mapped[date] = mapped_column(Date)
+    fecha_requerida: Mapped[Optional[date]] = mapped_column(Date)
     observaciones: Mapped[str] = mapped_column(String(1024))
     justificacion: Mapped[str] = mapped_column(String(1024))
     estado: Mapped[str] = mapped_column(Enum(*ESTADOS, name="req_requisiciones_estados", native_enum=False), index=True)
