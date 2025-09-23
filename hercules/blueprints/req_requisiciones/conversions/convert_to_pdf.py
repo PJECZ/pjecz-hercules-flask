@@ -150,10 +150,10 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
                                 <td>{req_requisicion.creado}</td>
                             </tr>
                             <tr>
-                                <td style='background-color:#ccc'>GASTO</td>
+                                <td style='background-color:#ccc'>FOLIO</td>
                             </tr>
                             <tr>
-                                <td>{ req_requisicion.gasto }</td>
+                                <td>{ req_requisicion.folio }</td>
                             </tr>
                         </table>
                     </td>
@@ -164,43 +164,23 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
             <table border=0 width='100%' cellspacion=0 cellpadding=2 style='margin:0 auto'>
                 <tr>
                     <td colspan='6' style='background-color:#efeff1; color:#333'>ÁREA SOLICITANTE</td>
-                    <td colspan='6' style='background-color:#efeff1; color:#333'>GLOSA</td>
                 </tr>
                 <tr>
-                    <td colspan='6'>{autoridad_solicito_descripcion}</td>
-                    <td colspan='6'>{req_requisicion.glosa}</td>
-                </tr>
-                <tr>
-                    <td colspan='6' style='background-color:#efeff1; color:#333'>PROGRAMA</td>
-                    <td colspan='6' style='background-color:#efeff1; color:#333'>FUENTE DE FINANCIAMIENTO</td>
-                </tr>
-                <tr>
-                    <td colspan='6'>{req_requisicion.programa}</td>
-                    <td colspan='6'>{req_requisicion.fuente_financiamiento}</td>
-                </tr>
-                <tr>
-                    <td colspan='6' style='background-color:#efeff1; color:#333'>ÁREA FINAL A QUIEN SE ENTREGARA</td>
-                    <td colspan='6' style='background-color:#efeff1; color:#333'>FECHA REQUERIDA</td>
+                    <td colspan='6'>{req_requisicion.area_final}</td>
                 </tr>
                 <tr>
                     <td colspan='6'></td>
                     <td colspan='6'>{req_requisicion.fecha_requerida}</td>
                 </tr>
                 <tr>
-                    <td colspan='12' style='background-color:#efeff1; color:#333'>OBSERVACIONES</td>
-                </tr>
-                <tr>
-                    <td colspan='12'>{req_requisicion.observaciones}</td>
-                </tr>
-                <tr>
-                    <td colspan='12' style='background-color:#efeff1; color:#333'>JUSTIFICACION</td>
+                    <td colspan='12' style='background-color:#efeff1; color:#333'>JUSTIFICACIÓN</td>
                 </tr>
                 <tr>
                     <td colspan='12'>{req_requisicion.justificacion}</td>
                 </tr>
                 <tr>
                     <td colspan=3 style='background-color:#ccc; color:#333'>CLAVE</td>
-                    <td colspan=5 style='background-color:#ccc; color:#333'>DESCRIPCION</td>
+                    <td colspan=5 style='background-color:#ccc; color:#333'>DESCRIPCIÓN</td>
                     <td style='background-color:#ccc; color:#333'>U. MEDIDA</td>
                     <td style='background-color:#ccc; color:#333'>CANTIDAD</td>
                     <td style='background-color:#ccc; color:#333'>CLAVE</td>

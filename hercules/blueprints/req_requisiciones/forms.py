@@ -52,7 +52,7 @@ class ReqRequisicionNewForm(FlaskForm):
     area = StringField("Área", validators=[DataRequired()])
     folio = StringField("Folio", validators=[DataRequired()])
     fechaRequerida = DateField("Fecha requerida", validators=[Optional()])
-    observaciones = TextAreaField("Observaciones", validators=[Length(max=1024)])
+    # observaciones = TextAreaField("Observaciones", validators=[Length(max=1024)])
     justificacion = TextAreaField("Justificación", validators=[DataRequired(), Length(max=1024)])
     codigoTmp = SelectField("Código", validators=[Length(max=30)], render_kw={"onChange": "buscarRegistro()"})
     descripcionTmp = StringField("Descripción", validators=[Length(max=100)])

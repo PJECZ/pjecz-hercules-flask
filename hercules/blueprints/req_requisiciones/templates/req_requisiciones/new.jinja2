@@ -23,7 +23,6 @@
                         {% call f.form_group(form.folio, readonly=true) %}{% endcall %}
                     </div>
                 </div>
-
                 <div class="row">
                     <div class="col-md-8">
                         {% call f.form_group(form.area, readonly=true) %}{% endcall %}
@@ -32,20 +31,12 @@
                         {% call f.form_group(form.fechaRequerida) %}{% endcall %}
                     </div>
                 </div>
-
-                <div class="row">
-                    <div class="col-md-12">
-                        {% call f.form_group(form.observaciones) %}{% endcall %}
-                    </div>
-                </div>
                 <div class="row">
                     <div class="col-md-12">
                         {% call f.form_group(form.justificacion) %}{% endcall %}
                     </div>
                 </div>
-
             </div>
-    
         {% endcall %}
 
         {% call list.card() %}
