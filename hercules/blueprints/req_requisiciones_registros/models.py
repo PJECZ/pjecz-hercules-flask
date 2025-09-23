@@ -4,7 +4,7 @@ Req Requisiciones Registros, modelos
 
 import uuid
 
-from sqlalchemy import ForeignKey, Integer, String, Uuid
+from sqlalchemy import ForeignKey, Integer, String, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -14,6 +14,14 @@ from hercules.extensions import database
 
 class ReqRequisicionRegistro(database.Model, UniversalMixin):
     """ReqRequisicionRegistro"""
+
+    CLAVES = {
+        "INS": "INSUFICIENCIA",
+        "REP": "REPOSICION DE BIENES",
+        "OBS": "OBSOLESENCIA",
+        "AMP": "AMPLIACION COBERTURA DEL SERVICIO",
+        "NUE": "NUEVO PROYECTO",
+    }
 
     # Nombre de la tabla
     __tablename__ = "req_requisiciones_registros"
@@ -26,9 +34,10 @@ class ReqRequisicionRegistro(database.Model, UniversalMixin):
     req_catalogo: Mapped["ReqCatalogo"] = relationship(back_populates="req_requisiciones_registros")
     req_requisicion_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("req_requisiciones.id"))
     req_requisicion: Mapped["ReqRequisicion"] = relationship(back_populates="req_requisiciones_registros")
-    clave: Mapped[str] = mapped_column(String(30))
 
     # Columnas
+    clave: Mapped[str] = mapped_column(Enum(*CLAVES, name="req_requisiciones_registros_claves", native_enum=False), index=True)
+    # clave: Mapped[str] = mapped_column(String(30))
     cantidad: Mapped[int] = mapped_column(Integer, nullable=False)
     detalle: Mapped[str] = mapped_column(String(256))
 

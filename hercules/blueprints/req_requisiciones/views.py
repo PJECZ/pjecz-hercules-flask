@@ -13,6 +13,7 @@ from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_string, safe_message, safe_uuid
 from lib.exceptions import MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
+from lib.folio import validar_folio
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
@@ -94,7 +95,7 @@ def datatable_json():
         data.append(
             {
                 "id": resultado.id,
-                "folio": resultado.gasto,
+                "folio": resultado.folio,
                 "estado": resultado.estado,
                 "oficina": oficina,
                 "autoridad": {
@@ -105,10 +106,9 @@ def datatable_json():
                 "usuario": resultado.usuario.nombre,
                 "nombre": resultado.usuario.nombre,
                 "fecha": resultado.fecha,
-                "glosa": resultado.glosa,
                 "justificacion": resultado.justificacion,
                 "detalle": {
-                    "gasto": resultado.gasto,
+                    "folio": resultado.folio,
                     "url": url_for("req_requisiciones.detail", req_requisicion_id=resultado.id),
                     "icono": "",
                 },
@@ -259,52 +259,83 @@ def new():
         + [("NUE", "NUEVO PROYECTO")]
     )
     if form.validate_on_submit():
-        # Guardar requisicion
-        req_requisicion = ReqRequisicion(
-            usuario=current_user,
-            # autoridad_id=form.area.data,
-            estado="BORRADOR",
-            observaciones=safe_string(form.observaciones.data, max_len=256, to_uppercase=True, save_enie=True),
-            justificacion=safe_string(form.justificacion.data, max_len=1024, to_uppercase=True, save_enie=True),
-            fecha=datetime.now(),
-            gasto=safe_string(form.gasto.data, to_uppercase=True, save_enie=True),
-            glosa=form.glosa.data,
-            programa=safe_string(form.programa.data, to_uppercase=True, save_enie=True),
-            fuente_financiamiento=safe_string(form.fuenteFinanciamiento.data, to_uppercase=True, save_enie=True),
-            area_final=safe_string(form.areaFinal.data, to_uppercase=True, save_enie=True),
-            fecha_requerida=form.fechaRequerida.data,
-            autoridad_id=current_user.autoridad_id,
-            solicito_id=0,
-            autorizo_id=0,
-            reviso_id=0,
-        )
-        req_requisicion.save()
-        # Guardar los registros de la requisición
-        for registros in form.articulos:
-            if registros.codigo.data != "":
+        es_valido = True
+        # Validar el folio, separar el número y el año
+        folio = form.folio.data.strip()
+        numero_folio = None
+        anio_folio = None
+        if folio != "":
+            try:
+                numero_folio, anio_folio = validar_folio(folio)
+            except ValueError as error:
+                flash(str(error), "warning")
+                es_valido = False
+        # Validar la fecha requerida
+        fecha_requerida = None
+        if form.fechaRequerida.data is not None:
+            fecha_requerida = form.fechaRequerida.data
+            if fecha_requerida is not None and fecha_requerida < datetime.now().date():
+                flash("La fecha requerida no puede ser anterior a la fecha actual", "warning")
+                es_valido = False
+        # Si es válido, guardar registro
+        if es_valido:
+            # Guardar requisición
+            req_requisicion = ReqRequisicion(
+                usuario=current_user,
+                estado="BORRADOR",
+                observaciones=safe_string(form.observaciones.data, max_len=256, to_uppercase=True, save_enie=True),
+                justificacion=safe_string(form.justificacion.data, max_len=1024, to_uppercase=True, save_enie=True),
+                fecha=datetime.now(),
+                area_final=safe_string(form.area.data, to_uppercase=True, save_enie=True),
+                fecha_requerida=fecha_requerida,
+                autoridad_id=current_user.autoridad_id,
+                solicito_id=0,
+                autorizo_id=0,
+                reviso_id=0,
+                folio=folio,
+                folio_anio=anio_folio,
+                folio_num=numero_folio,
+            )
+            req_requisicion.save()
+            # Guardar los registros de la requisición
+            for registros in form.articulos:
+                if registros.codigo.data != "":
+                    req_requisicion_registro = ReqRequisicionRegistro(
+                        req_requisicion_id=req_requisicion.id,
+                        req_catalogo_id=registros.idArticulo.data,
+                        clave=registros.clave.data,
+                        cantidad=registros.cantidad.data,
+                        detalle=registros.detalle.data,
+                    )
+                    req_requisicion_registro.save()
 
-                req_requisicion_registro = ReqRequisicionRegistro(
-                    req_requisicion_id=req_requisicion.id,
-                    req_catalogo_id=registros.idArticulo.data,
-                    clave=registros.clave.data,
-                    cantidad=registros.cantidad.data,
-                    detalle=registros.detalle.data,
-                )
-                req_requisicion_registro.save()
-
-        # Guardar en la bitacora
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Requisicion creada {req_requisicion.observaciones}"),
-            url=url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-        return redirect(bitacora.url)
-    return render_template(
-        "req_requisiciones/new.jinja2", titulo="Requisicion nueva", form=form, area=current_user.autoridad.descripcion
+            # Guardar en la bitácora
+            bitacora = Bitacora(
+                modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+                usuario=current_user,
+                descripcion=safe_message(f"Requisicion creada {req_requisicion.observaciones}"),
+                url=url_for("req_requisiciones.detail", req_requisicion_id=req_requisicion.id),
+            )
+            bitacora.save()
+            flash(bitacora.descripcion, "success")
+            return redirect(bitacora.url)
+    # Sugerir el folio consultando la última requisición de la autoridad del usuario
+    ultima_requisicion = (
+        ReqRequisicion.query.join(Usuario)
+        .filter(Usuario.autoridad_id == current_user.autoridad_id)
+        .filter(ReqRequisicion.folio_anio == datetime.now().year)
+        .order_by(ReqRequisicion.folio_num.desc())
+        .first()
     )
+    if ultima_requisicion:
+        folio = f"{ultima_requisicion.usuario.autoridad.clave}-{ultima_requisicion.folio_num + 1}/{datetime.now().year}"
+    else:
+        folio = f"{current_user.autoridad.clave}-1/{datetime.now().year}"  # Tal vez sea la primer requisición del año
+    # Carga de campos
+    form.folio.data = folio
+    form.area.data = current_user.autoridad.descripcion
+    # Entrega del template
+    return render_template("req_requisiciones/new.jinja2", titulo="Nueva Requisición", form=form)
 
 
 @req_requisiciones.route("/req_requisiciones/editar/<req_requisicion_id>", methods=["GET", "POST"])
