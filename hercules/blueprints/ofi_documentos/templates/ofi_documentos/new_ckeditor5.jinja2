@@ -7,6 +7,7 @@
 {% block custom_head %}
     <!-- CKEditor 5 -->
     <link rel="stylesheet" href="https://storage.googleapis.com/pjecz-informatica/static/css/ckeditor5-editor.css" crossorigin>
+    <!-- Estilos del contenido para poner bordes y margenes a las tablas -->
     <link rel="stylesheet" href="https://storage.googleapis.com/pjecz-informatica/static/css/ckeditor5-justicia-digital-gob-mx.css">
 {% endblock %}
 
@@ -35,6 +36,7 @@
                 {% call f.form_group(form.contenido_md) %}{% endcall %}
                 {% call f.form_group(form.contenido_html) %}{% endcall %}
                 {% call f.form_group(form.contenido_sfdt) %}{% endcall %}
+                {% call f.form_group(form.cadena_oficio_id) %}{% endcall %}
                 {% call f.form_group(form.continuar) %}{% endcall %}
             </div>
             <!-- Recomendaciones importantes -->
@@ -44,16 +46,27 @@
                         <strong>Recomendaciones importantes</strong>
                     </div>
                     <ul class="card-text mb-0">
-                        <li>Si va a "copiar y pegar" use <strong>pegar sin formato</strong>, para esto de clic con el botón derecho del ratón.
-                            Luego use la barra de herramientas para cambiar el formato.</li>
-                        <li><strong>Guarde frecuentemente,</strong> de preferencia cada cinco minutos, porque puede perder su avance si
-                            cierra accidentalmente o cuando caduca la sesión.</li>
-                        <li>El número de folio quedará reservado. Puede cambiarlo, pero un nuevo oficio sugerirá el número más grande del año más uno.</li>
+                        <li>
+                            Si va a "copiar y pegar" use <strong>pegar sin formato</strong>,
+                            para esto de clic con el botón derecho del ratón y elija esa opción en lugar de "pegar".
+                            Luego use la barra de herramientas para cambiar el formato.
+                        </li>
+                        <li>
+                            Todas las tablas tendrán líneas, bordes y márgenes por defecto (aunque no sean visibles).
+                        </li>
+                        <li>
+                            <strong>Guarde frecuentemente,</strong> de preferencia cada cinco minutos,
+                            porque puede perder su avance si cierra accidentalmente o cuando caduca la sesión.
+                        </li>
+                        <li>
+                            El número de folio quedará reservado. Puede cambiarlo, pero un nuevo oficio sugerirá el número más
+                            grande del año más uno.
+                        </li>
                     </ul>
                     <a href="javascript:ocultarRecomendacionesImportantes()" class="btn btn-warning btn-sm mt-2">Ocultar</a>
                 </div>
             </div>
-            <!-- Botones Guardar y continuar, Guardar y Cancelar -->
+            <!-- Botones -->
             <div class="row">
                 <div class="col-md-3">
                     <button type="submit" id="boton_guardar_y_continuar" class="btn btn-primary my-2 w-100" onclick="document.getElementById('continuar').value='1';">
@@ -64,14 +77,14 @@
                 <div class="col-md-3">
                     <button type="submit" id="boton_guardar" class="btn btn-success my-2 w-100" onclick="document.getElementById('continuar').value='0';">
                         <span class="iconify" data-icon="mdi:content-save-check"></span>
-                        Guardar y cerrar editor
+                        Guardar y terminar
                     </button>
                 </div>
                 <div class="col-md-3"></div>
                 <div class="col-md-3 text-end">
                     <button type="button" id="boton_cancelar" class="btn btn-outline-danger my-2 w-100">
                         <span class="iconify" data-icon="mdi:cancel"></span>
-                        ¡Descartar y cerrar editor!
+                        ¡DESCARTAR!
                     </button>
                 </div>
             </div>
@@ -88,12 +101,7 @@
             }
         });
     </script>
-    <!-- Turndown sirve para convertir el HTML a markdown-->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.0.0/turndown.js"></script>
-    <script>
-        var turndownService = new TurndownService();
-    </script>
-    <!-- Ocultar el aviso "Recomendaciones importantes" -->
+    <!-- Botón ocultar Recomendaciones importantes -->
     <script>
         function ocultarRecomendacionesImportantes() {
             var elemento = document.getElementById("recomendaciones_importantes");
@@ -101,6 +109,11 @@
                 elemento.style.display = "none";
             }
         }
+    </script>
+    <!-- Turndown sirve para convertir el HTML a markdown-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.0.0/turndown.js"></script>
+    <script>
+        var turndownService = new TurndownService();
     </script>
     <!-- CKEditor 5 -->
     <script src="https://storage.googleapis.com/pjecz-informatica/static/js/ckeditor5.umd.js" crossorigin></script>

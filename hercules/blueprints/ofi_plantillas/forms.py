@@ -3,7 +3,7 @@ Ofi Plantillas, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, BooleanField, SelectField
+from wtforms import BooleanField, HiddenField, SelectField, StringField, TextAreaField
 from wtforms.validators import DataRequired, Length, Optional
 
 
@@ -22,5 +22,5 @@ class OfiPlantillaForm(FlaskForm):
     contenido_sfdt = TextAreaField("Contenido SFDT", validators=[Optional()], render_kw={"rows": 10})
     esta_archivado = BooleanField("Está Archivada", validators=[Optional()])
     esta_compartida = BooleanField("Está Compartida", validators=[Optional()])
-
-    guardar = SubmitField("Guardar")
+    continuar = HiddenField("Continuar", default="0")  # 1 = seguir editando, 0 = salir
+    # No tiene guardar = SubmitField("Guardar")

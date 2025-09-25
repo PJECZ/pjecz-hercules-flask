@@ -5,6 +5,8 @@
 {% block title %}Firmar Oficio {{ ofi_documento.descripcion | truncate(48) }}{% endblock %}
 
 {% block custom_head %}
+    <!-- Estilos del contenido para poner bordes y margenes a las tablas -->
+    <link rel="stylesheet" href="https://storage.googleapis.com/pjecz-informatica/static/css/ckeditor5-justicia-digital-gob-mx.css">
 {% endblock %}
 
 {% block topbar_actions %}
@@ -45,7 +47,7 @@
                     <a href="javascript:ocultarRecomendacionesImportantes()" class="btn btn-warning btn-sm mt-2">Ocultar</a>
                 </div>
             </div>
-            <!-- Botones Editar, Firma Simple, Firma Electrónica Avanzada y Regresar sin firmar -->
+            <!-- Botones -->
             <div class="row">
                 <div class="col-md-3">
                     <a class="btn btn-block btn-md btn-warning w-100 my-2" href="{{ url_for('ofi_documentos.edit', ofi_documento_id=ofi_documento.id) }}">
