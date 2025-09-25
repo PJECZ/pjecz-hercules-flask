@@ -17,7 +17,6 @@
                 <div class="col-md-6">{% call f.form_group(form.folio, readonly=true) %}{% endcall %}</div>
                 <div class="col-md-6">{% call f.form_group(form.vencimiento_fecha, readonly=true) %}{% endcall %}</div>
             </div>
-            <!-- Inicia Contenido HTML -->
             <hr />
             {% if ofi_documento.contenido_html %}
                 {{ ofi_documento.contenido_html | safe }}
@@ -27,9 +26,7 @@
                 </div>
             {% endif %}
             <hr />
-            <!-- Termina Contenido HTML -->
             {% call f.form_group(form.guardar) %}{% endcall %}
         {% endcall %}
     {% endcall %}
 {% endblock %}
-
