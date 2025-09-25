@@ -104,6 +104,30 @@ def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
                 font-family: Arial, sans-serif;
                 font-size: 12pt;
             }
+            .content-table {
+                border-collapse: collapse;
+                border: 0.5px solid black;
+                margin-bottom: 12px;
+            }
+            .layout-table {
+                width: 100%;
+                border-collapse: collapse;
+                border: 0.5px solid black;
+                margin-bottom: 12px;
+            }
+            .content-table th,
+            .layout-table th {
+                background-color: #aaaaaa;
+                border: 0.5px solid black;
+                padding: 4px;
+                text-align: center;
+                font-weight: bold;
+            }
+            .content-table td,
+            .layout-table td {
+                border: 0.5px solid black;
+                padding: 4px;
+            }
         </style>
     """
     )
