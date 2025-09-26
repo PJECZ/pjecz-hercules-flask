@@ -520,7 +520,9 @@ def recover(remesa_id):
     documentos = ArcRemesaDocumento.query.filter_by(arc_remesa_id=remesa_id).all()
     for documento in documentos:
         documento_anexo = ArcRemesaDocumento.query.join(ArcRemesa).filter(ArcRemesaDocumento.arc_remesa_id != remesa_id)
-        documento_anexo = documento_anexo.filter(or_(ArcRemesa.estado != "CANCELADO", ArcRemesa.estado != "ARCHIVADO"))
+        documento_anexo = documento_anexo.filter(
+            or_(ArcRemesa.estado != "CANCELADO", ArcRemesa.estado != "ARCHIVADO", ArcRemesa.estado != "ARCHIVADO CON ANOMALIA")
+        )
         documento_anexo = (
             documento_anexo.filter(ArcRemesaDocumento.arc_documento_id == documento.arc_documento.id)
             .filter_by(estatus="A")
