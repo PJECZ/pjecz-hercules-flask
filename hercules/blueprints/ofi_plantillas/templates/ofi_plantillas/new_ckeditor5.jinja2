@@ -23,13 +23,11 @@
         {% call f.form_tag('ofi_plantillas.new', fid='ofi_plantilla_form') %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
             {% call f.form_group(form.propietario) %}{% endcall %}
-            <p class="my-0">
-                <small><strong>Si está compartida estará al alcance de todos,</strong> entonces escriba las direcciones de correo electrónico separados por comas.</small>
-            </p>
             {% call f.form_group(form.destinatarios_emails) %}{% endcall %}
             {% call f.form_group(form.con_copias_emails) %}{% endcall %}
             {# call f.form_group(form.remitente_email) %}{% endcall #}
             <!-- CKEditor 5 -->
+            <label for="editor"><strong>Contenido de la plantilla</strong></label>
             <div class="main-container">
                 <div class="editor-container editor-container_classic-editor editor-container_include-fullscreen" id="editor-container">
                     <div class="editor-container__editor">
@@ -94,7 +92,7 @@
                 <div class="col-md-3 text-end">
                     <button type="button" id="boton_cancelar" class="btn btn-outline-danger my-2 w-100">
                         <span class="iconify" data-icon="mdi:cancel"></span>
-                        ¡DESCARTAR!
+                        ¡DESCARTAR! e ir a la lista
                     </button>
                 </div>
             </div>
@@ -107,7 +105,7 @@
     <script>
         document.getElementById('boton_cancelar').addEventListener('click', function() {
             if (confirm('¿Está seguro de que desea descartar y cerrar el editor? Se perderán los cambios no guardados.')) {
-                location.href = "{{ url_for('ofi_plantillas.list') }}";
+                location.href = "{{ url_for('ofi_plantillas.list_active') }}";
             }
         });
     </script>

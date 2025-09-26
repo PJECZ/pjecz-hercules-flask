@@ -14,8 +14,8 @@ class OfiPlantillaForm(FlaskForm):
     propietario = SelectField(
         "Propietario (lo relaciona a la autoridad)", coerce=int, validate_choice=False, validators=[DataRequired()]
     )
-    destinatarios_emails = StringField("Destinatarios", validators=[Optional(), Length(max=1024)])
-    con_copias_emails = StringField("Con Copias", validators=[Optional(), Length(max=1024)])
+    destinatarios_emails = StringField("Destinatarios (e-mails separados por comas)", validators=[Optional(), Length(max=1024)])
+    con_copias_emails = StringField("Con Copias (e-mails separados por comas)", validators=[Optional(), Length(max=1024)])
     remitente_email = StringField("Remitente", validators=[Optional(), Length(max=256)])
     contenido_md = TextAreaField("Contenido MD", validators=[Optional()], render_kw={"rows": 10})
     contenido_html = TextAreaField("Contenido HTML", validators=[Optional()], render_kw={"rows": 10})
