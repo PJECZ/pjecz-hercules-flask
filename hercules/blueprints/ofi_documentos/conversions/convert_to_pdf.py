@@ -102,31 +102,93 @@ def convertir_a_pdf(ofi_documento_id: str) -> tuple[str, str, str]:
             }
             body {
                 font-family: Arial, sans-serif;
-                font-size: 12pt;
+                font-size: 11pt;
+                margin-bottom: 0px;
+                margin-top: 0px;
+                margin-left: 0px;
+                margin-right: 0px;
+                padding-bottom: 0px;
+                padding-left: 0px;
+                padding-right: 0px;
+                padding-top: 0px;
             }
-            .content-table {
-                border-collapse: collapse;
-                border: 0.5px solid black;
+            p {
                 margin-bottom: 12px;
+                margin-top: 0px;
+                padding-bottom: 0px;
+                padding-top: 0px;
+                line-height: 1.2;
             }
-            .layout-table {
+            table.content-table {
+                border-collapse: collapse;
+                border-bottom-color: black;
+                border-bottom-style: solid;
+                border-bottom-width: 0.5px;
+                border-left-color: black;
+                border-left-style: solid;
+                border-left-width: 0.5px;
+                border-right-color: black;
+                border-right-style: solid;
+                border-right-width: 0.5px;
+                border-top-color: black;
+                border-top-style: solid;
+                border-top-width: 0.5px;
+                margin-bottom: 12px;
+                margin-top: 0px;
+                margin-left: 0px;
+                margin-right: 0px;
+                padding-bottom: 0px;
+                padding-left: 0px;
+                padding-right: 0px;
+                padding-top: 0px;
                 width: 100%;
+            }
+            table.layout-table {
                 border-collapse: collapse;
-                border: 0.5px solid black;
+                border-bottom-color: black;
+                border-bottom-style: solid;
+                border-bottom-width: 0.5px;
+                border-left-color: black;
+                border-left-style: solid;
+                border-left-width: 0.5px;
+                border-right-color: black;
+                border-right-style: solid;
+                border-right-width: 0.5px;
+                border-top-color: black;
+                border-top-style: solid;
+                border-top-width: 0.5px;
                 margin-bottom: 12px;
+                margin-top: 0px;
+                margin-left: 0px;
+                margin-right: 0px;
+                padding-bottom: 0px;
+                padding-left: 0px;
+                padding-right: 0px;
+                padding-top: 0px;
             }
-            .content-table th,
-            .layout-table th {
-                background-color: #aaaaaa;
-                border: 0.5px solid black;
-                padding: 4px;
-                text-align: center;
-                font-weight: bold;
-            }
-            .content-table td,
-            .layout-table td {
-                border: 0.5px solid black;
-                padding: 4px;
+            table.content-table td,
+            table.layout-table td {
+                border-bottom-color: black;
+                border-bottom-style: solid;
+                border-bottom-width: 0.5px;
+                border-left-color: black;
+                border-left-style: solid;
+                border-left-width: 0.5px;
+                border-right-color: black;
+                border-right-style: solid;
+                border-right-width: 0.5px;
+                border-top-color: black;
+                border-top-style: solid;
+                border-top-width: 0.5px;
+                margin-bottom: 0px;
+                margin-top: 0px;
+                margin-left: 0px;
+                margin-right: 0px;
+                padding-bottom: 4px;
+                padding-left: 4px;
+                padding-right: 4px;
+                padding-top: 4px;
+                line-height: 1;
             }
         </style>
     """
