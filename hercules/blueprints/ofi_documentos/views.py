@@ -525,6 +525,12 @@ def new(ofi_plantilla_id):
     if ofi_plantilla.esta_archivado:
         flash("La plantilla está archivada", "warning")
         return redirect(url_for("ofi_plantillas.list_active"))
+    # Si viene autoridad_clave en el URL, consultarla
+    autoridad = None
+    if "autoridad_clave" in request.args:
+        autoridad_clave = safe_clave(request.args["autoridad_clave"])
+        if autoridad_clave:
+            autoridad = Autoridad.query.filter_by(clave=autoridad_clave).first()
     # Obtener el formulario
     form = OfiDocumentoNewForm()
     if form.validate_on_submit():
@@ -576,9 +582,28 @@ def new(ofi_plantilla_id):
                             usuario=destinatario,
                         )
                         ofi_documento_destinatario.save()
+            elif autoridad and autoridad.destinatarios_emails:
+                for email in autoridad.destinatarios_emails.split(","):
+                    destinatario = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
+                    if destinatario:
+                        ofi_documento_destinatario = OfiDocumentoDestinatario(
+                            ofi_documento=ofi_documento,
+                            usuario=destinatario,
+                        )
+                        ofi_documento_destinatario.save()
             # Si la plantilla está compartida y tiene con_copias_emails
             if ofi_plantilla.esta_compartida and ofi_plantilla.con_copias_emails:
                 for email in ofi_plantilla.con_copias_emails.split(","):
+                    con_copia = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
+                    if con_copia:
+                        ofi_documento_destinatario = OfiDocumentoDestinatario(
+                            ofi_documento=ofi_documento,
+                            usuario=con_copia,
+                            con_copia=True,
+                        )
+                        ofi_documento_destinatario.save()
+            elif autoridad and autoridad.con_copias_emails:
+                for email in autoridad.con_copias_emails:
                     con_copia = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
                     if con_copia:
                         ofi_documento_destinatario = OfiDocumentoDestinatario(
@@ -618,12 +643,6 @@ def new(ofi_plantilla_id):
         folio = f"{ultimo_documento.usuario.autoridad.clave}-{ultimo_documento.folio_num + 1}/{datetime.now().year}"
     else:
         folio = f"{current_user.autoridad.clave}-1/{datetime.now().year}"  # Tal vez sea el primer oficio del año
-    # Si viene autoridad_clave en el URL, consultarla
-    autoridad = None
-    if "autoridad_clave" in request.args:
-        autoridad_clave = safe_clave(request.args["autoridad_clave"])
-        if autoridad_clave:
-            autoridad = Autoridad.query.filter_by(clave=autoridad_clave).first()
     # Reemplazar las palabras claves en el contenido HTML
     contenido_html = ofi_plantilla.contenido_html
     contenido_html = contenido_html.replace("[[DIA]]", str(datetime.now().day))
@@ -692,6 +711,7 @@ def new(ofi_plantilla_id):
         "ofi_documentos/new_ckeditor5.jinja2",
         form=form,
         ofi_plantilla_id=ofi_plantilla_id,
+        autoridad_clave=autoridad_clave,
     )
 
 
@@ -1285,18 +1305,18 @@ def get_file_pdf_url_json(ofi_documento_id):
     if ofi_documento.estado not in ["FIRMADO", "ENVIADO"]:
         return {
             "success": False,
-            "message": "El oficio no está en estado FIRMADO o ENVIADO, no se puede descargar",
+            "message": "No está en estado FIRMADO o ENVIADO",
         }
     # Validar que tenga archivo_pdf_url
     if ofi_documento.archivo_pdf_url is None or ofi_documento.archivo_pdf_url == "":
         return {
             "success": False,
-            "message": "El oficio no tiene archivo PDF, no se puede descargar. Refresque la página nuevamente.",
+            "message": "Falló la creación del archivo PDF",
         }
     # Entregar el URL del archivo PDF
     return {
         "success": True,
-        "message": "Archivo PDF disponible",
+        "message": "Descargar Archivo PDF",
         "url": url_for("ofi_documentos.download_file_pdf", ofi_documento_id=ofi_documento.id),
     }
 
