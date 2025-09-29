@@ -276,32 +276,55 @@
         {% if icon %}<span class="iconify" data-icon="{{ icon }}"></span>{% endif %}
         {{ label }}
     </a>
+    <a id="{{ id }}-button-md-retry" class="btn btn-block btn-md btn-outline-danger w-100 my-2" href="#" style="display: None;">
+        Haga clic para reintentar.
+    </a>
     <script>
         // Barra de progreso con incremento del 1% cada 10ms
         const progressDiv = document.getElementById('{{ id }}-button-md-progress-bar');
         const progressBar = progressDiv.querySelector('.progress-bar');
         const buttonLink = document.getElementById('{{ id }}-button-md-link');
-        var width = 1;
-        var interval = setInterval(function() {
-            width += 100/(10*1000/10);  // Increase by 1% every 10ms
-            progressBar.style.width = width + '%';
-            if (width >= 100) {
-                clearInterval(interval);
-                // Llamar a la URL para obtener el enlace del archivo
-                fetch('{{ url }}')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            buttonLink.href = data.url;
-                        } else {
-                            console.error(data.message);
-                        }
-                    })
-                    .catch(error => console.error('Error fetching file URL:', error));
-                buttonLink.style.display = 'block'; // Mostrar el botón
-                progressDiv.style.display = 'none'; // Ocultar la barra de progreso
-            }
-        }, 10);
+        const buttonRetry = document.getElementById('{{ id }}-button-md-retry');
+        // Función para iniciar la barra de progreso
+        function startProgressBar() {
+            progressDiv.style.display = 'block'; // Asegurarse de que la barra de progreso esté visible
+            var width = 1;
+            var interval = setInterval(function() {
+                width += 100/(10*1000/10);  // Increase by 1% every 10ms
+                progressBar.style.width = width + '%';
+                if (width >= 100) {
+                    clearInterval(interval);
+                    // Llamar a la URL para obtener el enlace del archivo
+                    fetch('{{ url }}')
+                        .then(response => response.json())
+                        .then(data => {
+                            progressDiv.style.display = 'none'; // Ocultar la barra de progreso
+                            if (data.success) {
+                                // Actualizar el botón de descarga con el URL recibido
+                                buttonLink.innerHTML = data.message;
+                                buttonLink.href = data.url;
+                                buttonLink.style.display = 'block'; // Mostrar el botón de descraga
+                            } else {
+                                // Mostrar mensaje de error en el botón de reintento
+                                buttonRetry.innerHTML = data.message + '. Haga clic para reintentar.';
+                                buttonRetry.style.display = 'block'; // Mostrar el botón de reintento
+                            }
+                        })
+                        .catch(error => console.error('Error fetching file URL:', error));
+                }
+            }, 10);
+        }
+        // Al cargar la página, iniciar la barra de progreso
+        document.addEventListener('DOMContentLoaded', function() {
+            startProgressBar();
+        });
+        // Función para manejar el clic en el botón de reintento
+        buttonRetry.addEventListener('click', function(event) {
+            event.preventDefault();
+            buttonRetry.style.display = 'none'; // Ocultar el botón de reintento
+            progressBar.style.width = '0%'; // Resetear la barra de progreso
+            startProgressBar();
+        });
     </script>
 {%- endmacro -%}
 

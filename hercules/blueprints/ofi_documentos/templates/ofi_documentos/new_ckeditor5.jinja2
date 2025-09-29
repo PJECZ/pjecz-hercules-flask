@@ -17,7 +17,7 @@
 
 {% block content %}
     {% call f.card() %}
-        {% set form_kwargs = {'ofi_plantilla_id': ofi_plantilla_id} %}
+        {% set form_kwargs = {'ofi_plantilla_id': ofi_plantilla_id, 'autoridad_clave': autoridad_clave} %}
         {% call f.form_tag('ofi_documentos.new', fid='ofi_documento_form', **form_kwargs) %}
             {% call f.form_group(form.descripcion) %}{% endcall %}
             <div class="row">
