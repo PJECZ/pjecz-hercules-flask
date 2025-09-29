@@ -665,7 +665,6 @@ def new(ofi_plantilla_id):
                 if destinatario.puesto:
                     destinatarios_str += f"{destinatario.puesto}<br>\n"
                 destinatarios_str += f"{destinatario.autoridad.descripcion}<br>\n"
-                # TODO: Insertar ofi_documentos_destinatarios
         contenido_html = contenido_html.replace("[[DESTINATARIOS]]", destinatarios_str)
     # Si la plantilla tiene con_copias_emails, poner sus datos en con copias
     if ofi_plantilla.con_copias_emails and contenido_html.find("[[CON COPIAS]]") != -1:
@@ -675,9 +674,8 @@ def new(ofi_plantilla_id):
             con_copia = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
             if con_copia:
                 con_copias_str += f"{con_copia.nombre}, {con_copia.autoridad.descripcion}<br>\n"
-                # TODO: Insertar ofi_documentos_destinatarios
         contenido_html = contenido_html.replace("[[CON COPIAS]]", con_copias_str)
-    # TODO: Si viene autoridad_clave en el URL, poner sus destinatarios_emails en el destinatario
+    # Si viene autoridad_clave en el URL, poner sus destinatarios_emails en el destinatario
     if autoridad and autoridad.destinatarios_emails and contenido_html.find("[[DESTINATARIOS]]") != -1:
         destinatarios_emails = autoridad.destinatarios_emails.split(",")
         destinatarios_str = ""
@@ -688,9 +686,8 @@ def new(ofi_plantilla_id):
                 if destinatario.puesto:
                     destinatarios_str += f"{destinatario.puesto}<br>\n"
                 destinatarios_str += f"{destinatario.autoridad.descripcion}<br>\n"
-                # TODO: Insertar ofi_documentos_destinatarios
         contenido_html = contenido_html.replace("[[DESTINATARIOS]]", destinatarios_str)
-    # TODO: Si viene autoridad_clave en el URL, poner sus con_copias_emails en con copias
+    # Si viene autoridad_clave en el URL, poner sus con_copias_emails en con copias
     if autoridad and autoridad.con_copias_emails and contenido_html.find("[[CON COPIAS]]") != -1:
         con_copias_emails = ofi_plantilla.con_copias_emails.split(",")
         con_copias_str = ""
@@ -698,7 +695,6 @@ def new(ofi_plantilla_id):
             con_copia = Usuario.query.filter_by(email=email).filter_by(estatus="A").first()
             if con_copia:
                 con_copias_str += f"{con_copia.nombre}, {con_copia.autoridad.descripcion}<br>\n"
-                # TODO: Insertar ofi_documentos_destinatarios
         contenido_html = contenido_html.replace("[[CON COPIAS]]", con_copias_str)
     # Cargar los datos de la plantilla en el formulario
     form.descripcion.data = ofi_plantilla.descripcion
