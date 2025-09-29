@@ -44,10 +44,10 @@
                 <div class="row">
                     <div class="col-md-3 text-end">Descripción</div>
                     <div class="col-md-9">
-                        {% if current_user == ofi_documento.usuario and ofi_documento.estado != "BORRADOR" %}
-                            <a class="btn btn-warning text-dark btn-sm" href="{{url_for('ofi_documentos.rename', ofi_documento_id=ofi_documento.id)}}" title="Renombrar"><span class="iconify" data-icon="mdi:pencil"></span></a>
-                        {% endif %}
                         <strong>{{ ofi_documento.descripcion }}</strong>
+                        {% if current_user == ofi_documento.usuario and ofi_documento.estado != "BORRADOR" %}
+                            <a class="btn btn-warning text-dark btn-sm" href="{{url_for('ofi_documentos.rename', ofi_documento_id=ofi_documento.id)}}" title="Modificar"><span class="iconify" data-icon="mdi:pencil"></span></a>
+                        {% endif %}
                     </div>
                 </div>
                 {{ detail.label_value('Folio', ofi_documento.folio) }}

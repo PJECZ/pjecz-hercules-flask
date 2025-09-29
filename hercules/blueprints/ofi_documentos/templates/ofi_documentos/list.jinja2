@@ -121,6 +121,13 @@
                 }
             },
             {
+                targets: 1, // creado
+                data: null,
+                render: function(data, type, row, meta) {
+                    return moment.utc(data.tiempo).local().format('YYYY-MM-DD HH:mm')
+                }
+            },
+            {
                 targets: 4, // propietario
                 data: null,
                 render: function(data, type, row, meta) {

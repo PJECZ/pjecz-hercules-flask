@@ -18,6 +18,7 @@ from hercules.blueprints.ofi_documentos.models import OfiDocumento
 from hercules.blueprints.ofi_documentos.forms import (
     OfiDocumentoNewForm,
     OfiDocumentoEditForm,
+    OfiDocumentoRenameForm,
     OfiDocumentoSignForm,
 )
 from hercules.blueprints.ofi_documentos_destinatarios.models import OfiDocumentoDestinatario
@@ -169,7 +170,7 @@ def datatable_json():
                 "folio": resultado.folio,
                 "vencimiento": vencimiento,
                 "descripcion": resultado.descripcion,
-                "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
+                "creado": resultado.creado.strftime("%Y-%m-%dT%H:%M:%S"),
                 "estado": resultado.estado,
                 "fila_en_negritas": fila_en_negritas,
             }
@@ -813,7 +814,7 @@ def rename(ofi_documento_id):
         flash("No tienes permiso para editar este oficio, pertenece a otra autoridad", "warning")
         return redirect(url_for("ofi_documentos.list_active"))
     # Obtener el formulario
-    form = OfiDocumentoEditForm()
+    form = OfiDocumentoRenameForm()
     if form.validate_on_submit():
         ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
         ofi_documento.save()
