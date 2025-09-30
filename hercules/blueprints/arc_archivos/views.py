@@ -308,7 +308,7 @@ def list_all(historial):
         {"id": "DACN", "nombre": "ACUÑA"},
         {"id": "DMNC", "nombre": "MONCLOVA"},
         {"id": "DPRR", "nombre": "PARRAS"},
-        {"id": "DRGR", "nombre": "REGION CARBONIFERA"},
+        {"id": "DRGR", "nombre": "PIEDRAS NEGRAS"},
         {"id": "DSBN", "nombre": "SABINAS"},
         {"id": "DSLT", "nombre": "SALTILLO"},
         {"id": "DSPD", "nombre": "SAN PEDRO"},
