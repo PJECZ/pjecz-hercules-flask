@@ -121,7 +121,7 @@ def datatable_json():
             {
                 "remesa": {
                     "id": resultado.id,
-                    "url": url_for("arc_remesas.detail", remesa_id=resultado.id),
+                    "url": url_for("arc_remesas.detail", remesa_id=resultado.id) if current_user.can_view(MODULO) else "",
                 },
                 "juzgado": {
                     "clave": resultado.autoridad.clave,

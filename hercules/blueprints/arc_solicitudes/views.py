@@ -35,7 +35,7 @@ from hercules.blueprints.arc_archivos.views import (
     ROL_RECEPCIONISTA,
 )
 
-MODULO = "ARC ARCHIVOS"
+MODULO = "ARC SOLICITUDES"
 
 arc_solicitudes = Blueprint("arc_solicitudes", __name__, template_folder="templates")
 
@@ -107,7 +107,9 @@ def datatable_json():
             {
                 "solicitud": {
                     "id": resultado.id,
-                    "url": url_for("arc_solicitudes.detail", solicitud_id=resultado.id),
+                    "url": (
+                        url_for("arc_solicitudes.detail", solicitud_id=resultado.id) if current_user.can_view(MODULO) else ""
+                    ),
                 },
                 "juzgado": {
                     "clave": resultado.autoridad.clave,
