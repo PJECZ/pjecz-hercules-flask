@@ -77,33 +77,37 @@
         </table>
     {% endcall %}
     {# Historial de Solicitudes #}
-    {% call detail.card('Historial de Solicitudes') %}
-    <!-- Datatable -->
-        <table id="arc_solicitudes_datatable" class="table display nowrap" style="width:100%">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Tiempo</th>
-                    <th>Juzgado</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-        </table>
-    {% endcall %}
+    {% if current_user.can_view('ARC SOLICITUDES')%}
+        {% call detail.card('Historial de Solicitudes') %}
+        <!-- Datatable -->
+            <table id="arc_solicitudes_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tiempo</th>
+                        <th>Juzgado</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+            </table>
+        {% endcall %}
+    {% endif %}
     {# Historial de Remesas #}
-    {% call detail.card('Historial de Remesas') %}
-    <!-- Datatable -->
-        <table id="arc_remesas_datatable" class="table display nowrap" style="width:100%">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Tiempo</th>
-                    <th>Juzgado</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-        </table>
-    {% endcall %}
+    {% if current_user.can_view('ARC REMESAS')%}
+        {% call detail.card('Historial de Remesas') %}
+        <!-- Datatable -->
+            <table id="arc_remesas_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tiempo</th>
+                        <th>Juzgado</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+            </table>
+        {% endcall %}
+    {% endif %}
 {% endblock %}
 
 {% block custom_javascript %}
@@ -183,26 +187,8 @@
         // Precarga de los valores de los inputs mantenidos después de la carga de la página.
         filtros_bitacoras.precargar();
     </script>
-    <script>
-        $(document).ready(function(){
-            $('#usuarioSelect').addClass('js-data-example-ajax form-control');
-            $('#usuarioSelect').select2({
-                // --- Carga de juzgados por Ajax --- //
-                ajax: {
-                    url: '/usuarios/list_usuarios_json/',
-                    headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
-                    dataType: 'json',
-                    delay: 250,
-                    type: "POST",
-                    data: function (params) {
-                        return { 'searchString': params.term.toUpperCase() };
-                    }
-                },
-                minimumInputLength: 3
-            });
-        });
-    </script>
     <!-- DataTable para Historial de Solicitudes -->
+    {% if current_user.can_view('ARC SOLICITUDES')%}
     <script>
         const dataTable_funcs_solicitudes = new ConfigDataTable( "{{ csrf_token() }}" );
         let configDataTable_solicitudes = dataTable_funcs_solicitudes.config();
@@ -219,6 +205,9 @@
                 targets: 0, // solicitud
                 type: "date",
                 render: function (data, type, row) {
+                    if( data.url == "" ) {
+                        return data.id;
+                    }
                     return '<a href="' + data.url + '">' + data.id + '</a>';
                 }
             },{
@@ -257,7 +246,9 @@
         const datatable_solicitudes = new FiltrosDataTable('#arc_solicitudes_datatable', configDataTable_solicitudes);
         datatable_solicitudes.precargar();
     </script>
+    {% endif %}
     <!-- DataTable para Historial de Remesas -->
+    {% if current_user.can_view('ARC REMESAS')%}
     <script>
         const dataTable_funcs_remesas = new ConfigDataTable( "{{ csrf_token() }}" );
         let configDataTable_remesas = dataTable_funcs_remesas.config();
@@ -274,6 +265,9 @@
                 targets: 0, // remesa
                 type: "date",
                 render: function (data, type, row) {
+                    if( data.url == "" ) {
+                        return data.id;
+                    }
                     return '<a href="' + data.url + '">' + data.id + '</a>';
                 }
             },{
@@ -313,4 +307,5 @@
         const datatable_remesas = new FiltrosDataTable('#arc_remesas_datatable', configDataTable_remesas);
         datatable_remesas.precargar();
     </script>
+    {% endif %}
 {% endblock %}
