@@ -345,7 +345,7 @@ def new():
     categoria_no_definida = SoporteCategoria.query.get_or_404(1)  # La categoria con id 1 es NO DEFINIDA
     form = SoporteTicketNewForm()
     if form.validate_on_submit():
-        descripcion = safe_text(form.descripcion.data)
+        descripcion = safe_text(form.descripcion.data, save_enie=True)
         # validar Clasificación y Departamento
         clasificacion = safe_string(request.form["clasificacion"])
         departamento = safe_string(request.form["departamento"])
@@ -407,7 +407,7 @@ def edit(soporte_ticket_id):
         return redirect(detalle_url)
     form = SoporteTicketEditForm()
     if form.validate_on_submit():
-        ticket.descripcion = safe_text(form.descripcion.data)
+        ticket.descripcion = safe_text(form.descripcion.data, save_enie=True)
         ticket.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -584,7 +584,7 @@ def close(soporte_ticket_id):
     if form.validate_on_submit():
         ticket.estado = "CERRADO"
         ticket.funcionario = funcionario
-        ticket.soluciones = safe_text(form.soluciones.data, to_uppercase=False)
+        ticket.soluciones = safe_text(form.soluciones.data, save_enie=True, to_uppercase=False)
         ticket.resolucion = datetime.now()
         ticket.save()
         bitacora = Bitacora(
@@ -623,7 +623,7 @@ def done(soporte_ticket_id):
     form = SoporteTicketDoneForm()
     if form.validate_on_submit():
         ticket.estado = "TERMINADO"
-        ticket.soluciones = safe_text(form.soluciones.data, to_uppercase=False)
+        ticket.soluciones = safe_text(form.soluciones.data, save_enie=True, to_uppercase=False)
         ticket.resolucion = datetime.now()
         ticket.save()
         bitacora = Bitacora(
