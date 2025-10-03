@@ -302,19 +302,6 @@ def list_all(historial):
     if ROL_JEFE_REMESA_ADMINISTRADOR not in current_user_roles or not current_user.can_admin(MODULO):
         redirect(url_for("arc_archivos.list_active"))
 
-    # Extraemos los distritos
-    sedes = [
-        {"id": "ND", "nombre": "NO DEFINIDO"},
-        {"id": "DACN", "nombre": "ACUÑA"},
-        {"id": "DMNC", "nombre": "MONCLOVA"},
-        {"id": "DPRR", "nombre": "PARRAS"},
-        {"id": "DRGR", "nombre": "RIO GRANDE"},
-        {"id": "DSBN", "nombre": "REGION CARBONIFERA"},
-        {"id": "DSLT", "nombre": "SALTILLO"},
-        {"id": "DSPD", "nombre": "SAN PEDRO"},
-        {"id": "DTRC", "nombre": "TORREÓN"},
-    ]
-
     if historial == 1:
         return render_template(
             "arc_archivos/list_jefe_remesa.jinja2",
@@ -327,7 +314,7 @@ def list_all(historial):
             estados_remesas=ArcRemesa.ESTADOS,
             mostrar_btn_local_global="GLOBAL",
             mostrar_btn_historial="IR_A_ACTIVOS",
-            sedes=sedes,
+            sedes=Distrito.query.filter_by(es_distrito=True, estatus="A"),
         )
 
     return render_template(
@@ -341,7 +328,7 @@ def list_all(historial):
         rol_archivista=ROL_ARCHIVISTA,
         mostrar_btn_local_global="GLOBAL",
         mostrar_btn_historial="IR_AL_HISTORIAL",
-        sedes=sedes,
+        sedes=Distrito.query.filter_by(es_distrito=True, estatus="A"),
     )
 
 

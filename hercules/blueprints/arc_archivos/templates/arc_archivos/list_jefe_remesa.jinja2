@@ -75,7 +75,7 @@
                             <select class="form-select" id="sedeSelect" name="sedeSelect" aria-label="sede" onchange="seleccionar_sede(); return false;" style="flex: inherit;">
                                 <option selected value=""></option>
                                 {% for sede in sedes %}
-                                    <option value="{{sede.id}}">{{sede.nombre}}</option>
+                                    <option value="{{sede.clave}}">{{sede.nombre_corto}}</option>
                                 {% endfor %}
                             </select>
                             <label for="sedeSelect">Distritos (Sedes)</label>
