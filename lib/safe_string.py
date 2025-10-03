@@ -159,11 +159,14 @@ def safe_telefono(input_str):
     return input_str
 
 
-def safe_text(input_str, max_len=4096, to_uppercase=True):
+def safe_text(input_str, max_len=4096, save_enie=False, to_uppercase=True):
     """Safe string"""
     if not isinstance(input_str, str):
         return ""
-    new_string = re.sub(r"[^a-zA-Z0-9@\n()\?=\[\]:/_.-]+", " ", unidecode(input_str))
+    if save_enie is False:
+        new_string = re.sub(r"[^a-zA-Z0-9@\n()\?=\[\]:/_.-]+", " ", unidecode(input_str))
+    else:
+        new_string = re.sub(r"[^a-zñA-ZÑ0-9@\n()\?=\[\]:/_.-]+", " ", input_str)
     final = new_string.strip()
     if to_uppercase:
         final = final.upper()
