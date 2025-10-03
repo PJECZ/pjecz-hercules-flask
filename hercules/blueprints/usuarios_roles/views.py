@@ -2,13 +2,13 @@
 Usuarios-Roles, vistas
 """
 
-import json
-
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import or_
 
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.safe_string import safe_email, safe_message, safe_string
+
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
@@ -272,3 +272,31 @@ def toggle_estatus_json(usuario_rol_id):
         "estatus": usuario_rol.estatus,
         "id": usuario_rol.id,
     }
+
+
+@usuarios_roles.route("/usuarios_roles/usuarios_con_rol_json", methods=["GET", "POST"])
+def usuarios_con_rol_json():
+    """Select JSON para Usuarios-Roles"""
+    # Consultar
+    consulta = UsuarioRol.query.filter_by(estatus="A")
+    if "nombre_usuario" in request.form:
+        texto = safe_string(request.form["nombre_usuario"], save_enie=True)
+        if texto != "":
+            consulta = consulta.join(Usuario)
+            palabras = texto.split()
+            for palabra in palabras:
+                consulta = consulta.filter(
+                    or_(
+                        Usuario.nombres.contains(palabra),
+                        Usuario.apellido_paterno.contains(palabra),
+                        Usuario.apellido_materno.contains(palabra),
+                    )
+                )
+    if "rol_nombre" in request.form:
+        rol_nombre = safe_string(request.form["rol_nombre"])
+        consulta = consulta.join(Rol)
+        consulta = consulta.filter(Rol.nombre == rol_nombre)
+    resultados = []
+    for usuario_rol in consulta.order_by(Usuario.nombres).limit(10).all():
+        resultados.append({"id": usuario_rol.usuario.id, "text": usuario_rol.usuario.nombre})
+    return {"results": resultados, "pagination": {"more": False}}
