@@ -527,6 +527,7 @@ def new(ofi_plantilla_id):
         return redirect(url_for("ofi_plantillas.list_active"))
     # Si viene autoridad_clave en el URL, consultarla
     autoridad = None
+    autoridad_clave = None
     if "autoridad_clave" in request.args:
         autoridad_clave = safe_clave(request.args["autoridad_clave"])
         if autoridad_clave:
@@ -707,7 +708,7 @@ def new(ofi_plantilla_id):
         "ofi_documentos/new_ckeditor5.jinja2",
         form=form,
         ofi_plantilla_id=ofi_plantilla_id,
-        autoridad_clave=autoridad_clave,
+        autoridad_clave=autoridad_clave if autoridad_clave else "",
     )
 
 
