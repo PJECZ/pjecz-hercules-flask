@@ -7,6 +7,9 @@
 
 {% block topbar_actions %}
     {{ topbar.page('Autorizar Requisición ' + req_requisicion.glosa | string) }}
+    {% call topbar.page_buttons('Requisición: ' + req_requisicion.folio) %}
+        {{ topbar.button_previous('Requisiciones', url_for('req_requisiciones.list_active')) }}
+    {% endcall %}
 {% endblock %}
 
 {% block content %}
