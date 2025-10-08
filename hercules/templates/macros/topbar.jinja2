@@ -76,6 +76,14 @@
     {{ button(label, url, 'mdi:view-dashboard') }}
 {%- endmacro -%}
 
+{%- macro button_authorize(label, url) -%}
+    {{ button(label, url, 'mdi:check-outline') }}
+{%- endmacro -%}
+
+{%- macro button_review(label, url) -%}
+    {{ button(label, url, 'pajamas:review-list') }}
+{%- endmacro -%}
+
 {%- macro button_manual(label, url) -%}
                 <a class="btn btn-sm btn-outline-info" href="{{ url }}" target="_blank"><span class="iconify" data-icon="mdi:book-open-blank-variant"></span> {{ label }}</a>
 {%- endmacro -%}
