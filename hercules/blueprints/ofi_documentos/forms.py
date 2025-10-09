@@ -7,7 +7,7 @@ from wtforms import DateField, HiddenField, StringField, SubmitField, TextAreaFi
 from wtforms.validators import DataRequired, Length, Optional, Regexp
 
 
-FOLIO_REGEXP = r"^(\w.[-\/])*\d+\/\d{4}$"
+FOLIO_REGEXP = r"[\w-]+\d+\/\d{4}"  # CLAVE-NUM/AÑO
 
 
 class OfiDocumentoNewForm(FlaskForm):
