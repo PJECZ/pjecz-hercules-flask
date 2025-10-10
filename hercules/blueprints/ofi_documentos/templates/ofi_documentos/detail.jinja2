@@ -218,7 +218,7 @@
                     {% endif %}
                 </div>
                 <div class="col-md-6">
-                    {% if mostrar_boton_responder %}
+                    {% if mostrar_boton_responder and platillas_opciones %}
                         <form class="row g-2" action="{{url_for('ofi_documentos.response', ofi_documento_id=ofi_documento.id)}}" method="GET">
                             <div class="col-auto">
                                 <select class="form-select mt-2" aria-label="Default select example" name="plantilla_id">
