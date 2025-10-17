@@ -67,7 +67,7 @@ def datatable_json():
                     "url": url_for("exh_exhortos_archivos.download_pdf", exh_exhorto_archivo_id=resultado.id),
                 },
                 "tipo_documento_descripcion": resultado.tipo_documento_descripcion,
-                "tamano": f"{round((resultado.tamano / 1024), 2)} MB",
+                "tamano": f"{round((resultado.tamano / 1024), 2)} MB" if resultado.tamano else "0 MB",
                 "estado": resultado.estado,
                 "exhorto_origen_id": resultado.exh_exhorto.exhorto_origen_id,
             }
