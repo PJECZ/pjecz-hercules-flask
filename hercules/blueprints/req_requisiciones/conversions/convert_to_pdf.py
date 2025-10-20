@@ -86,6 +86,9 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
     usuario_solicito = None
     usuario_autorizo = None
     usuario_reviso = None
+    fecha_requerida = ""
+    if(req_requisicion.fecha_requerida!=None):
+        fecha_requerida = req_requisicion.fecha_requerida
 
     usuario_solicito_nombre = ""
     autoridad_solicito_descripcion = ""
@@ -119,6 +122,26 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
     # Iniciar el contenido del archivo PDF
     contenidos = []
 
+    contenidos.append("""
+        <html>
+            <head>
+                <style>
+                    @page {
+                        size: letter portrait;
+                        margin: .3in ;
+                        @frame footer_frame {
+                                -pdf-frame-content: footer_content;
+                                left: 50pt;
+                                width: 512pt;
+                                top: 700pt;
+                                height: 50pt;
+                                border:0px solid #fff;
+                                background-color: #444;
+                            }
+                        }
+                </style>
+            </head>
+    """)
     # Agregar tag html y head
     contenidos.append("<html>")
     contenidos.append("<head>")
@@ -129,83 +152,90 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
 
     # Agregar tag style con el CSS para definir la hoja tamaño carta, la cabecera, el contenido y el pie de página
     contenidos.append(
-        f"""
-            <table style='width:100%; margin:0 auto;' repeat='1'>
-                <tr>
-                    <td><img src='https://storage.googleapis.com/pjecz-informatica/static/images/pjecz-horizontal.png' width='280'></td>
-                    <td align='center' style='width:70%'>
-                        <b>PODER JUDICIAL DEL ESTADO DE COAHUILA DE ZARAGOZA</b>
-                        <br>
-                        Dirección de Recursos Materiales<br>
-                        Blvd. Isidro López Zertuche 2791 Col. Los Maestros<br>
-                        C.P. 25236 Saltillo, Coahuila, Tel. (844) 438 03 50 Ext. 6991<br>
-                    </td>
-                    <td style='text-align:right'>
+        f'''
+        <body style='width:90%'>
+            <div id='footer_content' style='text-align:center'>
+                <b>PODER JUDICIAL DEL ESTADO DE COAHUILA DE ZARAGOZA</b><br>
+                Dirección de Recursos Materiales<br>
+                Blvd. Isidro López Zertuche 2791 Col. Los Maestros<br>
+                C.P. 25236 Saltillo, Coahuila, Tel. (844) 438 03 50 Ext. 6991<br>
+            </div>
 
-                        <table border='1' cellpadding='2' cellspacing='0' style='text-align:center; width:50%'>
-                            <tr>
-                                <td style='background-color:#ccc'>FECHA</td>
-                            </tr>
-                            <tr>
-                                <td>{req_requisicion.creado}</td>
-                            </tr>
-                            <tr>
-                                <td style='background-color:#ccc'>FOLIO</td>
-                            </tr>
-                            <tr>
-                                <td>{ req_requisicion.folio }</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-            </table>
-    
-            <h1 style='text-align:center'>Requisición</h1>
-            <table border=0 width='100%' cellspacion=0 cellpadding=2 style='margin:0 auto'>
-                <tr>
-                    <td colspan='6' style='background-color:#efeff1; color:#333'>ÁREA SOLICITANTE</td>
-                </tr>
-                <tr>
-                    <td colspan='6'>{req_requisicion.area_final}</td>
-                </tr>
-                <tr>
-                    <td colspan='6'></td>
-                    <td colspan='6'>{req_requisicion.fecha_requerida}</td>
-                </tr>
-                <tr>
-                    <td colspan='12' style='background-color:#efeff1; color:#333'>JUSTIFICACIÓN</td>
-                </tr>
-                <tr>
-                    <td colspan='12'>{req_requisicion.justificacion}</td>
-                </tr>
-                <tr>
-                    <td colspan=3 style='background-color:#ccc; color:#333'>CLAVE</td>
-                    <td colspan=5 style='background-color:#ccc; color:#333'>DESCRIPCIÓN</td>
-                    <td style='background-color:#ccc; color:#333'>U. MEDIDA</td>
-                    <td style='background-color:#ccc; color:#333'>CANTIDAD</td>
-                    <td style='background-color:#ccc; color:#333'>CLAVE</td>
-                    <td style='background-color:#ccc; color:#333'>DETALLE</td>
-                </tr>
-    """
+                <table style='width:100%; margin:0 auto;' repeat='1'>
+                    <tr>
+                        <td><img src='https://storage.googleapis.com/pjecz-informatica/static/images/pjecz-horizontal.png' width='280'></td>
+                        <td align='center' style='width:40%'><br>
+                            <h1 style='text-align:center'>REQUISICIÓN</h1>
+                        </td>
+                        <td style='text-align:right; width:20%'>
+
+                            <table border='1' cellpadding='2' cellspacing='0' style='text-align:center; width:50%'>
+                                <tr>
+                                    <td style='background-color:#ccc'>FECHA</td>
+                                </tr>
+                                <tr>
+                                    <td>{req_requisicion.creado}</td>
+                                </tr>
+                                <tr>
+                                    <td style='background-color:#ccc'>FOLIO</td>
+                                </tr>
+                                <tr>
+                                    <td>{ req_requisicion.folio }</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                <br>
+        
+                <table style='border:1px solid #666' cellspacing=0 cellpadding=0>
+                    <tr>
+                        <td>
+
+
+                            <table border=0 width='100%' cellspacion=0 cellpadding=2 style='margin:0 auto;'>
+                                <tr>
+                                    <td colspan='9' style='text-align: center; background-color:#ccc; color:#333; font-size:8px'><b>ÁREA SOLICITANTE</b></td>
+                                    <td colspan='3' style='text-align: center; background-color:#ccc; color:#333; font-size:8px'><b>Fecha requerida</b></td>
+                                </tr>
+                                <tr>
+                                    <td colspan='9' style='text-align:center'>{autoridad_solicito_descripcion}</td>
+                                    <td colspan='3' style='text-align:center'>{fecha_requerida}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan='12' style='background-color:#ccc; color:#333; font-size:8px'><b>JUSTIFICACION</b></td>
+                                </tr>
+                                <tr>
+                                    <td colspan='12' style=''>{req_requisicion.justificacion}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan=3 style='text-align: center;background-color:#ccc; color:#333; font-size:8px'><b>CLAVE</b></td>
+                                    <td colspan=5 style='text-align: center;background-color:#ccc; color:#333; font-size:8px'><b>DESCRIPCION</b></td>
+                                    <td style='text-align: center;background-color:#ccc; color:#333; font-size:8px'><b>U. MEDIDA</b></td>
+                                    <td style='text-align: center;background-color:#ccc; color:#333; font-size:8px'><b>CANTIDAD</b></td>
+                                    <td style='text-align: center;background-color:#ccc; color:#333; font-size:8px'><b>CLAVE</b></td>
+                                    <td style='text-align: center;background-color:#ccc; color:#333; font-size:8px'><b>DETALLE</b></td>
+                                </tr>
+    '''
     )
 
-    if articulos:
+    if articulos: 
         for campos in articulos:
-            contenidos.append(
-                f"""
+            contenidos.append(            
+                f'''
                 <tr>
-                    <td colspan=3>{campos.ReqCatalogo.codigo}</td>
-                    <td colspan=5>{campos.ReqCatalogo.descripcion}</td>
-                    <td>{campos.ReqCatalogo.unidad_medida}</td>
-                    <td>{campos.ReqRequisicionRegistro.cantidad}</td>
-                    <td>{campos.ReqRequisicionRegistro.clave}</td>
-                    <td>{campos.ReqRequisicionRegistro.detalle}</td>
+                    <td colspan=3 style='text-align:center'>{campos.ReqCatalogo.codigo}</td>
+                    <td colspan=5 style='text-align:center'>{campos.ReqCatalogo.descripcion}</td>
+                    <td style='text-align:center'>{campos.ReqCatalogo.unidad_medida}</td>
+                    <td style='text-align:center'>{campos.ReqRequisicionRegistro.cantidad}</td>
+                    <td style='text-align:center'>{campos.ReqRequisicionRegistro.clave}</td>
+                    <td style='text-align:center'>{campos.ReqRequisicionRegistro.detalle}</td>
                 </tr>
-                """
-            )
+                '''
+                )
     else:
         contenidos.append(
-            """
+            '''
                 <tr>
                     <td colspan=3></td>
                     <td colspan=5></td>
@@ -214,11 +244,15 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
                     <td></td>
                     <td></td>
                 </tr>
-            """
+            '''
         )
-
+    
     contenidos.append(
-        f"""
+        f'''
+                        </table>
+
+                    </td>
+                </tr>
             </table>
         </div>
         
@@ -247,33 +281,40 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
                         AUTORIZA
                         <br><br><br><br>
                         ________________________________<br>
-                        {usuario_autorizo_nombre}
+                        {usuario_autorizo_nombre}<br>
                         {autoridad_autorizo_descripcion}
                     </td>
                     <td>
                         REVISÓ
                         <br><br><br><br>
                         ________________________________<br>
-                        {usuario_reviso_nombre}
+                        {usuario_reviso_nombre}<br>
                         {autoridad_reviso_descripcion}
                     </td>
                 </tr>
             </table>
-        </div>
-        <br>
-        <br>
-    """
+        
+    '''
     )
+    contenidos.append('</body>')
+    contenidos.append('</html>')
 
-    # Agregar el cierre del tag body y html
-    contenidos.append("</body>")
-    contenidos.append("</html>")
 
     # Convertir el contenido HTML a archivo PDF
     pdf_buffer = BytesIO()
     _ = pisa.CreatePDF("\n".join(contenidos), dest=pdf_buffer, encoding="UTF-8")
     pdf_buffer.seek(0)
     archivo_pdf_bytes = pdf_buffer.read()
+    
+    # rutina para guardar archivo localmente y realizar pruebas de diseño 
+    #resultFile = open("./hercules/blueprints/req_requisiciones/conversions/documentos/prueba.pdf", "w+b")
+    #pisa_status = pisa.CreatePDF("\n".join(contenidos), dest=resultFile)
+    #resultFile.close()
+    #result = pisa_status.err
+    #if not result:
+    #    print("Successfully created PDF")
+    #else:
+    #    print("Error: unable to create the PDF")  
 
     #
     # Subir a Google Cloud Storage el archivo PDF
@@ -300,7 +341,7 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
         raise error
 
     # Actualizar el documento con la URL del archivo PDF
-    req_requisicion.archivo_pdf_url = archivo_pdf_url
+    #req_requisicion.archivo_pdf_url = archivo_pdf_url
     req_requisicion.save()
 
     # Elaborar mensaje_termino
