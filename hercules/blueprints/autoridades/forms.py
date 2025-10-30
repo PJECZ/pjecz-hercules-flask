@@ -32,12 +32,13 @@ class AutoridadNewForm(FlaskForm):
     es_notaria = BooleanField("Es Notaría", validators=[Optional()])
     es_organo_especializado = BooleanField("Es Órgano Especializado", validators=[Optional()])
     es_revisor_escrituras = BooleanField("Es revisor de escrituras", validators=[Optional()])
+    audiencia_categoria = SelectField(
+        "Categoría de Audiencias", choices=Autoridad.AUDIENCIAS_CATEGORIAS.items(), validators=[DataRequired()]
+    )
     organo_jurisdiccional = SelectField(
         "Órgano Jurisdiccional", choices=Autoridad.ORGANOS_JURISDICCIONALES.items(), validators=[DataRequired()]
     )
-    sede = SelectField(
-        "Sede (clave distrito geográfico para A.J.)", choices=Autoridad.SEDES.items(), validators=[DataRequired()]
-    )
+    sede = SelectField("Sede (distrito geográfico para AJG)", choices=Autoridad.SEDES.items(), validators=[DataRequired()])
     guardar = SubmitField("Guardar")
 
     def __init__(self, *args, **kwargs):
@@ -75,12 +76,13 @@ class AutoridadEditForm(FlaskForm):
     es_notaria = BooleanField("Es Notaría", validators=[Optional()])
     es_organo_especializado = BooleanField("Es Órgano Especializado", validators=[Optional()])
     es_revisor_escrituras = BooleanField("Es revisor de escrituras", validators=[Optional()])
+    audiencia_categoria = SelectField(
+        "Categoría de Audiencias", choices=Autoridad.AUDIENCIAS_CATEGORIAS.items(), validators=[DataRequired()]
+    )
     organo_jurisdiccional = SelectField(
         "Órgano Jurisdiccional", choices=Autoridad.ORGANOS_JURISDICCIONALES.items(), validators=[DataRequired()]
     )
-    sede = SelectField(
-        "Sede (clave distrito geográfico para A.J.)", choices=Autoridad.SEDES.items(), validators=[DataRequired()]
-    )
+    sede = SelectField("Sede (distrito geográfico para AJG)", choices=Autoridad.SEDES.items(), validators=[DataRequired()])
     directorio_edictos = StringField("Directorio para edictos")  # Read only
     directorio_glosas = StringField("Directorio para glosas")  # Read only
     directorio_listas_de_acuerdos = StringField("Directorio para listas de acuerdos")  # Read only

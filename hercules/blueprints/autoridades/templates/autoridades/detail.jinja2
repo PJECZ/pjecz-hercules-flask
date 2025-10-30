@@ -23,6 +23,8 @@
         <div class="row">
             <div class="col-md-6">
                 {# detail.label_value_big('Clave', autoridad.clave) #}
+                {{ detail.label_value('Descripción', autoridad.descripcion) }}
+                {{ detail.label_value('Descripción corta', autoridad.descripcion_corta) }}
                 {% if current_user.can_view("DISTRITOS") %}
                     {{ detail.label_value('Distrito', autoridad.distrito.nombre, url_for('distritos.detail', distrito_id=autoridad.distrito_id)) }}
                 {% else %}
@@ -33,8 +35,14 @@
                 {% else %}
                     {{ detail.label_value('Municipio', autoridad.municipio.nombre) }}
                 {% endif %}
-                {{ detail.label_value('Descripción', autoridad.descripcion) }}
-                {{ detail.label_value('Descripción corta', autoridad.descripcion_corta) }}
+                {% if current_user.can_view("MATERIAS") %}
+                    {{ detail.label_value('Materia', autoridad.materia.nombre, url_for('materias.detail', materia_id=autoridad.materia_id)) }}
+                {% else %}
+                    {{ detail.label_value('Materia', autoridad.materia.nombre) }}
+                {% endif %}
+                {{ detail.label_value('Ó. Jurisdiccional', autoridad.organo_jurisdiccional) }}
+                {{ detail.label_value('C. de Audiencias', autoridad.audiencia_categoria) }}
+                {{ detail.label_value('Sede (AJG)', autoridad.sede) }}
                 {{ detail.label_value('Datawarehouse ID', autoridad.datawarehouse_id) }}
                 {{ detail.label_value('Datawarehouse ID (SAJI 2025)', autoridad.datawarehouse_id_saji) }}
                 {% if autoridad.tablero_icono %}
