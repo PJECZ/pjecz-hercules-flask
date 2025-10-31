@@ -166,7 +166,14 @@ def safe_text(input_str, max_len=4096, save_enie=False, to_uppercase=True):
     if save_enie is False:
         new_string = re.sub(r"[^a-zA-Z0-9@\n()\?=\[\]:/_.-]+", " ", unidecode(input_str))
     else:
-        new_string = re.sub(r"[^a-zñA-ZÑ0-9@\n()\?=\[\]:/_.-]+", " ", input_str)
+        new_string = ""
+        for char in input_str:
+            if char == "ñ":
+                new_string += "ñ"
+            elif char == "Ñ":
+                new_string += "Ñ"
+            else:
+                new_string += unidecode(char)
     final = new_string.strip()
     if to_uppercase:
         final = final.upper()
