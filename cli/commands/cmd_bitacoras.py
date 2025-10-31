@@ -19,13 +19,15 @@ def cli():
 @click.argument("modulo_nombre", type=str)
 @click.argument("to_email", type=str)
 @click.option("--horas", default=24, type=int, help="Número de horas para el reporte")
-def enviar(modulo_nombre, to_email, horas):
+@click.option("--probar", is_flag=True, default=False, help="Modo de prueba (no envía el correo)")
+@click.option("--usuario_email", default="", type=str, help="Correo electrónico del usuario para filtrar")
+def enviar(modulo_nombre, to_email, horas, probar, usuario_email):
     """Enviar mensaje con el reporte diario del módulo dado"""
     click.echo(f"Inicia el envío del mensaje con el reporte diario del módulo {modulo_nombre} a {to_email}")
 
     # Enviar el mensaje
     try:
-        mensaje_termino = enviar_reporte_diario(modulo_nombre, to_email, horas)
+        mensaje_termino = enviar_reporte_diario(modulo_nombre, to_email, horas, probar, usuario_email)
     except MyAnyError as error:
         click.echo(error)
         sys.exit(1)
