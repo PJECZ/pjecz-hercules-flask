@@ -86,7 +86,12 @@
                 targets: 1, // usuario
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.email + '</a>';
+                    if (data.email.length > 24) {
+                        texto = '<span title="' + data.email + '">' + data.email.substr(0, 24) + '…' + '</span>';
+                    } else {
+                        texto = data.email;
+                    }
+                    return '<a href="' + data.url + '">' + texto + '</a>';
                 }
             },
             {
@@ -100,7 +105,12 @@
                 targets: 3, // vinculo
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '" target="_blank">' + data.descripcion + ' <span class="iconify" data-icon="mdi:open-in-new"></span></a>';
+                    if (data.descripcion.length > 80) {
+                        texto = '<span title="' + data.descripcion + '">' + data.descripcion.substr(0, 80) + '…' + '</span>';
+                    } else {
+                        texto = data.descripcion;
+                    }
+                    return '<a href="' + data.url + '" target="_blank">' + texto + ' <span class="iconify" data-icon="mdi:open-in-new"></span></a>';
                 }
             }
         ];
