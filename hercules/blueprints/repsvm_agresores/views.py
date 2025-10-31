@@ -214,7 +214,7 @@ def edit(repsvm_agresor_id):
         repsvm_agresor.nombre = safe_string(form.nombre.data, save_enie=True)
         repsvm_agresor.numero_causa = safe_string(form.numero_causa.data, save_enie=True)
         repsvm_agresor.pena_impuesta = safe_string(form.pena_impuesta.data, save_enie=True)
-        repsvm_agresor.observaciones = safe_text(form.observaciones.data, max_len=1000)
+        repsvm_agresor.observaciones = safe_text(form.observaciones.data, save_enie=True, max_len=1000)
         repsvm_agresor.sentencia_url = safe_url(form.sentencia_url.data)
         repsvm_agresor.tipo_juzgado = safe_string(form.tipo_juzgado.data)
         repsvm_agresor.tipo_sentencia = safe_string(form.tipo_sentencia.data)

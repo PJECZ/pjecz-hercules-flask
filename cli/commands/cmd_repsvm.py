@@ -73,7 +73,7 @@ def alimentar(archivo_csv, probar):
             nombre = safe_string(fila["NOMBRE"], save_enie=True)
             numero_causa = safe_string(fila["NUMERO CAUSA"])
             pena_impuesta = safe_string(fila["PENA IMPUESTA"], save_enie=True)
-            observaciones = safe_text(fila["OBSERVACIONES"])
+            observaciones = safe_text(fila["OBSERVACIONES"], save_enie=True, max_len=1000)
             sentencia_url = safe_url(fila["SENTENCIA URL"])
             tipo_juzgado = safe_string(fila["TIPO JUZGADO"])
             tipo_sentencia = safe_string(fila["TIPO SENTENCIA"])
