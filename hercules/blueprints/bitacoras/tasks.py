@@ -69,20 +69,20 @@ def enviar_reporte_diario(
     if usuario_email != "":
         bitacoras = (
             Bitacora.query.join(Usuario)
-            .filter(Bitacora.creado >= desde_dt)
+            .filter(Bitacora.modificado >= desde_dt)
             .filter(Bitacora.modulo_id == modulo.id)
             .filter(Usuario.email == usuario_email)
             .filter(Bitacora.estatus == "A")
-            .order_by(Bitacora.creado.desc())
+            .order_by(Bitacora.id.desc())
             .all()
         )
     else:
         # Consultar la bitácora filtrando por el módulo y las últimas horas
         bitacoras = (
-            Bitacora.query.filter(Bitacora.creado >= desde_dt)
+            Bitacora.query.filter(Bitacora.modificado >= desde_dt)
             .filter(Bitacora.modulo_id == modulo.id)
             .filter(Bitacora.estatus == "A")
-            .order_by(Bitacora.creado.desc())
+            .order_by(Bitacora.id.desc())
             .all()
         )
 
