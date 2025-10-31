@@ -375,7 +375,7 @@ def new():
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Nuevo ticket {ticket.id}"),
+            descripcion=safe_message(f"Nuevo ticket {ticket.id}: {ticket.descripcion}"),
             url=url_for("soportes_tickets.detail", soporte_ticket_id=ticket.id),
         )
         bitacora.save()
@@ -412,7 +412,7 @@ def edit(soporte_ticket_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Editado el ticket {ticket.id}"),
+            descripcion=safe_message(f"Editado el ticket {ticket.id}: {ticket.descripcion}"),
             url=detalle_url,
         )
         bitacora.save()
@@ -447,7 +447,7 @@ def cancel(soporte_ticket_id):
     bitacora = Bitacora(
         modulo=Modulo.query.filter_by(nombre=MODULO).first(),
         usuario=current_user,
-        descripcion=safe_message(f"Cancelado el ticket {soporte_ticket.id}."),
+        descripcion=safe_message(f"Cancelado el ticket {soporte_ticket.id}: {soporte_ticket.descripcion}"),
         url=detalle_url,
     )
     bitacora.save()
@@ -483,7 +483,7 @@ def take(soporte_ticket_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Tomado el ticket {ticket.id} por {funcionario.nombre}."),
+            descripcion=safe_message(f"Tomado el ticket {ticket.id} de {ticket.usuario.nombre}: {ticket.descripcion}"),
             url=detalle_url,
         )
         bitacora.save()
@@ -519,7 +519,7 @@ def release(soporte_ticket_id):
     bitacora = Bitacora(
         modulo=Modulo.query.filter_by(nombre=MODULO).first(),
         usuario=current_user,
-        descripcion=safe_message(f"Soltado el ticket {ticket.id} por {funcionario.nombre}."),
+        descripcion=safe_message(f"Soltado el ticket {ticket.id} de {ticket.usuario.nombre}: {ticket.descripcion}"),
         url=detalle_url,
     )
     bitacora.save()
@@ -551,7 +551,7 @@ def categorize(soporte_ticket_id):
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
             descripcion=safe_message(
-                f"Categorizado el ticket {ticket.id} a {ticket.soporte_categoria.nombre} por {funcionario.nombre}."
+                f"Categorizado el ticket {ticket.id} de {ticket.usuario.nombre} a {ticket.soporte_categoria.nombre}"
             ),
             url=detalle_url,
         )
@@ -584,13 +584,13 @@ def close(soporte_ticket_id):
     if form.validate_on_submit():
         ticket.estado = "CERRADO"
         ticket.funcionario = funcionario
-        ticket.soluciones = safe_text(form.soluciones.data, save_enie=True, to_uppercase=False)
+        ticket.soluciones = safe_text(form.soluciones.data, save_enie=True)
         ticket.resolucion = datetime.now()
         ticket.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Cerrado el ticket {ticket.id}."),
+            descripcion=safe_message(f"Cerrado el ticket {ticket.id} de {ticket.usuario.nombre}: {ticket.descripcion}"),
             url=detalle_url,
         )
         bitacora.save()
@@ -623,13 +623,13 @@ def done(soporte_ticket_id):
     form = SoporteTicketDoneForm()
     if form.validate_on_submit():
         ticket.estado = "TERMINADO"
-        ticket.soluciones = safe_text(form.soluciones.data, save_enie=True, to_uppercase=False)
+        ticket.soluciones = safe_text(form.soluciones.data, save_enie=True)
         ticket.resolucion = datetime.now()
         ticket.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Terminado el ticket {ticket.id}."),
+            descripcion=safe_message(f"Terminado el ticket {ticket.id} de {ticket.usuario.nombre}: {ticket.soluciones}"),
             url=detalle_url,
         )
         bitacora.save()
@@ -653,7 +653,7 @@ def delete(soporte_ticket_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Eliminado Ticket {ticket.id}"),
+            descripcion=safe_message(f"Eliminado el ticket {ticket.id}"),
             url=url_for("soportes_tickets.detail", soporte_ticket_id=ticket.id),
         )
         bitacora.save()
@@ -671,7 +671,7 @@ def recover(soporte_ticket_id):
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
-            descripcion=safe_message(f"Recuperado Ticket {ticket.id}"),
+            descripcion=safe_message(f"Recuperado el ticket {ticket.id}"),
             url=url_for("soportes_tickets.detail", soporte_ticket_id=ticket.id),
         )
         bitacora.save()
