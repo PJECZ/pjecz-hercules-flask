@@ -54,6 +54,8 @@ def before_request():
 @ofi_documentos.route("/ofi_documentos/datatable_json", methods=["GET", "POST"])
 def datatable_json():
     """DataTable JSON para listado de Ofi Documentos"""
+    # Iniciar variable boleana para saber si se ha hecho el join con usuarios
+    usuario_join_realizado = False
     # Determinar si se puede firmar
     puede_firmar = "OFICIOS FIRMANTE" in current_user.get_roles()
     # Tomar parámetros de Datatables
@@ -86,7 +88,9 @@ def datatable_json():
         try:
             email = safe_email(request.form["propietario"], search_fragment=True)
             if email:
-                consulta = consulta.join(Usuario)
+                if not usuario_join_realizado:
+                    consulta = consulta.join(Usuario)
+                    usuario_join_realizado = True
                 consulta = consulta.filter(Usuario.email.contains(email))
         except ValueError:
             pass
@@ -94,13 +98,17 @@ def datatable_json():
     if "autoridad_id" in request.form:
         autoridad_id = int(request.form["autoridad_id"])
         if autoridad_id:
-            consulta = consulta.join(Usuario)
+            if not usuario_join_realizado:
+                consulta = consulta.join(Usuario)
+                usuario_join_realizado = True
             consulta = consulta.filter(Usuario.autoridad_id == autoridad_id)
     # Filtrar por clave de la autoridad
     elif "autoridad_clave" in request.form:
         autoridad_clave = safe_clave(request.form["autoridad_clave"])
         if autoridad_clave:
-            consulta = consulta.join(Usuario)
+            if not usuario_join_realizado:
+                consulta = consulta.join(Usuario)
+                usuario_join_realizado = True
             consulta = consulta.join(Autoridad, Usuario.autoridad_id == Autoridad.id)
             consulta = consulta.filter(Autoridad.clave.contains(autoridad_clave))
     # Filtrar para Mi Bandeja de Entrada
