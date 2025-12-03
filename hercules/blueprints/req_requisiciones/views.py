@@ -63,7 +63,7 @@ def datatable_json():
     if "folio" in request.form:
         consulta = consulta.filter_by(folio=request.form["folio"])
     if "usuario_id" in request.form:
-        consulta = consulta.filter_by(usuario_id=request.form["usuario_id"])        
+        consulta = consulta.filter_by(usuario_id=request.form["usuario_id"])
     if "autoridad_id" in request.form:
         consulta = consulta.filter_by(autoridad_id=request.form["autoridad_id"])
     if "estado" in request.form:
@@ -73,9 +73,7 @@ def datatable_json():
     else:
         consulta = consulta.filter_by(estatus="A")
     if "folio" in request.form:
-        consulta = consulta.filter(
-            ReqRequisicion.folio.contains(safe_string(request.form["folio"], to_uppercase=True))
-        )
+        consulta = consulta.filter(ReqRequisicion.folio.contains(safe_string(request.form["folio"], to_uppercase=True)))
     if "justificacion" in request.form:
         consulta = consulta.filter(
             ReqRequisicion.justificacion.contains(safe_string(request.form["justificacion"], to_uppercase=True))
@@ -85,8 +83,8 @@ def datatable_json():
         consulta_autoridades = consulta_autoridades.filter(
             Autoridad.clave.contains(safe_string(request.form["autoridad_clave"], to_uppercase=True))
         )
-        consulta = consulta.filter(ReqRequisicion.autoridad_id.in_([row.id for row in consulta_autoridades ]))    
-        
+        consulta = consulta.filter(ReqRequisicion.autoridad_id.in_([row.id for row in consulta_autoridades]))
+
     registros = consulta.order_by(ReqRequisicion.id).offset(start).limit(rows_per_page).all()
 
     total = consulta.count()
@@ -145,7 +143,7 @@ def list_active():
     # Consultar los roles del usuario
     current_user_roles = current_user.get_roles()
     print("*************************************************************")
-    print("Rol actual:" , current_user_roles)
+    print("Rol actual:", current_user_roles)
     # Si es asistente, mostrar TODAS las Requisiciones de su oficina
     if ROL_ASISTENTES in current_user_roles:
         return render_template(
@@ -153,7 +151,7 @@ def list_active():
             filtros=json.dumps({"estatus": "A", "autoridad": current_user.autoridad_id}),
             titulo="Requisiciones de mi oficina",
             estatus="A",
-            estados=ReqRequisicion.ESTADOS
+            estados=ReqRequisicion.ESTADOS,
         )
     # Si es solicitante, mostrar Requisiciones por Solicitar
     if ROL_SOLICITANTES in current_user_roles:
@@ -162,7 +160,7 @@ def list_active():
             filtros=json.dumps({"estatus": "A", "usuario_id": current_user.id}),
             titulo="Requisiciones Solicitadas",
             estatus="A",
-            estados=ReqRequisicion.ESTADOS
+            estados=ReqRequisicion.ESTADOS,
         )
     # Si es autorizante, mostrar Requisiciones por Autorizar
     if ROL_AUTORIZANTES in current_user_roles:
@@ -171,7 +169,7 @@ def list_active():
             filtros=json.dumps({"estatus": "A", "estado": "SOLICITADO"}),
             titulo="Requisiciones Solicitadas (por autorizar)",
             estatus="A",
-            estados=ReqRequisicion.ESTADOS
+            estados=ReqRequisicion.ESTADOS,
         )
     if ROL_REVISANTES in current_user_roles:
         return render_template(
@@ -179,7 +177,7 @@ def list_active():
             filtros=json.dumps({"estatus": "A", "estado": "AUTORIZADO"}),
             titulo="Requisiciones Autorizadas (por revisar)",
             estatus="A",
-            estados=ReqRequisicion.ESTADOS
+            estados=ReqRequisicion.ESTADOS,
         )
     # Mostrar Mis Requisiciones
     return render_template(
@@ -187,7 +185,7 @@ def list_active():
         filtros=json.dumps({"estatus": "A", "usuario_id": current_user.id}),
         titulo="Mis Requisiciones",
         estatus="A",
-        estados=ReqRequisicion.ESTADOS
+        estados=ReqRequisicion.ESTADOS,
     )
 
 
@@ -203,7 +201,7 @@ def list_active_mi_autoridad():
             titulo="Requisiciones de Mi Autoridad",
             estatus="A",
             boton_activo="MI AUTORIDAD",
-            estados=ReqRequisicion.ESTADOS
+            estados=ReqRequisicion.ESTADOS,
         )
     # Consultar los roles del usuario
     current_user_roles = current_user.get_roles()
@@ -214,7 +212,7 @@ def list_active_mi_autoridad():
             filtros=json.dumps({"estatus": "A", "autoridad_id": current_user.autoridad_id}),
             titulo="Requisiciones de mi oficina",
             estatus="A",
-            estados=ReqRequisicion.ESTADOS
+            estados=ReqRequisicion.ESTADOS,
         )
     # Si es solicitante, mostrar Requisiciones por Solicitar
     if ROL_SOLICITANTES in current_user_roles:
@@ -223,7 +221,7 @@ def list_active_mi_autoridad():
             filtros=json.dumps({"estatus": "A", "autoridad_id": current_user.autoridad_id}),
             titulo="Requisiciones Solicitadas",
             estatus="A",
-            estados=ReqRequisicion.ESTADOS
+            estados=ReqRequisicion.ESTADOS,
         )
     # Si es autorizante, mostrar Requisiciones por Autorizar
     if ROL_AUTORIZANTES in current_user_roles:
@@ -232,7 +230,7 @@ def list_active_mi_autoridad():
             filtros=json.dumps({"estatus": "A", "estado": "SOLICITADO"}),
             titulo="Requisiciones Solicitadas (por autorizar)",
             estatus="A",
-            estados=ReqRequisicion.ESTADOS
+            estados=ReqRequisicion.ESTADOS,
         )
     if ROL_REVISANTES in current_user_roles:
         return render_template(
@@ -240,7 +238,7 @@ def list_active_mi_autoridad():
             filtros=json.dumps({"estatus": "A", "estado": "AUTORIZADO"}),
             titulo="Requisiciones Autorizadas (por revisar)",
             estatus="A",
-            estados=ReqRequisicion.ESTADOS
+            estados=ReqRequisicion.ESTADOS,
         )
     # Mostrar Mis Requisiciones
     return render_template(
@@ -248,7 +246,7 @@ def list_active_mi_autoridad():
         filtros=json.dumps({"estatus": "A", "autoridad_id": current_user.autoridad_id}),
         titulo="Requisiciones en mi Autoridad",
         estatus="A",
-        estados=ReqRequisicion.ESTADOS
+        estados=ReqRequisicion.ESTADOS,
     )
 
 

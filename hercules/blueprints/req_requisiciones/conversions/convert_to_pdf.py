@@ -87,7 +87,7 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
     usuario_autorizo = None
     usuario_reviso = None
     fecha_requerida = ""
-    if(req_requisicion.fecha_requerida!=None):
+    if req_requisicion.fecha_requerida != None:
         fecha_requerida = req_requisicion.fecha_requerida
 
     usuario_solicito_nombre = ""
@@ -122,7 +122,8 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
     # Iniciar el contenido del archivo PDF
     contenidos = []
 
-    contenidos.append("""
+    contenidos.append(
+        """
         <html>
             <head>
                 <style>
@@ -141,7 +142,8 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
                         }
                 </style>
             </head>
-    """)
+    """
+    )
     # Agregar tag html y head
     contenidos.append("<html>")
     contenidos.append("<head>")
@@ -152,7 +154,7 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
 
     # Agregar tag style con el CSS para definir la hoja tamaño carta, la cabecera, el contenido y el pie de página
     contenidos.append(
-        f'''
+        f"""
         <body style='width:90%'>
             <div id='footer_content' style='text-align:center'>
                 <b>PODER JUDICIAL DEL ESTADO DE COAHUILA DE ZARAGOZA</b><br>
@@ -216,13 +218,13 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
                                     <td style='text-align: center;background-color:#ccc; color:#333; font-size:8px'><b>CLAVE</b></td>
                                     <td style='text-align: center;background-color:#ccc; color:#333; font-size:8px'><b>DETALLE</b></td>
                                 </tr>
-    '''
+    """
     )
 
-    if articulos: 
+    if articulos:
         for campos in articulos:
-            contenidos.append(            
-                f'''
+            contenidos.append(
+                f"""
                 <tr>
                     <td colspan=3 style='text-align:center'>{campos.ReqCatalogo.codigo}</td>
                     <td colspan=5 style='text-align:center'>{campos.ReqCatalogo.descripcion}</td>
@@ -231,11 +233,11 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
                     <td style='text-align:center'>{campos.ReqRequisicionRegistro.clave}</td>
                     <td style='text-align:center'>{campos.ReqRequisicionRegistro.detalle}</td>
                 </tr>
-                '''
-                )
+                """
+            )
     else:
         contenidos.append(
-            '''
+            """
                 <tr>
                     <td colspan=3></td>
                     <td colspan=5></td>
@@ -244,11 +246,11 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
                     <td></td>
                     <td></td>
                 </tr>
-            '''
+            """
         )
-    
+
     contenidos.append(
-        f'''
+        f"""
                         </table>
 
                     </td>
@@ -294,27 +296,26 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
                 </tr>
             </table>
         
-    '''
+    """
     )
-    contenidos.append('</body>')
-    contenidos.append('</html>')
-
+    contenidos.append("</body>")
+    contenidos.append("</html>")
 
     # Convertir el contenido HTML a archivo PDF
     pdf_buffer = BytesIO()
     _ = pisa.CreatePDF("\n".join(contenidos), dest=pdf_buffer, encoding="UTF-8")
     pdf_buffer.seek(0)
     archivo_pdf_bytes = pdf_buffer.read()
-    
-    # rutina para guardar archivo localmente y realizar pruebas de diseño 
-    #resultFile = open("./hercules/blueprints/req_requisiciones/conversions/documentos/prueba.pdf", "w+b")
-    #pisa_status = pisa.CreatePDF("\n".join(contenidos), dest=resultFile)
-    #resultFile.close()
-    #result = pisa_status.err
-    #if not result:
+
+    # rutina para guardar archivo localmente y realizar pruebas de diseño
+    # resultFile = open("./hercules/blueprints/req_requisiciones/conversions/documentos/prueba.pdf", "w+b")
+    # pisa_status = pisa.CreatePDF("\n".join(contenidos), dest=resultFile)
+    # resultFile.close()
+    # result = pisa_status.err
+    # if not result:
     #    print("Successfully created PDF")
-    #else:
-    #    print("Error: unable to create the PDF")  
+    # else:
+    #    print("Error: unable to create the PDF")
 
     #
     # Subir a Google Cloud Storage el archivo PDF
@@ -341,7 +342,7 @@ def convertir_a_pdf(req_requisicion_id: str) -> tuple[str, str, str]:
         raise error
 
     # Actualizar el documento con la URL del archivo PDF
-    #req_requisicion.archivo_pdf_url = archivo_pdf_url
+    # req_requisicion.archivo_pdf_url = archivo_pdf_url
     req_requisicion.save()
 
     # Elaborar mensaje_termino

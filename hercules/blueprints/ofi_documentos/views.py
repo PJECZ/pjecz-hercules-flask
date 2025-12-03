@@ -26,7 +26,7 @@ from hercules.blueprints.ofi_plantillas.models import OfiPlantilla
 from hercules.blueprints.usuarios.models import Usuario
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.folio import validar_folio
-from lib.safe_string import safe_string, safe_message, safe_clave, safe_uuid
+from lib.safe_string import safe_clave, safe_email, safe_message, safe_string, safe_uuid
 from lib.exceptions import MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
 
@@ -81,6 +81,15 @@ def datatable_json():
         descripcion = safe_string(request.form["descripcion"])
         if descripcion:
             consulta = consulta.filter(OfiDocumento.descripcion.contains(descripcion))
+    # Filtrar por propietario (usuario e-mail)
+    if "propietario" in request.form:
+        try:
+            email = safe_email(request.form["propietario"], search_fragment=True)
+            if email:
+                consulta = consulta.join(Usuario)
+                consulta = consulta.filter(Usuario.email.contains(email))
+        except ValueError:
+            pass
     # Filtrar por ID de autoridad
     if "autoridad_id" in request.form:
         autoridad_id = int(request.form["autoridad_id"])
@@ -150,7 +159,6 @@ def datatable_json():
                 "propietario": {
                     "email": resultado.usuario.email,
                     "nombre": resultado.usuario.nombre,
-                    "url": url_for("usuarios.detail", usuario_id=resultado.usuario.id),
                 },
                 "autoridad": {
                     "clave": resultado.usuario.autoridad.clave,
@@ -269,7 +277,7 @@ def list_active_mis_oficios():
         return redirect(url_for("ofi_documentos.list_active_mi_bandeja_entrada"))
     # Entregar
     return render_template(
-        "ofi_documentos/list.jinja2",
+        "ofi_documentos/list_mis_oficios.jinja2",
         filtros=json.dumps({"estatus": "A", "usuario_id": current_user.id}),
         titulo="Mis Oficios",
         estatus="A",
