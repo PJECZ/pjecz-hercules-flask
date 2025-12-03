@@ -37,10 +37,6 @@
                         </div>
                     </div>
                     <div class="col-2">
-                        <div class="form-floating">
-                            <input id="filtroPropietario" type="text" class="form-control" aria-label="Propietario e-mail">
-                            <label for="filtroPropietario">Propietario e-mail</label>
-                        </div>
                     </div>
                     <div class="col-6">
                         <div class="form-floating">
@@ -62,7 +58,6 @@
                     <th>Ver</th>
                     <th>Creado</th>
                     <th>Folio</th>
-                    <th>Propietario</th>
                     <th>Descripción</th>
                     <th>Estado</th>
                 </tr>
@@ -84,7 +79,6 @@
             { data: 'detalle' },
             { data: 'creado' },
             { data: 'folio' },
-            { data: 'propietario' },
             { data: 'descripcion' },
             { data: 'estado' }
         ];
@@ -126,26 +120,16 @@
                 }
             },
             {
-                targets: 3, // propietario
+                targets: 3, // descripcion
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data.email.length > 16) {
-                        return '<span title="' + data.nombre + '">' + data.email.substring(0, 16) + '…</span></a>';
-                    }
-                    return '<span title="' + data.nombre + '">' + data.email + '</span>';
-                }
-            },
-            {
-                targets: 4, // descripcion
-                data: null,
-                render: function(data, type, row, meta) {
-                    if (data.length > 48)
-                        return '<span title="' + data + '">' + data.substring(0, 48) + '…</span>';
+                    if (data.length > 64)
+                        return '<span title="' + data + '">' + data.substring(0, 64) + '…</span>';
                     return data;
                 }
             },
             {
-                targets: 5, // estado
+                targets: 4, // estado
                 data: null,
                 render: function(data, type, row, meta) {
                     let bgcolor = "bg-secondary";
@@ -179,7 +163,6 @@
         // Filtros Oficios
         const filtrosOficios = new FiltrosDataTable('#ofi_documentos_datatable', configDataTable);
         filtrosOficios.agregarInput('filtroFolio', 'folio');
-        filtrosOficios.agregarInput('filtroPropietario', 'propietario');
         filtrosOficios.agregarInput('filtroDescripcion', 'descripcion');
         filtrosOficios.precargar();
         // Oscurecer un color en hexadecimal con un porcentaje dado
