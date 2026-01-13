@@ -12,7 +12,8 @@
 
 {% block content %}
     {% call f.card() %}
-        {% call f.form_tag('soportes_tickets.new', fid='ticket_form') %}
+        <form action="/soportes_tickets/nuevo" method="post" id="ticket_form" class="" role="form" onsubmit="disableAndSubmit(event)">
+        <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
             {% call f.form_group(form.usuario, readonly=true) %}{% endcall %}
             {% call f.form_group(form.oficina, readonly=true) %}{% endcall %}
             {% call f.form_group(form.descripcion, rows=7) %}{% endcall %}
@@ -58,8 +59,8 @@
                 <input class="form-check-input" type="radio" name="radios_categoria" id="radio_infraestructura_01" value="INFRAESTRUCTURA">
                 <label class="form-check-label" for="radio_infraestructura_01">INFRAESTRUCTURA</label>
             </div>
-            {% call f.form_group(form.guardar) %}{% endcall %}
-        {% endcall %}
+                {% call f.form_group(form.guardar) %}{% endcall %}
+        </form>
     {% endcall %}
 {% endblock %}
 
@@ -86,6 +87,29 @@
         // Asignamos el cambio de cada radiobutton a la función de actualizar lista
         $('input[type=radio][name=radios_categoria]').change(function() {
             actualizar_lista_instrucciones(this.value);
+        });
+    </script>
+    <script>
+        // Botón de enviar con deshabilitación post envío
+        function disableAndSubmit(event) {
+            const button = document.getElementById("guardar");
+            button.disabled = true;
+            button.value = "Enviando...";
+        }
+        // Si falla el envío
+        document.addEventListener('DOMContentLoaded', function() {
+            // Busca el botón por su ID
+            const submitButton = document.getElementById('guardar');
+            
+            // Si el botón está deshabilitado y tiene el texto "Enviando...", 
+            // significa que venimos de una recarga de la página (por error de validación, por ejemplo).
+            if (submitButton && submitButton.disabled) {
+                // Re-habilitar el botón para que el usuario pueda intentarlo de nuevo
+                submitButton.disabled = false;
+                
+                // Restaurar el texto original (ajusta el texto si es diferente)
+                submitButton.value = "Solicitar soporte"; 
+            }
         });
     </script>
 {% endblock %}
