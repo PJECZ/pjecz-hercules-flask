@@ -285,6 +285,53 @@ def bajas_por_csv(archivo_csv):
         click.echo(f" No se encontraron {contador_no_econtrados} usuarios")
 
 
+@click.command()
+@click.argument("archivo_csv", type=str)
+@click.option("--simulacion", default=True, help="Simula los cambios que se harán.")
+def actualizar_correos_por_csv(archivo_csv, simulacion):
+    """Actualizar correo de personas desde un archivo CSV"""
+    ruta = Path(archivo_csv)
+    if not ruta.exists():
+        click.echo(f"AVISO: {ruta.name} no se encontró.")
+        sys.exit(1)
+    if not ruta.is_file():
+        click.echo(f"AVISO: {ruta.name} no es un archivo.")
+        sys.exit(1)
+
+    if simulacion:
+        click.echo("Iniciando simulación de actualización de correos")
+    else:
+        click.echo("Iniciando actualización de correos")
+
+    contador = 0
+    cambios = 0
+    errores = 0
+    with open(ruta, encoding="utf8") as puntero:
+        rows = csv.DictReader(puntero)
+        for row in rows:
+            contador += 1
+            usuario_curp = row["CURP"]
+            usuario_email = row["CORREO"]
+            usuarios = Usuario.query.filter_by(curp=usuario_curp).all()
+            if usuarios is None:
+                click.echo(click.style(f"AVISO: {usuario_curp} NO existe", fg="red"))
+                errores += 1
+                continue
+            for usuario in usuarios:
+                if "coahuila.gob.mx" in usuario.email:
+                    if usuario.email != usuario_email:
+                        cambios += 1
+                        click.echo(f"CAMBIO DE EMAIL EN USUARIO: {usuario.id} : {usuario.email} -> {usuario_email}")
+                        if simulacion is False:
+                            usuario.email = usuario_email
+                            usuario.save()
+                        continue
+    click.echo()
+    click.echo(click.style(f"= {contador} registros procesados.", fg="white"))
+    click.echo(click.style(f"= {cambios} cambios realizados.", fg="green"))
+    click.echo(click.style(f"= {errores} errores encontrados.", fg="red"))
+
+
 cli.add_command(generar_fernet_key)
 cli.add_command(mostrar_api_key)
 cli.add_command(mostrar_efirma_contrasena)
@@ -293,3 +340,4 @@ cli.add_command(nueva_contrasena)
 cli.add_command(nueva_efirma_contrasena)
 cli.add_command(generar_sicgd_csv)
 cli.add_command(bajas_por_csv)
+cli.add_command(actualizar_correos_por_csv)
