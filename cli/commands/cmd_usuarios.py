@@ -287,8 +287,8 @@ def bajas_por_csv(archivo_csv):
 
 @click.command()
 @click.argument("archivo_csv", type=str)
-@click.option("--simulacion", default=True, help="Simula los cambios que se harán.")
-def actualizar_correos_por_csv(archivo_csv, simulacion):
+@click.option("--probar", is_flag=True, default=True, help="Modo de prueba (no envía el correo)")
+def actualizar_por_csv(archivo_csv, probar):
     """Actualizar correo de personas desde un archivo CSV"""
     ruta = Path(archivo_csv)
     if not ruta.exists():
@@ -298,14 +298,18 @@ def actualizar_correos_por_csv(archivo_csv, simulacion):
         click.echo(f"AVISO: {ruta.name} no es un archivo.")
         sys.exit(1)
 
-    if simulacion:
-        click.echo("Iniciando simulación de actualización de correos")
+    if probar is True:
+        click.echo("===[ INICIANDO PRUEBA DE ACTUALIZACIÓN DE CORREOS ]===")
     else:
-        click.echo("Iniciando actualización de correos")
+        click.echo("===[ INICIANDO ACTUALIZACIÓN DE CORREOS ]===")
 
     contador = 0
     cambios = 0
+    mas_correos = 0
     errores = 0
+    aviso = 0
+    cambios_aceptados = []
+    curps_muchos_emails = []
     with open(ruta, encoding="utf8") as puntero:
         rows = csv.DictReader(puntero)
         for row in rows:
@@ -313,23 +317,49 @@ def actualizar_correos_por_csv(archivo_csv, simulacion):
             usuario_curp = row["CURP"]
             usuario_email = row["CORREO"]
             usuarios = Usuario.query.filter_by(curp=usuario_curp).all()
-            if usuarios is None:
-                click.echo(click.style(f"AVISO: {usuario_curp} NO existe", fg="red"))
+            if usuarios is None or len(usuarios) == 0:
+                click.echo(click.style(f"E", fg="red"), nl=False)
                 errores += 1
                 continue
-            for usuario in usuarios:
-                if "coahuila.gob.mx" in usuario.email:
-                    if usuario.email != usuario_email:
-                        cambios += 1
-                        click.echo(f"CAMBIO DE EMAIL EN USUARIO: {usuario.id} : {usuario.email} -> {usuario_email}")
-                        if simulacion is False:
-                            usuario.email = usuario_email
-                            usuario.save()
+            if len(usuarios) > 1:
+                click.echo(click.style(f"R", fg="yellow"), nl=False)
+                curps_muchos_emails.append(usuario_curp)
+                mas_correos += 1
+                continue
+            usuario = usuarios[0]
+            if "@coahuila.gob.mx" in usuario.email:
+                if usuario.email != usuario_email:
+                    cambios += 1
+                    click.echo(click.style(f"A", fg="green"), nl=False)
+                    cambios_aceptados.append({"curp": usuario_curp, "email_viejo": usuario.email, "email_nuevo": usuario_email})
+                    if probar is False:
+                        usuario.email = usuario_email
+                        usuario.save()
                         continue
-    click.echo()
+                click.echo(click.style(f".", fg="white"), nl=False)
+                continue
+            aviso += 1
+            click.echo(click.style(f".", fg="blue"), nl=False)
+
+    click.echo(click.style("\n======================================================", fg="white"))
+    if probar is True:
+        click.echo(click.style("* Terminó en modo PROBAR: No hay cambios en la base de datos.", fg="white"))
     click.echo(click.style(f"= {contador} registros procesados.", fg="white"))
     click.echo(click.style(f"= {cambios} cambios realizados.", fg="green"))
-    click.echo(click.style(f"= {errores} errores encontrados.", fg="red"))
+    click.echo(click.style(f"= {aviso} cuentas diferentes a @coahuila.gob.mx", fg="blue"))
+    click.echo(click.style(f"= {mas_correos} cuentas con más de una cuenta de correo.", fg="yellow"))
+    click.echo(click.style(f"= {errores} CURPS no encontradas.", fg="red"))
+
+    if len(curps_muchos_emails) > 0:
+        click.echo("\n=== CURPS CON MAS DE UNA CUENTA DE CORREO ===")
+        for curp in curps_muchos_emails:
+            click.echo(curp + ", ", nl=False)
+
+    if len(cambios_aceptados) > 0:
+        click.echo(click.style("\n\n=== CAMBIOS ACEPTADOS ===", fg="green"))
+        click.echo("CURP : EMAIL VIEJO -> EMAIL NUEVO")
+        for cambio in cambios_aceptados:
+            click.echo(cambio["curp"] + " : " + cambio["email_viejo"] + " -> " + cambio["email_nuevo"])
 
 
 cli.add_command(generar_fernet_key)
@@ -340,4 +370,4 @@ cli.add_command(nueva_contrasena)
 cli.add_command(nueva_efirma_contrasena)
 cli.add_command(generar_sicgd_csv)
 cli.add_command(bajas_por_csv)
-cli.add_command(actualizar_correos_por_csv)
+cli.add_command(actualizar_por_csv)
