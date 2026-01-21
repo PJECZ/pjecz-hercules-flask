@@ -326,6 +326,10 @@ def actualizar_por_csv(archivo_csv, probar):
             if len(usuarios) == 1 and usuario.email != usuario_email and "@pjecz.gob.mx" not in usuario.email:
                 click.echo(click.style(f".", fg="blue"), nl=False)
                 cambios_aceptados.append({"curp": usuario_curp, "email_viejo": usuario.email, "email_nuevo": usuario_email})
+                if probar is False:
+                    usuario.email = usuario_email
+                    usuario.save()
+                break
                 continue
             # Si tiene varios correos, cambiarlo por uno que termine en @coahuila.gob.mx pero que no sea @pjecz.gob.mx
             for usuario in usuarios:
