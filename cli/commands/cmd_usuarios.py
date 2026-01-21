@@ -304,10 +304,7 @@ def actualizar_por_csv(archivo_csv, probar):
         click.echo("===[ INICIANDO ACTUALIZACIÓN DE CORREOS ]===")
 
     contador = 0
-    cambios = 0
-    mas_correos = 0
     errores = 0
-    aviso = 0
     cambios_aceptados = []
     curps_muchos_emails = []
     with open(ruta, encoding="utf8") as puntero:
@@ -324,30 +321,36 @@ def actualizar_por_csv(archivo_csv, probar):
             if len(usuarios) > 1:
                 click.echo(click.style(f"R", fg="yellow"), nl=False)
                 curps_muchos_emails.append(usuario_curp)
-                mas_correos += 1
-                continue
             usuario = usuarios[0]
-            if "@coahuila.gob.mx" in usuario.email:
-                if usuario.email != usuario_email:
-                    cambios += 1
-                    click.echo(click.style(f"A", fg="green"), nl=False)
-                    cambios_aceptados.append({"curp": usuario_curp, "email_viejo": usuario.email, "email_nuevo": usuario_email})
-                    if probar is False:
-                        usuario.email = usuario_email
-                        usuario.save()
-                        continue
-                click.echo(click.style(f".", fg="white"), nl=False)
+            # Si tiene un solo correo, cambiarlo por el nuevo
+            if len(usuarios) == 1 and usuario.email != usuario_email and "@pjecz.gob.mx" not in usuario.email:
+                click.echo(click.style(f".", fg="blue"), nl=False)
+                cambios_aceptados.append({"curp": usuario_curp, "email_viejo": usuario.email, "email_nuevo": usuario_email})
                 continue
-            aviso += 1
-            click.echo(click.style(f".", fg="blue"), nl=False)
+            # Si tiene varios correos, cambiarlo por uno que termine en @coahuila.gob.mx pero que no sea @pjecz.gob.mx
+            for usuario in usuarios:
+                if "@coahuila.gob.mx" in usuario.email and "@pjecz.gob.mx" not in usuario.email:
+                    if usuario.email != usuario_email:
+                        click.echo(click.style(f"A", fg="green"), nl=False)
+                        if usuario_curp in curps_muchos_emails:
+                            curps_muchos_emails.remove(usuario_curp)
+                        cambios_aceptados.append(
+                            {"curp": usuario_curp, "email_viejo": usuario.email, "email_nuevo": usuario_email}
+                        )
+                        if probar is False:
+                            usuario.email = usuario_email
+                            usuario.save()
+                        break
+                    if usuario.email == usuario_email and usuario_curp in curps_muchos_emails:
+                        curps_muchos_emails.remove(usuario_curp)
+                    click.echo(click.style(f".", fg="white"), nl=False)
 
-    click.echo(click.style("\n======================================================", fg="white"))
+    click.echo(click.style("\n", fg="white"))
     if probar is True:
         click.echo(click.style("* Terminó en modo PROBAR: No hay cambios en la base de datos.", fg="white"))
     click.echo(click.style(f"= {contador} registros procesados.", fg="white"))
-    click.echo(click.style(f"= {cambios} cambios realizados.", fg="green"))
-    click.echo(click.style(f"= {aviso} cuentas diferentes a @coahuila.gob.mx", fg="blue"))
-    click.echo(click.style(f"= {mas_correos} cuentas con más de una cuenta de correo.", fg="yellow"))
+    click.echo(click.style(f"= {len(cambios_aceptados)} cambios realizados.", fg="green"))
+    click.echo(click.style(f"= {len(curps_muchos_emails)} cuentas con más de una cuenta de correo.", fg="yellow"))
     click.echo(click.style(f"= {errores} CURPS no encontradas.", fg="red"))
 
     if len(curps_muchos_emails) > 0:
