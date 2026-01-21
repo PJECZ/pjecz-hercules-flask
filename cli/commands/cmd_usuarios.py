@@ -287,7 +287,7 @@ def bajas_por_csv(archivo_csv):
 
 @click.command()
 @click.argument("archivo_csv", type=str)
-@click.option("--probar", is_flag=True, default=True, help="Modo de prueba (no envía el correo)")
+@click.option("--probar", is_flag=True, default=False, help="Modo de prueba (no envía el correo)")
 def actualizar_por_csv(archivo_csv, probar):
     """Actualizar correo de personas desde un archivo CSV"""
     ruta = Path(archivo_csv)
@@ -313,6 +313,11 @@ def actualizar_por_csv(archivo_csv, probar):
             contador += 1
             usuario_curp = row["CURP"]
             usuario_email = row["CORREO"]
+            # Buscar si el correo no está ya dado de alta
+            usuario_email_repetido = Usuario.query.filter_by(email=usuario_email).first()
+            if usuario_email_repetido:
+                click.echo(click.style(f"R", fg="yellow"), nl=False)
+                continue
             usuarios = Usuario.query.filter_by(curp=usuario_curp).all()
             if usuarios is None or len(usuarios) == 0:
                 click.echo(click.style(f"E", fg="red"), nl=False)
@@ -329,7 +334,6 @@ def actualizar_por_csv(archivo_csv, probar):
                 if probar is False:
                     usuario.email = usuario_email
                     usuario.save()
-                break
                 continue
             # Si tiene varios correos, cambiarlo por uno que termine en @coahuila.gob.mx pero que no sea @pjecz.gob.mx
             for usuario in usuarios:
