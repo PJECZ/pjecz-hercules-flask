@@ -5,7 +5,7 @@ CID Procedimientos, vistas
 import json
 from datetime import datetime, timezone
 
-from delta import html
+# from delta import html
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func, or_
@@ -354,16 +354,22 @@ def detail(cid_procedimiento_id):
     mostrar_boton_archivado = cid_procedimiento.seguimiento == "AUTORIZADO" and (
         ROL_COORDINADOR in current_user_roles or ROL_ADMINISTRADOR in current_user_roles
     )
+    # objetivo=str(html.render(cid_procedimiento.objetivo["ops"])),
+    # alcance=str(html.render(cid_procedimiento.alcance["ops"])),
+    # documentos=str(html.render(cid_procedimiento.documentos["ops"])),
+    # definiciones=str(html.render(cid_procedimiento.definiciones["ops"])),
+    # responsabilidades=str(html.render(cid_procedimiento.responsabilidades["ops"])),
+    # desarrollo=str(html.render(cid_procedimiento.desarrollo["ops"])),
     return render_template(
         "cid_procedimientos/detail.jinja2",
         cid_procedimiento=cid_procedimiento,
         firma_al_vuelo=cid_procedimiento.elaborar_firma(),
-        objetivo=str(html.render(cid_procedimiento.objetivo["ops"])),
-        alcance=str(html.render(cid_procedimiento.alcance["ops"])),
-        documentos=str(html.render(cid_procedimiento.documentos["ops"])),
-        definiciones=str(html.render(cid_procedimiento.definiciones["ops"])),
-        responsabilidades=str(html.render(cid_procedimiento.responsabilidades["ops"])),
-        desarrollo=str(html.render(cid_procedimiento.desarrollo["ops"])),
+        objetivo=str(cid_procedimiento.objetivo["ops"]),
+        alcance=str(cid_procedimiento.alcance["ops"]),
+        documentos=str(cid_procedimiento.documentos["ops"]),
+        definiciones=str(cid_procedimiento.definiciones["ops"]),
+        responsabilidades=str(cid_procedimiento.responsabilidades["ops"]),
+        desarrollo=str(cid_procedimiento.desarrollo["ops"]),
         registros=cid_procedimiento.registros,
         control_cambios=cid_procedimiento.control_cambios,
         cid_formatos=cid_formatos,

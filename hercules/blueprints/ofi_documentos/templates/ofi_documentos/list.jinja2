@@ -93,21 +93,21 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    let detail_icon = "mdi:table";
                     let fullscreen_icon = "mdi:computer";
+                    let detail_icon = "mdi:table";``
                     let style = "";
                     if (data.icono == "ARCHIVADO") {
-                        detail_icon = "mdi:archive";
+                        fullscreen_icon = "mdi:computer";
                         detail_icon = "mdi:archive";
                         style = "style='color: #808080;'";
                     } else if (data.icono == "CANCELADO") {
+                        fullscreen_icon = "mdi:computer";
                         detail_icon = "mdi:cancel";
-                        fullscreen_icon = "mdi:cancel";
                         style = "style='color: #404040;'";
                     }
-                    // Fullscreen
+                    // Fullscreen icon
                     let html = '<a class="btn btn-outline-primary btn-sm" href="' + data.fullscreen_url + '"><span class="iconify" data-icon="' + fullscreen_icon + '" ' + style + ' title="Pantalla Completa"></span></a>';
-                    // Detalle
+                    // Detail icon
                     if (data.sign_url) {
                         detail_icon = "mdi:file-sign";
                         html += ' <a class="btn btn-outline-success btn-sm" href="' + data.sign_url + '"><span class="iconify" data-icon="' + detail_icon + '" ' + style + ' title="Firmar"></span></a>';
