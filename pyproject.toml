@@ -1,5 +1,5 @@
 [project]
-name = "pjecz-hercules-flask"
+name = "hercules"
 version = "2.1.2"
 description = "Hercules es la segunda version de la Plataforma Web hecha con Flask."
 authors = [
@@ -7,6 +7,7 @@ authors = [
 ]
 license = {text = "AGPL3"}
 readme = "README.md"
+package-mode = false
 requires-python = ">=3.13,<4.0"
 dependencies = [
     "hashids (>=1.3.1,<2.0.0)",
@@ -37,10 +38,9 @@ dependencies = [
     "click (>=8.3.1,<9.0.0)",
     "openpyxl (>=3.1.5,<4.0.0)",
     "pdfkit (>=1.0.0,<2.0.0)",
-    "quill-delta (>=1.0.3,<2.0.0)",
     "sendgrid (>=6.12.5,<7.0.0)",
     "tabulate (>=0.9.0,<0.10.0)",
-    "lxml (>=6.0.2,<7.0.0)"
+    "xhtml2pdf (>=0.2.17,<0.3.0)"
 ]
 
 

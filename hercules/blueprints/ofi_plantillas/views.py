@@ -119,6 +119,24 @@ def datatable_json():
                 "creado": resultado.creado.strftime("%Y-%m-%d %H:%M"),
                 "esta_archivado": resultado.esta_archivado,
                 "esta_compartida": resultado.esta_compartida,
+                "toggle_esta_archivado": {
+                    "id": resultado.id,
+                    "esta_archivado": resultado.esta_archivado,
+                    "url": (
+                        url_for("ofi_plantillas.toggle_esta_archivado_json", ofi_plantilla_id=resultado.id)
+                        if current_user.can_edit(MODULO)
+                        else ""
+                    ),
+                },
+                "toggle_esta_compartida": {
+                    "id": resultado.id,
+                    "esta_compartida": resultado.esta_compartida,
+                    "url": (
+                        url_for("ofi_plantillas.toggle_esta_compartida_json", ofi_plantilla_id=resultado.id)
+                        if current_user.can_edit(MODULO)
+                        else ""
+                    ),
+                },
             }
         )
     # Entregar JSON
@@ -443,3 +461,71 @@ def recover(ofi_plantilla_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(url_for("ofi_plantillas.detail", ofi_plantilla_id=ofi_plantilla.id))
+
+
+@ofi_plantillas.route("/ofi_plantillas/toggle_esta_archivado_json/<ofi_plantilla_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def toggle_esta_archivado_json(ofi_plantilla_id):
+    """Cambiar esta_archivado de una plantilla para el boton en datatable"""
+
+    # Consultar la plantilla
+    ofi_plantilla_id = safe_uuid(ofi_plantilla_id)
+    if not ofi_plantilla_id:
+        return {"success": False, "message": "ID inválido"}
+    ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
+    if ofi_plantilla is None:
+        return {"success": False, "message": "No encontrado"}
+
+    # Cambiar esta_archivado a su opuesto
+    ofi_plantilla.esta_archivado = not ofi_plantilla.esta_archivado
+
+    # Guardar
+    ofi_plantilla.save()
+
+    # Elaborar el mensaje
+    if ofi_plantilla.esta_archivado:
+        mensaje = f"La plantilla {ofi_plantilla.descripcion} ha sido archivada."
+    else:
+        mensaje = f"La plantilla {ofi_plantilla.descripcion} ha sido desarchivada."
+
+    # Entregar JSON
+    return {
+        "success": True,
+        "message": mensaje,
+        "esta_archivado": ofi_plantilla.esta_archivado,
+        "id": ofi_plantilla.id,
+    }
+
+
+@ofi_plantillas.route("/ofi_plantillas/toggle_esta_compartida_json/<ofi_plantilla_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.MODIFICAR)
+def toggle_esta_compartida_json(ofi_plantilla_id):
+    """Cambiar esta_compartida de una plantilla para el boton en datatable"""
+
+    # Consultar la plantilla
+    ofi_plantilla_id = safe_uuid(ofi_plantilla_id)
+    if not ofi_plantilla_id:
+        return {"success": False, "message": "ID inválido"}
+    ofi_plantilla = OfiPlantilla.query.get_or_404(ofi_plantilla_id)
+    if ofi_plantilla is None:
+        return {"success": False, "message": "No encontrado"}
+
+    # Cambiar esta_compartida a su opuesto
+    ofi_plantilla.esta_compartida = not ofi_plantilla.esta_compartida
+
+    # Guardar
+    ofi_plantilla.save()
+
+    # Elaborar el mensaje
+    if ofi_plantilla.esta_compartida:
+        mensaje = f"La plantilla {ofi_plantilla.descripcion} ahora está compartida."
+    else:
+        mensaje = f"La plantilla {ofi_plantilla.descripcion} ahora es privada."
+
+    # Entregar JSON
+    return {
+        "success": True,
+        "message": mensaje,
+        "esta_compartida": ofi_plantilla.esta_compartida,
+        "id": ofi_plantilla.id,
+    }
