@@ -7,6 +7,7 @@ import json
 
 from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from lxml.html.clean import Cleaner
 from werkzeug.exceptions import NotFound
 
 from hercules.blueprints.autoridades.models import Autoridad
@@ -38,6 +39,29 @@ ROL_LECTOR = "OFICIOS LECTOR"
 # Constantes para fecha de vencimiento de oficios
 DIAS_VENCIMIENTO_ADVERTENCIA = -3
 DIAS_VENCIMIENTO_EMERGENCIA = -1
+
+# HTML tags y classes permitidos en el contenido de los oficios
+ALLOWED_TAGS = ["b", "i", "u", "em", "strong", "p", "br", "ul", "ol", "li", "div", "h1", "h2", "h3", "h4", "h5", "h6", "table", "thead", "tbody", "tr", "th", "td", "a", "img"]
+SAFE_ATTRS = [
+    "style",      # for p, div, th, td, img
+    "class",      # for table
+    "role",       # for table
+    "border",     # for table
+    "colspan",    # for th, td
+    "rowspan",    # for th, td
+    "width",      # for th, td
+    "href",       # for a
+    "src",        # for img
+    "alt",        # for img
+    "title",      # for img
+    "height",     # for img
+]
+cleaner = Cleaner(
+    style=False,
+    allow_tags=ALLOWED_TAGS,
+    safe_attrs_only=True,
+    safe_attrs=SAFE_ATTRS,
+)
 
 MODULO = "OFI DOCUMENTOS"
 
@@ -257,6 +281,21 @@ def fullscreen_json(ofi_documento_id):
 def list_active():
     """Listado de Ofi Documentos Mi Bandeja de Entrada"""
     return list_active_mi_bandeja_entrada()
+
+
+@ofi_documentos.route("/ofi_documentos/admin")
+@permission_required(MODULO, Permiso.ADMINISTRAR)
+def list_active_admin():
+    """Listado de Ofi Documentos administradores"""
+    roles = current_user.get_roles()
+    return render_template(
+        "ofi_documentos/list.jinja2",
+        filtros=json.dumps({"estatus": "A"}),
+        titulo="Administrar Oficios",
+        estatus="A",
+        estados=OfiDocumento.ESTADOS,
+        mostrar_boton_nuevo=ROL_FIRMANTE in roles or ROL_ESCRITOR in roles,
+    )
 
 
 @ofi_documentos.route("/ofi_documentos/mi_bandeja_entrada")
@@ -553,7 +592,7 @@ def new(ofi_plantilla_id):
     if form.validate_on_submit():
         es_valido = True
         # Validar el folio, separar el número y el año
-        folio = form.folio.data.strip()
+        folio = str(form.folio.data).strip()
         numero_folio = None
         anio_folio = None
         if folio != "":
@@ -575,6 +614,7 @@ def new(ofi_plantilla_id):
                 flash("El oficio cadena no existe", "warning")
                 es_valido = False
         if es_valido:
+            # Guardar el nuevo oficio
             ofi_documento = OfiDocumento(
                 usuario=current_user,
                 descripcion=safe_string(form.descripcion.data, save_enie=True),
@@ -582,9 +622,9 @@ def new(ofi_plantilla_id):
                 folio_anio=anio_folio,
                 folio_num=numero_folio,
                 vencimiento_fecha=vencimiento_fecha,
-                contenido_md=form.contenido_md.data.strip(),
-                contenido_html=form.contenido_html.data.strip(),
-                contenido_sfdt=form.contenido_sfdt.data.strip(),
+                contenido_md=str(form.contenido_md.data).strip(),
+                contenido_html=cleaner.clean_html(str(form.contenido_html.data).strip()),
+                contenido_sfdt=str(form.contenido_sfdt.data).strip(),
                 estado="BORRADOR",
                 cadena_oficio_id=form.cadena_oficio_id.data if form.cadena_oficio_id.data else None,
             )
@@ -764,7 +804,7 @@ def edit(ofi_documento_id):
     if form.validate_on_submit():
         es_valido = True
         # Validar el folio, separar el número y el año
-        folio = form.folio.data.strip()
+        folio = str(form.folio.data).strip()
         numero_folio = None
         anio_folio = None
         if folio != "":
@@ -779,14 +819,15 @@ def edit(ofi_documento_id):
             flash("La fecha de vencimiento no puede ser anterior a la fecha actual", "warning")
             es_valido = False
         if es_valido:
+            # Guardar los cambios
             ofi_documento.descripcion = safe_string(form.descripcion.data, save_enie=True)
             ofi_documento.folio = folio
             ofi_documento.folio_anio = anio_folio
             ofi_documento.folio_num = numero_folio
             ofi_documento.vencimiento_fecha = vencimiento_fecha
-            ofi_documento.contenido_md = form.contenido_md.data.strip()
-            ofi_documento.contenido_html = form.contenido_html.data.strip()
-            ofi_documento.contenido_sfdt = form.contenido_sfdt.data.strip()
+            ofi_documento.contenido_md = str(form.contenido_md.data).strip()
+            ofi_documento.contenido_html = cleaner.clean_html(str(form.contenido_html.data).strip())
+            ofi_documento.contenido_sfdt = ""
             ofi_documento.save()
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
