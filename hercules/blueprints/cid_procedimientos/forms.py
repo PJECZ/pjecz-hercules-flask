@@ -3,7 +3,7 @@ Cid Procedimientos, formularios
 """
 
 from flask_wtf import FlaskForm
-from wtforms import DateField, IntegerField, SelectField, StringField, SubmitField
+from wtforms import DateField, HiddenField, IntegerField, SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length, Optional
 
 from hercules.blueprints.cid_areas.models import CIDArea
@@ -20,20 +20,28 @@ class CIDProcedimientoForm(FlaskForm):
     cid_area = StringField("Área")  # Read Only
     # Step Objetivo
     objetivo = JSONField("Objetivo", validators=[Optional()])
+    objetivo_html = HiddenField("Objetivo HTML", validators=[Optional()])
     # Step Alcance
     alcance = JSONField("Alcance", validators=[Optional()])
+    alcance_html = HiddenField("Alcance HTML", validators=[Optional()])
     # Step Documentos
     documentos = JSONField("Documentos", validators=[Optional()])
+    documentos_html = HiddenField("Documentos HTML", validators=[Optional()])
     # Step Definiciones
     definiciones = JSONField("Definiciones", validators=[Optional()])
+    definiciones_html = HiddenField("Definiciones HTML", validators=[Optional()])
     # Step Responsabilidades
     responsabilidades = JSONField("Responsabilidades", validators=[Optional()])
+    responsabilidades_html = HiddenField("Responsabilidades HTML", validators=[Optional()])
     # Step Desarrollo
     desarrollo = JSONField("Desarrollo", validators=[Optional()])
+    desarrollo_html = HiddenField("Desarrollo HTML", validators=[Optional()])
     # Step Registros
     registros = JSONField("Registros", validators=[Optional()])
+    registros_html = HiddenField("Registros HTML", validators=[Optional()])
     # Step Control de Cambios
     control_cambios = JSONField("Control de Cambios", validators=[Optional()])
+    control_cambios_html = HiddenField("Control de Cambios HTML", validators=[Optional()])
     # Step Autorizaciones
     elaboro_nombre = StringField("Nombre", validators=[Optional(), Length(max=256)])
     elaboro_puesto = StringField("Puesto", validators=[Optional(), Length(max=256)])
@@ -60,20 +68,28 @@ class CIDProcedimientoEditForm(FlaskForm):
     cid_area = StringField("Área")  # Read Only
     # Step Objetivo
     objetivo = JSONField("Objetivo", validators=[Optional()])
+    objetivo_html = HiddenField("Objetivo HTML", validators=[Optional()])
     # Step Alcance
     alcance = JSONField("Alcance", validators=[Optional()])
+    alcance_html = HiddenField("Alcance HTML", validators=[Optional()])
     # Step Documentos
     documentos = JSONField("Documentos", validators=[Optional()])
+    documentos_html = HiddenField("Documentos HTML", validators=[Optional()])
     # Step Definiciones
     definiciones = JSONField("Definiciones", validators=[Optional()])
+    definiciones_html = HiddenField("Definiciones HTML", validators=[Optional()])
     # Step Responsabilidades
     responsabilidades = JSONField("Responsabilidades", validators=[Optional()])
+    responsabilidades_html = HiddenField("Responsabilidades HTML", validators=[Optional()])
     # Step Desarrollo
     desarrollo = JSONField("Desarrollo", validators=[Optional()])
+    desarrollo_html = HiddenField("Desarrollo HTML", validators=[Optional()])
     # Step Registros
     registros = JSONField("Registros", validators=[Optional()])
+    registros_html = HiddenField("Registros HTML", validators=[Optional()])
     # Step Control de Cambios
     control_cambios = JSONField("Control de Cambios", validators=[Optional()])
+    control_cambios_html = HiddenField("Control de Cambios HTML", validators=[Optional()])
     # Step Autorizaciones
     elaboro_nombre = StringField("Nombre", validators=[Optional(), Length(max=256)])
     elaboro_puesto = StringField("Puesto", validators=[Optional(), Length(max=256)])

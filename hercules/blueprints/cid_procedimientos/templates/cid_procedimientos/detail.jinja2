@@ -126,7 +126,6 @@
                         <th>Años de retención</th>
                     </thead>
                     <tbody>
-
                     </tbody>
                 </table>
         {% endcall %}
@@ -139,7 +138,6 @@
                     <th>Fecha</th>
                 </thead>
                 <tbody>
-
                 </tbody>
             </table>
         {% endcall %}
@@ -221,7 +219,6 @@
     <!-- Datatables -->
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
-    <!-- formatos -->
     {% if current_user.can_view('CID FORMATOS') %}
         <script>
             // DataTable CID Formatos
@@ -264,7 +261,6 @@
                 });
                 Arrayfinal.push(tempArr);
             });
-
             $("#registro_dataTable1_detail").DataTable({
                 data:Arrayfinal
             });
@@ -282,7 +278,6 @@
                 });
                 Arrayfinal.push(tempArr);
             });
-
             $("#control_dataTable1_detail").DataTable({
                 data:Arrayfinal
             });
