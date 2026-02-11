@@ -38,17 +38,21 @@
             },
             theme: 'snow'
         });
-        {% if content != '' %}
         // Fill at start
-        {{ instance }}.setContents({{ content }});
+        {% if content != '' %}
+            {{ instance }}.setContents({{ content }});
         {% endif %}
-        {% if form_id != '' and hidden_id != '' %}
         // On submit
-        document.getElementById('{{ form_id }}').onsubmit = function() {copyFromQuillToInputHidden()};
-        // Copy to input hidden field
-        function copyFromQuillToInputHidden() {
-            document.getElementById('{{ hidden_id }}').value = JSON.stringify({{ instance }}.getContents());
-        }
+        {% if form_id != '' and hidden_id != '' %}
+            document.getElementById('{{ form_id }}').onsubmit = function() {copyFromQuillToInputHidden()};
+            // Copy to input hidden field and to the hidden html field if exists
+            function copyFromQuillToInputHidden() {
+                document.getElementById('{{ hidden_id }}').value = JSON.stringify({{ instance }}.getContents());
+                const hiddenHtmlElement = document.getElementById('{{ hidden_id }}_html');
+                if (hiddenHtmlElement) {
+                    hiddenHtmlElement.value = {{ instance }}.root.innerHTML;
+                }
+            }
         {% endif %}
     </script>
 {%- endmacro -%}

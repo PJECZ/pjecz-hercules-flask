@@ -53,7 +53,7 @@ class CIDProcedimiento(database.Model, UniversalMixin):
     objetivo: Mapped[dict] = mapped_column(JSON, default={})
     objetivo_html: Mapped[Optional[str]] = mapped_column(Text)
     alcance: Mapped[dict] = mapped_column(JSON, default={})
-    alcence_html: Mapped[Optional[str]] = mapped_column(Text)
+    alcance_html: Mapped[Optional[str]] = mapped_column(Text)
     documentos: Mapped[dict] = mapped_column(JSON, default={})
     documentos_html: Mapped[Optional[str]] = mapped_column(Text)
     definiciones: Mapped[dict] = mapped_column(JSON, default={})

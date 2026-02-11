@@ -62,6 +62,10 @@ def datatable_json():
         nivel = safe_string(request.form["nivel"], save_enie=True)
         if nivel != "":
             consulta = consulta.filter(Permiso.nivel == nivel)
+    if "modulo_nombre" in request.form:
+        modulo_nombre = safe_string(request.form["modulo_nombre"], save_enie=True)
+        if modulo_nombre != "":
+            consulta = consulta.join(Modulo).filter(Modulo.nombre.contains(modulo_nombre))
     # Ordenar y paginar
     registros = consulta.order_by(Permiso.nombre).offset(start).limit(rows_per_page).all()
     total = consulta.count()

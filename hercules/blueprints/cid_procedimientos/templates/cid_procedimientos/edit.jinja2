@@ -227,22 +227,19 @@
             const revisionField = document.getElementById('revision');
             const codigoField = document.getElementById('codigo');
             const revisionValue = {{ form.revision.data }}; // nos aseguramos de que sea un número
-            console.log("Valor de revision:", revisionValue)
-
+            //console.log("Valor de revision:", revisionValue)
             // Verifica que el campo no se oculte cuando revision es igual a 1
             if (revisionValue > 1) {
                 revisionField.disabled = true; // Deshabilitar 'revision'
                 codigoField.disabled = true;  // Deshabilitar 'codigo'
             }
-
             form.addEventListener('submit', function() {
                 revisionField.disabled = false; // Habilitar campo antes de enviar
                 codigoField.disabled = false; // Habilitar campo antes de enviar
             });
             // Verifica los valores antes de enviar
-            console.log("Valor enviado de revision:", revisionField.value);
-            console.log("Valor enviado de codigo:", codigoField.value);
-
+            //console.log("Valor enviado de revision:", revisionField.value);
+            //console.log("Valor enviado de codigo:", codigoField.value);
             // Asegúrate de que los campos esten visibles
             revisionField.style.display = 'block';
             codigoField.style.display = 'block';
@@ -250,14 +247,13 @@
     </script>
     <!-- Quill -->
     {{ quill.library() }}
-    {{ quill.editor(instance='objetivoQuill', div_id='objetivo_quill') }}
-    {{ quill.editor(instance='alcanceQuill', div_id='alcance_quill') }}
-    {{ quill.editor(instance='documentosQuill', div_id='documentos_quill') }}
-    {{ quill.editor(instance='definicionesQuill', div_id='definiciones_quill') }}
-    {{ quill.editor(instance='responsabilidadesQuill', div_id='responsabilidades_quill') }}
-    {{ quill.editor(instance='desarrolloQuill', div_id='desarrollo_quill') }}
+    {{ quill.editor(instance='objetivoQuill', div_id='objetivo_quill', hidden_id='objetivo') }}
+    {{ quill.editor(instance='alcanceQuill', div_id='alcance_quill', hidden_id='alcance') }}
+    {{ quill.editor(instance='documentosQuill', div_id='documentos_quill', hidden_id='documentos') }}
+    {{ quill.editor(instance='definicionesQuill', div_id='definiciones_quill', hidden_id='definiciones') }}
+    {{ quill.editor(instance='responsabilidadesQuill', div_id='responsabilidades_quill', hidden_id='responsabilidades') }}
+    {{ quill.editor(instance='desarrolloQuill', div_id='desarrollo_quill', hidden_id='desarrollo') }}
     <script type="text/javascript" src="{{ url_for('static', filename='js/cid_procedimientos.js') }}"></script>
-
     <!-- El formulario llena los inputs, sigue sacarles los contenidos para llenar los quill -->
     <script>
         $(document).ready(function(){
@@ -269,7 +265,7 @@
             llenar_desarrollo({{ desarrollo_json }});
         });
     </script>
-    <!-- llenar dataTables registros -->
+    <!-- Llenar dataTables registros -->
     <script>
         $(document).ready(function() {
             let datos = JSON.parse('{{ registros_json }}');
@@ -284,14 +280,12 @@
             var tabla = $("#registro_dataTable1").DataTable({
                 data:Arrayfinal
             });
-
             let len = tabla.rows().data();
             if(len.length === 0){
                 $("#registros").val("{}");
             }else{
                 $("#registros").val(JSON.stringify(tabla.data()).split(',"context":')[0] + "}");
             }
-
             $("#btn_add_reg").click(function(){
                 if($("#registro_codigo").val() === "" || $("#registro_nombre").val() === "" || $("#registro_responsable").val() === "" || $("#registro_retencion").val() === ""){
                     $("#form-alert1-reg").show();
@@ -303,7 +297,6 @@
                     var nombre = $("#registro_nombre").val().toUpperCase();
                     var responsable = $("#registro_responsable").val().toUpperCase();
                     var retencion = $("#registro_retencion").val();
-
                     tabla.row.add(
                         [
                             codigo,
@@ -312,16 +305,13 @@
                             retencion
                         ]
                     ).draw(false);
-
                     $("#registro_codigo").val("");
                     $("#registro_nombre").val("");
                     $("#registro_responsable").val("");
                     $("#registro_retencion").val("");
-
                     $("#registro_codigo").focus();
                 }
             });
-
             $('#registro_dataTable1 tbody').on( 'click', 'tr', function () {
                 if ( $(this).hasClass('tActive') ) {
                     $(this).removeClass('tActive');
@@ -331,11 +321,9 @@
                     $(this).addClass('tActive');
                 }
             } );
-
             $('#btn_del_reg').click( function () {
                 tabla.row('.tActive').remove().draw(false);
             } );
-
             $('#btn_edit_reg').click( function() {
                 let datos = tabla.row('.tActive').data();
                 $("#e_registro_codigo").val(datos[0]);
@@ -343,21 +331,18 @@
                 $("#e_registro_responsable").val(datos[2]);
                 $("#e_registro_retencion").val(datos[3]);
             });
-
             $("#e_updt_btn").click( function() {
-
                 let newArr = [
                     $("#e_registro_codigo").val().toUpperCase(),
                     $("#e_registro_nombre").val().toUpperCase(),
                     $("#e_registro_responsable").val().toUpperCase(),
                     $("#e_registro_retencion").val()
                 ];
-
                 tabla.row('.tActive').data(newArr);
             });
         });
     </script>
-     <!-- llenar dataTables Control de Cambios -->
+    <!-- Llenar dataTables Control de Cambios -->
     <script>
         $(document).ready(function(){
             let datos_cambio = JSON.parse('{{ control_cambios_json }}');
@@ -369,20 +354,16 @@
                 });
                 Arrayfinal.push(tempArr);
             });
-
             $("#cambio_dataTable1").DataTable({
                 data:Arrayfinal
             });
-
             let tabla_control = $('#cambio_dataTable1').DataTable();
-
             let len = tabla_control.rows().data();
             if(len.length === 0){
                 $("#control_cambios").val("{}");
             }else{
                 $("#control_cambios").val(JSON.stringify(tabla_control.data()).split(',"context":')[0] + "}");
             }
-
             $("#btn_add_cam").click(function(){
                 if($("#control_revision").val() === "" || $("#control_cambio").val() === "" || $("#control_solicitud").val() === "" || $("#control_fecha").val() === ""){
                     $("#form-alert1-camb").show();
@@ -394,7 +375,6 @@
                     let cambio = $("#control_cambio").val().toUpperCase();
                     let solicitud = $("#control_solicitud").val();
                     let fecha = $("#control_fecha").val();
-
                     tabla_control.row.add(
                         [
                             revision,
@@ -403,16 +383,13 @@
                             fecha
                         ]
                     ).draw(false);
-
                     $("#control_revision").val("");
                     $("#control_cambio").val("");
                     $("#control_solicitud").val("");
                     $("#control_fecha").val("");
-
                     $("#control_revision").focus();
                 }
             });
-
             $('#cambio_dataTable1 tbody').on( 'click', 'tr', function () {
                 if ( $(this).hasClass('tActive') ) {
                     $(this).removeClass('tActive');
@@ -422,41 +399,33 @@
                     $(this).addClass('tActive');
                 }
             } );
-
             $('#btn_del_cam').click( function () {
                 tabla_control.row('.tActive').remove().draw(false);
             } );
-
             $('#btn_edit_cam').click( function() {
                 let rowSelected = tabla_control.row('.tActive'); // Selecciona la fila activa
                 let rowIndex = rowSelected.index(); // Obtiene el indice de la fila seleccionada
                 let datosCambio = rowSelected.data(); // Obtiene los datos de la fila
-
                 // Verificar si hay una fila seleccionada
                 if(rowIndex === undefined || !datosCambio){
                     alert("Por favor, selecciona una fila antes de editar.");
                     return;
                 }
-
                 // Asignar los valores a los inputs
                 $("#e_control_revision").val(datosCambio[0]);
                 $("#e_control_cambio").val(datosCambio[1]);
                 $("#e_control_solicitud").val(datosCambio[2]);
                 $("#e_control_fecha").val(datosCambio[3]);
-
                 // abrir el modal manualmente
                 $("#edit_cambio_modal").modal('show');
             });
-
             $("#e_updt_control_btn").click( function() {
-
                 let newArr = [
                     $("#e_control_revision").val(),
                     $("#e_control_cambio").val().toUpperCase(),
                     $("#e_control_solicitud").val(),
                     $("#e_control_fecha").val()
                 ];
-
                 tabla_control.row('.tActive').data(newArr);
             });
         });
@@ -469,7 +438,6 @@
             $('#elaboro_email').addClass('js-example-data-ajax js-states form-control');
             $('#reviso_email').addClass('js-reviso-autorizo-data-ajax js-states form-control');
             $('#aprobo_email').addClass('js-reviso-autorizo-data-ajax js-states form-control');
-
             // Poner como activo el valor actual
             $('#elaboro_email option').each(function() {
                 if($(this).text() == '{{cid_procedimiento.elaboro_email}}') {
@@ -482,11 +450,9 @@
                     $("#aprobo_email").val( $(this).val() );
                 }
             });
-
             // Ajax para los select
             $(".js-example-data-ajax").select2({
                 // --- Carga de emails por Ajax --- //
-
                 placeholder: "correo",
                 minimumInputLength: 4,
                 allowClear: true,
@@ -499,11 +465,9 @@
                     data: function (params) {
                         return { 'searchString': params.term }
                     },
-
                 }
             });
-
-            //Ajax para que al escribir desde 4 caracteres se filtren las opciones en los selects
+            // Ajax para que al escribir desde 4 caracteres se filtren las opciones en los selects
             $(".js-reviso-autorizo-data-ajax").select2({
                 //--- Carga de emails por Ajax --- //
                 placeholder:"Correo electrónico quien revisa ó autoriza",
@@ -520,7 +484,6 @@
                     }
                 }
             });
-
             // Usa Ajax para traer hasta 10 emails, se debe agregar el valor actual
             let data = {
                 id: '{{cid_procedimiento.elaboro_email}}',
@@ -528,21 +491,18 @@
             };
             let newOption = new Option(data.text, data.id, false, false);
             $('#elaboro_email').append(newOption).trigger('change');
-
             let data_reviso = {
                 id: '{{cid_procedimiento.reviso_email}}',
                 text: '{{cid_procedimiento.reviso_email}}'
             };
             let newOptionReviso = new Option(data_reviso.text, data_reviso.id, false, false);
             $('#reviso_email').append(newOptionReviso).trigger('change');
-
             let data_aprobo = {
                 id: '{{cid_procedimiento.aprobo_email}}',
                 text: '{{cid_procedimiento.aprobo_email}}'
             };
             let newOptionAprobo = new Option(data_aprobo.text, data_aprobo.id, false, false);
             $('#aprobo_email').append(newOptionAprobo).trigger('change');
-
         });
     </script>
     <!-- En este script se crean los popovers con la información de cada paso en el procedimiento -->
