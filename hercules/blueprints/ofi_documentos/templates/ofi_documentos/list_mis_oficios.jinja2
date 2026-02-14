@@ -11,6 +11,9 @@
             {{ topbar.button('Mis Oficios', url_for('ofi_documentos.list_active_mis_oficios'), "mdi:file-document-edit-outline") }}
             {{ topbar.button('Mi Autoridad', url_for('ofi_documentos.list_active_mi_autoridad'), "mdi:scale-balance") }}
         {% endif %}
+        {% if current_user.can_admin('OFI DOCUMENTOS') %}
+            {{ topbar.button('Administrar', url_for('ofi_documentos.list_active_admin'), "mdi:folder") }}
+        {% endif %}
         {% if current_user.can_admin('OFI PLANTILLAS') %}
             {{ topbar.button('Plantillas', url_for('ofi_plantillas.list_active'), "mdi:note-multiple") }}
         {% endif %}

@@ -6,7 +6,7 @@ import hashlib
 from datetime import date
 from typing import List, Optional
 
-from sqlalchemy import JSON, Enum, ForeignKey, String
+from sqlalchemy import JSON, Enum, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.extensions import database
@@ -51,12 +51,19 @@ class CIDProcedimiento(database.Model, UniversalMixin):
     revision: Mapped[int]
     fecha: Mapped[date]
     objetivo: Mapped[dict] = mapped_column(JSON, default={})
+    objetivo_html: Mapped[Optional[str]] = mapped_column(Text)
     alcance: Mapped[dict] = mapped_column(JSON, default={})
+    alcance_html: Mapped[Optional[str]] = mapped_column(Text)
     documentos: Mapped[dict] = mapped_column(JSON, default={})
+    documentos_html: Mapped[Optional[str]] = mapped_column(Text)
     definiciones: Mapped[dict] = mapped_column(JSON, default={})
+    definiciones_html: Mapped[Optional[str]] = mapped_column(Text)
     responsabilidades: Mapped[dict] = mapped_column(JSON, default={})
+    responsabilidades_html: Mapped[Optional[str]] = mapped_column(Text)
     desarrollo: Mapped[dict] = mapped_column(JSON, default={})
+    desarrollo_html: Mapped[Optional[str]] = mapped_column(Text)
     registros: Mapped[dict] = mapped_column(JSON, default={})
+    registros_html: Mapped[Optional[str]] = mapped_column(Text)
     elaboro_nombre: Mapped[str] = mapped_column(String(256), default="")
     elaboro_puesto: Mapped[str] = mapped_column(String(256), default="")
     elaboro_email: Mapped[str] = mapped_column(String(256), default="")
@@ -67,6 +74,7 @@ class CIDProcedimiento(database.Model, UniversalMixin):
     aprobo_puesto: Mapped[str] = mapped_column(String(256), default="")
     aprobo_email: Mapped[str] = mapped_column(String(256), default="")
     control_cambios: Mapped[dict] = mapped_column(JSON, default={})
+    control_cambios_html: Mapped[Optional[str]] = mapped_column(Text)
 
     # Número en la cadena, empieza en cero cuando quien elabora aun no lo firma
     cadena: Mapped[int]

@@ -5,7 +5,7 @@ CID Procedimientos, vistas
 import json
 from datetime import datetime, timezone
 
-from delta import html
+# from delta import html
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func, or_
@@ -56,13 +56,10 @@ def before_request():
 @cid_procedimientos.route("/cid_procedimientos/datatable_json", methods=["GET", "POST"])
 def datatable_json():
     """DataTable JSON para listado de CID Procedimientos"""
-
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
-
     # Consultar
     consulta = CIDProcedimiento.query
-
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
         consulta = consulta.filter_by(estatus=request.form["estatus"])
@@ -92,11 +89,9 @@ def datatable_json():
         areas_a_filtrar = request.form.getlist("cid_areas_ids[]")
         listado_areas_ids = [int(area_id) for area_id in areas_a_filtrar]
         consulta = consulta.filter(CIDProcedimiento.cid_area_id.in_(listado_areas_ids))
-
     # Ordenar y paginar
     registros = consulta.order_by(CIDProcedimiento.titulo_procedimiento).offset(start).limit(rows_per_page).all()
     total = consulta.count()
-
     # Elaborar datos para DataTable
     data = []
     for resultado in registros:
@@ -112,7 +107,6 @@ def datatable_json():
                 "seguimiento": resultado.seguimiento,
             }
         )
-
     # Entregar JSON
     return output_datatable_json(draw, total, data)
 
@@ -120,13 +114,10 @@ def datatable_json():
 @cid_procedimientos.route("/cid_procedimientos/admin_datatable_json", methods=["GET", "POST"])
 def admin_datatable_json():
     """DataTable JSON para listado de Cid Procedimientos"""
-
     # Tomar parámetros de Datatables
     draw, start, rows_per_page = get_datatable_parameters()
-
     # Consultar
     consulta = CIDProcedimiento.query
-
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
         consulta = consulta.filter(CIDProcedimiento.estatus == request.form["estatus"])
@@ -162,11 +153,9 @@ def admin_datatable_json():
         areas_a_filtrar = request.form.getlist("cid_areas_ids[]")
         listado_areas_ids = [int(area_id) for area_id in areas_a_filtrar]
         consulta = consulta.filter(CIDProcedimiento.cid_area_id.in_(listado_areas_ids))
-
     # Ordenar y paginar
     registros = consulta.order_by(CIDProcedimiento.id.desc()).offset(start).limit(rows_per_page).all()
     total = consulta.count()
-
     # Elaborar datos para DataTable
     data = []
     for resultado in registros:
@@ -186,7 +175,6 @@ def admin_datatable_json():
                 "cid_area_clave": resultado.cid_area.clave,
             }
         )
-
     # Entregar JSON
     return output_datatable_json(draw, total, data)
 
@@ -194,7 +182,6 @@ def admin_datatable_json():
 @cid_procedimientos.route("/cid_procedimientos")
 def list_active():
     """Listado de CID Procedimientos activos"""
-
     # Definir valores por defecto
     current_user_cid_areas_ids = []
     current_user_roles = set(current_user.get_roles())
@@ -203,11 +190,9 @@ def list_active():
     mostrar_boton_procedimientos_de_mis_areas = False
     plantilla = "cid_procedimientos/list.jinja2"
     titulo = None
-
     # Si es administrador, usar la plantilla es list_admin.jinja2
     if current_user.can_admin(MODULO):
         plantilla = "cid_procedimientos/list_admin.jinja2"
-
     # Si viene cid_area_id, cid_areas_ids, cid_area_clave, seguimiento o usuario_id en la URL, agregar a los filtros
     try:
         if "cid_area_id" in request.args:
@@ -252,22 +237,18 @@ def list_active():
             mostrar_boton_listado_por_defecto = True
     except (TypeError, ValueError):
         pass
-
     # Si titulo es None y es administrador, mostrar todos los procedimientos
     if titulo is None and current_user.can_admin(MODULO):
         titulo = "Todos los procedimientos (admin)"
         filtros = {"estatus": "A"}
-
     # Si titulo es none y tiene el rol "SICGD AUDITOR", mostrar los procedimientos
     if titulo is None and "SICGD AUDITOR" in current_user_roles:
         titulo = "Todos los procedimientos (auditor)"
         filtros = {"estatus": "A"}
-
     # Si titulo es None y tiene el rol "SICGD COORDINADOR", mostrar todos los procedimientos
     if titulo is None and "SICGD COORDINADOR" in current_user_roles:
         titulo = "Todos los procedimientos (coordinador)"
         filtros = {"estatus": "A"}
-
     # Obtener los IDs de las áreas del usuario
     current_user_cid_areas_ids = [
         cid_area.id
@@ -275,7 +256,6 @@ def list_active():
             CIDArea.query.join(CIDAreaAutoridad).filter(CIDAreaAutoridad.autoridad_id == current_user.autoridad.id).all()
         )
     ]
-
     # Si titulo es None y tiene ROLES_CON_PROCEDIMIENTOS_PROPIOS, mostrar los procedimientos propios
     if (
         titulo is None
@@ -285,7 +265,6 @@ def list_active():
         titulo = "Procedimientos propios"
         filtros = {"estatus": "A", "usuario_id": current_user.id, "cid_areas_ids": current_user_cid_areas_ids}
         mostrar_boton_procedimientos_de_mis_areas = True
-
     # Si el titulo es None y tiene áreas, mostrar los procedimientos autorizados de mis áreas
     if titulo is None and len(current_user_cid_areas_ids) > 0:
         titulo = "Procedimientos autorizados de mis áreas (involucrado)"
@@ -294,12 +273,10 @@ def list_active():
             "seguimiento": "AUTORIZADO",
             "cid_areas_ids": current_user_cid_areas_ids,
         }
-
     # Por defecto, mostrar los procedimientos autorizados
     if titulo is None:
         titulo = "Procedimientos autorizados de todas las áreas"
         filtros = {"estatus": "A", "seguimiento": "AUTORIZADO"}
-
     # Entregar
     return render_template(
         plantilla,
@@ -338,7 +315,6 @@ def detail(cid_procedimiento_id):
     )
     # Habilitar o deshabilitar poder cambiar área
     mostrar_cambiar_area = (ROL_ADMINISTRADOR in current_user_roles) or (ROL_COORDINADOR in current_user_roles)
-
     # Condición para mostrar botón de nueva revisión:
     # El procedimiento debe estar autorizado y el usuario debe tener los roles adecuados o ser el creador.
     show_buttom_new_revision = cid_procedimiento.seguimiento == "AUTORIZADO" and (
@@ -354,18 +330,27 @@ def detail(cid_procedimiento_id):
     mostrar_boton_archivado = cid_procedimiento.seguimiento == "AUTORIZADO" and (
         ROL_COORDINADOR in current_user_roles or ROL_ADMINISTRADOR in current_user_roles
     )
+    # Entregar
     return render_template(
         "cid_procedimientos/detail.jinja2",
         cid_procedimiento=cid_procedimiento,
         firma_al_vuelo=cid_procedimiento.elaborar_firma(),
-        objetivo=str(html.render(cid_procedimiento.objetivo["ops"])),
-        alcance=str(html.render(cid_procedimiento.alcance["ops"])),
-        documentos=str(html.render(cid_procedimiento.documentos["ops"])),
-        definiciones=str(html.render(cid_procedimiento.definiciones["ops"])),
-        responsabilidades=str(html.render(cid_procedimiento.responsabilidades["ops"])),
-        desarrollo=str(html.render(cid_procedimiento.desarrollo["ops"])),
+        objetivo=str(cid_procedimiento.objetivo["ops"]),
+        objetivo_html=cid_procedimiento.objetivo_html,
+        alcance=str(cid_procedimiento.alcance["ops"]),
+        alcance_html=cid_procedimiento.alcance_html,
+        documentos=str(cid_procedimiento.documentos["ops"]),
+        documentos_html=cid_procedimiento.documentos_html,
+        definiciones=str(cid_procedimiento.definiciones["ops"]),
+        definiciones_html=cid_procedimiento.definiciones_html,
+        responsabilidades=str(cid_procedimiento.responsabilidades["ops"]),
+        responsabilidades_html=cid_procedimiento.responsabilidades_html,
+        desarrollo=str(cid_procedimiento.desarrollo["ops"]),
+        desarrollo_html=cid_procedimiento.desarrollo_html,
         registros=cid_procedimiento.registros,
+        registros_html=cid_procedimiento.registros_html,
         control_cambios=cid_procedimiento.control_cambios,
+        control_cambios_html=cid_procedimiento.control_cambios_html,
         cid_formatos=cid_formatos,
         show_button_edit_admin=current_user.can_admin(MODULO) or ROL_COORDINADOR in current_user.get_roles(),
         mostrar_cambiar_area=mostrar_cambiar_area,
@@ -387,7 +372,6 @@ def new():
         area_autoridad = CIDAreaAutoridad.query.filter_by(autoridad_id=autoridad.id).first()
         # Obtener el área "NO DEFINIDO" desde la base de datos
         area_no_definida = CIDArea.query.filter_by(nombre="NO DEFINIDO").first()
-
         # Verificar si se encontró un registro válido en la tabla CIDAreaAutoridad y si el área relacionada está definida
         if not area_autoridad:
             area_autoridad = CIDAreaAutoridad(autoridad_id=autoridad.id, cid_area=area_no_definida)
@@ -409,10 +393,8 @@ def new():
                 return redirect(url_for("cid_procedimientos.edit", cid_procedimiento_id=cid_procedimiento.id))
         else:
             elaboro_email = ""  # Si no se proporciona email, dejar vacío
-
         reviso_email = form.reviso_email.data
         reviso_nombre = form.reviso_nombre.data
-
         if reviso_email:  # Validar si se proporciona un email
             try:
                 reviso_email = safe_email(reviso_email)
@@ -421,10 +403,8 @@ def new():
                 return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento.id))
         else:
             reviso_email = ""
-
         aprobo_email = form.aprobo_email.data
         aprobo_nombre = form.aprobo_nombre.data
-
         if aprobo_email:  # Validar si se proporciona un email
             try:
                 aprobo_email = safe_email(aprobo_email)
@@ -438,11 +418,13 @@ def new():
             registros = {}
         else:
             registros = registros_data
+        registros_html = "<strong>POR PROGRAMAR</strong>"
         control = form.control_cambios.data
         if control is None:
             control_cambios = {}
         else:
             control_cambios = control
+        control_cambios_html = "<strong>POR PROGRAMAR</strong>"
         cid_procedimiento = CIDProcedimiento(
             autoridad=current_user.autoridad,
             usuario=current_user,
@@ -451,12 +433,19 @@ def new():
             revision=form.revision.data,
             fecha=form.fecha.data,
             objetivo=form.objetivo.data,
+            objetivo_html=form.objetivo_html.data,
             alcance=form.alcance.data,
+            alcance_html=form.alcance_html.data,
             documentos=form.documentos.data,
+            documentos_html=form.documentos_html.data,
             definiciones=form.definiciones.data,
+            definiciones_html=form.definiciones_html.data,
             responsabilidades=form.responsabilidades.data,
+            responsabilidades_html=form.responsabilidades_html.data,
             desarrollo=form.desarrollo.data,
+            desarrollo_html=form.definiciones_html.data,
             registros=registros,
+            registros_html=registros_html,
             elaboro_nombre=safe_string(elaboro_nombre, save_enie=True),
             elaboro_puesto=safe_string(form.elaboro_puesto.data),
             elaboro_email=elaboro_email,
@@ -467,6 +456,7 @@ def new():
             aprobo_puesto=safe_string(form.aprobo_puesto.data),
             aprobo_email=aprobo_email,
             control_cambios=control_cambios,
+            control_cambios_html=control_cambios_html,
             cadena=0,
             seguimiento="EN ELABORACION",
             seguimiento_posterior="EN ELABORACION",
@@ -571,12 +561,19 @@ def edit(cid_procedimiento_id):
         cid_procedimiento.revision = revision
         cid_procedimiento.fecha = form.fecha.data
         cid_procedimiento.objetivo = form.objetivo.data
+        cid_procedimiento.objetivo_html = form.objetivo_html.data
         cid_procedimiento.alcance = form.alcance.data
+        cid_procedimiento.alcance_html = form.alcance_html.data
         cid_procedimiento.documentos = form.documentos.data
+        cid_procedimiento.documentos_html = form.documentos_html.data
         cid_procedimiento.definiciones = form.definiciones.data
+        cid_procedimiento.definiciones_html = form.definiciones_html.data
         cid_procedimiento.responsabilidades = form.responsabilidades.data
+        cid_procedimiento.responsabilidades_html = form.responsabilidades_html.data
         cid_procedimiento.desarrollo = form.desarrollo.data
+        cid_procedimiento.desarrollo_html = form.desarrollo_html.data
         cid_procedimiento.registros = registros
+        cid_procedimiento.registros_html = "<strong>POR PROGRAMAR</strong>"
         cid_procedimiento.elaboro_nombre = safe_string(elaboro_nombre, save_enie=True)
         cid_procedimiento.elaboro_puesto = safe_string(form.elaboro_puesto.data)
         cid_procedimiento.elaboro_email = elaboro_email if elaboro else ""
@@ -587,6 +584,7 @@ def edit(cid_procedimiento_id):
         cid_procedimiento.aprobo_puesto = safe_string(form.aprobo_puesto.data)
         cid_procedimiento.aprobo_email = aprobo_email if aprobo else ""
         cid_procedimiento.control_cambios = control_cambios
+        cid_procedimiento.control_cambios_html = "<strong>POR PROGRAMAR</strong>"
         cid_procedimiento.save()
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -675,7 +673,6 @@ def copiar_procedimiento_con_revision(cid_procedimiento_id):
     # Si el formulario ha sido enviado y es válido
     if form.validate_on_submit():
         now = datetime.now(timezone.utc)
-
         # Manejo de emails
         try:
             reviso_email = safe_email(form.reviso_email.data) if form.reviso_email.data else ""
@@ -683,7 +680,6 @@ def copiar_procedimiento_con_revision(cid_procedimiento_id):
         except ValueError as e:
             flash(str(e), "error")
             return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento.id))
-
         # Crear una nueva copia del procedimiento con los datos actualizados
         nueva_copia = CIDProcedimiento(
             autoridad=cid_procedimiento.autoridad,
@@ -693,12 +689,19 @@ def copiar_procedimiento_con_revision(cid_procedimiento_id):
             revision=ultima_revision.revision + 1,
             fecha=form.fecha.data or now,
             objetivo=cid_procedimiento.objetivo,
+            objetivo_html=cid_procedimiento.objetivo_html,
             alcance=cid_procedimiento.alcance,
+            alcance_html=cid_procedimiento.alcance_html,
             documentos=cid_procedimiento.documentos,
+            documentos_html=cid_procedimiento.documentos_html,
             definiciones=cid_procedimiento.definiciones,
+            definiciones_html=cid_procedimiento.definiciones_html,
             responsabilidades=cid_procedimiento.responsabilidades,
+            responsabilidades_html=cid_procedimiento.responsabilidades_html,
             desarrollo=cid_procedimiento.desarrollo,
+            desarrollo_html=cid_procedimiento.desarrollo_html,
             registros=cid_procedimiento.registros,
+            registros_html=cid_procedimiento.registros_html,
             elaboro_nombre=cid_procedimiento.elaboro_nombre,
             elaboro_puesto=cid_procedimiento.elaboro_puesto,
             elaboro_email=cid_procedimiento.elaboro_email,
@@ -709,6 +712,7 @@ def copiar_procedimiento_con_revision(cid_procedimiento_id):
             aprobo_puesto=cid_procedimiento.aprobo_puesto,
             aprobo_email=aprobo_email,
             control_cambios=cid_procedimiento.control_cambios,
+            control_cambios_html=cid_procedimiento.control_cambios_html,
             seguimiento="EN ELABORACION",
             seguimiento_posterior="EN ELABORACION",
             cadena=cid_procedimiento.cadena + 1,
@@ -780,7 +784,7 @@ def validate_json_quill_not_empty(data):
     """Validar que un JSON de Quill no esté vacío"""
     if not isinstance(data, dict):
         return False
-    if not "ops" in data:
+    if "ops" not in data:
         return False
     try:
         if data["ops"][0]["insert"].strip() == "":
@@ -876,7 +880,7 @@ def accept_reject(cid_procedimiento_id):
         flash("Este procedimiento no es activo.", "warning")
         return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=original.id))
     # Validar que este procedimiento este elaborado o revisado
-    if not original.seguimiento in ["ELABORADO", "REVISADO"]:
+    if original.seguimiento not in ["ELABORADO", "REVISADO"]:
         flash("Este procedimiento no puede ser aceptado.", "warning")
         return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=original.id))
     # Validar que NO haya sido YA aceptado
@@ -890,7 +894,6 @@ def accept_reject(cid_procedimiento_id):
     if original.seguimiento == "REVISADO" and original.seguimiento_posterior == "AUTORIZADO":
         flash("Este procedimiento ya ha sido AUTORIZADO y no puede ser aceptado nuevamente.", "warning")
         return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=original.id))
-
     form = CIDProcedimientoAcceptRejectForm()
     if form.validate_on_submit():
         # Si fue aceptado
@@ -940,12 +943,19 @@ def accept_reject(cid_procedimiento_id):
                 revision=original.revision,
                 fecha=original.fecha,
                 objetivo=original.objetivo,
+                objetivo_html=original.objetivo_html,
                 alcance=original.alcance,
+                alcance_html=original.alcance_html,
                 documentos=original.documentos,
+                documentos_html=original.documentos_html,
                 definiciones=original.definiciones,
+                definiciones_html=original.definiciones_html,
                 responsabilidades=original.responsabilidades,
+                responsabilidades_html=original.responsabilidades_html,
                 desarrollo=original.desarrollo,
+                desarrollo_html=original.desarrollo_html,
                 registros=original.registros,
+                registros_html=original.registros_html,
                 elaboro_nombre=original.elaboro_nombre,
                 elaboro_puesto=original.elaboro_puesto,
                 elaboro_email=original.elaboro_email,
@@ -956,6 +966,7 @@ def accept_reject(cid_procedimiento_id):
                 aprobo_puesto=original.aprobo_puesto,
                 aprobo_email=original.aprobo_email,
                 control_cambios=original.control_cambios,
+                control_cambios_html=original.control_cambios_html,
                 seguimiento=nuevo_seguimiento,
                 seguimiento_posterior=nuevo_seguimiento_posterior,
                 cadena=original.cadena + 1,
@@ -982,7 +993,6 @@ def accept_reject(cid_procedimiento_id):
                 for cid_formato in anterior.cid_formatos:
                     cid_formato.procedimiento_id = nuevo.id
                     cid_formato.save()
-
             # Bitacora
             bitacora = Bitacora(
                 modulo=Modulo.query.filter_by(nombre=MODULO).first(),
@@ -1059,7 +1069,6 @@ def delete(cid_procedimiento_id):
     # Verificación de permisos
     if not (current_user.can_admin(MODULO) or cid_procedimiento.usuario_id == current_user.id):
         abort(403)  # Acceso no autorizado, solo administradores o el propietario puede eliminarlo
-
     # Restricciones basadas en seguimiento y estatus
     elif not (
         current_user.can_admin(MODULO) or cid_procedimiento.seguimiento in ["EN ELABORACION", "EN REVISION", "EN AUTORIZACION"]
@@ -1075,7 +1084,6 @@ def delete(cid_procedimiento_id):
         elif cid_procedimiento.seguimiento == "EN AUTORIZACION":
             cid_procedimiento.seguimiento = "CANCELADO POR AUTORIZADOR"
         cid_procedimiento.delete()
-
         # Eliminar los cif_formatos de cada cid_procedimiento
         for cid_formato in cid_procedimiento.cid_formatos:
             cid_formato.delete()
@@ -1140,15 +1148,12 @@ def exportar_xlsx():
 @permission_required(MODULO, Permiso.VER)
 def dashboard():
     """Tablero de Procedimientos"""
-
     # Definir valores por defecto
     current_user_roles = set(current_user.get_roles())
     mostrar_boton_exportar_lista_maestra_xlsx = False
-
     # Si es administrador o tiene el rol SICGD AUDITOR o el rol SICGD COORDINADOR, mostrar el botón de exportar lista maestra
     if current_user.can_admin(MODULO) or current_user_roles.intersection(("SICGD AUDITOR", "SICGD COORDINADOR")):
         mostrar_boton_exportar_lista_maestra_xlsx = True
-
     # Consultar las cantidades de procedimientos con seguimiento AUTORIZADO por área
     consulta = (
         database.session.query(
@@ -1164,10 +1169,8 @@ def dashboard():
         .order_by(CIDArea.nombre)
         .all()
     )
-
     # Crear un listado de tuplas con el nombre del área y la cantidad de procedimientos
     cantidad_procedimientos_por_area = [(clave, nombre, cantidad) for clave, nombre, cantidad in consulta]
-
     # Entregar
     return render_template(
         "cid_procedimientos/dashboard.jinja2",
@@ -1192,7 +1195,6 @@ def archivar_procedimiento(cid_procedimiento_id):
     if cid_procedimiento.seguimiento == "ARCHIVADO" or cid_procedimiento.seguimiento_posterior == "ARCHIVADO":
         flash("El procedimiento se encuentra ARCHIVADO.", "warning")
         return redirect(url_for("cid_procedimientos.detail", cid_procedimiento_id=cid_procedimiento_id))
-
     # Archivar el procedimiento actual y todos sus seguimientos anteriores
     procedimiento_actual = cid_procedimiento
     # Cambiamos el seguimiento del procedimiento actual a "ARCHIVADO"

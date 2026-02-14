@@ -74,17 +74,26 @@
     </script>
 {%- endmacro -%}
 
-{# Material Design Icons #}
-{%- macro icon_open_in_new() -%}
-    <span class='iconify' data-icon='mdi:open-in-new'></span>
+{# Button small #}
+{%- macro button_sm(label, url, icon='mdi:file', target='', color_class='btn-outline-primary') -%}
+    <a class="btn btn-block btn-sm {{ color_class }} w-100 my-2" href="{{ url }}" {% if target %}target="{{ target }}"{% endif %}>
+        {% if icon %}<span class="iconify" data-icon="{{ icon }}"></span>{% endif %}
+        {{ label }}
+    </a>
 {%- endmacro -%}
 
-{# Button #}
-{%- macro button(label, url, icon) -%}
-    <a class="btn btn-sm btn-outline-secondary" href="{{ url }}"><span class="iconify" data-icon="{{ icon }}"></span> {{ label }}</a>
+{# Button medium #}
+{%- macro button_md(label, url, icon='mdi:file', target='', color_class='btn-outline-primary') -%}
+    <a class="btn btn-block btn-md {{ color_class }} w-100 my-2" href="{{ url }}" {% if target %}target="{{ target }}"{% endif %}>
+        {% if icon %}<span class="iconify" data-icon="{{ icon }}"></span>{% endif %}
+        {{ label }}
+    </a>
 {%- endmacro -%}
 
-{# Button edit #}
-{%- macro button_edit(label="", url="#") -%}
-    {{ button(label, url, 'mdi:pencil') }}
+{# Button large #}
+{%- macro button_lg(label, url, icon='mdi:file', target='', color_class='btn-outline-primary') -%}
+    <a class="btn btn-block btn-lg {{ color_class }} w-100 my-2" href="{{ url }}" {% if target %}target="{{ target }}"{% endif %}>
+        {% if icon %}<span class="iconify" data-icon="{{ icon }}"></span>{% endif %}
+        {{ label }}
+    </a>
 {%- endmacro -%}

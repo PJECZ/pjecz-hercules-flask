@@ -34,6 +34,9 @@
             {{ topbar.button('Mis Oficios', url_for('ofi_documentos.list_active_mis_oficios'), "mdi:file-document-edit-outline") }}
             {{ topbar.button('Mi Autoridad', url_for('ofi_documentos.list_active_mi_autoridad'), "mdi:scale-balance") }}
         {% endif %}
+        {% if current_user.can_admin('OFI DOCUMENTOS') %}
+            {{ topbar.button('Administrar', url_for('ofi_documentos.list_active_admin'), "mdi:folder") }}
+        {% endif %}
         {% if current_user.can_admin('OFI PLANTILLAS') %}
             {{ topbar.button('Plantillas', url_for('ofi_plantillas.list_active'), "mdi:note-multiple") }}
         {% endif %}
@@ -44,9 +47,38 @@
     <!-- Paso 1: Elegir la autoridad de destino -->
     <div id="step1">
         <h5 class="mb-3">1. Elija el destinatario y da clic en siguiente</h5>
-        <div class="row row-cols-1 row-cols-md-4 g-3 mb-4">
-            <!-- Spinner mientras se cargan las autoridades -->
-            <div id="step1-spinner" class="col">
+        <div id="spinnerStep1" class="card h-100 text-center">
+            <div class="card-body">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+        </div>
+        <div id="containerStep1" class="row row-cols-1 row-cols-md-4 row-cols-sm-2 g-3 mb-2"></div>
+    </div>
+    <!-- Paso 2: Elegir la plantilla -->
+    <div id="step2" class="d-none">
+        <h5 class="mb-3">2. Seleccione una plantilla y da clic en siguiente</h5>
+        <div id="spinnerStep2" class="card h-100 text-center">
+            <div class="card-body">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+        </div>
+        <ul id="listStep2" class="list-group mb-2"></ul>
+        <div class="row">
+            <div class="col-md-3">
+                <button id="buttonBackToStep1" class="btn btn-secondary me-2 w-100 mb-2">Atrás</button>
+            </div>
+            <div class="col-md-9"></div>
+        </div>
+    </div>
+    <!-- Paso 3: Vista previa -->
+    <div id="step3" class="d-none">
+        <h5 class="mb-3">3. Da clic en "Nuevo oficio" para crearlo</h5>
+        <div class="card mb-2">
+            <div id="spinnerStep3">
                 <div class="card h-100 text-center">
                     <div class="card-body">
                         <div class="spinner-border text-primary" role="status">
@@ -55,55 +87,15 @@
                     </div>
                 </div>
             </div>
+            <div id="templatePreview" class="card-body"></div>
         </div>
         <div class="row">
-            <div class="col-md-9"></div>
             <div class="col-md-3">
-                <button class="btn btn-primary w-100" id="toStep2" disabled>Siguiente</button>
-            </div>
-        </div>
-    </div>
-    <!-- Paso 2: Elegir la plantilla -->
-    <div id="step2" class="d-none">
-        <h5 class="mb-3">2. Seleccione una plantilla y da clic en siguiente</h5>
-        <ul class="list-group mb-4" id="templateList">
-            <!-- Spinner mientras se cargan las plantillas -->
-            <li id="step2-spinner" class="list-group-item text-center">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Cargando plantillas...</span>
-                </div>
-            </li>
-        </ul>
-        <div class="row">
-            <div class="col-md-3">
-                <button class="btn btn-secondary me-2 w-100" id="backToStep1">Atrás</button>
+                <button id="buttonBackToStep2" class="btn btn-secondary me-2 w-100 mb-2">Atrás</button>
             </div>
             <div class="col-md-6"></div>
             <div class="col-md-3">
-                <button class="btn btn-primary w-100" id="toStep3" disabled>Siguiente</button>
-            </div>
-        </div>
-    </div>
-    <!-- Paso 3: Vista previa -->
-    <div id="step3" class="d-none">
-        <h5 class="mb-3">3. Revise la vista previa y de clic en aceptar para crear el oficio</h5>
-        <div class="card mb-4">
-            <div class="card-body" id="templatePreview">
-                <!-- Spinner mientras se cargan la vista previa -->
-                <div id="step3-spinner" class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Cargando vista previa...</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-3">
-                <button class="btn btn-secondary me-2 w-100" id="backToStep2">Atrás</button>
-            </div>
-            <div class="col-md-6"></div>
-            <div class="col-md-3">
-                <button class="btn btn-success w-100" id="acceptTemplate" disabled>Nuevo oficio desde esta plantilla</button>
+                <button id="buttonAcceptTemplate" class="btn btn-success me-2 w-100 mb-2" disabled>Nuevo oficio</button>
             </div>
         </div>
     </div>
@@ -121,25 +113,27 @@
         const step1 = document.getElementById('step1');
         const step2 = document.getElementById('step2');
         const step3 = document.getElementById('step3');
+        const spinnerStep1 = document.getElementById('spinnerStep1');
+        const spinnerStep2 = document.getElementById('spinnerStep2');
+        const spinnerStep3 = document.getElementById('spinnerStep3');
 
         // Función para mostrar los cards de las autoridades
         function showCards() {
-            console.log('Mostrando cards de autoridades...');
-            document.getElementById('toStep2').disabled = true; // Deshabilitar el botón Siguiente
+            // Mostrar el spinner
+            spinnerStep1.style.display = 'block';
+            // Mostrar el paso 1 y ocultar los otros pasos
+            step1.classList.remove('d-none');
+            step2.classList.add('d-none');
+            step3.classList.add('d-none');
             fetch('/autoridades/tablero_json')
                 .then(response => response.json())
                 .then(data => {
-                    // Definir como constante el elemento con la clase row en step1
-                    const container = step1.querySelector('.row');
+                    // Definir el elemento donde se van a poner los cards
+                    const container = document.getElementById('containerStep1');
                     // Limpiar el contenedor
                     container.innerHTML = '';
                     // Si la respuesta tiene éxito
                     if (data.success) {
-                        // Eliminar el spinner
-                        const spinner = document.getElementById('step1-spinner');
-                        if (spinner) {
-                            spinner.remove();
-                        }
                         // Crear los cards para cada autoridad
                         data.data.forEach(autoridad => {
                             const card = document.createElement('div');
@@ -162,12 +156,11 @@
                                 document.querySelectorAll('.selectable-card').forEach(c => c.classList.remove('border-primary', 'bg-primary', 'shadow', 'text-white'));
                                 this.classList.add('border-primary', 'bg-primary', 'shadow', 'text-white');
                                 selectedDest = this.dataset.dest;
+                                showTemplates(); // Mostrar el selector de plantillas
                             });
                         });
-                        // Si hay cards, habilitar el botón Siguiente
-                        if (data.data.length > 0) {
-                            document.getElementById('toStep2').disabled = false; // Habilitar el botón Siguiente
-                        }
+                        // Ocultar el spinner
+                        spinnerStep1.style.display = 'none';
                     } else {
                         // Si hubo un error, mostrar un mensaje
                         const alert = document.createElement('div');
@@ -181,21 +174,22 @@
 
         // Función para mostrar el selector de plantillas
         function showTemplates() {
-            console.log('Mostrando plantillas para la autoridad:', selectedDest);
-            document.getElementById('toStep3').disabled = true; // Deshabilitar el botón Siguiente
+            // Mostrar el spinner
+            spinnerStep2.style.display = 'block';
+            // Mostrar el paso 2 y ocultar los otros pasos
+            step1.classList.add('d-none');
+            step2.classList.remove('d-none');
+            step3.classList.add('d-none');
             // Consultar las plantillas de la autoridad seleccionada
             fetch(`/ofi_plantillas/tablero_json?autoridad_clave=${selectedDest}`)
                 .then(response => response.json())
                 .then(data => {
-                    const templateList = document.getElementById('templateList');
-                    templateList.innerHTML = ''; // Limpiar la lista
+                    // Definir el elemento donde se van a poner las opciones de la lista
+                    const templateList = document.getElementById('listStep2');
+                    // Limpiar la lista
+                    templateList.innerHTML = '';
                     // Si la respuesta tiene éxito
                     if (data.success) {
-                        // Eliminar el spinner
-                        const spinner = document.getElementById('step2-spinner');
-                        if (spinner) {
-                            spinner.remove();
-                        }
                         // Crear los elementos de la lista para cada plantilla
                         data.data.forEach(plantilla => {
                             const item = document.createElement('li');
@@ -225,14 +219,13 @@
                                         document.querySelectorAll('.list-group-item').forEach(i => i.classList.remove('active'));
                                         this.classList.add('active');
                                         selectedTemplate = this.dataset.template;
+                                        showPreview(); // Mostrar la vista previa de la plantilla
                                     });
                                 });
+                                // Ocultar el spinner
+                                spinnerStep2.style.display = 'none';
                             })
                             .catch(error => console.error('Error:', error));
-                            // Si hay elementos en la lista, habilitar el botón Siguiente
-                            if (templateList.children.length > 0) {
-                                document.getElementById('toStep3').disabled = false; // Habilitar el botón Siguiente
-                            }
                     } else {
                         // Hubo un error, seguramente NO hay plantillas compartidas, mostrar ese mensaje
                         const alert = document.createElement('div');
@@ -260,9 +253,11 @@
                                         document.querySelectorAll('.list-group-item').forEach(i => i.classList.remove('active'));
                                         this.classList.add('active');
                                         selectedTemplate = this.dataset.template;
-                                        document.getElementById('toStep3').disabled = false; // Habilitar el botón Siguiente
+                                        showPreview(); // Mostrar la vista previa de la plantilla
                                     });
                                 });
+                                // Ocultar el spinner
+                                spinnerStep2.style.display = 'none';
                             })
                             .catch(error => console.error('Error:', error));
                     }
@@ -270,21 +265,23 @@
                 .catch(error => console.error('Error:', error));
         }
 
-        // Función para mostrar la vista previa de la plantilla
+        // Función para mostrar la vista previa
         function showPreview() {
-            console.log('Mostrando vista previa de la plantilla:', selectedTemplate);
+            // Mostrar el spinner
+            spinnerStep3.style.display = 'block';
+            // Mostrar el paso 3 y ocultar los otros pasos
+            step1.classList.add('d-none');
+            step2.classList.add('d-none');
+            step3.classList.remove('d-none');
             // Consultar la plantilla seleccionada
             fetch(`/ofi_plantillas/vista_previa_json?id=${selectedTemplate}`)
                 .then(response => response.json())
                 .then(data => {
+                    // Definir el elemento donde se va a poner la vista previa
                     const preview = document.getElementById('templatePreview');
-                    preview.innerHTML = ''; // Limpiar la vista previa
+                    // Limpiar la vista previa
+                    preview.innerHTML = '';
                     if (data.success) {
-                        // Eliminar el spinner
-                        const spinner = document.getElementById('step3-spinner');
-                        if (spinner) {
-                            spinner.remove();
-                        }
                         // Copiar el HTML a una variable
                         let html = data.data.contenido_html;
                         // Reemplazar los marcadores
@@ -294,10 +291,12 @@
                         html = html.replace(/\[\[REMITENTE NOMBRE\]\]/g, '{{ current_user.nombre }}');
                         html = html.replace(/\[\[REMITENTE PUESTO\]\]/g, '{{ current_user.puesto }}');
                         html = html.replace(/\[\[REMITENTE AUTORIDAD\]\]/g, '{{ current_user.autoridad.descripcion }}');
-                        // Mostrar la vista previa de la plantilla
+                        // Mostrar la vista previa
                         preview.innerHTML = html;
                         // Habilitar el botón Aceptar
-                        document.getElementById('acceptTemplate').disabled = false;
+                        document.getElementById('buttonAcceptTemplate').disabled = false;
+                        // Ocultar el spinner
+                        spinnerStep3.style.display = 'none';
                     } else {
                         // Si hubo un error, mostrar un mensaje
                         const alert = document.createElement('div');
@@ -315,39 +314,25 @@
             // Mostrar los cards de las autoridades
             showCards();
 
-            // Agregar evento de clic al botón para ir al paso 2
-            document.getElementById('toStep2').addEventListener('click', function() {
-                step1.classList.add('d-none');
-                step2.classList.remove('d-none');
-                showTemplates(); // Mostrar el selector de plantillas
-            });
-
-            // Agregar evento de clic al botón para ir al paso 3
-            document.getElementById('toStep3').addEventListener('click', function() {
-                step2.classList.add('d-none');
-                step3.classList.remove('d-none');
-                showPreview(); // Mostrar la vista previa de la plantilla
-            });
-
             // Agregar evento de clic al botón para regresar al paso 1
-            document.getElementById('backToStep1').addEventListener('click', function() {
+            document.getElementById('buttonBackToStep1').addEventListener('click', function() {
                 step2.classList.add('d-none');
                 step1.classList.remove('d-none');
                 showCards(); // Mostrar los cards de las autoridades
             });
 
             // Agregar evento de clic al botón para regresar al paso 2
-            document.getElementById('backToStep2').addEventListener('click', function() {
+            document.getElementById('buttonBackToStep2').addEventListener('click', function() {
                 step3.classList.add('d-none');
                 step2.classList.remove('d-none');
+                document.getElementById('buttonAcceptTemplate').disabled = true;
                 showTemplates(); // Mostrar el selector de plantillas
             });
 
             // Agregar evento de clic al botón para aceptar la plantilla
-            document.getElementById('acceptTemplate').addEventListener('click', function() {
+            document.getElementById('buttonAcceptTemplate').addEventListener('click', function() {
                 // Redirigir al formulario de nuevo oficio con los parámetros seleccionados
                 if (selectedTemplate !== null) {
-                    this.disabled = true; // Deshabilitar el botón para evitar múltiples clics
                     if (selectedDest !== null) {
                         window.location.href = `/ofi_documentos/nuevo/${selectedTemplate}?autoridad_clave=${selectedDest}`;
                     } else {

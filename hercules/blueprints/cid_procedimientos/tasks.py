@@ -17,7 +17,7 @@ from typing import Tuple
 import pdfkit
 import pytz
 import sendgrid
-from delta import html
+# from delta import html
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader
 from openpyxl import Workbook

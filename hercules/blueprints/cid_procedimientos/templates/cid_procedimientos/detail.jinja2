@@ -99,22 +99,22 @@
             {% endif %}
         {% endcall %}
         {% call accordion.item('objetivos_item', 'Objetivo', accordion_id, estatus=cid_procedimiento.estatus) %}
-            {{ objetivo }}
+            {{ cid_procedimiento.objetivo_html }}
         {% endcall %}
         {% call accordion.item('alcance_item', 'Alcance', accordion_id, estatus=cid_procedimiento.estatus) %}
-            {{ alcance }}
+            {{ cid_procedimiento.alcance_html }}
         {% endcall %}
         {% call accordion.item('documentos_item', 'Documentos de Referencia', accordion_id, estatus=cid_procedimiento.estatus) %}
-            {{ documentos }}
+            {{ cid_procedimiento.documentos_html }}
         {% endcall %}
         {% call accordion.item('definiciones_item', 'Definiciones', accordion_id, estatus=cid_procedimiento.estatus) %}
-            {{ definiciones }}
+            {{ cid_procedimiento.definiciones_html }}
         {% endcall %}
         {% call accordion.item('responsabilidades_item', 'Responsabilidades', accordion_id, estatus=cid_procedimiento.estatus) %}
-            {{ responsabilidades }}
+            {{ cid_procedimiento.responsabilidades_html }}
         {% endcall %}
         {% call accordion.item('desarrollo_item', 'Desarrollo', accordion_id, estatus=cid_procedimiento.estatus) %}
-            {{ desarrollo }}
+            {{ cid_procedimiento.desarrollo_html }}
         {% endcall %}
          <!-- Registros -->
         {% call accordion.item('registro_item', 'Registros', accordion_id, estatus=cid_procedimiento.estatus) %}
@@ -126,7 +126,6 @@
                         <th>Años de retención</th>
                     </thead>
                     <tbody>
-
                     </tbody>
                 </table>
         {% endcall %}
@@ -139,7 +138,6 @@
                     <th>Fecha</th>
                 </thead>
                 <tbody>
-
                 </tbody>
             </table>
         {% endcall %}
@@ -221,7 +219,6 @@
     <!-- Datatables -->
     <script src="/static/js/datatables-constructor.js"></script>
     <script src="/static/js/datatables-filtros.js"></script>
-    <!-- formatos -->
     {% if current_user.can_view('CID FORMATOS') %}
         <script>
             // DataTable CID Formatos
@@ -264,7 +261,6 @@
                 });
                 Arrayfinal.push(tempArr);
             });
-
             $("#registro_dataTable1_detail").DataTable({
                 data:Arrayfinal
             });
@@ -282,7 +278,6 @@
                 });
                 Arrayfinal.push(tempArr);
             });
-
             $("#control_dataTable1_detail").DataTable({
                 data:Arrayfinal
             });

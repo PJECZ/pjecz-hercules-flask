@@ -12,6 +12,7 @@ function guardar_encabezado() {
 function guardar_objetivo() {
   objetivo = JSON.stringify(objetivoQuill.getContents());
   $("#objetivo").val(objetivo);
+  $("#objetivo_html").val(objetivoQuill.root.innerHTML);
 }
 
 // Llenar Objetivo
@@ -23,6 +24,7 @@ function llenar_objetivo(contenido) {
 function guardar_alcance() {
   alcance = JSON.stringify(alcanceQuill.getContents());
   $("#alcance").val(alcance);
+  $("#alcance_html").val(alcanceQuill.root.innerHTML);
 }
 
 // Llenar Alcance
@@ -34,6 +36,7 @@ function llenar_alcance(contenido) {
 function guardar_documentos() {
   documentos = JSON.stringify(documentosQuill.getContents());
   $("#documentos").val(documentos);
+  $("#documentos_html").val(documentosQuill.root.innerHTML);
 }
 
 // Llenar Documentos
@@ -45,6 +48,7 @@ function llenar_documentos(contenido) {
 function guardar_definiciones() {
   definiciones = JSON.stringify(definicionesQuill.getContents());
   $("#definiciones").val(definiciones);
+  $("#definiciones_html").val(definicionesQuill.root.innerHTML);
 }
 
 // Llenar Definiciones
@@ -56,6 +60,7 @@ function llenar_definiciones(contenido) {
 function guardar_responsabilidades() {
   responsabilidades = JSON.stringify(responsabilidadesQuill.getContents());
   $("#responsabilidades").val(responsabilidades);
+  $("#responsabilidades_html").val(responsabilidadesQuill.root.innerHTML);
 }
 
 // Llenar Responsabilidades
@@ -67,6 +72,7 @@ function llenar_responsabilidades(contenido) {
 function guardar_desarrollo() {
   desarrollo = JSON.stringify(desarrolloQuill.getContents());
   $("#desarrollo").val(desarrollo);
+  $("#desarrollo_html").val(desarrolloQuill.root.innerHTML);
 }
 
 // Llenar Desarrollo

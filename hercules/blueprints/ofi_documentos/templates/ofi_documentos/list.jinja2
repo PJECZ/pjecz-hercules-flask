@@ -11,6 +11,9 @@
             {{ topbar.button('Mis Oficios', url_for('ofi_documentos.list_active_mis_oficios'), "mdi:file-document-edit-outline") }}
             {{ topbar.button('Mi Autoridad', url_for('ofi_documentos.list_active_mi_autoridad'), "mdi:scale-balance") }}
         {% endif %}
+        {% if current_user.can_admin('OFI DOCUMENTOS') %}
+            {{ topbar.button('Administrar', url_for('ofi_documentos.list_active_admin'), "mdi:folder") }}
+        {% endif %}
         {% if current_user.can_admin('OFI PLANTILLAS') %}
             {{ topbar.button('Plantillas', url_for('ofi_plantillas.list_active'), "mdi:note-multiple") }}
         {% endif %}
@@ -93,21 +96,21 @@
                 targets: 0, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
-                    let detail_icon = "mdi:table";
                     let fullscreen_icon = "mdi:computer";
+                    let detail_icon = "mdi:table";``
                     let style = "";
                     if (data.icono == "ARCHIVADO") {
-                        detail_icon = "mdi:archive";
+                        fullscreen_icon = "mdi:computer";
                         detail_icon = "mdi:archive";
                         style = "style='color: #808080;'";
                     } else if (data.icono == "CANCELADO") {
+                        fullscreen_icon = "mdi:computer";
                         detail_icon = "mdi:cancel";
-                        fullscreen_icon = "mdi:cancel";
                         style = "style='color: #404040;'";
                     }
-                    // Fullscreen
+                    // Fullscreen icon
                     let html = '<a class="btn btn-outline-primary btn-sm" href="' + data.fullscreen_url + '"><span class="iconify" data-icon="' + fullscreen_icon + '" ' + style + ' title="Pantalla Completa"></span></a>';
-                    // Detalle
+                    // Detail icon
                     if (data.sign_url) {
                         detail_icon = "mdi:file-sign";
                         html += ' <a class="btn btn-outline-success btn-sm" href="' + data.sign_url + '"><span class="iconify" data-icon="' + detail_icon + '" ' + style + ' title="Firmar"></span></a>';
@@ -139,8 +142,8 @@
                 targets: 4, // descripcion
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data.length > 48)
-                        return '<span title="' + data + '">' + data.substring(0, 48) + '…</span>';
+                    if (data.length > 64)
+                        return '<span title="' + data + '">' + data.substring(0, 64) + '…</span>';
                     return data;
                 }
             },
@@ -163,8 +166,6 @@
         configDataTable['rowCallback'] = function( row, data )  {
             if (data.detalle.icono == "ARCHIVADO") {
                 $(row).css("background-color", darkenColor(data.autoridad.color_renglon, 0.2));
-                // $(row).css("color", "#6c757d");
-                // $(row).find('a').css('color', '#6c757d');
             } else if (data.detalle.icono == "CANCELADO") {
                 $(row).css("background-color", "#C0C0C0");
                 $(row).css("color", "#808080");

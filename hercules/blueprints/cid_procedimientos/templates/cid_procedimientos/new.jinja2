@@ -40,7 +40,6 @@
     {{ add_data.modal_edit() }}
     {{ add_data.modal_edit_cambio() }}
     {% call f.card() %}
-        <div><form></form></div>
         <div class="multisteps-form">
             <!-- Steps Progress Bar -->
             <div class="row">
@@ -125,7 +124,6 @@
                                                     <th>Años de retención</th>
                                                 </thead>
                                                 <tbody>
-
                                                 </tbody>
                                             </table>
                                         </div>
@@ -156,7 +154,6 @@
                                                     <th>Fecha</th>
                                                 </thead>
                                                 <tbody>
-
                                                 </tbody>
                                             </table>
                                         </div>
@@ -223,18 +220,18 @@
 {% block custom_javascript %}
     <!-- Quill -->
     {{ quill.library() }}
-    {{ quill.editor(instance='objetivoQuill', div_id='objetivo_quill') }}
-    {{ quill.editor(instance='alcanceQuill', div_id='alcance_quill') }}
-    {{ quill.editor(instance='documentosQuill', div_id='documentos_quill') }}
-    {{ quill.editor(instance='definicionesQuill', div_id='definiciones_quill') }}
-    {{ quill.editor(instance='responsabilidadesQuill', div_id='responsabilidades_quill') }}
-    {{ quill.editor(instance='desarrolloQuill', div_id='desarrollo_quill') }}
+    {{ quill.editor(instance='objetivoQuill', div_id='objetivo_quill', hidden_id='objetivo') }}
+    {{ quill.editor(instance='alcanceQuill', div_id='alcance_quill', hidden_id='alcance') }}
+    {{ quill.editor(instance='documentosQuill', div_id='documentos_quill', hidden_id='documentos') }}
+    {{ quill.editor(instance='definicionesQuill', div_id='definiciones_quill', hidden_id='definiciones') }}
+    {{ quill.editor(instance='responsabilidadesQuill', div_id='responsabilidades_quill', hidden_id='responsabilidades') }}
+    {{ quill.editor(instance='desarrolloQuill', div_id='desarrollo_quill', hidden_id='desarrollo') }}
     <script type="text/javascript" src="{{ url_for('static', filename='js/cid_procedimientos.js') }}"></script>
     <!-- Select2 bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!-- Comieza script para agregar datos a DataTables de Registros -->
     <script>
-      $(document).ready(function() {
+        $(document).ready(function() {
             var tabla = $('#registro_dataTable1').DataTable();
             $("#btn_add_reg").click(function(){
                 if($("#registro_codigo").val() === "" || $("#registro_nombre").val() === "" || $("#registro_responsable").val() === "" || $("#registro_retencion").val() === ""){
@@ -247,7 +244,6 @@
                     var nombre = $("#registro_nombre").val().toUpperCase();
                     var responsable = $("#registro_responsable").val().toUpperCase();
                     var retencion = $("#registro_retencion").val();
-
                     tabla.row.add(
                         [
                             codigo,
@@ -256,17 +252,13 @@
                             retencion
                         ]
                     ).draw(false);
-
-
                     $("#registro_codigo").val("");
                     $("#registro_nombre").val("");
                     $("#registro_responsable").val("");
                     $("#registro_retencion").val("");
-
                     $("#registro_codigo").focus();
                 }
             });
-
             $('#registro_dataTable1 tbody').on( 'click', 'tr', function () {
                 if ( $(this).hasClass('tActive') ) {
                     $(this).removeClass('tActive');
@@ -276,11 +268,9 @@
                     $(this).addClass('tActive');
                 }
             } );
-
             $('#btn_del_reg').click( function () {
                 tabla.row('.tActive').remove().draw(false);
             } );
-
             $('#btn_edit_reg').click( function() {
                 let datos = tabla.row('.tActive').data();
                 $("#e_registro_codigo").val(datos[0]);
@@ -288,23 +278,20 @@
                 $("#e_registro_responsable").val(datos[2]);
                 $("#e_registro_retencion").val(datos[3]);
             });
-
             $("#e_updt_btn").click( function() {
-
                 let newArr = [
                     $("#e_registro_codigo").val().toUpperCase(),
                     $("#e_registro_nombre").val().toUpperCase(),
                     $("#e_registro_responsable").val().toUpperCase(),
                     $("#e_registro_retencion").val()
                 ];
-
                 tabla.row('.tActive').data(newArr);
             });
         });
     </script>
-     <!-- Comieza script para agregar datos a DataTables de Control de Cambios -->
+    <!-- Comieza script para agregar datos a DataTables de Control de Cambios -->
     <script>
-      $(document).ready(function() {
+        $(document).ready(function() {
             let tabla_control = $('#cambio_dataTable1').DataTable();
             $("#btn_add_cam").click(function(){
                 if($("#control_revision").val() === "" || $("#control_cambio").val() === "" || $("#control_solicitud").val() === "" || $("#control_fecha").val() === ""){
@@ -317,7 +304,6 @@
                     let cambio = $("#control_cambio").val().toUpperCase();
                     let solicitud = $("#control_solicitud").val();
                     let fecha = $("#control_fecha").val();
-
                     tabla_control.row.add(
                         [
                             revision,
@@ -326,16 +312,13 @@
                             fecha
                         ]
                     ).draw(false);
-
                     $("#control_revision").val("");
                     $("#control_cambio").val("");
                     $("#control_solicitud").val("");
                     $("#control_fecha").val("");
-
                     $("#control_revision").focus();
                 }
             });
-
             $('#cambio_dataTable1 tbody').on( 'click', 'tr', function () {
                 if ( $(this).hasClass('tActive') ) {
                     $(this).removeClass('tActive');
@@ -345,41 +328,33 @@
                     $(this).addClass('tActive');
                 }
             } );
-
             $('#btn_del_cam').click( function () {
                 tabla_control.row('.tActive').remove().draw(false);
             } );
-
             $('#btn_edit_cam').click( function() {
                 let rowSelected = tabla_control.row('.tActive'); // Selecciona la fila activa
                 let rowIndex = rowSelected.index(); // Obtiene el indice de la fila seleccionada
                 let datosCambio = rowSelected.data(); // Obtener datos
                 console.log(datosCambio)
-
                 // Verificar si hay una fila seleccionada
                 if(rowIndex === undefined || !datosCambio){
                     alert("Por favor, selecciona una fila antes de editar.");
                     return;
                 }
-
                 $("#e_control_revision").val(datosCambio[0]);
                 $("#e_control_cambio").val(datosCambio[1]);
                 $("#e_control_solicitud").val(datosCambio[2]);
                 $("#e_control_fecha").val(datosCambio[3]);
-
                 // abrir el modal manualmente
                 $("#edit_cambio_modal").modal('show');
             });
-
             $("#e_updt_control_btn").click( function() {
-
                 let newArr = [
                     $("#e_control_revision").val(),
                     $("#e_control_cambio").val().toUpperCase(),
                     $("#e_control_solicitud").val(),
                     $("#e_control_fecha").val()
                 ];
-
                 tabla_control.row('.tActive').data(newArr);
             });
         });
@@ -400,6 +375,7 @@
             //$('#vista_previa').val(vacio);
         });
     </script>
+    <!-- Elaboro, reviso y aprobo -->
     <script>
         $(document).ready(function(){
             // Agregar clases a los select
@@ -409,8 +385,7 @@
             $("#elaboro_email").prop("selectedIndex", -1); // Poner en blanco el select
             $("#reviso_email").prop("selectedIndex", -1); // Poner en blanco el select
             $("#aprobo_email").prop("selectedIndex", -1); // Poner en blanco el select
-
-            //Ajax para que al escribir desde 4 caracteres se filtren las opciones en los selects
+            // Ajax para que al escribir desde 4 caracteres se filtren las opciones en los selects
             $(".js-data-example-ajax").select2({
                 // --- Carga de emails por Ajax --- //
                 ajax: {
@@ -427,8 +402,7 @@
                 minimumInputLength: 4,
                 allowClear: true
             });
-
-            //Ajax para que al escribir desde 4 caracteres se filtren las opciones en los selects
+            // Ajax para que al escribir desde 4 caracteres se filtren las opciones en los selects
             $(".js-reviso-autorizo-data-ajax").select2({
                 //--- Carga de emails por Ajax --- //
                 placeholder:"Correo electrónico quien revisa ó autoriza",
@@ -447,7 +421,7 @@
             });
         });
     </script>
-    <!-- En este script se crean los popovers con la información de cada paso en el procedimiento -->
+    <!-- Crear los popovers con la información de cada paso -->
     <script>
         $(document).ready(function(){
             var popover = new bootstrap.Popover(document.querySelector('.popover-objetivo'), {
@@ -470,7 +444,6 @@
                 title: 'Definiciones',
                 content: 'Palabras o términos que son utilizados como parte del “lenguaje técnico” o interpretaciones apegadas a lo establecido a la norma de referencia.'
             });
-
             var popover = new bootstrap.Popover(document.querySelector('.popover-respon'), {
                 trigger: 'hover',
                 title: 'Responsabilidades',
