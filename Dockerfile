@@ -31,4 +31,4 @@ COPY . ./
 # Set desired Gunicorn worker count (adjust based on Cloud Run CPU/Memory and expected load)
 # Cloud Run v2 usually provides at least 1 CPU, v1 might share, start with 1 or 2
 # Timeout is set to 0 to disable the timeouts of the workers to allow Cloud Run to handle instance scaling
-CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 hercules.app:gunicorn_app
+CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 appserver:gunicorn_app
