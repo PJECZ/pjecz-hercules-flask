@@ -17,7 +17,6 @@ from typing import Tuple
 import pdfkit
 import pytz
 import sendgrid
-# from delta import html
 from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader
 from openpyxl import Workbook
@@ -107,14 +106,13 @@ def crear_pdf(cid_procedimiento_id: int, usuario_id: int = None, accept_reject_u
         elaboro_firma = procedimiento_elaboro.firma
         autorizo_firma = cid_procedimiento.elaborar_firma()
 
-    # Renderizar HTML con el apoyo de
-    # - Jinja2 https://palletsprojects.com/p/jinja/
-    # - Quill Delta https://pypi.org/project/quill-delta/
+    # Renderizar HTML con el apoyo de Jinja2 https://palletsprojects.com/p/jinja/
     entorno = Environment(
         loader=FileSystemLoader(TEMPLATES_DIR),
         trim_blocks=True,
         lstrip_blocks=True,
     )
+
     # Renderizar Header
     pdf_header_plantilla = entorno.get_template("pdf_header.html")
     pdf_header_html = pdf_header_plantilla.render(
@@ -123,6 +121,7 @@ def crear_pdf(cid_procedimiento_id: int, usuario_id: int = None, accept_reject_u
         revision=str(cid_procedimiento.revision),
         fecha=cid_procedimiento.fecha.strftime("%d %b %Y"),
     )
+
     # Renderizar Footer
     pdf_footer_plantilla = entorno.get_template("pdf_footer.html")
     pdf_footer_html = pdf_footer_plantilla.render(
@@ -130,6 +129,7 @@ def crear_pdf(cid_procedimiento_id: int, usuario_id: int = None, accept_reject_u
         revision=str(cid_procedimiento.revision),
         fecha=cid_procedimiento.fecha.strftime("%d %b %Y"),
     )
+
     # Ciclo de conversion de JSON para colocar tabla en PDF Registros
     tabla_registros = json.dumps(cid_procedimiento.registros)
     renglones_json = json.loads(tabla_registros)
@@ -153,12 +153,12 @@ def crear_pdf(cid_procedimiento_id: int, usuario_id: int = None, accept_reject_u
     # Renderizar Body
     pdf_body_plantilla = entorno.get_template("pdf_body.html")
     pdf_body_html = pdf_body_plantilla.render(
-        objetivo=html.render(cid_procedimiento.objetivo["ops"]),
-        alcance=html.render(cid_procedimiento.alcance["ops"]),
-        documentos=html.render(cid_procedimiento.documentos["ops"]),
-        definiciones=html.render(cid_procedimiento.definiciones["ops"]),
-        responsabilidades=html.render(cid_procedimiento.responsabilidades["ops"]),
-        desarrollo=html.render(cid_procedimiento.desarrollo["ops"]),
+        objetivo=cid_procedimiento.objetivo_html,
+        alcance=cid_procedimiento.alcance_html,
+        documentos=cid_procedimiento.documentos_html,
+        definiciones=cid_procedimiento.definiciones_html,
+        responsabilidades=cid_procedimiento.responsabilidades_html,
+        desarrollo=cid_procedimiento.desarrollo_html,
         registros=tabla_renglon,
         control_cambios=tabla_cambio_renglon,
         elaboro_nombre=cid_procedimiento.elaboro_nombre,
