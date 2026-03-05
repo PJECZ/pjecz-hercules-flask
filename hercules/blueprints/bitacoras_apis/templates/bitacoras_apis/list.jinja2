@@ -48,7 +48,8 @@
                     <th>API</th>
                     <th>Ruta</th>
                     <th>Petición</th>
-                    <th>Mensaje</th>
+                    <th>R. Mensaje</th>
+                    <th>R. Datos</th>
                 </tr>
             </thead>
         </table>
@@ -71,7 +72,8 @@
             { data: "api_nombre" },
             { data: "api_ruta" },
             { data: "peticion" },
-            { data: "respuesta_mensaje" }
+            { data: "respuesta_mensaje" },
+            { data: "respuesta_datos" }
         ];
         configDTBitacorasApis['columnDefs'] = [
             {
@@ -85,17 +87,36 @@
                 targets: 1, // usuario
                 data: null,
                 render: function(data, type, row, meta) {
-                    return '<a href="' + data.url + '">' + data.email + '</a>';
+                    if (data.email.length > 24) {
+                        texto = '<span title="' + data.email + '">' + data.email.substr(0, 24) + '…' + '</span>';
+                    } else {
+                        texto = data.email;
+                    }
+                    return '<a href="' + data.url + '">' + texto + '</a>';
                 }
             },
             {
                 targets: 5, // respuesta_mensaje
                 data: null,
                 render: function(data, type, row, meta) {
-                    if (data.data.length > 24) {
-                        return '<span title="' + data.data + '">' + data.data.substring(0, 24) + '…</span>';
+                    if (data.length > 24) {
+                        texto = data.substr(0, 24) + '…';
+                    } else {
+                        texto = data;
                     }
-                    return data.data;
+                    return '<span title="' + data + '">' + texto + '</a>';
+                }
+            },
+            {
+                targets: 6, // respuesta_datos
+                data: null,
+                render: function(data, type, row, meta) {
+                    let jsonString = JSON.stringify(data);
+                    if (jsonString.length > 24) {
+                        return '<span title="' + jsonString + '">' + jsonString.substr(0, 24) + '…' + '</span>';
+                    } else {
+                        return jsonString;
+                    }
                 }
             }
         ];
