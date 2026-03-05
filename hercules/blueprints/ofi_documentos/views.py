@@ -62,6 +62,7 @@ SAFE_STYLES_REGEXP = [
     r"margin:0 auto;",
     r"text-align:center;",
     r"text-align:left;",
+    r"text-align:justify;",
     r"text-align:right;",
     r"vertical-align:bottom;",
     r"vertical-align:center;",
