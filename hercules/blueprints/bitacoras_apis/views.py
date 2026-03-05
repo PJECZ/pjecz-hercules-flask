@@ -64,6 +64,7 @@ def datatable_json():
                 "api_ruta": resultado.api_ruta,
                 "peticion": resultado.peticion,
                 "respuesta_mensaje": resultado.respuesta_mensaje if resultado.respuesta_mensaje else "",
+                "respuesta_datos": resultado.respuesta_datos if resultado.respuesta_datos else {},
             }
         )
     # Entregar JSON
