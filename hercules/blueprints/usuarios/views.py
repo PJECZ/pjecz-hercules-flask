@@ -182,6 +182,7 @@ def datatable_json():
                     "email": resultado.email,
                     "url": url_for("usuarios.detail", usuario_id=resultado.id),
                 },
+                "titulo": resultado.titulo,
                 "nombre": resultado.nombre,
                 "curp": resultado.curp,
                 "puesto": resultado.puesto,
@@ -366,6 +367,7 @@ def new():
                 apellido_materno=safe_string(form.apellido_materno.data, save_enie=True),
                 curp=safe_string(form.curp.data),
                 puesto=safe_string(form.puesto.data),
+                titulo=safe_string(form.titulo.data, max_len=30),
                 workspace=form.workspace.data,
                 efirma_registro_id=form.efirma_registro_id.data,
                 api_key="",
@@ -428,6 +430,7 @@ def edit(usuario_id):
             usuario.apellido_materno = safe_string(form.apellido_materno.data, save_enie=True)
             usuario.curp = safe_string(form.curp.data)
             usuario.puesto = safe_string(form.puesto.data)
+            usuario.titulo = safe_string(form.titulo.data, max_len=30)
             usuario.workspace = form.workspace.data
             usuario.efirma_registro_id = form.efirma_registro_id.data
             usuario.save()
@@ -448,6 +451,7 @@ def edit(usuario_id):
     form.apellido_materno.data = usuario.apellido_materno
     form.curp.data = usuario.curp
     form.puesto.data = usuario.puesto
+    form.titulo.data = usuario.titulo
     form.workspace.data = usuario.workspace
     form.efirma_registro_id.data = usuario.efirma_registro_id
     return render_template("usuarios/edit.jinja2", form=form, usuario=usuario)

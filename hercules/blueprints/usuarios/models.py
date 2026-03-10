@@ -46,6 +46,7 @@ class Usuario(database.Model, UserMixin, UniversalMixin):
     apellido_materno: Mapped[str] = mapped_column(String(256))
     curp: Mapped[str] = mapped_column(String(18), default="")
     puesto: Mapped[str] = mapped_column(String(256), default="")
+    titulo: Mapped[Optional[str]] = mapped_column(String(32))
     workspace: Mapped[str] = mapped_column(Enum(*WORKSPACES, name="usuarios_workspaces", native_enum=False), index=True)
 
     # Columnas para el motor de firma electrónica
@@ -94,7 +95,10 @@ class Usuario(database.Model, UserMixin, UniversalMixin):
     @property
     def nombre(self):
         """Junta nombres, apellido primero y apellido segundo"""
-        return self.nombres + " " + self.apellido_paterno + " " + self.apellido_materno
+        nombre_completo = f"{self.nombres} {self.apellido_paterno} {self.apellido_materno}"
+        if self.titulo:
+            return f"{self.titulo} {nombre_completo}"
+        return nombre_completo
 
     @property
     def modulos_menu_principal(self):
