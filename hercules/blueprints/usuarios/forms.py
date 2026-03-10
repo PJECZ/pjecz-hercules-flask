@@ -38,6 +38,7 @@ class UsuarioForm(FlaskForm):
     apellido_materno = StringField("Apellido segundo", validators=[Optional(), Length(max=256)])
     curp = StringField("CURP habilita recibos de nómina", validators=[Optional(), Length(max=256)])
     puesto = StringField("Puesto", validators=[Optional(), Length(max=256)])
+    titulo = StringField("Título", validators=[Optional(), Length(max=32)])
     workspace = SelectField("Workspace", choices=Usuario.WORKSPACES.items(), validators=[DataRequired()])
     efirma_registro_id = IntegerField("ID eFirma habilita firma electrónica", validators=[Optional()])
     guardar = SubmitField("Guardar")
