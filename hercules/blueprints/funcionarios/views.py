@@ -9,13 +9,13 @@ from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.centros_trabajos.models import CentroTrabajo
-from hercules.blueprints.funcionarios.forms import FuncionarioAdminForm, FuncionarioDomicilioForm, FuncionarioEditForm
+from hercules.blueprints.funcionarios.forms import FuncionarioAdminForm
 from hercules.blueprints.funcionarios.models import Funcionario
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from lib.datatables import get_datatable_parameters, output_datatable_json
-from lib.safe_string import safe_curp, safe_email, safe_message, safe_string
+from lib.safe_string import safe_email, safe_message, safe_string
 
 MODULO = "FUNCIONARIOS"
 
@@ -63,13 +63,13 @@ def datatable_json():
         if puesto != "":
             consulta = consulta.filter(Funcionario.puesto.contains(puesto))
     if "en_funciones" in request.form and request.form["en_funciones"] == "true":
-        consulta = consulta.filter(Funcionario.en_funciones is True)
+        consulta = consulta.filter(Funcionario.en_funciones == True)
     if "en_sentencias" in request.form and request.form["en_sentencias"] == "true":
-        consulta = consulta.filter(Funcionario.en_sentencias is True)
+        consulta = consulta.filter(Funcionario.en_sentencias == True)
     if "en_soportes" in request.form and request.form["en_soportes"] == "true":
-        consulta = consulta.filter(Funcionario.en_soportes is True)
+        consulta = consulta.filter(Funcionario.en_soportes == True)
     if "en_tesis_jurisprudencias" in request.form and request.form["en_tesis_jurisprudencias"] == "true":
-        consulta = consulta.filter(Funcionario.en_tesis_jurisprudencias is True)
+        consulta = consulta.filter(Funcionario.en_tesis_jurisprudencias == True)
     # Ordenar y paginar
     registros = consulta.order_by(Funcionario.email).offset(start).limit(rows_per_page).all()
     total = consulta.count()
@@ -326,57 +326,3 @@ def recover(funcionario_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(url_for("funcionarios.detail", funcionario_id=funcionario.id))
-
-
-@funcionarios.route("/funcionarios/limpiar_oficinas/<int:funcionario_id>")
-@permission_required(MODULO, Permiso.ADMINISTRAR)
-def clean(funcionario_id):
-    """Limpiar funcionarios_oficinas"""
-    # Validar el funcionario
-    funcionario = Funcionario.query.get_or_404(funcionario_id)
-    # Salir si hay una tarea en el fondo
-    if current_user.get_task_in_progress("funcionarios.tasks.limpiar_oficinas"):
-        flash("Debe esperar porque hay una tarea en el fondo sin terminar.", "warning")
-    else:
-        # Lanzar tarea en el fondo
-        current_user.launch_task(
-            comando="funcionarios.tasks.limpiar_oficinas",
-            mensaje=f"Limpiar oficinas del funcionario {funcionario.curp}",
-            funcionario_id=funcionario.id,
-        )
-        flash("Se están limpiando las oficinas de este funcionario.. Esta página se va a recargar en 30 segundos...", "info")
-    # Mostrar detalle del funcionario
-    return redirect(url_for("funcionarios.detail", funcionario_id=funcionario.id))
-
-
-@funcionarios.route("/funcionarios/asignar_oficinas/<int:funcionario_id>", methods=["GET", "POST"])
-@permission_required(MODULO, Permiso.ADMINISTRAR)
-def insert_offices(funcionario_id):
-    """Asignar funcionarios_oficinas a partir de una direccion"""
-    # Validar el funcionario
-    funcionario = Funcionario.query.get_or_404(funcionario_id)
-
-    # Verificar si hay una tarea en progreso con el mismo nombre
-    task_name = "funcionarios.tasks.asignar_oficina"
-
-    # Salir si hay una tarea en el fondo
-    if current_user.get_task_in_progress(task_name):
-        flash("Debe esperar porque hay una tarea en el fondo sin terminar.", "warning")
-        return redirect(url_for("funcionarios.detail", funcionario_id=funcionario.id))
-    # Si viene el formulario con el domicilio
-    form = FuncionarioDomicilioForm()
-    if form.validate_on_submit():
-        # Lanzar tarea en el fondo
-        current_user.launch_task(
-            comando="funcionarios.tasks.asignar_oficinas",
-            mensaje=f"Asignar oficinas para el funcionario {funcionario.curp}",
-            funcionario_id=funcionario.id,
-            domicilio_id=form.domicilio.data,
-        )
-        flash("Se están asignando las oficinas para este funcionario. Esta página se va a recargar en 30 segundos...", "info")
-        return redirect(url_for("funcionarios.detail", funcionario_id=funcionario.id))
-    # Mostrar el formulario para solicitar el domicilio
-    form.funcionario_nombre.data = funcionario.nombre  # Read only
-    form.funcionario_puesto.data = funcionario.puesto  # Read only
-    form.funcionario_email.data = funcionario.email  # Read only
-    return render_template("funcionarios/insert_offices.jinja2", form=form, funcionario=funcionario)

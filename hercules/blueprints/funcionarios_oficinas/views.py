@@ -9,7 +9,7 @@ from flask_login import current_user, login_required
 
 from hercules.blueprints.bitacoras.models import Bitacora
 from hercules.blueprints.funcionarios.models import Funcionario
-from hercules.blueprints.funcionarios_oficinas.forms import FuncionarioOficinaForm
+from hercules.blueprints.funcionarios_oficinas.forms import FuncionarioOficinaForm, FuncionarioOficinaWithDomicilioForm
 from hercules.blueprints.funcionarios_oficinas.models import FuncionarioOficina
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.oficinas.models import Oficina
@@ -143,16 +143,24 @@ def new_with_funcionario(funcionario_id):
         oficina = Oficina.query.get(oficina_id)
         if oficina is None:
             flash("Oficina no encontrada", "error")
-            return redirect(url_for("funcionarios_oficinas.new_with_funcionario", funcionario_id=funcionario_id))
+            return redirect(url_for("funcionarios.detail", funcionario_id=funcionario_id))
         descripcion = f"Funcionario {funcionario.curp} en {oficina.clave}"
-        if (
-            FuncionarioOficina.query.filter(FuncionarioOficina.funcionario == funcionario)
+        # Consultar si funcionario_oficina existe previamente
+        funcionario_oficina = (
+            FuncionarioOficina.query
+            .filter(FuncionarioOficina.funcionario == funcionario)
             .filter(FuncionarioOficina.oficina == oficina)
-            .first()
-            is not None
-        ):
-            flash(f"CONFLICTO: Ya existe {descripcion}. Si está eliminado puede recuperarlo.", "warning")
-            return redirect(url_for("funcionarios_oficinas.list_inactive"))
+            .first())
+        # Si ya existe el regitro
+        if funcionario_oficina:
+            # Si esta eliminado, recuperalo
+            if funcionario_oficina.estatus == "B":
+                funcionario_oficina.recover()
+                flash(f"Recuperado {descripcion}", "success")
+                return redirect(url_for("funcionarios.detail", funcionario_id=funcionario_id))
+            flash(f"Ya existe {descripcion}. Nada por hacer.", "warning")
+            return redirect(url_for("funcionarios.detail", funcionario_id=funcionario_id))
+        # Crear nuevo funcionario_oficina
         funcionario_oficina = FuncionarioOficina(
             funcionario=funcionario,
             oficina=oficina,
@@ -160,7 +168,7 @@ def new_with_funcionario(funcionario_id):
         )
         funcionario_oficina.save()
         flash(f"Nuevo {descripcion}", "success")
-        return redirect(url_for("funcionarios.detail", funcionario_id=funcionario.id))
+        return redirect(url_for("funcionarios.detail", funcionario_id=funcionario_id))
     form.funcionario.data = funcionario.nombre
     return render_template(
         "funcionarios_oficinas/new_with_funcionario.jinja2",
@@ -204,3 +212,79 @@ def recover(funcionario_oficina_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(url_for("funcionarios_oficinas.detail", funcionario_oficina_id=funcionario_oficina.id))
+
+
+@funcionarios_oficinas.route("/funcionarios_oficinas/limpiar_oficinas/<int:funcionario_id>")
+@permission_required(MODULO, Permiso.CREAR)
+def clean(funcionario_id):
+    """Limpiar funcionarios_oficinas"""
+    # Validar el funcionario
+    funcionario = Funcionario.query.get_or_404(funcionario_id)
+    # Actualizar todos los funcionarios_oficinas del funcionario_id
+    contador = 0
+    for funcionario_oficina in FuncionarioOficina.query.filter_by(funcionario_id=funcionario_id).all():
+        funcionario_oficina.delete()
+        contador += 1
+    if contador > 0:
+        flash(f"Se eliminaron {contador} oficinas del funcionario {funcionario.nombre}", "success")
+    else:
+        flash(f"No se encontraron oficinas para eliminar del funcionario {funcionario.nombre}", "info")
+    # Mostrar detalle del funcionario
+    return redirect(url_for("funcionarios.detail", funcionario_id=funcionario.id))
+
+
+@funcionarios_oficinas.route("/funcionarios_oficinas/nuevos_con_domicilio_con_funcionario/<int:funcionario_id>", methods=["GET", "POST"])
+@permission_required(MODULO, Permiso.CREAR)
+def news_with_domicilio_with_funcionario(funcionario_id):
+    """Asignar funcionarios_oficinas a partir de una direccion"""
+    # Validar el funcionario
+    funcionario = Funcionario.query.get_or_404(funcionario_id)
+
+    # Recibir el formulario
+    form = FuncionarioOficinaWithDomicilioForm()
+    if form.validate_on_submit():
+        # Consultar todas las oficinas del domicilio con estatus "A"
+        oficinas = Oficina.query.filter_by(domicilio_id=form.domicilio.data, estatus="A").all()
+        # Si no hay oficinas en ese domicilio, mostrar error y redirigir al detalle
+        if len(oficinas) == 0:
+            flash("No se encontraron oficinas para el domicilio seleccionado", "error")
+            return redirect(url_for("funcionarios.detail", funcionario_id=funcionario_id))
+        # Bucle por cada oficina
+        contador = 0
+        for oficina in oficinas:
+            # Averiguar si ya existe un funcionario_oficina
+            funcionario_oficina = (
+                FuncionarioOficina.query
+                .filter(FuncionarioOficina.funcionario == funcionario)
+                .filter(FuncionarioOficina.oficina == oficina)
+                .first()
+            )
+            # Si ya existe
+            if funcionario_oficina:
+                # Si esta eliminado, recuperarlo
+                if funcionario_oficina.estatus == "B":
+                    funcionario_oficina.recover()
+                    contador += 1
+            else:
+                # No existe, entonces vamos a crearlo
+                descripcion = f"Funcionario {funcionario.curp} en {oficina.clave}"
+                funcionario_oficina = FuncionarioOficina(
+                    funcionario=funcionario,
+                    oficina=oficina,
+                    descripcion=descripcion,
+                )
+                funcionario_oficina.save()
+                contador += 1
+        # Mostrar mensaje
+        if contador > 0:
+            flash(f"Se asignaron {contador} oficinas al funcionario {funcionario.nombre}", "success")
+        else:
+            flash(f"No se asignaron nuevas oficinas al funcionario {funcionario.nombre}", "warning")
+        # Redirigir al detalle del funcionario
+        return redirect(url_for("funcionarios.detail", funcionario_id=funcionario_id))
+
+    # Mostrar el formulario para solicitar el domicilio
+    form.funcionario_nombre.data = funcionario.nombre  # Read only
+    form.funcionario_puesto.data = funcionario.puesto  # Read only
+    form.funcionario_email.data = funcionario.email  # Read only
+    return render_template("funcionarios_oficinas/new_with_domicilio.jinja2", form=form, funcionario=funcionario)

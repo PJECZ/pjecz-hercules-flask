@@ -24,7 +24,7 @@
 {% block content %}
     {% call detail.card(estatus=funcionario.estatus) %}
         <div class="row">
-            <div class="col">
+            <div class="col-md-6">
                 {{ detail.label_value('Puesto', funcionario.puesto) }}
                 {% if current_user.can_view('CENTROS TRABAJOS') %}
                     {{ detail.label_value('Centro de Trabajo', funcionario.centro_trabajo.nombre, url_for('centros_trabajos.detail', centro_trabajo_id=funcionario.centro_trabajo_id)) }}
@@ -32,21 +32,21 @@
                     {{ detail.label_value('Centro de Trabajo', funcionario.centro_trabajo.nombre) }}
                 {% endif %}
                 {{ detail.label_value('e-mail', funcionario.email) }}
-                {{ detail.label_value_big('Teléfono', funcionario.telefono) }}
-                {{ detail.label_value_big('Extensión', funcionario.extension) }}
+                {{ detail.label_value('Teléfono', funcionario.telefono) }}
+                {{ detail.label_value('Extensión', funcionario.extension) }}
             </div>
             {% if current_user.can_admin('FUNCIONARIOS') %}
-            <div class="col">
-                {{ detail.label_value('CURP', funcionario.curp) }}
-                {% if current_user.can_view('CENTROS TRABAJOS') %}
-                    {{ detail.label_value('Clave C. de T.', funcionario.centro_trabajo.clave, url_for('centros_trabajos.detail', centro_trabajo_id=funcionario.centro_trabajo_id)) }}
-                {% else %}
-                    {{ detail.label_value('Clave C. de T.', funcionario.centro_trabajo.clave) }}
-                {% endif %}
-                {{ detail.label_value('Clave del puesto', funcionario.puesto_clave) }}
-                {{ detail.label_value('Domicilio oficial', funcionario.domicilio_oficial) }}
-                {{ detail.label_value('Fecha de ingreso', funcionario.ingreso_fecha) }}
-            </div>
+                <div class="col-md-6">
+                    {{ detail.label_value('CURP', funcionario.curp) }}
+                    {% if current_user.can_view('CENTROS TRABAJOS') %}
+                        {{ detail.label_value('Clave C. de T.', funcionario.centro_trabajo.clave, url_for('centros_trabajos.detail', centro_trabajo_id=funcionario.centro_trabajo_id)) }}
+                    {% else %}
+                        {{ detail.label_value('Clave C. de T.', funcionario.centro_trabajo.clave) }}
+                    {% endif %}
+                    {{ detail.label_value('Clave del puesto', funcionario.puesto_clave) }}
+                    {{ detail.label_value('Domicilio oficial', funcionario.domicilio_oficial) }}
+                    {{ detail.label_value('Fecha de ingreso', funcionario.ingreso_fecha) }}
+                </div>
             {% endif %}
         </div>
     {% endcall %}
@@ -85,10 +85,7 @@
                     </tr>
                 </thead>
             </table>
-            {# {% if current_user.can_insert('AUTORIDADES FUNCIONARIOS') %}
-                <a href="{{ url_for('autoridades_funcionarios.new_with_funcionario', funcionario_id=funcionario.id) }}" class="btn btn-primary">Agregar</a>
-            {% endif %} #}
-            {% endcall %}
+        {% endcall %}
     {% endif %}
     {% if current_user.can_view('FUNCIONARIOS OFICINAS') and funcionario.en_soportes %}
         {% call detail.card('Funcionarios-Oficinas') %}
@@ -127,10 +124,8 @@
             </table>
             {% if current_user.can_insert('FUNCIONARIOS OFICINAS') %}
                 <a href="{{ url_for('funcionarios_oficinas.new_with_funcionario', funcionario_id=funcionario.id) }}" class="btn btn-primary">Agregar</a>
-            {% endif %}
-            {% if current_user.can_edit('FUNCIONARIOS OFICINAS') %}
-                <a href="{{ url_for('funcionarios.clean', funcionario_id=funcionario.id) }}" class="btn btn-primary">Limpiar</a>
-                <a href="{{ url_for('funcionarios.insert_offices', funcionario_id=funcionario.id) }}" class="btn btn-primary">Asignar domicilio</a>
+                <a href="{{ url_for('funcionarios_oficinas.news_with_domicilio_with_funcionario', funcionario_id=funcionario.id) }}" class="btn btn-primary">Asignar domicilio</a>
+                <a href="{{ url_for('funcionarios_oficinas.clean', funcionario_id=funcionario.id) }}" class="btn btn-warning">Limpiar</a>
             {% endif %}
         {% endcall %}
     {% endif %}

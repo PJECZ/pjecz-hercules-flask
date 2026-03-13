@@ -36,17 +36,17 @@
     <script>
         // DataTable Funcionarios Oficinas
         const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
-        let configDataTable = constructorDataTable.config();
-        configDataTable['ajax']['url'] = '/funcionarios_oficinas/datatable_json';
-        configDataTable['ajax']['data'] = {{ filtros }};
-        configDataTable['columns'] = [
+        let configDTFuncionariosOficinas = constructorDataTable.config();
+        configDTFuncionariosOficinas['ajax']['url'] = '/funcionarios_oficinas/datatable_json';
+        configDTFuncionariosOficinas['ajax']['data'] = {{ filtros }};
+        configDTFuncionariosOficinas['columns'] = [
             { data: 'detalle' },
             { data: 'funcionario' },
             { data: 'funcionario_nombre' },
             { data: 'oficina' },
             { data: 'oficina_descripcion_corta' }
         ];
-        configDataTable['columnDefs'] = [
+        configDTFuncionariosOficinas['columnDefs'] = [
             {
                 targets: 0, // detalle
                 data: null,
@@ -70,7 +70,7 @@
             },
         ];
         // Este DataTable NO tiene filtros
-        const filtrosFuncinariosOficinas = new FiltrosDataTable('#funcionarios_oficinas_datatable', configDataTable);
+        const filtrosFuncinariosOficinas = new FiltrosDataTable('#funcionarios_oficinas_datatable', configDTFuncionariosOficinas);
         filtrosFuncinariosOficinas.precargar();
     </script>
 {% endblock %}
