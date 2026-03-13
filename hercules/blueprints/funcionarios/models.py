@@ -47,7 +47,6 @@ class Funcionario(database.Model, UniversalMixin):
     autoridades_funcionarios: Mapped[List["AutoridadFuncionario"]] = relationship(back_populates="funcionario")
     funcionarios_oficinas: Mapped[List["FuncionarioOficina"]] = relationship(back_populates="funcionario")
     soportes_tickets: Mapped[List["SoporteTicket"]] = relationship(back_populates="funcionario")
-    # tesis_jurisprudencias: Mapped[List["TesisJurisprudenciaFuncionario"]] = relationship(back_populates="funcionario")
 
     @property
     def nombre(self):
