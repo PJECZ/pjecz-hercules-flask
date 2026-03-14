@@ -49,7 +49,7 @@ def alimentar_distritos():
                 estatus=estatus,
             ).save()
             contador += 1
-            click.echo(click.style(".", fg="green"), nl=False)
+
     click.echo()
     click.echo(click.style(f"  {contador} distritos alimentados.", fg="green"))
 
