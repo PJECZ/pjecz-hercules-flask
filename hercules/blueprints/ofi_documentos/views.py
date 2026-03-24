@@ -1029,6 +1029,22 @@ def sign(ofi_documento_id):
                 ofi_documento_id=str(ofi_documento.id),
             )
             descripcion = f"Oficio firmado con firma simple {ofi_documento.folio} {ofi_documento.descripcion}"
+        # Si tiene destinatarios
+        cantidad = 0
+        for ofi_destinatario in ofi_documento.ofi_documentos_destinatarios:
+            if ofi_destinatario.estatus == "A":
+                cantidad += 1
+        if cantidad > 0:
+            # Lanzar la tarea en el fondo para enviar mensajes por correo electrónico a los destinatarios por SendGrid
+            current_user.launch_task(
+                comando="ofi_documentos.tasks.lanzar_enviar_a_sendgrid",
+                mensaje="Enviado mensajes por correo electrónico a los destinatarios por SendGrid...",
+                ofi_documento_id=str(ofi_documento.id),
+            )
+            ofi_documento.estado = "ENVIADO"
+            ofi_documento.enviado_tiempo = datetime.now()
+            ofi_documento.save()
+            descripcion = f"{descripcion} y enviado a {cantidad} destinatarios"
         # Agregar registro a la bitácora
         bitacora = Bitacora(
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
