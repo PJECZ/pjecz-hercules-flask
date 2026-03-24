@@ -206,7 +206,7 @@ def delete(domicilio_id):
             modulo=Modulo.query.filter_by(nombre=MODULO).first(),
             usuario=current_user,
             descripcion=safe_message(f"Eliminado Domicilio {domicilio.edificio}"),
-            url=url_for("domicilios.detail", instance_id=domicilio.id),
+            url=url_for("domicilios.detail", domicilio_id=domicilio.id),
         )
         bitacora.save()
         flash(bitacora.descripcion, "success")
