@@ -215,12 +215,14 @@
         <!-- Botones de acción en estado ENVIADO -->
         {% if ofi_documento.estado == "ENVIADO" %}
             <div class="row">
-                <div class="col-md-2">
+                <div class="col-md-4">
                     {% if ofi_documento.archivo_pdf_url %}
                         {{ detail.button_md('Descargar PDF', url_for('ofi_documentos.download_file_pdf', ofi_documento_id=ofi_documento.id), 'mdi:download', "_blank", color_class='btn-success') }}
+                    {% else %}
+                        {{ detail.button_md_progress_bar('Descargar PDF', url_for('ofi_documentos.get_file_pdf_url_json', ofi_documento_id=ofi_documento.id)) }}
                     {% endif %}
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     {% if mostrar_boton_responder and platillas_opciones %}
                         <form class="row g-2" action="{{url_for('ofi_documentos.response', ofi_documento_id=ofi_documento.id)}}" method="GET">
                             <div class="col-auto">
