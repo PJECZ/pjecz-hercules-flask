@@ -1158,6 +1158,11 @@ def cancel(ofi_documento_id):
         return redirect(url_for("ofi_documentos.detail", ofi_documento_id=ofi_documento.id))
     # Actualizar esta_cancelado a verdadero
     ofi_documento.esta_cancelado = True
+    # Si el oficio tiene el estado BORRADOR, entonces se limpia el folio
+    if ofi_documento.estado == "BORRADOR":
+        ofi_documento.folio = None
+        ofi_documento.folio_anio = None
+        ofi_documento.folio_num = None
     ofi_documento.save()
     # Agregar registro a la bitácora
     bitacora = Bitacora(
