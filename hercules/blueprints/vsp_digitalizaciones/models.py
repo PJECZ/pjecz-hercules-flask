@@ -2,6 +2,7 @@
 VASPEC Digitalizaciones, modelos
 """
 
+from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import ForeignKey, String
@@ -22,7 +23,7 @@ class VspDigitalizacion(database.Model, UniversalMixin):
 
     # Clave foránea
     autoridad_id: Mapped[int] = mapped_column(ForeignKey("autoridades.id"))
-    autoridad: Mapped["Autoridad"] = relationship(back_populates="sentencias")
+    autoridad: Mapped["Autoridad"] = relationship(back_populates="vsp_digitalizaciones")
 
     # Columnas
     expediente: Mapped[str] = mapped_column(String(16))
@@ -30,8 +31,10 @@ class VspDigitalizacion(database.Model, UniversalMixin):
     expediente_num: Mapped[int]
     descripcion: Mapped[Optional[str]] = mapped_column(String(256))
     observaciones: Mapped[Optional[str]] = mapped_column(String(1024))
-    archivo: Mapped[str] = mapped_column(String(256), default="", server_default="")
-    url: Mapped[str] = mapped_column(String(512), default="", server_default="")
+    archivo: Mapped[str] = mapped_column(String(256))
+    url: Mapped[str] = mapped_column(String(512))
+    tamano: Mapped[Optional[int]]
+    tiempo: Mapped[Optional[datetime]]
 
     def __repr__(self):
         """Representación"""

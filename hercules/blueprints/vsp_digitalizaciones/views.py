@@ -37,6 +37,8 @@ def datatable_json():
     draw, start, rows_per_page = get_datatable_parameters()
     # Consultar
     consulta = VspDigitalizacion.query
+    # Hacer join con Autoridad
+    consulta = consulta.join(Autoridad)
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
         consulta = consulta.filter_by(estatus=request.form["estatus"])
@@ -62,9 +64,7 @@ def datatable_json():
             pass
     # Ordenar y paginar
     registros = (
-        consulta.order_by(
-            VspDigitalizacion.autoridad.clave, VspDigitalizacion.expediente_anio, VspDigitalizacion.expediente_num
-        )
+        consulta.order_by(Autoridad.clave, VspDigitalizacion.expediente_anio, VspDigitalizacion.expediente_num)
         .offset(start)
         .limit(rows_per_page)
         .all()
