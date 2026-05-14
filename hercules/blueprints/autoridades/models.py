@@ -7,6 +7,7 @@ from typing import List, Optional
 from sqlalchemy import Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from hercules.blueprints.vsp_digitalizaciones.models import VspDigitalizacion
 from hercules.extensions import database
 from lib.universal_mixin import UniversalMixin
 
@@ -105,10 +106,11 @@ class Autoridad(database.Model, UniversalMixin):
     exh_exhortos: Mapped[List["ExhExhorto"]] = relationship(back_populates="autoridad")
     glosas: Mapped[List["Glosa"]] = relationship(back_populates="autoridad")
     listas_de_acuerdos: Mapped[List["ListaDeAcuerdo"]] = relationship(back_populates="autoridad")
-    redam: Mapped[List["Redam"]] = relationship("Redam", back_populates="autoridad")
+    redam: Mapped[List["Redam"]] = relationship(back_populates="autoridad")
     sentencias: Mapped[List["Sentencia"]] = relationship(back_populates="autoridad")
     ubicaciones_expedientes: Mapped[List["UbicacionExpediente"]] = relationship(back_populates="autoridad")
-    usuarios: Mapped[List["Usuario"]] = relationship("Usuario", back_populates="autoridad")
+    usuarios: Mapped[List["Usuario"]] = relationship(back_populates="autoridad")
+    vsp_digitalizaciones: Mapped[List["VspDigitalizacion"]] = relationship(back_populates="autoridad")
 
     @property
     def nombre(self):
