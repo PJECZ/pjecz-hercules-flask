@@ -96,6 +96,7 @@ from hercules.blueprints.usuarios.models import Usuario
 from hercules.blueprints.usuarios.views import usuarios
 from hercules.blueprints.usuarios_nominas.views import usuarios_nominas
 from hercules.blueprints.usuarios_roles.views import usuarios_roles
+from hercules.blueprints.vsp_digitalizaciones.views import vsp_digitalizaciones
 from hercules.extensions import csrf, database, login_manager, moment
 
 
@@ -200,6 +201,7 @@ def create_app():
     app.register_blueprint(usuarios)
     app.register_blueprint(usuarios_nominas)
     app.register_blueprint(usuarios_roles)
+    app.register_blueprint(vsp_digitalizaciones)
 
     # Inicializar extensiones
     extensions(app)
