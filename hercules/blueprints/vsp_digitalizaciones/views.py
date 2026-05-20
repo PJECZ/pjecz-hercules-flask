@@ -51,7 +51,7 @@ def datatable_json():
     elif "autoridad_clave" in request.form:
         autoridad_clave = safe_clave(request.form["autoridad_clave"])
         if autoridad_clave != "":
-            consulta = consulta.join(Autoridad).filter(Autoridad.clave.contains(autoridad_clave))
+            consulta = consulta.filter(Autoridad.clave.contains(autoridad_clave))
     if "descripcion" in request.form:
         descripcion = safe_string(request.form["descripcion"], save_enie=True)
         if descripcion != "":

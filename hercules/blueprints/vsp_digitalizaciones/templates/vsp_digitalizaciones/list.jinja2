@@ -21,14 +21,14 @@
                 <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosVspDigitalizaciones.buscar(); return false;">
                     <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroExpediente" type="text" class="form-control" aria-label="Expediente" style="text-transform: uppercase;">
-                            <label for="filtroExpediente">Expediente</label>
+                            <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad clave" style="text-transform: uppercase;">
+                            <label for="filtroAutoridadClave">Autoridad clave</label>
                         </div>
                     </div>
                     <div class="col-2">
                         <div class="form-floating">
-                            <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad clave" style="text-transform: uppercase;">
-                            <label for="filtroAutoridadClave">Autoridad clave</label>
+                            <input id="filtroExpediente" type="text" class="form-control" aria-label="Expediente" style="text-transform: uppercase;">
+                            <label for="filtroExpediente">Expediente</label>
                         </div>
                     </div>
                     <div class="col-4">
@@ -48,8 +48,8 @@
         <table id="vsp_digitalizaciones_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
             <thead>
                 <tr>
-                    <th>Expediente</th>
                     <th>Autoridad</th>
+                    <th>Expediente</th>
                     <th>Descripción</th>
                     <th>Tamaño</th>
                     <th>Cuándo se cargó</th>
@@ -69,15 +69,15 @@
         configDataTable['ajax']['url'] = "{{ url_for('vsp_digitalizaciones.datatable_json') }}";
         configDataTable['ajax']['data'] = {{ filtros }};
         configDataTable['columns'] = [
-            { data: 'detalle' },
             { data: 'autoridad' },
+            { data: 'detalle' },
             { data: 'descripcion' },
             { data: 'tamano' },
             { data: 'tiempo' }
         ];
         configDataTable['columnDefs'] = [
             {
-                targets: 0, // detalle
+                targets: 1, // detalle
                 data: null,
                 render: function(data, type, row, meta) {
                     return '<a href="' + data.url + '">' + data.expediente + '</a>';
@@ -91,6 +91,21 @@
                       return '<span title="' + data + '">' + data.substring(0, 48) + '…</span>';
                     }
                     return data;
+                }
+            },
+            {
+                targets: 3, // tamano
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (data === null) {
+                        return 'N/A';
+                    }
+                    const sizeInKB = data / 1024;
+                    if (sizeInKB < 1024) {
+                        return sizeInKB.toFixed(2) + ' KB';
+                    }
+                    const sizeInMB = sizeInKB / 1024;
+                    return sizeInMB.toFixed(2) + ' MB';
                 }
             }
         ];
