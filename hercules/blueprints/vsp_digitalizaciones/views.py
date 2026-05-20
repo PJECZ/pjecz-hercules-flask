@@ -81,7 +81,8 @@ def datatable_json():
                     "url": url_for("vsp_digitalizaciones.detail", vsp_digitalizacion_id=resultado.id),
                 },
                 "descripcion": resultado.descripcion if len(resultado.descripcion) < 48 else resultado.descripcion[:48] + "…",
-                "creado": resultado.creado.strftime("%Y-%m-%dT%H:%M:%S"),
+                "tamano": resultado.tamano if resultado.tamano is not None else "",
+                "tiempo": resultado.tiempo.strftime("%Y-%m-%d %H:%M") if resultado.tiempo is not None else "",
             }
         )
     # Entregar JSON

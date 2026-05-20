@@ -1,64 +1,12 @@
 """
 Settings
-
-Para producción, configure los siguientes secretos en Google Cloud Secret Manager:
-
-- pjecz_hercules_flask_cloud_storage_deposito
-- pjecz_hercules_flask_cloud_storage_deposito_edictos
-- pjecz_hercules_flask_cloud_storage_deposito_exhortos
-- pjecz_hercules_flask_cloud_storage_deposito_glosas
-- pjecz_hercules_flask_cloud_storage_deposito_listas_de_acuerdos
-- pjecz_hercules_flask_cloud_storage_deposito_oficios
-- pjecz_hercules_flask_cloud_storage_deposito_perseo
-- pjecz_hercules_flask_cloud_storage_deposito_requisiciones
-- pjecz_hercules_flask_cloud_storage_deposito_sentencias
-- pjecz_hercules_flask_cloud_storage_deposito_vales_gasolina
-- pjecz_hercules_flask_estado_clave
-- pjecz_hercules_flask_expediente_virtual_api_key
-- pjecz_hercules_flask_expediente_virtual_api_url
-- pjecz_hercules_flask_fernet_key
-- pjecz_hercules_flask_host
-- pjecz_hercules_flask_municipio_clave
-- pjecz_hercules_flask_redis_url
-- pjecz_hercules_flask_salt
-- pjecz_hercules_flask_secret_key
-- pjecz_hercules_flask_sqlalchemy_database_uri
-- pjecz_hercules_flask_task_queue
-- pjecz_hercules_flask_tz
-- pjecz_hercules_flask_wtf_csrf_time_limit
-
-Para desarrollo, debe crear un archivo .env con las variables de entorno:
-
-- CLOUD_STORAGE_DEPOSITO
-- CLOUD_STORAGE_DEPOSITO_EDICTOS
-- CLOUD_STORAGE_DEPOSITO_EXHORTOS
-- CLOUD_STORAGE_DEPOSITO_GLOSAS
-- CLOUD_STORAGE_DEPOSITO_LISTAS_DE_ACUERDOS
-- CLOUD_STORAGE_DEPOSITO_OFICIOS
-- CLOUD_STORAGE_DEPOSITO_PERSEO
-- CLOUD_STORAGE_DEPOSITO_REQUISICIONES
-- CLOUD_STORAGE_DEPOSITO_SENTENCIAS
-- CLOUD_STORAGE_DEPOSITO_VALES_GASOLINA
-- ESTADO_CLAVE
-- EXPEDIENTE_VIRTUAL_API_KEY
-- EXPEDIENTE_VIRTUAL_API_URL
-- FERNET_KEY
-- HOST
-- MUNICIPIO_CLAVE
-- REDIS_URL
-- SALT
-- SECRET_KEY
-- SQLALCHEMY_DATABASE_URI
-- TASK_QUEUE
-- TZ
-- WTF_CSRF_TIME_LIMIT
 """
 
 import os
 from functools import lru_cache
 
-from dotenv import load_dotenv
 import google.auth
+from dotenv import load_dotenv
 from google.cloud import secretmanager
 from pydantic_settings import BaseSettings
 
@@ -121,7 +69,9 @@ class Settings(BaseSettings):
     CLOUD_STORAGE_DEPOSITO_PERSEO: str = get_secret("CLOUD_STORAGE_DEPOSITO_PERSEO")
     CLOUD_STORAGE_DEPOSITO_REQUISICIONES: str = get_secret("CLOUD_STORAGE_DEPOSITO_REQUISICIONES")
     CLOUD_STORAGE_DEPOSITO_SENTENCIAS: str = get_secret("CLOUD_STORAGE_DEPOSITO_SENTENCIAS")
+    CLOUD_STORAGE_DEPOSITO_USUARIOS: str = get_secret("CLOUD_STORAGE_DEPOSITO_USUARIOS")
     CLOUD_STORAGE_DEPOSITO_VALES_GASOLINA: str = get_secret("CLOUD_STORAGE_DEPOSITO_VALES_GASOLINA")
+    CLOUD_STORAGE_DEPOSITO_VSP_DIGITALIZACIONES: str = get_secret("CLOUD_STORAGE_DEPOSITO_VSP_DIGITALIZACIONES")
     ESTADO_CLAVE: str = get_secret("ESTADO_CLAVE", "05")
     EXPEDIENTE_VIRTUAL_API_KEY: str = get_secret("EXPEDIENTE_VIRTUAL_API_KEY")
     EXPEDIENTE_VIRTUAL_API_URL: str = get_secret("EXPEDIENTE_VIRTUAL_API_URL")
