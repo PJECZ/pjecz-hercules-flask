@@ -13,7 +13,7 @@ def set_task_progress(progress: int, message: str, archivo: str = "", url: str =
     if job:
         job.meta["progress"] = progress
         job.save_meta()
-        tarea = Tarea.query.get(job.get_id())
+        tarea = Tarea.query.get(job.id)
         if tarea:
             hay_cambios = False
             if archivo != "" and archivo != tarea.archivo:
@@ -41,7 +41,7 @@ def set_task_error(message: str) -> str:
     if job:
         job.meta["progress"] = 100
         job.save_meta()
-        tarea = Tarea.query.get(job.get_id())
+        tarea = Tarea.query.get(job.id)
         if tarea:
             tarea.ha_terminado = True
             tarea.mensaje = message
