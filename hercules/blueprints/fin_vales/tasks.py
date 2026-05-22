@@ -5,9 +5,9 @@ Financieros Vales, tareas en el fondo
 import json
 import logging
 import os
+import re
 from datetime import datetime
 
-import pytz
 import requests
 import sendgrid
 from dotenv import load_dotenv
@@ -233,10 +233,10 @@ def solicitar(fin_vale_id: int, usuario_id: int, contrasena: str):
     contenidos = []
     contenidos.append("<h2>Plataforma Hércules - Vales de Gasolina</h2>")
     contenidos.append(f"<p>La <a href='{detalle_url}'>solicitud del vale {fin_vale.id}</a> ya fue firmada.</p>")
-    contenidos.append(f"<p><strong>Recomendamos siempre ahorrar papel e impresiones.</strong>")
+    contenidos.append("<p><strong>Recomendamos siempre ahorrar papel e impresiones.</strong>")
     contenidos.append(f"Solo de ser necesario <a href='{imprimir_url}'>imprima esta página con la solicitud.</a></p>")
     contenidos.append("<p>Que tenga buen dia.</p>")
-    contenidos.append(f"<p>Nota: Este mensaje fue creado por un programa. <strong>Favor de NO responder.</strong></p>")
+    contenidos.append("<p>Nota: Este mensaje fue creado por un programa. <strong>Favor de NO responder.</strong></p>")
     contenido = Content("text/html", "\n".join(contenidos))
 
     # Enviar el mensaje
@@ -564,11 +564,17 @@ def autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
         bitacora.error(mensaje)
         raise MyResponseError(mensaje)
 
+    # Extraer de la fecha solo la parte del tiempo DD/MM/YYYY HH:MM:SS
+    autorizo_efirma_tiempo = None
+    coincidencia = re.search(r"(\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2})", datos["fecha"])
+    if coincidencia:
+        autorizo_efirma_tiempo = datetime.strptime(coincidencia.group(1), "%d/%m/%Y %H:%M:%S")
+
     # Actualizar el vale, ahora su estado es AUTORIZADO
     fin_vale.autorizo_nombre = autoriza.nombre
     fin_vale.autorizo_puesto = autoriza.puesto
     fin_vale.autorizo_email = autoriza.email
-    fin_vale.autorizo_efirma_tiempo = datetime.strptime(datos["fecha"], "%d/%m/%Y %H:%M:%S")
+    fin_vale.autorizo_efirma_tiempo = autorizo_efirma_tiempo
     fin_vale.autorizo_efirma_folio = datos["folio"]
     fin_vale.autorizo_efirma_sello_digital = datos["selloDigital"]
     fin_vale.autorizo_efirma_url = datos["url"]
@@ -593,10 +599,10 @@ def autorizar(fin_vale_id: int, usuario_id: int, contrasena: str):
     contenidos = []
     contenidos.append("<h2>Vale de Gasolina</h2>")
     contenidos.append(f"<p>La <a href='{detalle_url}'>autorización del vale {fin_vale.id}</a> ya fue firmada.</p>")
-    contenidos.append(f"<p><strong>Recomendamos siempre ahorrar papel e impresiones.</strong>")
+    contenidos.append("<p><strong>Recomendamos siempre ahorrar papel e impresiones.</strong>")
     contenidos.append(f"Solo de ser necesario <a href='{imprimir_url}'>imprima esta página con la solicitud.</a></p>")
     contenidos.append("<p>Que tenga buen dia.</p>")
-    contenidos.append(f"<p>Nota: Este mensaje fue creado por un programa. <strong>Favor de NO responder.</strong></p>")
+    contenidos.append("<p>Nota: Este mensaje fue creado por un programa. <strong>Favor de NO responder.</strong></p>")
     contenido = Content("text/html", "\n".join(contenidos))
 
     # Enviar el mensaje

@@ -72,6 +72,7 @@ class Autoridad(database.Model, UniversalMixin):
     es_notaria: Mapped[bool] = mapped_column(default=False)
     es_organo_especializado: Mapped[bool] = mapped_column(default=False)
     es_revisor_escrituras: Mapped[bool] = mapped_column(default=False)
+    es_vsp_digitalizaciones: Mapped[bool] = mapped_column(default=False)
     organo_jurisdiccional: Mapped[str] = mapped_column(
         Enum(*ORGANOS_JURISDICCIONALES, name="autoridades_organos_jurisdiccionales", native_enum=False),
         index=True,

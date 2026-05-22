@@ -15,7 +15,7 @@ from hercules.blueprints.vsp_digitalizaciones.forms import VspDigitalizacionForm
 from hercules.blueprints.vsp_digitalizaciones.models import VspDigitalizacion
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.exceptions import MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError
-from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
+from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs, get_signed_url_from_gcs
 from lib.safe_string import safe_clave, safe_expediente, safe_message, safe_string
 
 MODULO = "VSP DIGITALIZACIONES"
@@ -60,7 +60,7 @@ def datatable_json():
         try:
             expediente = safe_expediente(request.form["expediente"])
             consulta = consulta.filter(VspDigitalizacion.expediente == expediente)
-        except IndexError, ValueError:
+        except (IndexError, ValueError) as error:
             pass
     # Ordenar y paginar
     registros = (
@@ -180,18 +180,42 @@ def recover(vsp_digitalizacion_id):
     return redirect(url_for("vsp_digitalizaciones.detail", vsp_digitalizacion_id=vsp_digitalizacion.id))
 
 
+@vsp_digitalizaciones.route("/vsp_digitalizaciones/obtener_archivo_url/<int:vsp_digitalizacion_id>")
+def get_file_url(vsp_digitalizacion_id):
+    """Obtener URL firmada de un archivo de una digitalización"""
+
+    # Consultar
+    vsp_digitalizacion = VspDigitalizacion.query.get_or_404(vsp_digitalizacion_id)
+
+    # Obtener la URL firmada del archivo
+    try:
+        archivo_url = get_signed_url_from_gcs(
+            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_VSP_DIGITALIZACIONES"],
+            blob_name=get_blob_name_from_url(vsp_digitalizacion.url),
+        )
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        raise NotFound("No se encontró el archivo.") from error
+
+    # Entregar la URL
+    return redirect(archivo_url)
+
+
 @vsp_digitalizaciones.route("/vsp_digitalizaciones/ver_archivo_pdf/<int:vsp_digitalizacion_id>")
 def view_file_pdf(vsp_digitalizacion_id):
     """Ver archivo PDF de una digitalización para insertarlo en un iframe en el detalle"""
 
     # Consultar
-    sentencia = VspDigitalizacion.query.get_or_404(vsp_digitalizacion_id)
+    vsp_digitalizacion = VspDigitalizacion.query.get_or_404(vsp_digitalizacion_id)
+
+    # Si el tamaño del archivo es mayor a 30 MB, no se puede mostrar en el iframe
+    if vsp_digitalizacion.tamano is not None and vsp_digitalizacion.tamano > 30 * 1024 * 1024:
+        raise NotFound("El archivo es demasiado grande para mostrarlo en el iframe.")
 
     # Obtener el contenido del archivo
     try:
         archivo = get_file_from_gcs(
             bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_VSP_DIGITALIZACIONES"],
-            blob_name=get_blob_name_from_url(sentencia.url),
+            blob_name=get_blob_name_from_url(vsp_digitalizacion.url),
         )
     except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
         raise NotFound("No se encontró el archivo.") from error
@@ -207,19 +231,23 @@ def download_file_pdf(vsp_digitalizacion_id):
     """Descargar archivo PDF de una digitalización"""
 
     # Consultar
-    sentencia = VspDigitalizacion.query.get_or_404(vsp_digitalizacion_id)
+    vsp_digitalizacion = VspDigitalizacion.query.get_or_404(vsp_digitalizacion_id)
+
+    # Si el tamaño del archivo es mayor a 30 MB, no se puede descargar desde el detalle, se debe descargar desde la URL firmada
+    if vsp_digitalizacion.tamano is not None and vsp_digitalizacion.tamano > 30 * 1024 * 1024:
+        raise NotFound("El archivo es demasiado grande para mostrarlo en el iframe.")
 
     # Obtener el contenido del archivo
     try:
         archivo = get_file_from_gcs(
             bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_VSP_DIGITALIZACIONES"],
-            blob_name=get_blob_name_from_url(sentencia.url),
+            blob_name=get_blob_name_from_url(vsp_digitalizacion.url),
         )
-    except MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError:
-        raise NotFound("No se encontró el archivo.")
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        raise NotFound("No se encontró el archivo.") from error
 
     # Entregar el archivo
     response = make_response(archivo)
     response.headers["Content-Type"] = "application/pdf"
-    response.headers["Content-Disposition"] = f"attachment; filename={sentencia.archivo}"
+    response.headers["Content-Disposition"] = f"attachment; filename={vsp_digitalizacion.archivo}"
     return response
