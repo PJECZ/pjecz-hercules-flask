@@ -60,7 +60,7 @@ def datatable_json():
         try:
             expediente = safe_expediente(request.form["expediente"])
             consulta = consulta.filter(VspDigitalizacion.expediente == expediente)
-        except IndexError, ValueError:
+        except (IndexError, ValueError) as error:
             pass
     # Ordenar y paginar
     registros = (
@@ -243,8 +243,8 @@ def download_file_pdf(vsp_digitalizacion_id):
             bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_VSP_DIGITALIZACIONES"],
             blob_name=get_blob_name_from_url(vsp_digitalizacion.url),
         )
-    except MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError:
-        raise NotFound("No se encontró el archivo.")
+    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
+        raise NotFound("No se encontró el archivo.") from error
 
     # Entregar el archivo
     response = make_response(archivo)
