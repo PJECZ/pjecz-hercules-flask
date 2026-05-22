@@ -204,11 +204,17 @@ def solicitar(fin_vale_id: int, usuario_id: int, contrasena: str):
         bitacora.error(mensaje)
         raise MyResponseError(mensaje)
 
+    # Extraer de la fecha solo la parte del tiempo DD/MM/YYYY HH:MM:SS
+    solicito_efirma_tiempo = None
+    coincidencia = re.search(r"(\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2})", datos["fecha"])
+    if coincidencia:
+        solicito_efirma_tiempo = datetime.strptime(coincidencia.group(1), "%d/%m/%Y %H:%M:%S")
+
     # Actualizar el vale, ahora su estado es SOLICITADO
     fin_vale.solicito_nombre = solicita.nombre
     fin_vale.solicito_puesto = solicita.puesto
     fin_vale.solicito_email = solicita.email
-    fin_vale.solicito_efirma_tiempo = datetime.strptime(datos["fecha"], "%d/%m/%Y %H:%M:%S")
+    fin_vale.solicito_efirma_tiempo = solicito_efirma_tiempo
     fin_vale.solicito_efirma_folio = datos["folio"]
     fin_vale.solicito_efirma_sello_digital = datos["selloDigital"]
     fin_vale.solicito_efirma_url = datos["url"]
