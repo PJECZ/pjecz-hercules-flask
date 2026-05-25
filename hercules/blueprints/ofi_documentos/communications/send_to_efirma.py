@@ -2,13 +2,14 @@
 Communications, enviar al motor de firma electrónica
 """
 
-from datetime import datetime
 import json
-from io import BytesIO
 import os
+from datetime import datetime
+from io import BytesIO
 
-from dotenv import load_dotenv
 import requests
+from dotenv import load_dotenv
+from pyasn1_modules.rfc7773 import e_legnamnden
 from xhtml2pdf import pisa
 
 from hercules.app import create_app
@@ -18,7 +19,6 @@ from lib.cryptography import simmetric_decrypt
 from lib.exceptions import (
     MyBucketNotFoundError,
     MyConnectionError,
-    MyNotExistsError,
     MyIsDeletedError,
     MyNotExistsError,
     MyNotValidParamError,
@@ -35,10 +35,10 @@ load_dotenv()
 CLOUD_STORAGE_DEPOSITO_OFICIOS = os.getenv("CLOUD_STORAGE_DEPOSITO_OFICIOS", "")
 EFIRMA_SER_FIRMAR_DOC_PDF_URL = os.getenv("EFIRMA_SER_FIRMAR_DOC_PDF_URL", "")
 EFIRMA_SER_CANCELAR_DOC_PDF_URL = os.getenv("EFIRMA_SER_CANCELAR_DOC_PDF_URL", "")
-EFIRMA_APLICACION_IDENTIFICADOR = int(os.getenv("EFIRMA_APLICACION_IDENTIFICADOR", 0))
+EFIRMA_APLICACION_IDENTIFICADOR = os.getenv("EFIRMA_APLICACION_IDENTIFICADOR", "")
 EFIRMA_APLICACION_CONTRASENA = os.getenv("EFIRMA_APLICACION_CONTRASENA", "")
-EFIRMA_REGISTRO_IDENTIFICADOR = int(os.getenv("EFIRMA_REGISTRO_IDENTIFICADOR", 0))
-EFIRMA_REGISTRO_CONTRASENA = os.getenv("EFIRMA_REGISTRO_CONTRASENA", "")
+EFIRMA_REGISTRO_IDENTIFICADOR = os.getenv("EFIRMA_REGISTRO_IDENTIFICADOR", "")  # Solo para desarrollo, no para producción
+EFIRMA_REGISTRO_CONTRASENA = os.getenv("EFIRMA_REGISTRO_CONTRASENA", "")  # Solo para desarrollo, no para producción
 FERNET_KEY = os.getenv("FERNET_KEY", "")
 TIMEOUT = 60  # segundos
 
@@ -72,9 +72,15 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
         bitacora.error(error)
         raise MyNotValidParamError(error)
 
-    # Validar que esté definida la variable de entorno EFIRMA_APLICACION_IDENTIFICADOR
+    # Validar que esté definida la variable de entorno EFIRMA_APLICACION_IDENTIFICADOR y que sea un entero
     if not EFIRMA_APLICACION_IDENTIFICADOR:
         error = "La variable de entorno EFIRMA_APLICACION_IDENTIFICADOR no está definida"
+        bitacora.error(error)
+        raise MyNotValidParamError(error)
+    try:
+        efirma_aplicacion_identificado_int = int(EFIRMA_APLICACION_IDENTIFICADOR)
+    except ValueError:
+        error = "La variable de entorno EFIRMA_APLICACION_IDENTIFICADOR no es un número entero válido"
         bitacora.error(error)
         raise MyNotValidParamError(error)
 
@@ -84,11 +90,20 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
         bitacora.error(error)
         raise MyNotValidParamError(error)
 
-    # Validar que estén definida la variable de entorno EFIRMA_REGISTRO_IDENTIFICADOR
+    # Para desarrolo se puede definir la variable de entorno EFIRMA_REGISTRO_CONTRASENA, en lugar del dato del usuario
+    efirma_contrasena = ""
+    if EFIRMA_REGISTRO_CONTRASENA:
+        efirma_contrasena = EFIRMA_REGISTRO_CONTRASENA
+
+    # Para desarrollo se puede definir EFIRMA_REGISTRO_IDENTIFICADOR, en lugar del dato del usuario
+    efirma_registro_identificador_int = 0
     if not EFIRMA_REGISTRO_IDENTIFICADOR:
-        error = "La variable de entorno EFIRMA_REGISTRO_IDENTIFICADOR no está definida"
-        bitacora.error(error)
-        raise MyNotValidParamError(error)
+        try:
+            efirma_registro_identificador_int = int(EFIRMA_REGISTRO_IDENTIFICADOR)
+        except ValueError:
+            error = "La variable de entorno EFIRMA_REGISTRO_IDENTIFICADOR no es un número entero válido"
+            bitacora.error(error)
+            raise MyNotValidParamError(error)
 
     # Consultar el oficio
     ofi_documento_id = safe_uuid(ofi_documento_id)
@@ -114,12 +129,10 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
         bitacora.error(error)
         raise MyNotValidParamError(error)
 
-    # Por defecto, la contraseña del registro de firma electrónica es la variable de entorno EFIRMA_REGISTRO_CONTRASENA
-    efirma_contrasena = EFIRMA_REGISTRO_CONTRASENA
-
-    # Si no está definida, se descifra del registro del usuario con la clave FERNET_KEY
-    if efirma_contrasena is None or efirma_contrasena == "":
-
+    # Para desarrollo se pueden definir las variables de entorno
+    # EFIRMA_REGISTRO_CONTRASENA y EFIRMA_REGISTRO_IDENTIFICADOR en lugar de los datos del usuario
+    # Para producción se toman del usuario del oficio, y se descifra la contraseña de efirma con la clave FERNET_KEY
+    if not efirma_contrasena or not efirma_registro_identificador_int:
         # Validar que esté definida la variable de entorno FERNET_KEY
         if not FERNET_KEY:
             error = "La variable de entorno FERNET_KEY no está definida"
@@ -139,6 +152,13 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
             error = f"ERROR: No se pudo descifrar la contraseña de efirma: {error}"
             bitacora.error(error)
             raise MyNotValidParamError(error)
+
+        # Definir efirma_registro_identificador_int con el dato del usuario
+        if not ofi_documento.usuario.efirma_registro_id:
+            error = f"El usuario {ofi_documento.usuario.email} no tiene un ID de registro de efirma definido."
+            bitacora.error(error)
+            raise MyNotValidParamError(error)
+        efirma_registro_identificador_int = ofi_documento.usuario.efirma_registro_id
 
     #
     # Convertir el contenido HTML a archivo PDF
@@ -217,9 +237,9 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
 
     # Definir los datos a enviar
     payload_for_data = {
-        "idRegistro": EFIRMA_REGISTRO_IDENTIFICADOR,
+        "idRegistro": efirma_registro_identificador_int,
         "contrasenaRegistro": efirma_contrasena,
-        "idAplicacion": EFIRMA_APLICACION_IDENTIFICADOR,
+        "idAplicacion": efirma_aplicacion_identificado_int,
         "contrasenaAplicacion": EFIRMA_APLICACION_CONTRASENA,
         "referencia": "",
         "verificarUrl": "true",
