@@ -92,12 +92,12 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
 
     # Para desarrolo se puede definir la variable de entorno EFIRMA_REGISTRO_CONTRASENA, en lugar del dato del usuario
     efirma_contrasena = ""
-    if EFIRMA_REGISTRO_CONTRASENA:
+    if EFIRMA_REGISTRO_CONTRASENA != "":
         efirma_contrasena = EFIRMA_REGISTRO_CONTRASENA
 
     # Para desarrollo se puede definir EFIRMA_REGISTRO_IDENTIFICADOR, en lugar del dato del usuario
     efirma_registro_identificador_int = 0
-    if not EFIRMA_REGISTRO_IDENTIFICADOR:
+    if EFIRMA_REGISTRO_IDENTIFICADOR != "":
         try:
             efirma_registro_identificador_int = int(EFIRMA_REGISTRO_IDENTIFICADOR)
         except ValueError:
@@ -132,7 +132,7 @@ def enviar_a_efirma(ofi_documento_id: str) -> tuple[str, str, str]:
     # Para desarrollo se pueden definir las variables de entorno
     # EFIRMA_REGISTRO_CONTRASENA y EFIRMA_REGISTRO_IDENTIFICADOR en lugar de los datos del usuario
     # Para producción se toman del usuario del oficio, y se descifra la contraseña de efirma con la clave FERNET_KEY
-    if not efirma_contrasena or not efirma_registro_identificador_int:
+    if not (efirma_contrasena != "" and efirma_registro_identificador_int != 0):
         # Validar que esté definida la variable de entorno FERNET_KEY
         if not FERNET_KEY:
             error = "La variable de entorno FERNET_KEY no está definida"
