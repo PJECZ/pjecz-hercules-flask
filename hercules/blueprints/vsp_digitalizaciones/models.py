@@ -2,10 +2,12 @@
 VASPEC Digitalizaciones, modelos
 """
 
+import uuid
 from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import ForeignKey, String
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from hercules.extensions import database
@@ -31,6 +33,7 @@ class VspDigitalizacion(database.Model, UniversalMixin):
     expediente_num: Mapped[int]
     descripcion: Mapped[Optional[str]] = mapped_column(String(256))
     observaciones: Mapped[Optional[str]] = mapped_column(String(1024))
+    uuid: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     archivo: Mapped[str] = mapped_column(String(256))
     url: Mapped[str] = mapped_column(String(512))
     tamano: Mapped[Optional[int]]
