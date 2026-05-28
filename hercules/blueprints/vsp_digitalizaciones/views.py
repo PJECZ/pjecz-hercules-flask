@@ -181,23 +181,32 @@ def recover(vsp_digitalizacion_id):
 
 
 @vsp_digitalizaciones.route("/vsp_digitalizaciones/obtener_archivo_url/<int:vsp_digitalizacion_id>")
-def get_file_url(vsp_digitalizacion_id):
-    """Obtener URL firmada de un archivo de una digitalización"""
+def get_file_url_json(vsp_digitalizacion_id):
+    """Obtener una URL firmada de un archivo PDF de una digitalización para descargarlo, esta URL es válida por 15 minutos"""
 
     # Consultar
     vsp_digitalizacion = VspDigitalizacion.query.get_or_404(vsp_digitalizacion_id)
 
     # Obtener la URL firmada del archivo
     try:
-        archivo_url = get_signed_url_from_gcs(
+        url_firmada_efimera = get_signed_url_from_gcs(
             bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_VSP_DIGITALIZACIONES"],
             blob_name=get_blob_name_from_url(vsp_digitalizacion.url),
+            expiration_time=15 * 60,  # 15 minutos
         )
-    except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
-        raise NotFound("No se encontró el archivo.") from error
+    except Exception as error:
+        return {
+            "success": false,
+            "message": str(error),
+            "url": None,
+        }
 
     # Entregar la URL
-    return redirect(archivo_url)
+    return {
+        "success": True,
+        "message": "Entrega exitosa de la URL firmada al archivo PDF",
+        "url": url_firmada_efimera,
+    }
 
 
 @vsp_digitalizaciones.route("/vsp_digitalizaciones/ver_archivo_pdf/<int:vsp_digitalizacion_id>")

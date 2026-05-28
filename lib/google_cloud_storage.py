@@ -182,15 +182,22 @@ def get_signed_url_from_gcs(
     try:
         bucket = storage_client.get_bucket(bucket_name)
     except NotFound as error:
-        raise MyBucketNotFoundError("Bucket not found") from error
+        raise MyBucketNotFoundError("El depósito no existe") from error
 
     # Get file
     blob = bucket.get_blob(blob_name)
     if blob is None:
-        raise MyFileNotFoundError("File not found")
+        raise MyFileNotFoundError("No se encontró el archivo")
 
     # Return signed URL
-    return blob.generate_signed_url(expiration=expiration_time, method="GET", version="v4")
+    try:
+        return blob.generate_signed_url(expiration=expiration_time, method="GET", version="v4")
+    except AttributeError as error:
+        raise MyFileNotFoundError("Error al generar el vínculo de descarga") from error
+    except TypeError as error:
+        raise MyNotValidParamError("El tiempo de expiración del vínculo de descarga no es válido") from error
+    except ValueError as error:
+        raise MyNotValidParamError("La versión del protocolo de almacenamiento no es válida") from error
 
 
 def delete_file_from_gcs(
