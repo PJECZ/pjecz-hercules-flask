@@ -196,7 +196,7 @@ def get_file_url_json(vsp_digitalizacion_id):
         )
     except Exception as error:
         return {
-            "success": false,
+            "success": False,
             "message": str(error),
             "url": None,
         }

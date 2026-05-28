@@ -51,22 +51,24 @@
     {% endif %}
     {% if vsp_digitalizacion.tamano is not none and vsp_digitalizacion.tamano > 31457280 %}
         <script>
-        // Cuando el PDF es mayor de 30 MB, se muestra un botón para descargarlo en lugar de la vista previa.
+        // Cuando el PDF es mayor de 30 MB, se muestra un botón para descargarlo en lugar de la vista previa
         downloadPDFButton = document.getElementById('downloadPDFButton');
         downloadPDFError = document.getElementById('downloadPDFError');
         // Llamar a la vista vsp_digitalizaciones.get_file_url_json que entrega un JSON con success, message y el url,
         // Si success es true, se habilita el botón para descargar el PDF y se cambia su atributo href con la URL obtenida,
-        // Si no, se muestra un mensaje de error.
+        // Si no, se muestra un mensaje de error
         fetch('{{ url_for('vsp_digitalizaciones.get_file_url_json', vsp_digitalizacion_id=vsp_digitalizacion.id) }}')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Si se obtiene la URL correctamente, se cambia el atributo href del botón para descargar el PDF.
+                    // Si se obtiene la URL correctamente, se cambia el atributo href del botón para descargar el PDF
                     downloadPDFButton.setAttribute('href', data.url);
                 } else {
-                    // Si no se obtiene la URL, se muestra un mensaje de error.
+                    // Si no se obtiene la URL, se muestra un mensaje de error
                     downloadPDFError.style.display = 'block';
                     downloadPDFError.textContent = data.message || 'No se pudo obtener el enlace para descargar el archivo PDF.';
+                    // Y se oculta el botón de descarga
+                    downloadPDFButton.style.display = 'none';
                 }
             })
             .catch(error => {
