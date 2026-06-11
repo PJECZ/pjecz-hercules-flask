@@ -13,12 +13,11 @@ from hercules.blueprints.materias.models import Materia
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
-from hercules.blueprints.vsp_digitalizaciones.forms import VspDigitalizacionForm
 from hercules.blueprints.vsp_digitalizaciones.models import VspDigitalizacion
 from hercules.extensions import database
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.exceptions import MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError
-from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs, get_signed_url_from_gcs
+from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs
 from lib.safe_string import safe_clave, safe_expediente, safe_message, safe_string
 
 MODULO = "VSP DIGITALIZACIONES"
@@ -86,6 +85,7 @@ def datatable_json():
                 "descripcion": resultado.descripcion if len(resultado.descripcion) < 48 else resultado.descripcion[:48] + "…",
                 "tamano": resultado.tamano if resultado.tamano is not None else "",
                 "tiempo": resultado.tiempo.strftime("%Y-%m-%d %H:%M") if resultado.tiempo is not None else "",
+                "enviado": resultado.enviado.strftime("%Y-%m-%d %H:%M") if resultado.enviado is not None else "",
             }
         )
     # Entregar JSON
@@ -120,31 +120,6 @@ def detail(vsp_digitalizacion_id):
     """Detalle de un digitalización"""
     vsp_digitalizacion = VspDigitalizacion.query.get_or_404(vsp_digitalizacion_id)
     return render_template("vsp_digitalizaciones/detail.jinja2", vsp_digitalizacion=vsp_digitalizacion)
-
-
-@vsp_digitalizaciones.route("/vsp_digitalizaciones/edicion/<int:vsp_digitalizacion_id>", methods=["GET", "POST"])
-@permission_required(MODULO, Permiso.MODIFICAR)
-def edit(vsp_digitalizacion_id):
-    """Editar digitalización"""
-    vsp_digitalizacion = VspDigitalizacion.query.get_or_404(vsp_digitalizacion_id)
-    form = VspDigitalizacionForm()
-    if form.validate_on_submit():
-        vsp_digitalizacion.descripcion = safe_string(form.descripcion.data, save_enie=True)
-        vsp_digitalizacion.observaciones = safe_string(
-            form.observaciones.data, save_enie=True, to_uppercase=False, max_len=1000
-        )
-        vsp_digitalizacion.save()
-        bitacora = Bitacora(
-            modulo=Modulo.query.filter_by(nombre=MODULO).first(),
-            usuario=current_user,
-            descripcion=safe_message(f"Editado digitalización {vsp_digitalizacion.descripcion}"),
-            url=url_for("vsp_digitalizaciones.detail", vsp_digitalizacion_id=vsp_digitalizacion.id),
-        )
-        bitacora.save()
-        flash(bitacora.descripcion, "success")
-        return redirect(bitacora.url)
-    form.descripcion.data = vsp_digitalizacion.descripcion
-    return render_template("vsp_digitalizaciones/edit.jinja2", form=form, vsp_digitalizacion=vsp_digitalizacion)
 
 
 @vsp_digitalizaciones.route("/vsp_digitalizaciones/eliminar/<int:vsp_digitalizacion_id>")
@@ -245,30 +220,25 @@ def dashboard():
 
 @vsp_digitalizaciones.route("/vsp_digitalizaciones/obtener_archivo_url/<int:vsp_digitalizacion_id>")
 def get_file_url_json(vsp_digitalizacion_id):
-    """Obtener una URL firmada de un archivo PDF de una digitalización para descargarlo, esta URL es válida por 15 minutos"""
+    """Obtener la URL de una digitalización para descargar"""
 
     # Consultar
     vsp_digitalizacion = VspDigitalizacion.query.get_or_404(vsp_digitalizacion_id)
 
-    # Obtener la URL firmada del archivo
-    try:
-        url_firmada_efimera = get_signed_url_from_gcs(
-            bucket_name=current_app.config["CLOUD_STORAGE_DEPOSITO_VSP_DIGITALIZACIONES"],
-            blob_name=get_blob_name_from_url(vsp_digitalizacion.url),
-            expiration_time=15 * 60,  # 15 minutos
-        )
-    except Exception as error:
-        return {
-            "success": False,
-            "message": str(error),
-            "url": None,
-        }
+    # Registrar en la bitácora
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Ha obtenido la URL de {vsp_digitalizacion.autoridad.clave} {vsp_digitalizacion.expediente}"),
+        url=url_for("vsp_digitalizaciones.detail", vsp_digitalizacion_id=vsp_digitalizacion.id),
+    )
+    bitacora.save()
 
     # Entregar la URL
     return {
         "success": True,
-        "message": "Entrega exitosa de la URL firmada al archivo PDF",
-        "url": url_firmada_efimera,
+        "message": "Entregada la URL de una digitalización para descargar",
+        "url": vsp_digitalizacion.url,
     }
 
 
@@ -291,6 +261,15 @@ def view_file_pdf(vsp_digitalizacion_id):
         )
     except (MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError) as error:
         raise NotFound("No se encontró el archivo.") from error
+
+    # Registrar en la bitácora
+    bitacora = Bitacora(
+        modulo=Modulo.query.filter_by(nombre=MODULO).first(),
+        usuario=current_user,
+        descripcion=safe_message(f"Ha descargado {vsp_digitalizacion.autoridad.clave} {vsp_digitalizacion.expediente}"),
+        url=url_for("vsp_digitalizaciones.detail", vsp_digitalizacion_id=vsp_digitalizacion.id),
+    )
+    bitacora.save()
 
     # Entregar el archivo
     response = make_response(archivo)
