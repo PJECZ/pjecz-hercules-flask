@@ -1,0 +1,139 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block custom_head %}
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block title %}Dashboard Digitalizaciones{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Dashboard Digitalizaciones') %}
+        {{ topbar.button_previous('Digitalizaciones', url_for('vsp_digitalizaciones.list_active')) }}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(title='Gráfico relacionados/existentes por materia y año') %}
+        <canvas id="dashboard_chart" style="max-height: 420px;"></canvas>
+    {% endcall %}
+    {% call detail.card(title='Totales relacionados/existentes por materia y año') %}
+        <table id="dashboard_datatable" class="table display nowrap" style="width:100%"></table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script>
+      fetch("{{ url_for('vsp_digitalizaciones.get_totales_por_materia_por_anio_json') }}", {
+        method: "GET",
+        headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          if (!json.success) {
+            console.error("Error al obtener los totales:", json.message);
+            return;
+          }
+
+          const totales = json.totales;
+
+          // Materias únicas ordenadas alfabéticamente
+          const materias = [...new Set(totales.map((r) => r.materia_nombre))].sort();
+
+          // Años únicos descendentes para la tabla
+          const aniosDesc = [...new Set(totales.map((r) => r.anio))].sort((a, b) => b - a);
+
+          // Índice de acceso rápido: {anio: {materia: {copiados_total, enviados_total}}}
+          const indice = {};
+          totales.forEach((r) => {
+            if (!indice[r.anio]) indice[r.anio] = {};
+            indice[r.anio][r.materia_nombre] = {
+              copiados_total: r.copiados_total,
+              enviados_total: r.enviados_total,
+            };
+          });
+
+          // --- Gráfico ---
+          // Acumular totales por materia (sumando todos los años)
+          const totalesPorMateria = {};
+          materias.forEach((m) => (totalesPorMateria[m] = { copiados: 0, enviados: 0 }));
+          totales.forEach((r) => {
+            totalesPorMateria[r.materia_nombre].copiados += r.copiados_total;
+            totalesPorMateria[r.materia_nombre].enviados += r.enviados_total;
+          });
+
+          new Chart(document.getElementById("dashboard_chart"), {
+            type: "bar",
+            data: {
+              labels: materias,
+              datasets: [
+                {
+                  label: "Enviados",
+                  data: materias.map((m) => totalesPorMateria[m].enviados),
+                  backgroundColor: "rgba(54, 162, 235, 0.85)",
+                  borderColor: "rgba(54, 162, 235, 1)",
+                  borderWidth: 1,
+                },
+                {
+                  label: "Copiados (pendientes de envío)",
+                  data: materias.map((m) => totalesPorMateria[m].copiados - totalesPorMateria[m].enviados),
+                  backgroundColor: "rgba(54, 162, 235, 0.30)",
+                  borderColor: "rgba(54, 162, 235, 1)",
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { position: "top" },
+                tooltip: {
+                  callbacks: {
+                    footer: (items) => {
+                      const materia = materias[items[0].dataIndex];
+                      const t = totalesPorMateria[materia];
+                      return `Total copiados: ${t.copiados}  |  Enviados: ${t.enviados}`;
+                    },
+                  },
+                },
+              },
+              scales: {
+                x: { stacked: true, title: { display: true, text: "Materia" } },
+                y: { stacked: true, beginAtZero: true, title: { display: true, text: "Total de expedientes" } },
+              },
+            },
+          });
+
+          // --- DataTable ---
+          const data = aniosDesc.map((anio) => {
+            const fila = { anio };
+            materias.forEach((materia) => {
+              const celda = indice[anio]?.[materia];
+              fila[materia] = celda ? `${celda.enviados_total} / ${celda.copiados_total}` : "— / —";
+            });
+            return fila;
+          });
+
+          const columns = [
+            { title: "Año", data: "anio" },
+            ...materias.map((materia) => ({ title: materia, data: materia })),
+          ];
+
+          $("#dashboard_datatable").DataTable({
+            data,
+            columns,
+            ordering: false,
+            searching: false,
+            responsive: true,
+            scrollX: true,
+            paging: false,
+            info: false,
+            language: { zeroRecords: "No se encontraron registros" },
+          });
+        })
+        .catch((error) => console.error("Error al cargar el dashboard:", error));
+    </script>
+{% endblock %}
