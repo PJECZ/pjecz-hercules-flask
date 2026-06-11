@@ -53,7 +53,8 @@
                     <th>Expediente</th>
                     <th>Descripción</th>
                     <th>Tamaño</th>
-                    <th>Subido a GCS</th>
+                    <th>T. Copiado a GCS</th>
+                    <th>T. Enviado a SAJI</th>
                 </tr>
             </thead>
         </table>
@@ -74,7 +75,8 @@
             { data: 'detalle' },
             { data: 'descripcion' },
             { data: 'tamano' },
-            { data: 'tiempo' }
+            { data: 'tiempo' },
+            { data: 'enviado' }
         ];
         configDataTable['columnDefs'] = [
             {
@@ -96,6 +98,7 @@
             },
             {
                 targets: 3, // tamano
+                className: 'dt-body-right',
                 data: null,
                 render: function(data, type, row, meta) {
                     if (data === null) {
@@ -108,6 +111,14 @@
                     const sizeInMB = sizeInKB / 1024;
                     return sizeInMB.toFixed(2) + ' MB';
                 }
+            },
+            {
+                targets: 4, // tiempo
+                className: 'dt-body-right'
+            },
+            {
+                targets: 5, // enviado
+                className: 'dt-body-right'
             }
         ];
         // Filtros VspDigitalizaciones
