@@ -4,15 +4,18 @@ VASPEC Digitalizaciones, vistas
 
 from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import func
 from werkzeug.exceptions import NotFound
 
 from hercules.blueprints.autoridades.models import Autoridad
 from hercules.blueprints.bitacoras.models import Bitacora
+from hercules.blueprints.materias.models import Materia
 from hercules.blueprints.modulos.models import Modulo
 from hercules.blueprints.permisos.models import Permiso
 from hercules.blueprints.usuarios.decorators import permission_required
 from hercules.blueprints.vsp_digitalizaciones.forms import VspDigitalizacionForm
 from hercules.blueprints.vsp_digitalizaciones.models import VspDigitalizacion
+from hercules.extensions import database
 from lib.datatables import get_datatable_parameters, output_datatable_json
 from lib.exceptions import MyBucketNotFoundError, MyFileNotFoundError, MyNotValidParamError
 from lib.google_cloud_storage import get_blob_name_from_url, get_file_from_gcs, get_signed_url_from_gcs
@@ -178,6 +181,66 @@ def recover(vsp_digitalizacion_id):
         bitacora.save()
         flash(bitacora.descripcion, "success")
     return redirect(url_for("vsp_digitalizaciones.detail", vsp_digitalizacion_id=vsp_digitalizacion.id))
+
+
+@vsp_digitalizaciones.route("/vsp_digitalizaciones/obtener_totales_por_materia_por_anio")
+def get_totales_por_materia_por_anio_json():
+    """Obtener un listado de totales por materia por año"""
+
+    # Consultar los totales (copiados, enviados) por materia por año
+    consulta = (
+        database.session.query(
+            Materia.nombre.label("materia"),
+            VspDigitalizacion.expediente_anio.label("anio"),
+            func.count(VspDigitalizacion.id).label("copiados_total"),
+            func.count(VspDigitalizacion.enviado).label("enviados_total"),
+        )
+        .select_from(
+            VspDigitalizacion,
+        )
+        .join(
+            Autoridad,
+        )
+        .join(
+            Materia,
+        )
+        .where(
+            VspDigitalizacion.estatus == "A",
+        )
+        .group_by(
+            Materia.nombre,
+            VspDigitalizacion.expediente_anio,
+        )
+        .order_by(
+            VspDigitalizacion.expediente_anio,
+            Materia.nombre,
+        )
+        .all()
+    )
+
+    # Convertir la consulta a una lista de diccionarios
+    totales = [
+        {
+            "materia_nombre": row.materia,
+            "anio": row.anio,
+            "copiados_total": row.copiados_total,
+            "enviados_total": row.enviados_total,
+        }
+        for row in consulta
+    ]
+
+    # Entregar la lista de totales
+    return {
+        "success": True,
+        "message": "Entrega exitosa del listado de totales por materia",
+        "totales": totales,
+    }
+
+
+@vsp_digitalizaciones.route("/vsp_digitalizaciones/dashboard")
+def dashboard():
+    """Tablero de digitalizaciones"""
+    return render_template("vsp_digitalizaciones/dashboard.jinja2")
 
 
 @vsp_digitalizaciones.route("/vsp_digitalizaciones/obtener_archivo_url/<int:vsp_digitalizacion_id>")
