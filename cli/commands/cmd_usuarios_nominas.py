@@ -2,13 +2,13 @@
 CLI Usuarios Nóminas
 """
 
-from datetime import datetime
 import os
 import sys
+from datetime import datetime
 
 import click
-from dotenv import load_dotenv
 import requests
+from dotenv import load_dotenv
 
 from hercules.app import create_app
 from hercules.blueprints.usuarios.models import Usuario
@@ -33,7 +33,9 @@ def cli():
 
 
 @click.command()
-def actualizar():
+@click.option("--limit", type=int, help="Cantidad de 10 a 100 registros a sincronizar.")
+@click.option("--usuario-email", type=str, help="Correo electrónico del usuario.")
+def actualizar(limit, usuario_email):
     """Sincronizar con la API de Perseo"""
     click.echo("Sincronizando Usuarios Nóminas...")
 
@@ -47,18 +49,40 @@ def actualizar():
         click.echo("ERROR: No se ha definido PERSEO_API_KEY.")
         sys.exit(1)
 
+    # Si se especifica un límite, validar que sea entre 10 y 100
+    if limit is not None:
+        if limit < 10 or limit > 100:
+            click.echo("ERROR: El límite debe ser entre 10 y 100.")
+            sys.exit(1)
+    else:
+        limit = 10  # Valor por defecto
+
+    # Inicializar la lista de usuarios a sincronizar
+    usuarios = []
+
+    # Si se especifica un correo electrónico, buscar el usuario
+    if usuario_email:
+        usuario = Usuario.query.filter_by(email=usuario_email).first()
+        if usuario is None:
+            click.echo(f"ERROR: No se encontró el usuario con correo electrónico: {usuario_email}")
+            sys.exit(1)
+        usuarios.append(usuario)
+    else:
+        # Si no se especifica un correo electrónico, sincronizar todos los usuarios
+        usuarios = Usuario.query.filter(Usuario.curp != "").filter_by(estatus="A").order_by(Usuario.curp).all()
+
     # Bucle por los CURP's de Usuarios
     contador = 0
     contador_nuevos = 0
     contador_cambios = 0
     contador_eliminaciones = 0
-    for usuario in Usuario.query.filter(Usuario.curp != "").filter_by(estatus="A").order_by(Usuario.curp).all():
+    for usuario in usuarios:
         # Consultar a la API
         try:
             respuesta = requests.get(
                 f"{PERSEO_API_URL}/timbrados",
                 headers={"X-Api-Key": PERSEO_API_KEY},
-                params={"curp": usuario.curp},
+                params={"curp": usuario.curp, "limit": limit},
                 timeout=TIMEOUT,
             )
             respuesta.raise_for_status()
