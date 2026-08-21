@@ -58,3 +58,11 @@ exclude = ["**/tests"]
 [tool.ruff]
 ignore = ["F821"]
 line-length = 128
+
+[dependency-groups]
+dev = [
+    "black>=26.5.1",
+    "faker>=40.37.0",
+    "isort>=8.0.1",
+    "pytest>=9.1.1",
+]
