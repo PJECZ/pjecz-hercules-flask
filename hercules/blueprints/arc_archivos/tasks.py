@@ -4,8 +4,10 @@ Archivo, tareas para ejecutar en el fondo
 
 import locale
 import logging
-from datetime import date, timedelta
+import os
+from datetime import datetime, timedelta
 
+import pytz
 from dotenv import load_dotenv
 from sqlalchemy import or_
 
@@ -35,12 +37,16 @@ app.app_context().push()
 
 locale.setlocale(locale.LC_TIME, "es_MX.utf8")
 
+load_dotenv()
+TZ = os.getenv("TZ", "America/Mexico_City")  # Zona horaria para convertir a tiempo local
+local_tz = pytz.timezone(TZ)
+
 
 def pasar_al_historial_solicitudes_completadas():
     """Pasar al historial las solicitudes y remesas con mucha antigüedad habiendo sido procesadas correctamente"""
 
     # Fecha
-    fecha_limite = date.today() - timedelta(days=DIAS_ANTIGUEDAD)
+    fecha_limite = datetime.now(tz=local_tz).date() - timedelta(days=DIAS_ANTIGUEDAD)
 
     # Ubicar al usuario responsable para dicha operación
     usuario = Usuario.query.filter_by(email=USUARIO_DEFECTO).filter_by(estatus="A").first()
@@ -88,7 +94,7 @@ def pasar_al_historial_solicitudes_canceladas():
     """Pasar al historial las solicitudes con determinados días de antigüedad teniendo el estado de canceladas"""
 
     # Fecha
-    fecha_limite = date.today() - timedelta(days=DIAS_ANTIGUEDAD_CANCELADAS)
+    fecha_limite = datetime.now(tz=local_tz).date() - timedelta(days=DIAS_ANTIGUEDAD_CANCELADAS)
 
     # Ubicar al usuario responsable para dicha operación
     usuario = Usuario.query.filter_by(email=USUARIO_DEFECTO).filter_by(estatus="A").first()
@@ -136,7 +142,7 @@ def pasar_al_historial_remesas_archivadas():
     """Pasar al historial las remesas con determinados días de antigüedad teniendo el estado de archivadas o archivadas con anomalía"""
 
     # Fecha
-    fecha_limite = date.today() - timedelta(days=DIAS_ANTIGUEDAD)
+    fecha_limite = datetime.now(tz=local_tz).date() - timedelta(days=DIAS_ANTIGUEDAD)
 
     # Ubicar al usuario responsable para dicha operación
     usuario = Usuario.query.filter_by(email=USUARIO_DEFECTO).filter_by(estatus="A").first()
@@ -184,7 +190,7 @@ def pasar_al_historial_remesas_canceladas():
     """Pasar al historial las remesas con determinados días de antigüedad teniendo el estado de canceladas"""
 
     # Fecha
-    fecha_limite = date.today() - timedelta(days=DIAS_ANTIGUEDAD_CANCELADAS)
+    fecha_limite = datetime.now(tz=local_tz).date() - timedelta(days=DIAS_ANTIGUEDAD_CANCELADAS)
 
     # Ubicar al usuario responsable para dicha operación
     usuario = Usuario.query.filter_by(email=USUARIO_DEFECTO).filter_by(estatus="A").first()
@@ -232,7 +238,7 @@ def pasar_al_historial_remesas_rechazadas():
     """Pasar al historial las remesas con determinados días de antigüedad teniendo el estado de rechazadas"""
 
     # Fecha
-    fecha_limite = date.today() - timedelta(days=DIAS_ANTIGUEDAD_CANCELADAS)
+    fecha_limite = datetime.now(tz=local_tz).date() - timedelta(days=DIAS_ANTIGUEDAD_CANCELADAS)
 
     # Ubicar al usuario responsable para dicha operación
     usuario = Usuario.query.filter_by(email=USUARIO_DEFECTO).filter_by(estatus="A").first()
