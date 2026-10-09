@@ -1,0 +1,32 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}DGT Digitalización Bitácora {{ dgt_digitalizacion_bitacora.evento }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('DGT Digitalización Bitácora ' + dgt_digitalizacion_bitacora.evento) %}
+        {{ topbar.button_previous('DGT Digitalizaciones Bitácoras', url_for('dgt_digitalizaciones_bitacoras.list_active')) }}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=dgt_digitalizacion_bitacora.estatus) %}
+        <div class="row">
+            {{ detail.label_value_big('Evento', dgt_digitalizacion_bitacora.evento) }}
+            {% if current_user.can_view('DGT DIGITALIZACIONES') %}
+                {{ detail.label_value('Digitalización', dgt_digitalizacion_bitacora.dgt_digitalizacion.archivo_nombre, url_for('dgt_digitalizaciones.detail', dgt_digitalizacion_id=dgt_digitalizacion_bitacora.dgt_digitalizacion_id)) }}
+            {% else %}
+                {{ detail.label_value('Digitalización', dgt_digitalizacion_bitacora.dgt_digitalizacion.archivo_nombre) }}
+            {% endif %}
+            {{ detail.label_value('URL del archivo', dgt_digitalizacion_bitacora.archivo_url) }}
+            {{ detail.label_value('MD5 anterior', dgt_digitalizacion_bitacora.archivo_md5_old) }}
+            {{ detail.label_value('MD5 nuevo', dgt_digitalizacion_bitacora.archivo_md5_new) }}
+            {{ detail.label_value('CRC32C anterior', dgt_digitalizacion_bitacora.archivo_crc32c_old) }}
+            {{ detail.label_value('CRC32C nuevo', dgt_digitalizacion_bitacora.archivo_crc32c_new) }}
+            {{ detail.label_value('Tamaño (bytes)', dgt_digitalizacion_bitacora.archivo_tamano) }}
+            {{ detail.label_value('Archivo actualizado', dgt_digitalizacion_bitacora.archivo_actualizado.strftime('%Y-%m-%d %H:%M') if dgt_digitalizacion_bitacora.archivo_actualizado else '') }}
+            {{ detail.label_value('Creado', dgt_digitalizacion_bitacora.creado.strftime('%Y-%m-%d %H:%M') if dgt_digitalizacion_bitacora.creado else '') }}
+        </div>
+    {% endcall %}
+{% endblock %}

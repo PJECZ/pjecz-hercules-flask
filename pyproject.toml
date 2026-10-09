@@ -40,6 +40,14 @@ dependencies = [
     "xhtml2pdf>=0.2.17",
 ]
 
+[dependency-groups]
+dev = [
+    "black>=26.5.1",
+    "faker>=40.37.0",
+    "isort>=8.0.1",
+    "pytest>=9.1.1",
+]
+
 [tool.black]
 line-length = 128
 
@@ -56,13 +64,5 @@ reportUndefinedVariable = "warning"
 exclude = ["**/tests"]
 
 [tool.ruff]
-ignore = ["F821"]
+ignore = ["F821", "RUF012"]
 line-length = 128
-
-[dependency-groups]
-dev = [
-    "black>=26.5.1",
-    "faker>=40.37.0",
-    "isort>=8.0.1",
-    "pytest>=9.1.1",
-]

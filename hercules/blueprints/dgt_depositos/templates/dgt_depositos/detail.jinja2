@@ -1,0 +1,105 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}DGT Depósito {{ dgt_deposito.clave }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('DGT Depósito ' + dgt_deposito.clave) %}
+        {{ topbar.button_previous('DGT Depósitos', url_for('dgt_depositos.list_active')) }}
+        {% if current_user.can_edit('DGT DEPOSITOS') %}
+            {{ topbar.button_edit('Editar', url_for('dgt_depositos.edit', dgt_deposito_id=dgt_deposito.id)) }}
+        {% endif %}
+        {% if current_user.can_admin('DGT DEPOSITOS') %}
+            {% if dgt_deposito.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('dgt_depositos.delete', dgt_deposito_id=dgt_deposito.id)) }}{% endif %}
+            {% if dgt_deposito.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('dgt_depositos.recover', dgt_deposito_id=dgt_deposito.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=dgt_deposito.estatus) %}
+        <div class="row">
+            {{ detail.label_value_big('Clave', dgt_deposito.clave) }}
+            {{ detail.label_value('Descripción', dgt_deposito.descripcion) }}
+            {{ detail.label_value('Propósito', dgt_deposito.proposito) }}
+        </div>
+    {% endcall %}
+    {% if current_user.can_view('DGT RUTAS') and dgt_deposito.estatus == 'A' %}
+        {% call detail.card('Rutas') %}
+            <!-- Filtros DGT Rutas -->
+            <div class="row">
+                <div class="col">
+                    <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDTDgtRutas.buscar(); return false;">
+                        <div class="col-4">
+                            <div class="form-floating">
+                                <input id="filtroClave" type="text" class="form-control" aria-label="Clave" style="text-transform: uppercase;">
+                                <label for="filtroClave">Clave</label>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-floating">
+                                <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Autoridad clave" style="text-transform: uppercase;">
+                                <label for="filtroAutoridadClave">Autoridad clave</label>
+                            </div>
+                        </div>
+                        <div class="col-4 text-end">
+                            <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDTDgtRutas.buscar(); return false;" id="button-buscar"><span class="mdi:magnify"></span></button>
+                            <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDTDgtRutas.limpiar();" id="button-limpiar"><span class="mdi:broom"></span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- Datatable DGT Rutas -->
+            <table id="dgt_rutas_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Clave</th>
+                        <th>Tipo</th>
+                        <th>Autoridad clave</th>
+                        <th>Directorio</th>
+                    </tr>
+                </thead>
+            </table>
+        {% endcall %}
+    {% endif %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_admin('DGT DEPOSITOS') %}
+        {% if dgt_deposito.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar DGT Depósito ' + dgt_deposito.clave + '?') }}{% endif %}
+        {% if dgt_deposito.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar DGT Depósito ' + dgt_deposito.clave + '?') }}{% endif %}
+    {% endif %}
+    {% if current_user.can_view('DGT RUTAS') and dgt_deposito.estatus == 'A' %}
+        <script src="/static/js/datatables-constructor.js"></script>
+        <script src="/static/js/datatables-filtros.js"></script>
+        <script>
+            // DataTable DGT Rutas
+            const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+            let configDTDgtRutas = constructorDataTable.config();
+            configDTDgtRutas['ajax']['url'] = "{{ url_for('dgt_rutas.datatable_json') }}";
+            configDTDgtRutas['ajax']['data'] = { 'estatus': "A", 'dgt_deposito_id': "{{ dgt_deposito.id }}" };
+            configDTDgtRutas['columns'] = [
+                { data: "detalle" },
+                { data: "dgt_tipo_clave" },
+                { data: "autoridad_clave" },
+                { data: "directorio" }
+            ];
+            configDTDgtRutas['columnDefs'] = [
+                {
+                    targets: 0, // detalle
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '">' + data.clave + '</a>';
+                    }
+                }
+            ];
+            // Filtros DGT Rutas
+            const filtrosDTDgtRutas = new FiltrosDataTable('#dgt_rutas_datatable', configDTDgtRutas);
+            filtrosDTDgtRutas.agregarInput('filtroClave', 'clave');
+            filtrosDTDgtRutas.agregarInput('filtroAutoridadClave', 'autoridad_clave');
+            filtrosDTDgtRutas.precargar();
+        </script>
+    {% endif %}
+{% endblock %}

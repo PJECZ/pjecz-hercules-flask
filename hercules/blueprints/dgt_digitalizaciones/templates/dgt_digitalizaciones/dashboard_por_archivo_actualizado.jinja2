@@ -1,0 +1,206 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block custom_head %}
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block title %}Digitalizaciones por archivo actualizado{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Digitalizaciones por archivo actualizado') %}
+        {{ topbar.button_dashboard('Por año del expediente', url_for('dgt_digitalizaciones.dashboard_por_expediente_anio')) }}
+        {{ topbar.button_previous('Digitalizaciones', url_for('dgt_digitalizaciones.list_active')) }}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    <!-- Botones para elegir el periodo -->
+    <div class="mb-3">
+        <div class="btn-group" role="group" aria-label="Periodo">
+            <button type="button" class="btn btn-outline-primary boton-periodo" data-dias="30">30 días</button>
+            <button type="button" class="btn btn-outline-primary boton-periodo" data-dias="60">60 días</button>
+            <button type="button" class="btn btn-outline-primary boton-periodo" data-dias="90">90 días</button>
+            <button type="button" class="btn btn-outline-primary boton-periodo" data-dias="180">180 días</button>
+        </div>
+        <span id="dashboard_periodo" class="ms-3 text-muted"></span>
+    </div>
+    {% call detail.card(title='Gráfico por materia y fecha de archivo actualizado') %}
+        <canvas id="dashboard_chart" style="max-height: 420px;"></canvas>
+    {% endcall %}
+    {% call detail.card(title='Totales por materia y fecha de archivo actualizado') %}
+        <table id="dashboard_datatable" class="table display nowrap" style="width:100%"></table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script>
+      const totalesUrl = "{{ url_for('dgt_digitalizaciones.get_totales_por_materia_por_archivo_actualizado_json') }}";
+      const listActiveUrl = "{{ url_for('dgt_digitalizaciones.list_active') }}";
+
+      // Colores para cada materia en el gráfico
+      const colores = [
+        "rgb(54, 162, 235)",
+        "rgb(255, 99, 132)",
+        "rgb(75, 192, 192)",
+        "rgb(255, 159, 64)",
+        "rgb(153, 102, 255)",
+        "rgb(255, 205, 86)",
+        "rgb(201, 203, 207)",
+        "rgb(46, 139, 87)",
+        "rgb(128, 0, 0)",
+        "rgb(0, 0, 128)",
+      ];
+
+      let grafico = null;
+
+      // Convertir una fecha a texto AAAA-MM-DD en hora local
+      function fechaATexto(fecha) {
+        const anio = fecha.getFullYear();
+        const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+        const dia = String(fecha.getDate()).padStart(2, "0");
+        return `${anio}-${mes}-${dia}`;
+      }
+
+      // Cargar el gráfico y la tabla de los últimos N días, incluyendo hoy
+      function cargarDashboard(dias) {
+        const fechaFinal = new Date();
+        const fechaInicial = new Date(fechaFinal);
+        fechaInicial.setDate(fechaFinal.getDate() - (dias - 1));
+
+        // Marcar el botón activo
+        document.querySelectorAll(".boton-periodo").forEach((boton) => {
+          boton.classList.toggle("active", Number(boton.dataset.dias) === dias);
+        });
+        document.getElementById("dashboard_periodo").textContent =
+          `Del ${fechaATexto(fechaInicial)} al ${fechaATexto(fechaFinal)}`;
+
+        // Todas las fechas del periodo, para que los días sin registros aparezcan con cero
+        const fechas = [];
+        for (let f = new Date(fechaInicial); f <= fechaFinal; f.setDate(f.getDate() + 1)) {
+          fechas.push(fechaATexto(f));
+        }
+
+        const params = new URLSearchParams({
+          fecha_inicial: fechaATexto(fechaInicial),
+          fecha_final: fechaATexto(fechaFinal),
+        });
+
+        fetch(`${totalesUrl}?${params}`, {
+          method: "GET",
+          headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+        })
+          .then((response) => response.json())
+          .then((json) => {
+            if (!json.success) {
+              console.error("Error al obtener los totales:", json.message);
+              return;
+            }
+            const totales = json.totales;
+
+            // Materias únicas ordenadas alfabéticamente
+            const materias = [...new Set(totales.map((r) => r.materia_nombre))].sort();
+
+            // ID de cada materia por su nombre, para elaborar los enlaces
+            const materiasIds = {};
+            totales.forEach((r) => {
+              materiasIds[r.materia_nombre] = r.materia_id;
+            });
+
+            // Índice de acceso rápido: {fecha: {materia: total}}
+            const indice = {};
+            totales.forEach((r) => {
+              if (!indice[r.fecha]) indice[r.fecha] = {};
+              indice[r.fecha][r.materia_nombre] = r.total;
+            });
+
+            // --- Gráfico ---
+
+            if (grafico) grafico.destroy();
+            grafico = new Chart(document.getElementById("dashboard_chart"), {
+              type: "line",
+              data: {
+                labels: fechas,
+                datasets: materias.map((materia, i) => ({
+                  label: materia,
+                  data: fechas.map((fecha) => indice[fecha]?.[materia] ?? 0),
+                  borderColor: colores[i % colores.length],
+                  backgroundColor: colores[i % colores.length],
+                  tension: 0.2,
+                })),
+              },
+              options: {
+                responsive: true,
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                  title: { display: true, text: "Digitalizaciones por materia y fecha de archivo actualizado" },
+                },
+                scales: {
+                  x: { title: { display: true, text: "Fecha" } },
+                  y: { beginAtZero: true, title: { display: true, text: "Total" }, ticks: { precision: 0 } },
+                },
+              },
+            });
+
+            // --- DataTable ---
+
+            // Las columnas cambian según las materias, así que se destruye y se vacía la tabla
+            if ($.fn.DataTable.isDataTable("#dashboard_datatable")) {
+              $("#dashboard_datatable").DataTable().destroy();
+              $("#dashboard_datatable").empty();
+            }
+
+            // Filas con las fechas más recientes primero
+            const data = [...fechas].reverse().map((fecha) => {
+              const fila = { fecha };
+              materias.forEach((materia) => {
+                fila[materia] = indice[fecha]?.[materia] ?? 0;
+              });
+              return fila;
+            });
+
+            const columns = [
+              { title: "Fecha", data: "fecha" },
+              ...materias.map((materia) => ({
+                title: materia,
+                data: materia,
+                render: (total, type, row) => {
+                  if (type !== "display" || total === 0) return total;
+                  const params = new URLSearchParams({ archivo_actualizado: row.fecha, materia_id: materiasIds[materia] });
+                  return `<a href="${listActiveUrl}?${params}">${total}</a>`;
+                },
+              })),
+            ];
+
+            $("#dashboard_datatable").DataTable({
+              data,
+              columns,
+              ordering: false,
+              searching: false,
+              responsive: true,
+              scrollX: true,
+              paging: true,
+              pageLength: 10,
+              language: {
+                zeroRecords: "No se encontraron registros",
+                info: "Mostrando _START_ a _END_ de _TOTAL_ días",
+                infoEmpty: "Sin registros",
+                lengthMenu: "Mostrar _MENU_ días",
+                paginate: { first: "Primera", last: "Última", next: "Siguiente", previous: "Anterior" },
+              },
+            });
+          })
+          .catch((error) => console.error("Error al cargar el tablero:", error));
+      }
+
+      // Botones para cambiar el periodo
+      document.querySelectorAll(".boton-periodo").forEach((boton) => {
+        boton.addEventListener("click", () => cargarDashboard(Number(boton.dataset.dias)));
+      });
+
+      // Por defecto los últimos 30 días
+      cargarDashboard(30);
+    </script>
+{% endblock %}

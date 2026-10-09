@@ -1,0 +1,23 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Editar {{ dgt_ruta.clave }}{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Editar ' + dgt_ruta.clave) }}
+{% endblock %}
+
+{% block content %}
+    {% call f.card() %}
+        {% set form_kwargs = {'dgt_ruta_id': dgt_ruta.id} %}
+        {% call f.form_tag('dgt_rutas.edit', fid='dgt_ruta_form', **form_kwargs) %}
+            {% call f.form_group(form.dgt_deposito) %}{% endcall %}
+            {% call f.form_group(form.autoridad_clave) %}{% endcall %}
+            {% call f.form_group(form.dgt_tipo) %}{% endcall %}
+            {% call f.form_group(form.clave) %}{% endcall %}
+            {% call f.form_group(form.directorio) %}{% endcall %}
+            {% call f.form_group(form.guardar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}

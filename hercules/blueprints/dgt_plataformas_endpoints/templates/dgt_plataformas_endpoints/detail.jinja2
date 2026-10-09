@@ -1,0 +1,93 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}DGT Plataforma Endpoint {{ dgt_plataforma_endpoint.descripcion }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('DGT Plataforma Endpoint ' + dgt_plataforma_endpoint.descripcion) %}
+        {{ topbar.button_previous('DGT Plataformas Endpoints', url_for('dgt_plataformas_endpoints.list_active')) }}
+        {% if current_user.can_edit('DGT PLATAFORMAS ENDPOINTS') %}
+            {{ topbar.button_edit('Editar', url_for('dgt_plataformas_endpoints.edit', dgt_plataforma_endpoint_id=dgt_plataforma_endpoint.id)) }}
+        {% endif %}
+        {% if current_user.can_admin('DGT PLATAFORMAS ENDPOINTS') %}
+            {% if dgt_plataforma_endpoint.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('dgt_plataformas_endpoints.delete', dgt_plataforma_endpoint_id=dgt_plataforma_endpoint.id)) }}{% endif %}
+            {% if dgt_plataforma_endpoint.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('dgt_plataformas_endpoints.recover', dgt_plataforma_endpoint_id=dgt_plataforma_endpoint.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=dgt_plataforma_endpoint.estatus) %}
+        <div class="row">
+            {{ detail.label_value_big('Descripción', dgt_plataforma_endpoint.descripcion) }}
+            {% if current_user.can_view('DGT PLATAFORMAS') %}
+                {{ detail.label_value('Plataforma', dgt_plataforma_endpoint.dgt_plataforma.descripcion, url_for('dgt_plataformas.detail', dgt_plataforma_id=dgt_plataforma_endpoint.dgt_plataforma_id)) }}
+            {% else %}
+                {{ detail.label_value('Plataforma', dgt_plataforma_endpoint.dgt_plataforma.descripcion) }}
+            {% endif %}
+            {{ detail.label_value('Propósito', dgt_plataforma_endpoint.PROPOSITOS[dgt_plataforma_endpoint.proposito]) }}
+            {{ detail.label_value('Método', dgt_plataforma_endpoint.metodo) }}
+            {{ detail.label_value('Ruta', dgt_plataforma_endpoint.ruta) }}
+        </div>
+    {% endcall %}
+    {% call detail.card('Muestra del payload') %}
+        <pre class="mb-0"><code>{{ payload_muestra }}</code></pre>
+    {% endcall %}
+    {% if current_user.can_view('DGT PLATAFORMAS ENDPOINTS BITACORAS') and dgt_plataforma_endpoint.estatus == 'A' %}
+        {% call detail.card('Bitácoras') %}
+            <!-- Datatable DGT Plataformas Endpoints Bitácoras -->
+            <table id="dgt_plataformas_endpoints_bitacoras_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Creado</th>
+                        <th>Código</th>
+                        <th>Exitosa</th>
+                        <th>Mensaje</th>
+                    </tr>
+                </thead>
+            </table>
+        {% endcall %}
+    {% endif %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_admin('DGT PLATAFORMAS ENDPOINTS') %}
+        {% if dgt_plataforma_endpoint.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar DGT Plataforma Endpoint ' + dgt_plataforma_endpoint.descripcion + '?') }}{% endif %}
+        {% if dgt_plataforma_endpoint.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar DGT Plataforma Endpoint ' + dgt_plataforma_endpoint.descripcion + '?') }}{% endif %}
+    {% endif %}
+    {% if current_user.can_view('DGT PLATAFORMAS ENDPOINTS BITACORAS') and dgt_plataforma_endpoint.estatus == 'A' %}
+        <script src="/static/js/datatables-constructor.js"></script>
+        <script>
+            // DataTable DGT Plataformas Endpoints Bitácoras
+            const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+            let configDTDgtPlataformasEndpointsBitacoras = constructorDataTable.config();
+            configDTDgtPlataformasEndpointsBitacoras['ajax']['url'] = "{{ url_for('dgt_plataformas_endpoints_bitacoras.datatable_json') }}";
+            configDTDgtPlataformasEndpointsBitacoras['ajax']['data'] = { 'estatus': "A", 'dgt_plataforma_endpoint_id': "{{ dgt_plataforma_endpoint.id }}" };
+            configDTDgtPlataformasEndpointsBitacoras['columns'] = [
+                { data: "detalle" },
+                { data: "respuesta_codigo" },
+                { data: "respuesta_exitosa" },
+                { data: "respuesta_mensaje" }
+            ];
+            configDTDgtPlataformasEndpointsBitacoras['columnDefs'] = [
+                {
+                    targets: 0, // detalle
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '">' + data.creado + '</a>';
+                    }
+                },
+                {
+                    targets: 2, // respuesta_exitosa
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return data ? '<span class="mdi:check text-success"></span>' : '<span class="mdi:close text-danger"></span>';
+                    }
+                }
+            ];
+            $('#dgt_plataformas_endpoints_bitacoras_datatable').DataTable(configDTDgtPlataformasEndpointsBitacoras);
+        </script>
+    {% endif %}
+{% endblock %}

@@ -62,6 +62,32 @@ def check_file_exists_from_gcs(
     return True
 
 
+def get_blob_name_from_gs_path(gs_path: str) -> str:
+    """
+    Get blob name from gs:// path
+
+    :param gs_path: gs:// path of the file
+    :return: Blob name
+
+    Raises MyNotValidParamError if the path is not valid
+    """
+    if not gs_path.startswith("gs://"):
+        raise MyNotValidParamError("Not valid gs:// path")
+
+    # Remove gs://
+    path_part = gs_path[5:]
+
+    # Split by /
+    parts = path_part.split("/")
+
+    # If parts has less than 2 elements, it means that there is no blob name
+    if len(parts) < 2:
+        raise MyNotValidParamError("Not valid gs:// path")
+
+    # Return the blob name
+    return "/".join(parts[1:])
+
+
 def get_blob_name_from_url(url: str) -> str:
     """
     Get blob name from URL
