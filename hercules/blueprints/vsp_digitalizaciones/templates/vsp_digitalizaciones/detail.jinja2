@@ -29,7 +29,7 @@
     {% call detail.card() %}
         {% if vsp_digitalizacion.tamano is not none and vsp_digitalizacion.tamano > 31457280 %}
             <a href="" class="w-100 btn btn-lg btn-success my-2" id="downloadPDFButton" target="_blank" style="display: none;">
-                <span class="mdi mdi-download"></span>
+                <span class="mdi:download"></span>
                 Descargar archivo
                 {% set tamano = vsp_digitalizacion.tamano %}
                 {% if tamano >= 1048576 %}

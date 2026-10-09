@@ -1,0 +1,105 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {{ topbar.button_dashboard('Por año del expediente', url_for('dgt_digitalizaciones.dashboard_por_expediente_anio')) }}
+        {{ topbar.button_dashboard('Por archivo actualizado', url_for('dgt_digitalizaciones.dashboard_por_archivo_actualizado')) }}
+        {{ topbar.button_previous('Digitalizaciones', url_for('dgt_digitalizaciones.list_active')) }}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% set ultimo_evento_badges = {'CREADO': 'bg-success', 'ELIMINADO': 'bg-danger', 'MODIFICADO': 'bg-warning text-dark'} %}
+    {% set tamano = dgt_digitalizacion.archivo_tamano %}
+    {% if tamano >= 1048576 %}
+        {% set tamano_legible = '%.2f MB' | format(tamano / 1048576) %}
+    {% elif tamano >= 1024 %}
+        {% set tamano_legible = '%.2f KB' | format(tamano / 1024) %}
+    {% else %}
+        {% set tamano_legible = tamano | string + ' bytes' %}
+    {% endif %}
+    {% call detail.card(estatus=dgt_digitalizacion.estatus) %}
+        <div class="row">
+            <div class="col-md-6">
+                {# detail.label_value('URL pública', dgt_digitalizacion.archivo_public_url) #}
+                {% if current_user.can_view('AUTORIDADES') %}
+                    {{ detail.label_value('Autoridad', dgt_digitalizacion.autoridad.clave, url_for('autoridades.detail', autoridad_id=dgt_digitalizacion.autoridad_id)) }}
+                {% else %}
+                    {{ detail.label_value('Autoridad', dgt_digitalizacion.autoridad.clave) }}
+                {% endif %}
+                {% if current_user.can_view('DGT RUTAS') %}
+                    {{ detail.label_value('Ruta', dgt_digitalizacion.dgt_ruta.clave, url_for('dgt_rutas.detail', dgt_ruta_id=dgt_digitalizacion.dgt_ruta_id)) }}
+                {% else %}
+                    {{ detail.label_value('Ruta', dgt_digitalizacion.dgt_ruta.clave) }}
+                {% endif %}
+                {{ detail.label_value('Expediente', dgt_digitalizacion.expediente) }}
+                {{ detail.label_value('Año', dgt_digitalizacion.expediente_anio) }}
+                {{ detail.label_value('Número', dgt_digitalizacion.expediente_num) }}
+                {{ detail.label_value('Descripción', dgt_digitalizacion.descripcion) }}
+            </div>
+            <div class="col-md-6">
+                {% if dgt_digitalizacion.ultimo_evento %}
+                    {% set ultimo_evento_html = '<span class="badge ' + ultimo_evento_badges.get(dgt_digitalizacion.ultimo_evento, 'bg-secondary') + '">' + dgt_digitalizacion.ultimo_evento + '</span>' %}
+                    {{ detail.label_value('Último evento', ultimo_evento_html | safe) }}
+                    {{ detail.label_value('Último evento el', dgt_digitalizacion.ultimo_evento_creado.strftime('%Y-%m-%d %H:%M') if dgt_digitalizacion.ultimo_evento_creado else '') }}
+                {% endif %}
+                {# detail.label_value('URL del archivo', dgt_digitalizacion.archivo_url) #}
+                {{ detail.label_value('MD5', dgt_digitalizacion.archivo_md5) }}
+                {{ detail.label_value('CRC32C', dgt_digitalizacion.archivo_crc32c) }}
+                {{ detail.label_value('Tamaño', tamano_legible) }}
+                {{ detail.label_value('Actualizado', dgt_digitalizacion.archivo_actualizado.strftime('%Y-%m-%d %H:%M')) }}
+                {% if dgt_digitalizacion.es_anomalo is not none %}
+                    {% set es_anomalo_html = '<span class="badge ' + ('bg-danger' if dgt_digitalizacion.es_anomalo else 'bg-success') + '">' + ('Sí' if dgt_digitalizacion.es_anomalo else 'No') + '</span>' %}
+                    {{ detail.label_value('Es anómalo', es_anomalo_html | safe) }}
+                {% else %}
+                    {{ detail.label_value('Es anómalo', '<span class="badge bg-secondary">Desconocido</span>') }}
+                {% endif %}
+            </div>
+        </div>
+    {% endcall %}
+    {% call detail.card() %}
+        {% if dgt_digitalizacion.archivo_tamano > vista_previa_pdf_max_size_mb %}
+            <a href="" class="w-100 btn btn-lg btn-success my-2" id="downloadPDFButton" target="_blank" style="display: none;">
+                <span class="mdi:download"></span> Descargar archivo {{ tamano_legible }}
+            </a>
+            <div class="alert alert-danger" role="alert" id="downloadPDFError" style="display: none;">
+                No se pudo obtener el enlace para descargar el archivo PDF.
+            </div>
+        {% else %}
+            <object data="{{ url_for('dgt_digitalizaciones.preview_file_pdf', dgt_digitalizacion_id=dgt_digitalizacion.id) }}" type="application/pdf" width="100%" height="600px">
+                <p class="mb-0">El navegador no puede mostrar el archivo PDF o no existe en el depósito.</p>
+            </object>
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if dgt_digitalizacion.archivo_tamano > vista_previa_pdf_max_size_mb %}
+        <script>
+            // Obtener la URL pública del archivo PDF para habilitar el botón de descarga
+            downloadPDFButton = document.getElementById('downloadPDFButton');
+            downloadPDFError = document.getElementById('downloadPDFError');
+            fetch('{{ url_for('dgt_digitalizaciones.get_file_public_url_json', dgt_digitalizacion_id=dgt_digitalizacion.id) }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Habilitar el botón para descargar el PDF y se cambia su atributo href con la URL obtenida,
+                        downloadPDFButton.setAttribute('href', data.url);
+                        downloadPDFButton.style.display = 'block';
+                    } else {
+                        // Mostrar mensaje de error
+                        downloadPDFError.style.display = 'block';
+                        downloadPDFError.textContent = data.message || 'No se pudo obtener el enlace para descargar el archivo PDF.';
+                    }
+                    })
+                .catch(error => {
+                    console.error('Error al obtener la URL del PDF:', error);
+                    downloadPDFError.style.display = 'block';
+                });
+        </script>
+    {% endif %}
+{% endblock %}

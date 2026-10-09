@@ -1,0 +1,188 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('DGT RUTAS') %}
+            {{ topbar.button('Rutas', url_for('dgt_rutas.list_active'), 'mdi:source-branch') }}
+        {% endif %}
+        {{ topbar.button_dashboard('Por año del expediente', url_for('dgt_digitalizaciones.dashboard_por_expediente_anio')) }}
+        {{ topbar.button_dashboard('Por archivo actualizado', url_for('dgt_digitalizaciones.dashboard_por_archivo_actualizado')) }}
+        {% if current_user.can_admin('DGT DIGITALIZACIONES') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('dgt_digitalizaciones.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('dgt_digitalizaciones.list_active')) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call list.card() %}
+        <!-- Filtros DGT Digitalizaciones -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDgtDigitalizaciones.buscar(); return false;">
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroDgtDigitalizacionAutoridadClave" type="text" class="form-control" aria-label="Autoridad" style="text-transform: uppercase;">
+                            <label for="filtroDgtDigitalizacionAutoridadClave">Autoridad</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroDgtDigitalizacionExpediente" type="text" class="form-control" aria-label="Expediente" style="text-transform: uppercase;">
+                            <label for="filtroDgtDigitalizacionExpediente">Expediente</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroDgtDigitalizacionDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
+                            <label for="filtroDgtDigitalizacionDescripcion">Descripción</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <select id="filtroDgtDigitalizacionUltimoEvento" class="form-select" aria-label="Último evento" onchange="filtrosDgtDigitalizaciones.buscar();">
+                                <option value=""></option>
+                                {% for clave, descripcion in eventos.items() %}
+                                    <option value="{{ clave }}" {% if clave == ultimo_evento %}selected{% endif %}>{{ descripcion }}</option>
+                                {% endfor %}
+                            </select>
+                            <label for="filtroDgtDigitalizacionUltimoEvento">Último evento</label>
+                        </div>
+                    </div>
+                    <div class="col-2 d-flex align-items-center">
+                        <div class="form-check">
+                            <input id="filtroDgtDigitalizacionEsAnomalo" type="checkbox" class="form-check-input" onchange="cambiarEsAnomalo();" {% if es_anomalo %}checked{% endif %}>
+                            <label for="filtroDgtDigitalizacionEsAnomalo" class="form-check-label">Anómalos</label>
+                        </div>
+                    </div>
+                    <div class="col-2 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDgtDigitalizaciones.buscar(); return false;" id="button-buscar"><span class="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="limpiarFiltros();" id="button-limpiar"><span class="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Datatable DGT Digitalizaciones -->
+        <table id="dgt_digitalizaciones_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Expediente</th>
+                    <th>Autoridad</th>
+                    <th>Descripción</th>
+                    <th>Tipo</th>
+                    <th>Actualizado</th>
+                    <th>Tamaño</th>
+                    <th>Último evento</th>
+                    <th>Anómalo</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable DGT Digitalizaciones
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDTDgtDigitalizaciones = constructorDataTable.config();
+        configDTDgtDigitalizaciones['ajax']['url'] = "{{ url_for('dgt_digitalizaciones.datatable_json') }}";
+        configDTDgtDigitalizaciones['ajax']['data'] = {{ filtros }};
+        configDTDgtDigitalizaciones['columns'] = [
+            { data: 'detalle', className: 'dt-right' },
+            { data: 'autoridad_clave', className: 'dt-center' },
+            { data: 'descripcion', className: 'dt-left' },
+            { data: 'dgt_tipo_clave', className: 'dt-center' },
+            { data: 'archivo_actualizado' },
+            { data: 'archivo_tamano', className: 'dt-right' },
+            { data: 'ultimo_evento', className: 'dt-center' },
+            { data: 'es_anomalo', className: 'dt-center' }
+        ];
+        configDTDgtDigitalizaciones['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.expediente + '</a>';
+                }
+            },
+            {
+                targets: 5, // archivo_tamano
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (!data) {
+                        return '';
+                    }
+                    let size = data;
+                    let units = ['B', 'KB', 'MB', 'GB', 'TB'];
+                    let unitIndex = 0;
+                    while (size >= 1024 && unitIndex < units.length - 1) {
+                        size /= 1024;
+                        unitIndex++;
+                    }
+                    return size.toFixed(2) + ' ' + units[unitIndex];
+                }
+            },
+            {
+                targets: 6, // ultimo_evento
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (!data.evento) {
+                        return '';
+                    }
+                    let bgcolor = 'bg-secondary';
+                    switch (data.evento) {
+                        case 'CREADO':     bgcolor = 'bg-success';           break;
+                        case 'ELIMINADO':  bgcolor = 'bg-danger';            break;
+                        case 'MODIFICADO': bgcolor = 'bg-warning text-dark'; break;
+                    }
+                    let html = '<span class="badge ' + bgcolor + '">' + data.evento + '</span>';
+                    return html;
+                }
+            },
+            {
+                targets: 7, // es_anomalo
+                data: null,
+                render: function(data, type, row, meta) {
+                    if (!data) {
+                        return '';
+                    }
+                    let bgcolor = 'bg-secondary';
+                    let text = 'Desconocido';
+                    switch (data) {
+                        case 1: text = 'Anómalo'; bgcolor = 'bg-danger'; break;
+                        case 0: text = 'OK'; bgcolor = 'bg-success'; break;
+                    }
+                    let html = '<span class="badge ' + bgcolor + '">' + text + '</span>';
+                    return html;
+                }
+            }
+        ];
+        // Filtros DGT Digitalizaciones
+        const filtrosDgtDigitalizaciones = new FiltrosDataTable('#dgt_digitalizaciones_datatable', configDTDgtDigitalizaciones);
+        filtrosDgtDigitalizaciones.agregarInput('filtroDgtDigitalizacionAutoridadClave', 'autoridad_clave');
+        filtrosDgtDigitalizaciones.agregarInput('filtroDgtDigitalizacionExpediente', 'expediente');
+        filtrosDgtDigitalizaciones.agregarInput('filtroDgtDigitalizacionDescripcion', 'descripcion');
+        filtrosDgtDigitalizaciones.agregarSelect('filtroDgtDigitalizacionUltimoEvento', 'ultimo_evento');
+        filtrosDgtDigitalizaciones.precargar();
+        // Checkbox Anómalos, se maneja aparte porque FiltrosDataTable solo lee el value de los elementos
+        function cambiarEsAnomalo() {
+            if (document.getElementById('filtroDgtDigitalizacionEsAnomalo').checked) {
+                configDTDgtDigitalizaciones['ajax']['data']['es_anomalo'] = '1';
+            } else {
+                delete configDTDgtDigitalizaciones['ajax']['data']['es_anomalo'];
+            }
+            filtrosDgtDigitalizaciones.buscar();
+        }
+        // Limpiar, incluyendo el checkbox Anómalos
+        function limpiarFiltros() {
+            delete configDTDgtDigitalizaciones['ajax']['data']['es_anomalo'];
+            filtrosDgtDigitalizaciones.limpiar();
+        }
+    </script>
+{% endblock %}

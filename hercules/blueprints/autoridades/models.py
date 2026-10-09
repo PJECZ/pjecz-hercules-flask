@@ -2,7 +2,7 @@
 Autoridad
 """
 
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy import Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -96,22 +96,25 @@ class Autoridad(database.Model, UniversalMixin):
     con_copias_emails: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)
 
     # Hijos
-    arc_documentos: Mapped[List["ArcDocumento"]] = relationship(back_populates="autoridad")
-    arc_remesas: Mapped[List["ArcRemesa"]] = relationship(back_populates="autoridad")
-    arc_solicitudes: Mapped[List["ArcSolicitud"]] = relationship(back_populates="autoridad")
-    audiencias: Mapped[List["Audiencia"]] = relationship(back_populates="autoridad")
-    autoridades_funcionarios: Mapped[List["AutoridadFuncionario"]] = relationship(back_populates="autoridad")
-    cid_areas_autoridades: Mapped[List["CIDAreaAutoridad"]] = relationship(back_populates="autoridad")
-    cid_procedimientos: Mapped[List["CIDProcedimiento"]] = relationship(back_populates="autoridad")
-    edictos: Mapped[List["Edicto"]] = relationship(back_populates="autoridad")
-    exh_exhortos: Mapped[List["ExhExhorto"]] = relationship(back_populates="autoridad")
-    glosas: Mapped[List["Glosa"]] = relationship(back_populates="autoridad")
-    listas_de_acuerdos: Mapped[List["ListaDeAcuerdo"]] = relationship(back_populates="autoridad")
-    redam: Mapped[List["Redam"]] = relationship(back_populates="autoridad")
-    sentencias: Mapped[List["Sentencia"]] = relationship(back_populates="autoridad")
-    ubicaciones_expedientes: Mapped[List["UbicacionExpediente"]] = relationship(back_populates="autoridad")
-    usuarios: Mapped[List["Usuario"]] = relationship(back_populates="autoridad")
-    vsp_digitalizaciones: Mapped[List["VspDigitalizacion"]] = relationship(back_populates="autoridad")
+    arc_documentos: Mapped[list["ArcDocumento"]] = relationship(back_populates="autoridad")
+    arc_remesas: Mapped[list["ArcRemesa"]] = relationship(back_populates="autoridad")
+    arc_solicitudes: Mapped[list["ArcSolicitud"]] = relationship(back_populates="autoridad")
+    audiencias: Mapped[list["Audiencia"]] = relationship(back_populates="autoridad")
+    autoridades_funcionarios: Mapped[list["AutoridadFuncionario"]] = relationship(back_populates="autoridad")
+    cid_areas_autoridades: Mapped[list["CIDAreaAutoridad"]] = relationship(back_populates="autoridad")
+    cid_procedimientos: Mapped[list["CIDProcedimiento"]] = relationship(back_populates="autoridad")
+    dgt_digitalizaciones: Mapped[list["DgtDigitalizacion"]] = relationship(back_populates="autoridad")
+    dgt_plataforma_autoridad: Mapped[Optional["DgtPlataformaAutoridad"]] = relationship(back_populates="autoridad")
+    dgt_entregas: Mapped[list["DgtEntrega"]] = relationship(back_populates="autoridad")
+    edictos: Mapped[list["Edicto"]] = relationship(back_populates="autoridad")
+    exh_exhortos: Mapped[list["ExhExhorto"]] = relationship(back_populates="autoridad")
+    glosas: Mapped[list["Glosa"]] = relationship(back_populates="autoridad")
+    listas_de_acuerdos: Mapped[list["ListaDeAcuerdo"]] = relationship(back_populates="autoridad")
+    redam: Mapped[list["Redam"]] = relationship(back_populates="autoridad")
+    sentencias: Mapped[list["Sentencia"]] = relationship(back_populates="autoridad")
+    ubicaciones_expedientes: Mapped[list["UbicacionExpediente"]] = relationship(back_populates="autoridad")
+    usuarios: Mapped[list["Usuario"]] = relationship(back_populates="autoridad")
+    vsp_digitalizaciones: Mapped[list["VspDigitalizacion"]] = relationship(back_populates="autoridad")
 
     @property
     def nombre(self):

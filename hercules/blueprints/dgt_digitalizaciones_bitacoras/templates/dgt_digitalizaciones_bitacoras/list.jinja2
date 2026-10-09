@@ -1,0 +1,77 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('DGT DIGITALIZACIONES') %}
+            {{ topbar.button('Digitalizaciones', url_for('dgt_digitalizaciones.list_active'), 'mdi:scanner') }}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call list.card() %}
+        <!-- Filtros DGT Digitalizaciones Bitácoras -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDgtDigitalizacionesBitacoras.buscar(); return false;">
+                    <div class="col-4">
+                        <div class="form-floating">
+                            <input id="filtroDgtDigitalizacionBitacoraEvento" type="text" class="form-control" aria-label="Evento" style="text-transform: uppercase;">
+                            <label for="filtroDgtDigitalizacionBitacoraEvento">Evento</label>
+                        </div>
+                    </div>
+                    <div class="col-4 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDgtDigitalizacionesBitacoras.buscar(); return false;" id="button-buscar"><span class="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDgtDigitalizacionesBitacoras.limpiar();" id="button-limpiar"><span class="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Datatable DGT Digitalizaciones Bitácoras -->
+        <table id="dgt_digitalizaciones_bitacoras_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Evento</th>
+                    <th>Tamaño</th>
+                    <th>Archivo actualizado</th>
+                    <th>Creado</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable DGT Digitalizaciones Bitácoras
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDTDgtDigitalizacionesBitacoras = constructorDataTable.config();
+        configDTDgtDigitalizacionesBitacoras['ajax']['url'] = "{{ url_for('dgt_digitalizaciones_bitacoras.datatable_json') }}";
+        configDTDgtDigitalizacionesBitacoras['ajax']['data'] = {{ filtros }};
+        configDTDgtDigitalizacionesBitacoras['columns'] = [
+            { data: 'detalle' },
+            { data: 'archivo_tamano' },
+            { data: 'archivo_actualizado' },
+            { data: 'creado' }
+        ];
+        configDTDgtDigitalizacionesBitacoras['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.evento + '</a>';
+                }
+            }
+        ];
+        // Filtros DGT Digitalizaciones Bitácoras
+        const filtrosDgtDigitalizacionesBitacoras = new FiltrosDataTable('#dgt_digitalizaciones_bitacoras_datatable', configDTDgtDigitalizacionesBitacoras);
+        filtrosDgtDigitalizacionesBitacoras.agregarInput('filtroDgtDigitalizacionBitacoraEvento', 'evento');
+        filtrosDgtDigitalizacionesBitacoras.precargar();
+    </script>
+{% endblock %}

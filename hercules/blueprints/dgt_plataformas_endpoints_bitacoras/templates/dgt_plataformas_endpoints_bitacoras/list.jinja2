@@ -1,0 +1,97 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('DGT PLATAFORMAS ENDPOINTS') %}
+            {{ topbar.button('Plataformas Endpoints', url_for('dgt_plataformas_endpoints.list_active'), 'mdi:api') }}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call list.card() %}
+        <!-- Filtros DGT Plataformas Endpoints Bitácoras -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDgtPlataformasEndpointsBitacoras.buscar(); return false;">
+                    <div class="col-4">
+                        <div class="form-floating">
+                            <input id="filtroDgtPlataformaEndpointDescripcion" type="text" class="form-control" aria-label="Endpoint" style="text-transform: uppercase;">
+                            <label for="filtroDgtPlataformaEndpointDescripcion">Endpoint</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <select id="filtroDgtPlataformaEndpointBitacoraRespuestaExitosa" class="form-select" aria-label="Exitosa">
+                                <option value="" selected></option>
+                                <option value="1">Sí</option>
+                                <option value="0">No</option>
+                            </select>
+                            <label for="filtroDgtPlataformaEndpointBitacoraRespuestaExitosa">Exitosa</label>
+                        </div>
+                    </div>
+                    <div class="col-6 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDgtPlataformasEndpointsBitacoras.buscar(); return false;" id="button-buscar"><span class="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDgtPlataformasEndpointsBitacoras.limpiar();" id="button-limpiar"><span class="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Datatable DGT Plataformas Endpoints Bitácoras -->
+        <table id="dgt_plataformas_endpoints_bitacoras_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Creado</th>
+                    <th>Endpoint</th>
+                    <th>Código</th>
+                    <th>Exitosa</th>
+                    <th>Mensaje</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable DGT Plataformas Endpoints Bitácoras
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDTDgtPlataformasBitacoras = constructorDataTable.config();
+        configDTDgtPlataformasBitacoras['ajax']['url'] = "{{ url_for('dgt_plataformas_endpoints_bitacoras.datatable_json') }}";
+        configDTDgtPlataformasBitacoras['ajax']['data'] = {{ filtros }};
+        configDTDgtPlataformasBitacoras['columns'] = [
+            { data: 'detalle' },
+            { data: 'dgt_plataforma_endpoint_descripcion' },
+            { data: 'respuesta_codigo' },
+            { data: 'respuesta_exitosa' },
+            { data: 'respuesta_mensaje' }
+        ];
+        configDTDgtPlataformasBitacoras['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.creado + '</a>';
+                }
+            },
+            {
+                targets: 3, // respuesta_exitosa
+                data: null,
+                render: function(data, type, row, meta) {
+                    return data ? '<span class="mdi:check text-success"></span>' : '<span class="mdi:close text-danger"></span>';
+                }
+            }
+        ];
+        // Filtros DGT Plataformas Endpoints Bitácoras
+        const filtrosDgtPlataformasEndpointsBitacoras = new FiltrosDataTable('#dgt_plataformas_endpoints_bitacoras_datatable', configDTDgtPlataformasBitacoras);
+        filtrosDgtPlataformasEndpointsBitacoras.agregarInput('filtroDgtPlataformaEndpointDescripcion', 'dgt_plataforma_endpoint_descripcion');
+        filtrosDgtPlataformasEndpointsBitacoras.agregarSelect('filtroDgtPlataformaEndpointBitacoraRespuestaExitosa', 'respuesta_exitosa');
+        filtrosDgtPlataformasEndpointsBitacoras.precargar();
+    </script>
+{% endblock %}

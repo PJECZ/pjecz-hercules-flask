@@ -1,0 +1,20 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/form.jinja2' as f with context %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}Editar {{ dgt_plataforma.descripcion }}{% endblock %}
+
+{% block topbar_actions %}
+    {{ topbar.page('Editar ' + dgt_plataforma.descripcion) }}
+{% endblock %}
+
+{% block content %}
+    {% call f.card() %}
+        {% set form_kwargs = {'dgt_plataforma_id': dgt_plataforma.id} %}
+        {% call f.form_tag('dgt_plataformas.edit', fid='dgt_plataforma_form', **form_kwargs) %}
+            {% call f.form_group(form.descripcion) %}{% endcall %}
+            {% call f.form_group(form.api_key) %}{% endcall %}
+            {% call f.form_group(form.guardar) %}{% endcall %}
+        {% endcall %}
+    {% endcall %}
+{% endblock %}

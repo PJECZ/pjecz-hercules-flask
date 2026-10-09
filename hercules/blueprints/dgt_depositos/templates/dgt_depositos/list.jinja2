@@ -1,0 +1,92 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('DGT RUTAS') %}
+            {{ topbar.button('Rutas', url_for('dgt_rutas.list_active'), 'mdi:source-branch') }}
+        {% endif %}
+        {% if current_user.can_view('DGT TIPOS') %}
+            {{ topbar.button('Tipos', url_for('dgt_tipos.list_active'), 'mdi:label') }}
+        {% endif %}
+        {% if current_user.can_admin('DGT DEPOSITOS') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('dgt_depositos.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('dgt_depositos.list_active')) }}{% endif %}
+        {% endif %}
+        {% if current_user.can_insert('DGT DEPOSITOS') %}
+            {{ topbar.button_new('Nuevo DGT Depósito', url_for('dgt_depositos.new')) }}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call list.card() %}
+        <!-- Filtros DGT Depósitos -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDgtDepositos.buscar(); return false;">
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <input id="filtroDgtDepositoClave" type="text" class="form-control" aria-label="Clave" style="text-transform: uppercase;">
+                            <label for="filtroDgtDepositoClave">Clave</label>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-floating">
+                            <input id="filtroDgtDepositoDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
+                            <label for="filtroDgtDepositoDescripcion">Descripción</label>
+                        </div>
+                    </div>
+                    <div class="col-6 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDgtDepositos.buscar(); return false;" id="button-buscar"><span class="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDgtDepositos.limpiar();" id="button-limpiar"><span class="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Datatable DGT Depósitos -->
+        <table id="dgt_depositos_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Clave</th>
+                    <th>Descripción</th>
+                    <th>Propósito</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable DGT Depósitos
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDTDgtDepositos = constructorDataTable.config();
+        configDTDgtDepositos['ajax']['url'] = "{{ url_for('dgt_depositos.datatable_json') }}";
+        configDTDgtDepositos['ajax']['data'] = {{ filtros }};
+        configDTDgtDepositos['columns'] = [
+            { data: 'detalle' },
+            { data: 'descripcion' },
+            { data: 'proposito' }
+        ];
+        configDTDgtDepositos['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.clave + '</a>';
+                }
+            }
+        ];
+        // Filtros DGT Depósitos
+        const filtrosDgtDepositos = new FiltrosDataTable('#dgt_depositos_datatable', configDTDgtDepositos);
+        filtrosDgtDepositos.agregarInput('filtroDgtDepositoClave', 'clave');
+        filtrosDgtDepositos.agregarInput('filtroDgtDepositoDescripcion', 'descripcion');
+        filtrosDgtDepositos.precargar();
+    </script>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/list.jinja2' as list %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons(titulo) %}
+        {% if current_user.can_view('DGT PLATAFORMAS') %}
+            {{ topbar.button('Plataformas', url_for('dgt_plataformas.list_active'), 'mdi:ship-wheel') }}
+        {% endif %}
+        {% if current_user.can_admin('DGT PLATAFORMAS ENDPOINTS') %}
+            {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('dgt_plataformas_endpoints.list_inactive')) }}{% endif %}
+            {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('dgt_plataformas_endpoints.list_active')) }}{% endif %}
+        {% endif %}
+        {% if current_user.can_insert('DGT PLATAFORMAS ENDPOINTS') %}
+            {{ topbar.button_new('Nuevo DGT Plataforma Endpoint', url_for('dgt_plataformas_endpoints.new')) }}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call list.card() %}
+        <!-- Filtros DGT Plataformas Endpoints -->
+        <div class="row">
+            <div class="col">
+                <form class="row g-1 mb-3" id="filtradorForm" onsubmit="filtrosDgtPlataformasEndpoints.buscar(); return false;">
+                    <div class="col-3">
+                        <div class="form-floating">
+                            <input id="filtroDgtPlataformaEndpointDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
+                            <label for="filtroDgtPlataformaEndpointDescripcion">Descripción</label>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="form-floating">
+                            <input id="filtroDgtPlataformaDescripcion" type="text" class="form-control" aria-label="Plataforma" style="text-transform: uppercase;">
+                            <label for="filtroDgtPlataformaDescripcion">Plataforma</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <select id="filtroDgtPlataformaEndpointProposito" class="form-select" aria-label="Propósito">
+                                <option value="" selected></option>
+                                <option value="INSERTAR">Insertar</option>
+                                <option value="MODIFICAR">Modificar</option>
+                                <option value="ELIMINAR">Eliminar</option>
+                            </select>
+                            <label for="filtroDgtPlataformaEndpointProposito">Propósito</label>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        <div class="form-floating">
+                            <select id="filtroDgtPlataformaEndpointMetodo" class="form-select" aria-label="Método">
+                                <option value="" selected></option>
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                            </select>
+                            <label for="filtroDgtPlataformaEndpointMetodo">Método</label>
+                        </div>
+                    </div>
+                    <div class="col-2 text-end">
+                        <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDgtPlataformasEndpoints.buscar(); return false;" id="button-buscar"><span class="mdi:magnify"></span></button>
+                        <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDgtPlataformasEndpoints.limpiar();" id="button-limpiar"><span class="mdi:broom"></span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Datatable DGT Plataformas Endpoints -->
+        <table id="dgt_plataformas_endpoints_datatable" class="table {% if estatus == 'B'%}table-dark{% endif %} display nowrap" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Descripción</th>
+                    <th>Plataforma</th>
+                    <th>Propósito</th>
+                    <th>Método</th>
+                    <th>Ruta</th>
+                </tr>
+            </thead>
+        </table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script src="/static/js/datatables-constructor.js"></script>
+    <script src="/static/js/datatables-filtros.js"></script>
+    <script>
+        // DataTable DGT Plataformas Endpoints
+        const constructorDataTable = new ConfigDataTable( '{{ csrf_token() }}' );
+        let configDTDgtPlataformasEndpoints = constructorDataTable.config();
+        configDTDgtPlataformasEndpoints['ajax']['url'] = "{{ url_for('dgt_plataformas_endpoints.datatable_json') }}";
+        configDTDgtPlataformasEndpoints['ajax']['data'] = {{ filtros }};
+        configDTDgtPlataformasEndpoints['columns'] = [
+            { data: 'detalle' },
+            { data: 'dgt_plataforma_descripcion' },
+            { data: 'proposito' },
+            { data: 'metodo' },
+            { data: 'ruta' }
+        ];
+        configDTDgtPlataformasEndpoints['columnDefs'] = [
+            {
+                targets: 0, // detalle
+                data: null,
+                render: function(data, type, row, meta) {
+                    return '<a href="' + data.url + '">' + data.descripcion + '</a>';
+                }
+            }
+        ];
+        // Filtros DGT Plataformas Endpoints
+        const filtrosDgtPlataformasEndpoints = new FiltrosDataTable('#dgt_plataformas_endpoints_datatable', configDTDgtPlataformasEndpoints);
+        filtrosDgtPlataformasEndpoints.agregarInput('filtroDgtPlataformaEndpointDescripcion', 'descripcion');
+        filtrosDgtPlataformasEndpoints.agregarInput('filtroDgtPlataformaDescripcion', 'dgt_plataforma_descripcion');
+        filtrosDgtPlataformasEndpoints.agregarSelect('filtroDgtPlataformaEndpointProposito', 'proposito');
+        filtrosDgtPlataformasEndpoints.agregarSelect('filtroDgtPlataformaEndpointMetodo', 'metodo');
+        filtrosDgtPlataformasEndpoints.precargar();
+    </script>
+{% endblock %}

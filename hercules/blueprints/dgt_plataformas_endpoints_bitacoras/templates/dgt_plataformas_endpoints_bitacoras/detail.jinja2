@@ -1,0 +1,35 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block title %}DGT Plataforma Endpoint Bitácora{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('DGT Plataforma Endpoint Bitácora') %}
+        {{ topbar.button_previous('DGT Plataformas Endpoints Bitácoras', url_for('dgt_plataformas_endpoints_bitacoras.list_active')) }}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=dgt_plataforma_endpoint_bitacora.estatus) %}
+        <div class="row">
+            {{ detail.label_value_big('Creado', creado) }}
+            {% if current_user.can_view('DGT PLATAFORMAS ENDPOINTS') %}
+                {{ detail.label_value('Endpoint', dgt_plataforma_endpoint_bitacora.dgt_plataforma_endpoint.descripcion, url_for('dgt_plataformas_endpoints.detail', dgt_plataforma_endpoint_id=dgt_plataforma_endpoint_bitacora.dgt_plataforma_endpoint_id)) }}
+            {% else %}
+                {{ detail.label_value('Endpoint', dgt_plataforma_endpoint_bitacora.dgt_plataforma_endpoint.descripcion) }}
+            {% endif %}
+                {{ detail.label_value('Plataforma', dgt_plataforma_endpoint_bitacora.dgt_plataforma_endpoint.dgt_plataforma.descripcion) }}
+                {{ detail.label_value('Método y ruta', dgt_plataforma_endpoint_bitacora.dgt_plataforma_endpoint.metodo + ' ' + dgt_plataforma_endpoint_bitacora.dgt_plataforma_endpoint.ruta) }}
+                {{ detail.label_value('Código de respuesta', dgt_plataforma_endpoint_bitacora.respuesta_codigo) }}
+                {{ detail.label_value_boolean('Respuesta exitosa', dgt_plataforma_endpoint_bitacora.respuesta_exitosa) }}
+                {{ detail.label_value('Mensaje', dgt_plataforma_endpoint_bitacora.respuesta_mensaje) }}
+        </div>
+    {% endcall %}
+    {% call detail.card('Payload enviado') %}
+        <pre class="mb-0"><code>{{ payload }}</code></pre>
+    {% endcall %}
+    {% call detail.card('Valores de salida') %}
+        <pre class="mb-0"><code>{{ respuesta_datos }}</code></pre>
+    {% endcall %}
+{% endblock %}

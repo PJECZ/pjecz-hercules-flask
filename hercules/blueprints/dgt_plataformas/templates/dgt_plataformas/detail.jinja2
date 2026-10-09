@@ -1,0 +1,311 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/modals.jinja2' as modals %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% set ver_autoridades = current_user.can_view('DGT PLATAFORMAS AUTORIDADES') and dgt_plataforma.estatus == 'A' %}
+{% set agregar_autoridades = ver_autoridades and current_user.can_insert('DGT PLATAFORMAS AUTORIDADES') %}
+{% set ver_endpoints = current_user.can_view('DGT PLATAFORMAS ENDPOINTS') and dgt_plataforma.estatus == 'A' %}
+{% set autoridades_activas = dgt_plataforma.dgt_plataformas_autoridades | selectattr('estatus', 'equalto', 'A') | list | length %}
+
+{% block title %}DGT Plataforma {{ dgt_plataforma.descripcion }}{% endblock %}
+
+{% block custom_head %}
+    {% if agregar_autoridades %}
+        <!-- Select2 bootstrap -->
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+        <link href="https://storage.googleapis.com/pjecz-informatica/static/css/select2.css" rel="stylesheet" />
+    {% endif %}
+{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('DGT Plataforma ' + dgt_plataforma.descripcion) %}
+        {{ topbar.button_previous('DGT Plataformas', url_for('dgt_plataformas.list_active')) }}
+        {% if current_user.can_edit('DGT PLATAFORMAS') %}
+            {{ topbar.button_edit('Editar', url_for('dgt_plataformas.edit', dgt_plataforma_id=dgt_plataforma.id)) }}
+        {% endif %}
+        {% if current_user.can_admin('DGT PLATAFORMAS') %}
+            {% if dgt_plataforma.estatus == 'A' %}{{ topbar.button_delete('Eliminar', url_for('dgt_plataformas.delete', dgt_plataforma_id=dgt_plataforma.id)) }}{% endif %}
+            {% if dgt_plataforma.estatus == 'B' %}{{ topbar.button_recover('Recuperar', url_for('dgt_plataformas.recover', dgt_plataforma_id=dgt_plataforma.id)) }}{% endif %}
+        {% endif %}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(estatus=dgt_plataforma.estatus) %}
+        <div class="row">
+            {{ detail.label_value_big('Descripción', dgt_plataforma.descripcion) }}
+            {{ detail.label_value('API key', dgt_plataforma.api_key_oculta) }}
+        </div>
+    {% endcall %}
+    {% if ver_autoridades %}
+        {% call detail.card('Autoridades') %}
+            {% if agregar_autoridades %}
+                <!-- Agregar autoridades -->
+                <div class="row g-2 align-items-center mb-2">
+                    <div class="col-md-10">
+                        <label for="autoridadesSelect" class="visually-hidden">Autoridades por agregar</label>
+                        <select id="autoridadesSelect" class="form-control" multiple="multiple" style="width: 100%"></select>
+                    </div>
+                    <div class="col-md-2 d-grid">
+                        <button id="agregarAutoridadesBtn" type="button" class="btn btn-primary" onclick="agregarAutoridades();">
+                            <span class="mdi:plus"></span> Agregar
+                        </button>
+                    </div>
+                </div>
+                <div class="form-text mb-2">
+                    Escriba la clave o parte de la descripción para buscar; puede elegir varias autoridades antes de agregar.
+                    Las que ya tienen una plataforma aparecen deshabilitadas: primero hay que quitarlas de esa plataforma.
+                </div>
+                <div id="autoridadesMensajes"></div>
+                <hr />
+            {% endif %}
+            <!-- Filtros autoridades asignadas -->
+            <form class="row g-1 mb-3" id="filtradorAutoridadesForm" onsubmit="filtrosDTDgtPlataformasAutoridades.buscar(); return false;">
+                <div class="col-4">
+                    <div class="form-floating">
+                        <input id="filtroAutoridadClave" type="text" class="form-control" aria-label="Clave" style="text-transform: uppercase;">
+                        <label for="filtroAutoridadClave">Clave</label>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="form-floating">
+                        <input id="filtroAutoridadDescripcion" type="text" class="form-control" aria-label="Descripción" style="text-transform: uppercase;">
+                        <label for="filtroAutoridadDescripcion">Descripción</label>
+                    </div>
+                </div>
+                <div class="col-4 text-end">
+                    <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDTDgtPlataformasAutoridades.buscar(); return false;"><span class="mdi:magnify"></span></button>
+                    <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDTDgtPlataformasAutoridades.limpiar();"><span class="mdi:broom"></span></button>
+                </div>
+            </form>
+            <!-- Datatable autoridades asignadas -->
+            <table id="dgt_plataformas_autoridades_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Clave</th>
+                        <th>Descripción</th>
+                        <th>Distrito</th>
+                        <th>Quitar</th>
+                    </tr>
+                </thead>
+            </table>
+        {% endcall %}
+    {% endif %}
+    {% if ver_endpoints %}
+        {% call detail.card('Endpoints') %}
+            <!-- Datatable DGT Plataformas Endpoints -->
+            <table id="dgt_plataformas_endpoints_datatable" class="table display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Propósito</th>
+                        <th>Método</th>
+                        <th>Ruta</th>
+                    </tr>
+                </thead>
+            </table>
+        {% endcall %}
+    {% endif %}
+{% endblock %}
+
+{% block custom_javascript %}
+    {% if current_user.can_admin('DGT PLATAFORMAS') %}
+        {% if dgt_plataforma.estatus == 'A' %}{{ modals.custom_javascript_delete('Eliminar', '¿Eliminar DGT Plataforma ' + dgt_plataforma.descripcion + '?' + (' También se quitarán sus ' + autoridades_activas | string + ' autoridades.' if autoridades_activas > 0 else '')) }}{% endif %}
+        {% if dgt_plataforma.estatus == 'B' %}{{ modals.custom_javascript_recover('Recuperar', '¿Recuperar DGT Plataforma ' + dgt_plataforma.descripcion + '?') }}{% endif %}
+    {% endif %}
+    {% if ver_autoridades or ver_endpoints %}
+        <script src="/static/js/datatables-constructor.js"></script>
+        <script src="/static/js/datatables-filtros.js"></script>
+        <script>
+            const csrfToken = '{{ csrf_token() }}';
+            const constructorDataTable = new ConfigDataTable(csrfToken);
+        </script>
+    {% endif %}
+    {% if ver_autoridades %}
+        <script>
+            // DataTable autoridades asignadas
+            let configDTDgtPlataformasAutoridades = constructorDataTable.config();
+            configDTDgtPlataformasAutoridades['ajax']['url'] = "{{ url_for('dgt_plataformas_autoridades.datatable_json') }}";
+            configDTDgtPlataformasAutoridades['ajax']['data'] = { 'estatus': "A", 'dgt_plataforma_id': "{{ dgt_plataforma.id }}" };
+            configDTDgtPlataformasAutoridades['columns'] = [
+                { data: "detalle" },
+                { data: "autoridad_descripcion_corta" },
+                { data: "distrito_nombre_corto" },
+                { data: "quitar" }
+            ];
+            configDTDgtPlataformasAutoridades['columnDefs'] = [
+                {
+                    targets: 0, // detalle
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '">' + data.autoridad_clave + '</a>';
+                    }
+                },
+                {
+                    targets: 3, // quitar
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        if (data.url === '') {
+                            return '';
+                        }
+                        return '<button type="button" class="btn btn-sm btn-outline-danger btn-quitar-autoridad" title="Quitar de esta plataforma" data-url="' + data.url + '" data-clave="' + data.autoridad_clave + '"><span class="mdi:link-variant-off"></span></button>';
+                    }
+                }
+            ];
+            // Filtros autoridades asignadas
+            const filtrosDTDgtPlataformasAutoridades = new FiltrosDataTable('#dgt_plataformas_autoridades_datatable', configDTDgtPlataformasAutoridades);
+            filtrosDTDgtPlataformasAutoridades.agregarInput('filtroAutoridadClave', 'autoridad_clave');
+            filtrosDTDgtPlataformasAutoridades.agregarInput('filtroAutoridadDescripcion', 'autoridad_descripcion');
+            filtrosDTDgtPlataformasAutoridades.precargar();
+
+            // Recargar la tabla de autoridades sin perder la página actual
+            function recargarAutoridades() {
+                $('#dgt_plataformas_autoridades_datatable').DataTable().ajax.reload(null, false);
+            }
+
+            // Mostrar un mensaje con una lista opcional de detalles
+            function mostrarMensajeAutoridades(tipo, texto, detalles = []) {
+                const contenedor = document.getElementById('autoridadesMensajes');
+                if (!contenedor) {
+                    console.log(texto, detalles);
+                    return;
+                }
+                const alerta = document.createElement('div');
+                alerta.className = 'alert alert-' + tipo + ' alert-dismissible fade show';
+                alerta.setAttribute('role', 'alert');
+                const parrafo = document.createElement('div');
+                parrafo.textContent = texto;
+                alerta.appendChild(parrafo);
+                if (detalles.length > 0) {
+                    const lista = document.createElement('ul');
+                    lista.className = 'mb-0 small';
+                    detalles.forEach(function(detalle) {
+                        const item = document.createElement('li');
+                        item.textContent = detalle;
+                        lista.appendChild(item);
+                    });
+                    alerta.appendChild(lista);
+                }
+                const cerrar = document.createElement('button');
+                cerrar.type = 'button';
+                cerrar.className = 'btn-close';
+                cerrar.setAttribute('data-bs-dismiss', 'alert');
+                cerrar.setAttribute('aria-label', 'Cerrar');
+                alerta.appendChild(cerrar);
+                contenedor.replaceChildren(alerta);
+            }
+
+            // Quitar una autoridad: el primer clic pide confirmación, el segundo la quita
+            $('#dgt_plataformas_autoridades_datatable').on('click', '.btn-quitar-autoridad', function() {
+                const boton = $(this);
+                if (!boton.hasClass('confirmando')) {
+                    boton.addClass('confirmando btn-danger').removeClass('btn-outline-danger');
+                    boton.html('¿Quitar ' + $('<span>').text(boton.data('clave')).html() + '?');
+                    setTimeout(function() {
+                        if (boton.hasClass('confirmando')) {
+                            boton.removeClass('confirmando btn-danger').addClass('btn-outline-danger');
+                            boton.html('<span class="mdi:link-variant-off"></span>');
+                        }
+                    }, 4000);
+                    return;
+                }
+                boton.prop('disabled', true);
+                fetch(boton.data('url'), { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken } })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        mostrarMensajeAutoridades(data.success ? 'success' : 'warning', data.message);
+                        recargarAutoridades();
+                    })
+                    .catch((error) => {
+                        mostrarMensajeAutoridades('danger', 'No se pudo quitar la autoridad. ¿Tiene permiso para modificar?');
+                        console.log(error);
+                        boton.prop('disabled', false);
+                    });
+            });
+        </script>
+    {% endif %}
+    {% if agregar_autoridades %}
+        <!-- Select2 bootstrap -->
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <script>
+            $(document).ready(function() {
+                $('#autoridadesSelect').select2({
+                    placeholder: 'Buscar autoridades por clave o descripción…',
+                    minimumInputLength: 2,
+                    closeOnSelect: false,
+                    ajax: {
+                        url: "{{ url_for('dgt_plataformas_autoridades.select2_json', dgt_plataforma_id=dgt_plataforma.id) }}",
+                        headers: { 'X-CSRF-TOKEN': csrfToken },
+                        dataType: 'json',
+                        delay: 250,
+                        type: 'POST',
+                        data: function(params) {
+                            return { 'searchString': params.term };
+                        }
+                    },
+                    language: {
+                        inputTooShort: function() { return 'Escriba al menos 2 caracteres'; },
+                        noResults: function() { return 'No se encontraron autoridades'; },
+                        searching: function() { return 'Buscando…'; }
+                    }
+                });
+            });
+
+            // Agregar las autoridades elegidas
+            function agregarAutoridades() {
+                const ids = $('#autoridadesSelect').val() || [];
+                if (ids.length === 0) {
+                    mostrarMensajeAutoridades('warning', 'Elija al menos una autoridad para agregar.');
+                    return;
+                }
+                const boton = $('#agregarAutoridadesBtn');
+                boton.prop('disabled', true);
+                const cuerpo = new URLSearchParams();
+                ids.forEach(function(id) { cuerpo.append('autoridades_ids', id); });
+                fetch("{{ url_for('dgt_plataformas_autoridades.add_json', dgt_plataforma_id=dgt_plataforma.id) }}", {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken },
+                    body: cuerpo
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        mostrarMensajeAutoridades(data.success ? 'success' : 'warning', data.message, data.omitidas || []);
+                        $('#autoridadesSelect').val(null).trigger('change');
+                        recargarAutoridades();
+                    })
+                    .catch((error) => {
+                        mostrarMensajeAutoridades('danger', 'No se pudieron agregar las autoridades. ¿Tiene permiso para crear?');
+                        console.log(error);
+                    })
+                    .finally(() => {
+                        boton.prop('disabled', false);
+                    });
+            }
+        </script>
+    {% endif %}
+    {% if ver_endpoints %}
+        <script>
+            // DataTable DGT Plataformas Endpoints
+            let configDTDgtPlataformasEndpoints = constructorDataTable.config();
+            configDTDgtPlataformasEndpoints['ajax']['url'] = "{{ url_for('dgt_plataformas_endpoints.datatable_json') }}";
+            configDTDgtPlataformasEndpoints['ajax']['data'] = { 'estatus': "A", 'dgt_plataforma_id': "{{ dgt_plataforma.id }}" };
+            configDTDgtPlataformasEndpoints['columns'] = [
+                { data: "detalle" },
+                { data: "proposito" },
+                { data: "metodo" },
+                { data: "ruta" }
+            ];
+            configDTDgtPlataformasEndpoints['columnDefs'] = [
+                {
+                    targets: 0, // detalle
+                    data: null,
+                    render: function(data, type, row, meta) {
+                        return '<a href="' + data.url + '">' + data.descripcion + '</a>';
+                    }
+                }
+            ];
+            $('#dgt_plataformas_endpoints_datatable').DataTable(configDTDgtPlataformasEndpoints);
+        </script>
+    {% endif %}
+{% endblock %}

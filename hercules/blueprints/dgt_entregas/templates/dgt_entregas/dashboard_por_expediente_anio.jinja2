@@ -1,0 +1,132 @@
+{% extends 'layouts/app.jinja2' %}
+{% import 'macros/detail.jinja2' as detail %}
+{% import 'macros/topbar.jinja2' as topbar %}
+
+{% block custom_head %}
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block title %}Entregas por año del expediente{% endblock %}
+
+{% block topbar_actions %}
+    {% call topbar.page_buttons('Entregas por año del expediente') %}
+        {{ topbar.button_dashboard('Por archivo actualizado', url_for('dgt_entregas.dashboard_por_archivo_actualizado')) }}
+        {{ topbar.button_previous('Entregas', url_for('dgt_entregas.list_active')) }}
+    {% endcall %}
+{% endblock %}
+
+{% block content %}
+    {% call detail.card(title='Gráfico por materia y año') %}
+        <canvas id="dashboard_chart" style="max-height: 420px;"></canvas>
+    {% endcall %}
+    {% call detail.card(title='Totales por materia y año') %}
+        <table id="dashboard_datatable" class="table display nowrap" style="width:100%"></table>
+    {% endcall %}
+{% endblock %}
+
+{% block custom_javascript %}
+    <script>
+      const listActiveUrl = "{{ url_for('dgt_entregas.list_active') }}";
+
+      fetch("{{ url_for('dgt_entregas.get_totales_por_expediente_anio_json') }}", {
+        method: "GET",
+        headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+      })
+        .then((response) => response.json())
+        .then((json) => {
+          if (!json.success) {
+            console.error("Error al obtener los totales:", json.message);
+            return;
+          }
+          const totales = json.totales;
+
+          // Materias únicas ordenadas alfabéticamente
+          const materias = [...new Set(totales.map((r) => r.materia_nombre))].sort();
+
+          // Años únicos descendentes para la tabla
+          const aniosDesc = [...new Set(totales.map((r) => r.anio))].sort((a, b) => b - a);
+
+          // ID de cada materia por su nombre, para elaborar los enlaces
+          const materiasIds = {};
+          totales.forEach((r) => {
+            materiasIds[r.materia_nombre] = r.materia_id;
+          });
+
+          // Índice de acceso rápido: {anio: {materia: total}}
+          const indice = {};
+          totales.forEach((r) => {
+            if (!indice[r.anio]) indice[r.anio] = {};
+            indice[r.anio][r.materia_nombre] = r.total;
+          });
+
+          // --- Gráfico ---
+
+          // Total acumulado de todos los años por materia
+          const totalesPorMateria = materias.map((materia) =>
+            totales.filter((r) => r.materia_nombre === materia).reduce((suma, r) => suma + r.total, 0)
+          );
+
+          new Chart(document.getElementById("dashboard_chart"), {
+            type: "bar",
+            data: {
+              labels: materias,
+              datasets: [
+                {
+                  label: "Total",
+                  data: totalesPorMateria,
+                  backgroundColor: "rgba(54, 162, 235, 0.7)",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+                title: { display: true, text: "Total de entregas por materia" },
+              },
+              scales: {
+                x: { title: { display: true, text: "Materia" } },
+                y: { beginAtZero: true, title: { display: true, text: "Total" }, ticks: { precision: 0 } },
+              },
+            },
+          });
+
+          // --- DataTable ---
+
+          const data = aniosDesc.map((anio) => {
+            const fila = { anio };
+            materias.forEach((materia) => {
+              fila[materia] = indice[anio]?.[materia] ?? 0;
+            });
+            return fila;
+          });
+
+          const columns = [
+            { title: "Año", data: "anio" },
+            ...materias.map((materia) => ({
+              title: materia,
+              data: materia,
+              render: (total, type, row) => {
+                if (type !== "display" || total === 0 || row.anio === null) return total;
+                const params = new URLSearchParams({ expediente_anio: row.anio, materia_id: materiasIds[materia] });
+                return `<a href="${listActiveUrl}?${params}">${total}</a>`;
+              },
+            })),
+          ];
+
+          $("#dashboard_datatable").DataTable({
+            data,
+            columns,
+            ordering: false,
+            searching: false,
+            responsive: true,
+            scrollX: true,
+            paging: false,
+            info: false,
+            language: { zeroRecords: "No se encontraron registros" },
+          });
+        })
+        .catch((error) => console.error("Error al cargar el dashboard:", error));
+    </script>
+{% endblock %}

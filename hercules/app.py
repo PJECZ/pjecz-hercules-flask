@@ -28,6 +28,17 @@ from hercules.blueprints.cid_areas.views import cid_areas
 from hercules.blueprints.cid_areas_autoridades.views import cid_areas_autoridades
 from hercules.blueprints.cid_formatos.views import cid_formatos
 from hercules.blueprints.cid_procedimientos.views import cid_procedimientos
+from hercules.blueprints.dgt_depositos.views import dgt_depositos
+from hercules.blueprints.dgt_digitalizaciones.views import dgt_digitalizaciones
+from hercules.blueprints.dgt_digitalizaciones_bitacoras.views import dgt_digitalizaciones_bitacoras
+from hercules.blueprints.dgt_entregas.views import dgt_entregas
+from hercules.blueprints.dgt_entregas_bitacoras.views import dgt_entregas_bitacoras
+from hercules.blueprints.dgt_plataformas.views import dgt_plataformas
+from hercules.blueprints.dgt_plataformas_autoridades.views import dgt_plataformas_autoridades
+from hercules.blueprints.dgt_plataformas_endpoints.views import dgt_plataformas_endpoints
+from hercules.blueprints.dgt_plataformas_endpoints_bitacoras.views import dgt_plataformas_endpoints_bitacoras
+from hercules.blueprints.dgt_rutas.views import dgt_rutas
+from hercules.blueprints.dgt_tipos.views import dgt_tipos
 from hercules.blueprints.distritos.views import distritos
 from hercules.blueprints.domicilios.views import domicilios
 from hercules.blueprints.edictos.views import edictos
@@ -135,6 +146,17 @@ def create_app():
     app.register_blueprint(cid_areas_autoridades)
     app.register_blueprint(cid_formatos)
     app.register_blueprint(cid_procedimientos)
+    app.register_blueprint(dgt_depositos)
+    app.register_blueprint(dgt_digitalizaciones)
+    app.register_blueprint(dgt_digitalizaciones_bitacoras)
+    app.register_blueprint(dgt_entregas)
+    app.register_blueprint(dgt_entregas_bitacoras)
+    app.register_blueprint(dgt_plataformas)
+    app.register_blueprint(dgt_plataformas_autoridades)
+    app.register_blueprint(dgt_plataformas_endpoints)
+    app.register_blueprint(dgt_plataformas_endpoints_bitacoras)
+    app.register_blueprint(dgt_rutas)
+    app.register_blueprint(dgt_tipos)
     app.register_blueprint(domicilios)
     app.register_blueprint(exh_areas)
     app.register_blueprint(exh_exhortos)

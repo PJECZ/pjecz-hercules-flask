@@ -15,6 +15,10 @@ class MyAuthenticationError(MyAnyError):
     """Excepción porque fallo la autentificacion"""
 
 
+class MyBucketForbiddenError(MyAnyError):
+    """Excepción porque no tiene permiso en el bucket"""
+
+
 class MyBucketNotFoundError(MyAnyError):
     """Excepción porque no se encontró el bucket"""
 
