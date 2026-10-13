@@ -64,7 +64,7 @@
     {% call detail.card() %}
         {% if dgt_digitalizacion.archivo_tamano > vista_previa_pdf_max_size_mb %}
             <a href="" class="w-100 btn btn-lg btn-success my-2" id="downloadPDFButton" target="_blank" style="display: none;">
-                <span class="mdi:download"></span> Descargar archivo {{ tamano_legible }}
+                <span class="iconify" data-icon="mdi:download"></span> Descargar archivo {{ tamano_legible }}
             </a>
             <div class="alert alert-danger" role="alert" id="downloadPDFError" style="display: none;">
                 No se pudo obtener el enlace para descargar el archivo PDF.
