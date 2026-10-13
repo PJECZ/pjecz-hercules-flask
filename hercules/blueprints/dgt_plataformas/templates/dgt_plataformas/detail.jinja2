@@ -49,7 +49,7 @@
                     </div>
                     <div class="col-md-2 d-grid">
                         <button id="agregarAutoridadesBtn" type="button" class="btn btn-primary" onclick="agregarAutoridades();">
-                            <span class="mdi:plus"></span> Agregar
+                            <span class="iconify" data-icon="mdi:plus"></span> Agregar
                         </button>
                     </div>
                 </div>
@@ -75,8 +75,8 @@
                     </div>
                 </div>
                 <div class="col-4 text-end">
-                    <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDTDgtPlataformasAutoridades.buscar(); return false;"><span class="mdi:magnify"></span></button>
-                    <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDTDgtPlataformasAutoridades.limpiar();"><span class="mdi:broom"></span></button>
+                    <button title="Buscar" class="btn btn-primary btn-lg" onclick="filtrosDTDgtPlataformasAutoridades.buscar(); return false;"><span class="iconify" data-icon="mdi:magnify"></span></button>
+                    <button title="Limpiar" class="btn btn-warning btn-lg" type="reset" onclick="filtrosDTDgtPlataformasAutoridades.limpiar();"><span class="iconify" data-icon="mdi:broom"></span></button>
                 </div>
             </form>
             <!-- Datatable autoridades asignadas -->
@@ -149,7 +149,7 @@
                         if (data.url === '') {
                             return '';
                         }
-                        return '<button type="button" class="btn btn-sm btn-outline-danger btn-quitar-autoridad" title="Quitar de esta plataforma" data-url="' + data.url + '" data-clave="' + data.autoridad_clave + '"><span class="mdi:link-variant-off"></span></button>';
+                        return '<button type="button" class="btn btn-sm btn-outline-danger btn-quitar-autoridad" title="Quitar de esta plataforma" data-url="' + data.url + '" data-clave="' + data.autoridad_clave + '"><span class="iconify" data-icon="mdi:link-variant-off"></span></button>';
                     }
                 }
             ];
@@ -205,7 +205,7 @@
                     setTimeout(function() {
                         if (boton.hasClass('confirmando')) {
                             boton.removeClass('confirmando btn-danger').addClass('btn-outline-danger');
-                            boton.html('<span class="mdi:link-variant-off"></span>');
+                            boton.html('<span class="iconify" data-icon="mdi:link-variant-off"></span>');
                         }
                     }, 4000);
                     return;
