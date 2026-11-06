@@ -3,6 +3,13 @@
 {% import 'macros/modals.jinja2' as modals %}
 {% import 'macros/topbar.jinja2' as topbar %}
 
+{% block custom_head %}
+    {% if graficas_blueprint %}
+        <!-- Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    {% endif %}
+{% endblock %}
+
 {% block title %}DGT Depósito {{ dgt_deposito.clave }}{% endblock %}
 
 {% block topbar_actions %}
@@ -26,6 +33,30 @@
             {{ detail.label_value('Propósito', dgt_deposito.proposito) }}
         </div>
     {% endcall %}
+    {% if graficas_blueprint %}
+        <div class="row">
+            <div class="col-lg-6">
+                {% call detail.card(title='Archivos por autoridad') %}
+                    <canvas id="grafico_por_autoridad" style="max-height: 420px;"></canvas>
+                {% endcall %}
+            </div>
+            <div class="col-lg-6">
+                {% call detail.card(title='Archivos por día') %}
+                    <!-- Botones para elegir el periodo -->
+                    <div class="mb-3">
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Periodo">
+                            <button type="button" class="btn btn-outline-primary boton-periodo" data-dias="30">30 días</button>
+                            <button type="button" class="btn btn-outline-primary boton-periodo" data-dias="60">60 días</button>
+                            <button type="button" class="btn btn-outline-primary boton-periodo" data-dias="90">90 días</button>
+                            <button type="button" class="btn btn-outline-primary boton-periodo" data-dias="180">180 días</button>
+                        </div>
+                        <span id="grafico_por_dia_periodo" class="ms-3 text-muted"></span>
+                    </div>
+                    <canvas id="grafico_por_dia" style="max-height: 420px;"></canvas>
+                {% endcall %}
+            </div>
+        </div>
+    {% endif %}
     {% if current_user.can_view('DGT RUTAS') and dgt_deposito.estatus == 'A' %}
         {% call detail.card('Rutas') %}
             <!-- Filtros DGT Rutas -->
@@ -100,6 +131,166 @@
             filtrosDTDgtRutas.agregarInput('filtroClave', 'clave');
             filtrosDTDgtRutas.agregarInput('filtroAutoridadClave', 'autoridad_clave');
             filtrosDTDgtRutas.precargar();
+        </script>
+    {% endif %}
+    {% if graficas_blueprint %}
+        <script>
+          const dgtDepositoId = "{{ dgt_deposito.id }}";
+          const totalesPorDiaUrl = "{{ url_for(graficas_blueprint + '.get_totales_por_materia_por_archivo_actualizado_json') }}";
+          const totalesPorAutoridadUrl = "{{ url_for(graficas_blueprint + '.get_totales_por_autoridad_json') }}";
+
+          // Colores para cada materia en el gráfico por día
+          const colores = [
+            "rgb(54, 162, 235)",
+            "rgb(255, 99, 132)",
+            "rgb(75, 192, 192)",
+            "rgb(255, 159, 64)",
+            "rgb(153, 102, 255)",
+            "rgb(255, 205, 86)",
+            "rgb(201, 203, 207)",
+            "rgb(46, 139, 87)",
+            "rgb(128, 0, 0)",
+            "rgb(0, 0, 128)",
+          ];
+
+          // --- Gráfico de barras verticales por autoridad ---
+
+          fetch(`${totalesPorAutoridadUrl}?${new URLSearchParams({ dgt_deposito_id: dgtDepositoId })}`, {
+            method: "GET",
+            headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+          })
+            .then((response) => response.json())
+            .then((json) => {
+              if (!json.success) {
+                console.error("Error al obtener los totales por autoridad:", json.message);
+                return;
+              }
+              const totales = json.totales;
+
+              // Autoridades únicas ordenadas alfabéticamente (se descartan las sin clave)
+              const autoridades = [...new Set(totales.map((r) => r.autoridad_clave).filter((v) => v !== null && v !== ""))].sort();
+
+              // Total acumulado de todos los años por autoridad
+              const totalesPorAutoridad = autoridades.map((autoridad) =>
+                totales.filter((r) => r.autoridad_clave === autoridad).reduce((suma, r) => suma + r.total, 0)
+              );
+
+              new Chart(document.getElementById("grafico_por_autoridad"), {
+                type: "bar",
+                data: {
+                  labels: autoridades,
+                  datasets: [{
+                    label: "Total",
+                    data: totalesPorAutoridad,
+                    backgroundColor: "rgba(54, 162, 235, 0.7)",
+                  }],
+                },
+                options: {
+                  responsive: true,
+                  plugins: {
+                    legend: { display: false },
+                  },
+                  scales: {
+                    x: { title: { display: true, text: "Autoridad" } },
+                    y: { beginAtZero: true, title: { display: true, text: "Total" }, ticks: { precision: 0 } },
+                  },
+                },
+              });
+            })
+            .catch((error) => console.error("Error al cargar el gráfico por autoridad:", error));
+
+          // --- Gráfico de Archivos por día ---
+
+          let graficoPorDia = null;
+
+          // Convertir una fecha a texto AAAA-MM-DD en hora local
+          function fechaATexto(fecha) {
+            const anio = fecha.getFullYear();
+            const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+            const dia = String(fecha.getDate()).padStart(2, "0");
+            return `${anio}-${mes}-${dia}`;
+          }
+
+          // Cargar el gráfico de los últimos N días, incluyendo hoy
+          function cargarGraficoPorDia(dias) {
+            const fechaFinal = new Date();
+            const fechaInicial = new Date(fechaFinal);
+            fechaInicial.setDate(fechaFinal.getDate() - (dias - 1));
+
+            // Marcar el botón activo
+            document.querySelectorAll(".boton-periodo").forEach((boton) => {
+              boton.classList.toggle("active", Number(boton.dataset.dias) === dias);
+            });
+            document.getElementById("grafico_por_dia_periodo").textContent =
+              `Del ${fechaATexto(fechaInicial)} al ${fechaATexto(fechaFinal)}`;
+
+            // Todas las fechas del periodo, para que los días sin registros aparezcan con cero
+            const fechas = [];
+            for (let f = new Date(fechaInicial); f <= fechaFinal; f.setDate(f.getDate() + 1)) {
+              fechas.push(fechaATexto(f));
+            }
+
+            const params = new URLSearchParams({
+              fecha_inicial: fechaATexto(fechaInicial),
+              fecha_final: fechaATexto(fechaFinal),
+              dgt_deposito_id: dgtDepositoId,
+            });
+
+            fetch(`${totalesPorDiaUrl}?${params}`, {
+              method: "GET",
+              headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+            })
+              .then((response) => response.json())
+              .then((json) => {
+                if (!json.success) {
+                  console.error("Error al obtener los totales por día:", json.message);
+                  return;
+                }
+                const totales = json.totales;
+
+                // Materias únicas ordenadas alfabéticamente
+                const materias = [...new Set(totales.map((r) => r.materia_nombre))].sort();
+
+                // Índice de acceso rápido: {fecha: {materia: total}}
+                const indice = {};
+                totales.forEach((r) => {
+                  if (!indice[r.fecha]) indice[r.fecha] = {};
+                  indice[r.fecha][r.materia_nombre] = r.total;
+                });
+
+                if (graficoPorDia) graficoPorDia.destroy();
+                graficoPorDia = new Chart(document.getElementById("grafico_por_dia"), {
+                  type: "line",
+                  data: {
+                    labels: fechas,
+                    datasets: materias.map((materia, i) => ({
+                      label: materia,
+                      data: fechas.map((fecha) => indice[fecha]?.[materia] ?? 0),
+                      borderColor: colores[i % colores.length],
+                      backgroundColor: colores[i % colores.length],
+                      tension: 0.2,
+                    })),
+                  },
+                  options: {
+                    responsive: true,
+                    interaction: { mode: "index", intersect: false },
+                    scales: {
+                      x: { title: { display: true, text: "Fecha" } },
+                      y: { beginAtZero: true, title: { display: true, text: "Total" }, ticks: { precision: 0 } },
+                    },
+                  },
+                });
+              })
+              .catch((error) => console.error("Error al cargar el gráfico por día:", error));
+          }
+
+          // Botones para cambiar el periodo
+          document.querySelectorAll(".boton-periodo").forEach((boton) => {
+            boton.addEventListener("click", () => cargarGraficoPorDia(Number(boton.dataset.dias)));
+          });
+
+          // Por defecto los últimos 30 días
+          cargarGraficoPorDia(30);
         </script>
     {% endif %}
 {% endblock %}

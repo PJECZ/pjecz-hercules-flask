@@ -41,9 +41,9 @@ def datatable_json():
     consulta = DgtRuta.query
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
-        consulta = consulta.filter_by(estatus=request.form["estatus"])
+        consulta = consulta.filter(DgtRuta.estatus == request.form["estatus"])
     else:
-        consulta = consulta.filter_by(estatus="A")
+        consulta = consulta.filter(DgtRuta.estatus == "A")
     if "clave" in request.form:
         try:
             clave = safe_clave(request.form["clave"], max_len=64)
@@ -130,9 +130,17 @@ def detail(dgt_ruta_id):
         flash("ID de DGT Ruta inválido", "warning")
         return redirect(url_for("dgt_rutas.list_active"))
     dgt_ruta = DgtRuta.query.get_or_404(dgt_ruta_id)
+    # Según el propósito del depósito de la ruta, elegir el blueprint del que se tomarán las gráficas
+    graficas_blueprint = ""
+    if dgt_ruta.estatus == "A":
+        if dgt_ruta.dgt_deposito.proposito == "ENTREGAS" and current_user.can_view("DGT ENTREGAS"):
+            graficas_blueprint = "dgt_entregas"
+        elif dgt_ruta.dgt_deposito.proposito == "DIGITALIZACIONES" and current_user.can_view("DGT DIGITALIZACIONES"):
+            graficas_blueprint = "dgt_digitalizaciones"
     return render_template(
         "dgt_rutas/detail.jinja2",
         dgt_ruta=dgt_ruta,
+        graficas_blueprint=graficas_blueprint,
         dgt_digitalizaciones_eventos=DgtDigitalizacionBitacora.EVENTOS,
         dgt_entregas_eventos=DgtEntregaBitacora.EVENTOS,
     )

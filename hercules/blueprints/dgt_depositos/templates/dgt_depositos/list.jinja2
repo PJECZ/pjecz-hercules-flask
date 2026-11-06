@@ -6,12 +6,6 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {% if current_user.can_view('DGT RUTAS') %}
-            {{ topbar.button('Rutas', url_for('dgt_rutas.list_active'), 'mdi:source-branch') }}
-        {% endif %}
-        {% if current_user.can_view('DGT TIPOS') %}
-            {{ topbar.button('Tipos', url_for('dgt_tipos.list_active'), 'mdi:label') }}
-        {% endif %}
         {% if current_user.can_admin('DGT DEPOSITOS') %}
             {% if estatus == 'A' %}{{ topbar.button_list_inactive('Inactivos', url_for('dgt_depositos.list_inactive')) }}{% endif %}
             {% if estatus == 'B' %}{{ topbar.button_list_active('Activos', url_for('dgt_depositos.list_active')) }}{% endif %}

@@ -1,7 +1,7 @@
 [project]
 name = "pjecz-hercules-flask"
 version = "0.1.0"
-description = "Hercules es la segunda version de la Plataforma Web hecha con Flask."
+description = "Hercules es el frontend de la Plataforma Web hecha con Flask."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
@@ -56,6 +56,8 @@ line_length = 128
 profile = "black"
 
 [tool.basedpyright]
+venvPath = "."
+venv = ".venv"
 pythonVersion = "3.14"
 typeCheckingMode = "basic"
 reportCallIssue = "hint"

@@ -37,9 +37,9 @@ def datatable_json():
     consulta = DgtDepositos.query
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
-        consulta = consulta.filter_by(estatus=request.form["estatus"])
+        consulta = consulta.filter(DgtDepositos.estatus == request.form["estatus"])
     else:
-        consulta = consulta.filter_by(estatus="A")
+        consulta = consulta.filter(DgtDepositos.estatus == "A")
     if "clave" in request.form:
         try:
             clave = safe_clave(request.form["clave"], max_len=64)
@@ -102,7 +102,17 @@ def detail(dgt_deposito_id):
         flash("ID de DGT Depósito inválido", "warning")
         return redirect(url_for("dgt_depositos.list_active"))
     dgt_deposito = DgtDepositos.query.get_or_404(dgt_deposito_id)
-    return render_template("dgt_depositos/detail.jinja2", dgt_deposito=dgt_deposito)
+    # Según el propósito del depósito, elegir el blueprint del que se tomarán las gráficas
+    graficas_blueprint = ""
+    if dgt_deposito.proposito == "ENTREGAS" and current_user.can_view("DGT ENTREGAS"):
+        graficas_blueprint = "dgt_entregas"
+    elif dgt_deposito.proposito == "DIGITALIZACIONES" and current_user.can_view("DGT DIGITALIZACIONES"):
+        graficas_blueprint = "dgt_digitalizaciones"
+    return render_template(
+        "dgt_depositos/detail.jinja2",
+        dgt_deposito=dgt_deposito,
+        graficas_blueprint=graficas_blueprint,
+    )
 
 
 @dgt_depositos.route("/dgt_depositos/nuevo", methods=["GET", "POST"])
