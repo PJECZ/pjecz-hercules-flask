@@ -232,9 +232,108 @@ def detail(dgt_digitalizacion_id):
     )
 
 
+@dgt_digitalizaciones.route("/dgt_digitalizaciones/obtener_totales_por_autoridad")
+def get_totales_por_autoridad_json():
+    """Obtener los totales de DGT Digitalizaciones por autoridad en JSON"""
+
+    # Si viene el ID del depósito, validarlo para filtrar por éste
+    dgt_deposito_id = None
+    if "dgt_deposito_id" in request.args:
+        dgt_deposito_id = safe_uuid(request.args["dgt_deposito_id"])
+        if dgt_deposito_id == "":
+            return {
+                "success": False,
+                "message": "ID de DGT Depósito inválido",
+                "totales": [],
+            }
+
+    # Si viene el ID de la ruta, validarlo para filtrar por ésta
+    dgt_ruta_id = None
+    if "dgt_ruta_id" in request.args:
+        dgt_ruta_id = safe_uuid(request.args["dgt_ruta_id"])
+        if dgt_ruta_id == "":
+            return {
+                "success": False,
+                "message": "ID de DGT Ruta inválida",
+                "totales": [],
+            }
+
+    # Consultar los totales por autoridad
+    consulta = (
+        database.session.query(
+            Autoridad.id.label("autoridad_id"),
+            Autoridad.clave.label("autoridad_clave"),
+            func.count(DgtDigitalizacion.id).label("total"),
+        )
+        .select_from(
+            DgtDigitalizacion,
+        )
+        .join(
+            Autoridad,
+        )
+        .where(
+            DgtDigitalizacion.estatus == "A",
+        )
+    )
+
+    # Si viene el ID del depósito o el ID de la ruta, filtrar por las rutas de éste
+    if dgt_deposito_id:
+        consulta = consulta.join(DgtDigitalizacion.dgt_ruta).where(DgtRuta.dgt_deposito_id == dgt_deposito_id)
+    elif dgt_ruta_id:
+        consulta = consulta.where(DgtDigitalizacion.dgt_ruta_id == dgt_ruta_id)
+
+    # Agrupar y ordenar
+    consulta = (
+        consulta.group_by(
+            Autoridad.id,
+            Autoridad.clave,
+        )
+        .order_by(
+            Autoridad.clave,
+        )
+        .all()
+    )
+
+    # Entregar la lista de totales
+    return {
+        "success": True,
+        "message": "Entrega exitosa del listado de totales por autoridad",
+        "totales": [
+            {
+                "autoridad_id": row.autoridad_id,
+                "autoridad_clave": row.autoridad_clave,
+                "total": row.total,
+            }
+            for row in consulta
+        ],
+    }
+
+
 @dgt_digitalizaciones.route("/dgt_digitalizaciones/obtener_totales_por_expediente_anio")
 def get_totales_por_expediente_anio_json():
     """Obtener los totales de DGT Digitalizaciones por materia y por año en JSON"""
+
+    # Si viene el ID del depósito, validarlo para filtrar por éste
+    dgt_deposito_id = None
+    if "dgt_deposito_id" in request.args:
+        dgt_deposito_id = safe_uuid(request.args["dgt_deposito_id"])
+        if dgt_deposito_id == "":
+            return {
+                "success": False,
+                "message": "ID de DGT Depósito inválido",
+                "totales": [],
+            }
+
+    # Si viene el ID de la ruta, validarlo para filtrar por ésta
+    dgt_ruta_id = None
+    if "dgt_ruta_id" in request.args:
+        dgt_ruta_id = safe_uuid(request.args["dgt_ruta_id"])
+        if dgt_ruta_id == "":
+            return {
+                "success": False,
+                "message": "ID de DGT Ruta inválida",
+                "totales": [],
+            }
 
     # Consultar los totales por materia por año
     consulta = (
@@ -257,7 +356,17 @@ def get_totales_por_expediente_anio_json():
         .where(
             DgtDigitalizacion.estatus == "A",
         )
-        .group_by(
+    )
+
+    # Si viene el ID del depósito o el ID de la ruta, filtrar por las rutas de éste
+    if dgt_deposito_id:
+        consulta = consulta.join(DgtDigitalizacion.dgt_ruta).where(DgtRuta.dgt_deposito_id == dgt_deposito_id)
+    elif dgt_ruta_id:
+        consulta = consulta.where(DgtDigitalizacion.dgt_ruta_id == dgt_ruta_id)
+
+    # Agrupar y ordenar
+    consulta = (
+        consulta.group_by(
             Materia.id,
             Materia.nombre,
             DgtDigitalizacion.expediente_anio,
@@ -307,6 +416,28 @@ def get_totales_por_materia_por_archivo_actualizado_json():
             "totales": [],
         }
 
+    # Si viene el ID del depósito, validarlo para filtrar por éste
+    dgt_deposito_id = None
+    if "dgt_deposito_id" in request.args:
+        dgt_deposito_id = safe_uuid(request.args["dgt_deposito_id"])
+        if dgt_deposito_id == "":
+            return {
+                "success": False,
+                "message": "ID de DGT Depósito inválido",
+                "totales": [],
+            }
+
+    # Si viene el ID de la ruta, validarlo para filtrar por ésta
+    dgt_ruta_id = None
+    if "dgt_ruta_id" in request.args:
+        dgt_ruta_id = safe_uuid(request.args["dgt_ruta_id"])
+        if dgt_ruta_id == "":
+            return {
+                "success": False,
+                "message": "ID de DGT Ruta inválida",
+                "totales": [],
+            }
+
     # Tomar solo la fecha de archivo_actualizado para agrupar
     fecha = cast(DgtDigitalizacion.archivo_actualizado, Date)
 
@@ -333,7 +464,17 @@ def get_totales_por_materia_por_archivo_actualizado_json():
             DgtDigitalizacion.archivo_actualizado >= fecha_inicial,
             DgtDigitalizacion.archivo_actualizado < fecha_final + timedelta(days=1),
         )
-        .group_by(
+    )
+
+    # Si viene el ID del depósito o el ID de la ruta, filtrar por las rutas de éste
+    if dgt_deposito_id:
+        consulta = consulta.join(DgtDigitalizacion.dgt_ruta).where(DgtRuta.dgt_deposito_id == dgt_deposito_id)
+    elif dgt_ruta_id:
+        consulta = consulta.where(DgtDigitalizacion.dgt_ruta_id == dgt_ruta_id)
+
+    # Agrupar y ordenar
+    consulta = (
+        consulta.group_by(
             Materia.id,
             Materia.nombre,
             fecha,
