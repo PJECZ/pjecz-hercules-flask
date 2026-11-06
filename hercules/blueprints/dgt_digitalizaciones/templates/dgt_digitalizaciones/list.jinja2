@@ -6,8 +6,8 @@
 
 {% block topbar_actions %}
     {% call topbar.page_buttons(titulo) %}
-        {% if current_user.can_view('DGT RUTAS') %}
-            {{ topbar.button('Rutas', url_for('dgt_rutas.list_active'), 'mdi:source-branch') }}
+        {% if current_user.can_view('DGT DEPOSITOS') %}
+            {{ topbar.button('Depósitos', url_for('dgt_depositos.list_active'), 'mdi:package') }}
         {% endif %}
         {{ topbar.button_dashboard('Por año del expediente', url_for('dgt_digitalizaciones.dashboard_por_expediente_anio')) }}
         {{ topbar.button_dashboard('Por archivo actualizado', url_for('dgt_digitalizaciones.dashboard_por_archivo_actualizado')) }}

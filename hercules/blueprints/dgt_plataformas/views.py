@@ -37,9 +37,9 @@ def datatable_json():
     consulta = DgtPlataforma.query
     # Primero filtrar por columnas propias
     if "estatus" in request.form:
-        consulta = consulta.filter_by(estatus=request.form["estatus"])
+        consulta = consulta.filter(DgtPlataforma.estatus == request.form["estatus"])
     else:
-        consulta = consulta.filter_by(estatus="A")
+        consulta = consulta.filter(DgtPlataforma.estatus == "A")
     if "descripcion" in request.form:
         descripcion = safe_string(request.form["descripcion"], save_enie=True)
         if descripcion != "":
